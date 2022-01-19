@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Compositor","A window graphics backend for iced powered by `glow`."]]});

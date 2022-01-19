@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Action","An operation to be performed on some window."],["Event","A window-related event."]]});

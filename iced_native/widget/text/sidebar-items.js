@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["draw","Draws text using the same logic as the [`Text`] widget."]],"struct":[["Text","A paragraph of text."]]});

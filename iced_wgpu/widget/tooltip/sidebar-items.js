@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Position","The position of the tooltip. Defaults to following the cursor."]],"type":[["Tooltip","A widget allowing the selection of a single value from a list of options."]]});

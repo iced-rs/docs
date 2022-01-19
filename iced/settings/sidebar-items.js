@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Settings","The settings of an application."]]});

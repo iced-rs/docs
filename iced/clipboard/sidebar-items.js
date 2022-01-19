@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["read","Read the current contents of the clipboard."],["write","Write the given contents to the clipboard."]]});

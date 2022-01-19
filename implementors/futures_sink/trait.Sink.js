@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["iced_winit"] = [{"text":"impl&lt;Message:&nbsp;'static&gt; Sink&lt;Message&gt; for <a class=\"struct\" href=\"iced_winit/struct.Proxy.html\" title=\"struct iced_winit::Proxy\">Proxy</a>&lt;Message&gt;","synthetic":false,"types":["iced_winit::proxy::Proxy"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

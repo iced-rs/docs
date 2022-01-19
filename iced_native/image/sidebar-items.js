@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Data","The data of an [`Image`]."]],"struct":[["Handle","An [`Image`] handle."]],"trait":[["Renderer","A [`Renderer`] that can render raster graphics."]]});

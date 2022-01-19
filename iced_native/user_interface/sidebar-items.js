@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["State","The resulting state after updating a [`UserInterface`]."]],"struct":[["Cache","Reusable data of a specific [`UserInterface`]."],["UserInterface","A set of interactive graphical elements with a specific [`Layout`]."]]});

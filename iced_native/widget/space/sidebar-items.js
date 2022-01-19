@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Space","An amount of empty space."]]});

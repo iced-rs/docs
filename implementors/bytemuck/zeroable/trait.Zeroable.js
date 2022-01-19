@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["iced_graphics"] = [{"text":"impl Zeroable for <a class=\"struct\" href=\"iced_graphics/layer/struct.Quad.html\" title=\"struct iced_graphics::layer::Quad\">Quad</a>","synthetic":false,"types":["iced_graphics::layer::Quad"]},{"text":"impl Zeroable for <a class=\"struct\" href=\"iced_graphics/triangle/struct.Vertex2D.html\" title=\"struct iced_graphics::triangle::Vertex2D\">Vertex2D</a>","synthetic":false,"types":["iced_graphics::triangle::Vertex2D"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

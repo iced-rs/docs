@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Error","An error that occurred while running an application."],["Mode","The mode of a window-based application."]],"mod":[["application","Create interactive, native cross-platform applications."],["clipboard","Access the clipboard."],["settings","Configure your application."],["window","Interact with the window of your application."]]});

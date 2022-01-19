@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Image","A raster or vector image."]],"struct":[["Layer","A group of primitives that should be clipped together."],["Mesh","A mesh of triangles."],["Quad","A colored rectangle with a border."],["Text","A paragraph of text."]]});

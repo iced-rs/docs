@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Default","A default cross-platform executor."]],"trait":[["Executor","A type that can run futures."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Data","The data of an [`Svg`]."]],"struct":[["Handle","An [`Svg`] handle."]],"trait":[["Renderer","A [`Renderer`] that can render vector graphics."]]});

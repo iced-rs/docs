@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Position","The position of the tooltip. Defaults to following the cursor."]],"struct":[["Tooltip","An element to display a widget over another."]]});

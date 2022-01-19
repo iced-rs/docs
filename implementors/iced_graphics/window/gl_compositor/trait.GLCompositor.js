@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["iced_glow"] = [{"text":"impl <a class=\"trait\" href=\"iced_graphics/window/gl_compositor/trait.GLCompositor.html\" title=\"trait iced_graphics::window::gl_compositor::GLCompositor\">GLCompositor</a> for <a class=\"struct\" href=\"iced_glow/window/struct.Compositor.html\" title=\"struct iced_glow::window::Compositor\">Compositor</a>","synthetic":false,"types":["iced_glow::window::compositor::Compositor"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

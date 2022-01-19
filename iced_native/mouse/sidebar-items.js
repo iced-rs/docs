@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Button","The button of a mouse."],["Event","A mouse event."],["Interaction","The interaction of a mouse cursor."],["ScrollDelta","A scroll movement."]],"mod":[["click","Track mouse clicks."]]});

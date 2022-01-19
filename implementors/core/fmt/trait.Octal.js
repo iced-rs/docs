@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["iced_core"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.58.0/core/fmt/trait.Octal.html\" title=\"trait core::fmt::Octal\">Octal</a> for <a class=\"struct\" href=\"iced_core/keyboard/struct.Modifiers.html\" title=\"struct iced_core::keyboard::Modifiers\">Modifiers</a>","synthetic":false,"types":["iced_core::keyboard::modifiers::Modifiers"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

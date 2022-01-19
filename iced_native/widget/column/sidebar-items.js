@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Column","A container that distributes its contents vertically."]]});
