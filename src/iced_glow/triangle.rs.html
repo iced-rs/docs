@@ -291,8 +291,17 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Draw meshes of triangles.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::program</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::program</span>::{<span class="self">self</span>, <span class="ident">Shader</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Transformation</span>;
 <span class="kw">use</span> <span class="ident">glow::HasContext</span>;
 <span class="kw">use</span> <span class="ident">iced_graphics::layer</span>;
@@ -314,17 +323,26 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Pipeline</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>) -&gt; <span class="ident">Pipeline</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>,
+        <span class="ident">shader_version</span>: <span class="kw-2">&amp;</span><span class="ident">program::Version</span>,
+    ) -&gt; <span class="ident">Pipeline</span> {
         <span class="kw">let</span> <span class="ident">program</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="kw">let</span> <span class="ident">vertex_shader</span> <span class="op">=</span> <span class="ident">Shader::vertex</span>(
+                <span class="ident">gl</span>,
+                <span class="ident">shader_version</span>,
+                <span class="macro">include_str!</span>(<span class="string">&quot;shader/common/triangle.vert&quot;</span>),
+            );
+            <span class="kw">let</span> <span class="ident">fragment_shader</span> <span class="op">=</span> <span class="ident">Shader::fragment</span>(
+                <span class="ident">gl</span>,
+                <span class="ident">shader_version</span>,
+                <span class="macro">include_str!</span>(<span class="string">&quot;shader/common/triangle.frag&quot;</span>),
+            );
+
             <span class="ident">program::create</span>(
                 <span class="ident">gl</span>,
-                <span class="kw-2">&amp;</span>[
-                    (<span class="ident">glow::VERTEX_SHADER</span>, <span class="macro">include_str!</span>(<span class="string">&quot;shader/triangle.vert&quot;</span>)),
-                    (
-                        <span class="ident">glow::FRAGMENT_SHADER</span>,
-                        <span class="macro">include_str!</span>(<span class="string">&quot;shader/triangle.frag&quot;</span>),
-                    ),
-                ],
+                <span class="kw-2">&amp;</span>[<span class="ident">vertex_shader</span>, <span class="ident">fragment_shader</span>],
+                <span class="kw-2">&amp;</span>[(<span class="number">0</span>, <span class="string">&quot;i_Position&quot;</span>), (<span class="number">1</span>, <span class="string">&quot;i_Color&quot;</span>)],
             )
         };
 
