@@ -1,3 +1,3 @@
 (function() {var implementors = {};
-implementors["iced"] = [{"text":"impl <a class=\"trait\" href=\"iced/trait.Executor.html\" title=\"trait iced::Executor\">Executor</a> for <a class=\"struct\" href=\"iced/executor/struct.Default.html\" title=\"struct iced::executor::Default\">Default</a>","synthetic":false,"types":["iced::executor::platform::Default"]}];
+implementors["iced"] = [];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

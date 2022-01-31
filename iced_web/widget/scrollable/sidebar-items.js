@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Scrollable","A widget that can vertically display an infinite amount of content with a scrollbar."],["Scrollbar","The appearance of a scrollable."],["Scroller","The appearance of the scroller of a scrollable."],["State","The local state of a [`Scrollable`]."]],"trait":[["StyleSheet","A set of rules that dictate the style of a scrollable."]]});

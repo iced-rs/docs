@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["every","Returns a [`Subscription`] that produces messages at a set interval."]]});
+initSidebarItems({"fn":[["every","Returns a [`Subscription`] that produces messages at a set interval."]],"struct":[["Duration","A `Duration` type to represent a span of time, typically used for system timeouts."],["Instant","A measurement of a monotonically nondecreasing clock. Opaque and useful only with [`Duration`]."]]});

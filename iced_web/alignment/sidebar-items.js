@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Alignment","Alignment on the axis of a container."],["Horizontal","The horizontal [`Alignment`] of some resource."],["Vertical","The vertical [`Alignment`] of some resource."]]});

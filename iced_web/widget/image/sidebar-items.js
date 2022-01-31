@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Data","The data of an [`Image`]."]],"struct":[["Handle","An [`Image`] handle."],["Image","A frame that displays an image while keeping aspect ratio."]]});

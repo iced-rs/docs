@@ -1,1 +1,0 @@
-initSidebarItems({"trait":[["Recipe","The description of a [`Subscription`]."]],"type":[["Subscription","A request to listen to external events."]]});

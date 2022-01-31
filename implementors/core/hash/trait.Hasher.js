@@ -1,4 +1,3 @@
 (function() {var implementors = {};
 implementors["iced_native"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.58.1/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"iced_native/struct.Hasher.html\" title=\"struct iced_native::Hasher\">Hasher</a>","synthetic":false,"types":["iced_native::hasher::Hasher"]}];
-implementors["iced_web"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.58.1/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"iced_web/struct.Hasher.html\" title=\"struct iced_web::Hasher\">Hasher</a>","synthetic":false,"types":["iced_web::hasher::Hasher"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["iced","iced_core","iced_glow","iced_glutin","iced_graphics","iced_lazy","iced_native","iced_web","iced_wgpu","iced_winit"];
+window.ALL_CRATES = ["iced","iced_core","iced_glow","iced_glutin","iced_graphics","iced_lazy","iced_native","iced_wgpu","iced_winit"];
