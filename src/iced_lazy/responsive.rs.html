@@ -406,35 +406,6 @@
 <span id="405">405</span>
 <span id="406">406</span>
 <span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Build responsive widgets.</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Cache</span>, <span class="ident">CacheBuilder</span>};
 
@@ -445,11 +416,10 @@
 <span class="kw">use</span> <span class="ident">iced_native::renderer</span>;
 <span class="kw">use</span> <span class="ident">iced_native::window</span>;
 <span class="kw">use</span> <span class="ident">iced_native</span>::{
-    <span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Hasher</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Widget</span>,
+    <span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Widget</span>,
 };
 
 <span class="kw">use</span> <span class="ident">std::cell::RefCell</span>;
-<span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span> <span class="kw">as</span> <span class="kw">_</span>};
 <span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 
 <span class="doccomment">/// The state of a [`Responsive`] widget.</span>
@@ -457,7 +427,6 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">State</span> {
     <span class="ident">last_size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Size</span><span class="op">&gt;</span>,
     <span class="ident">last_layout</span>: <span class="ident">layout::Node</span>,
-    <span class="ident">last_layout_hash</span>: <span class="ident">u64</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">State</span> {
@@ -512,8 +481,6 @@
     <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
         <span class="ident">Length::Fill</span>
     }
-
-    <span class="kw">fn</span> <span class="ident">hash_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_hasher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Hasher</span>) {}
 
     <span class="kw">fn</span> <span class="ident">layout</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -707,26 +674,13 @@
                 <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span>
                     <span class="ident">view</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()(<span class="ident">state</span>.<span class="ident">last_size</span>.<span class="ident">unwrap_or</span>(<span class="ident">Size::ZERO</span>));
 
-                <span class="kw">let</span> <span class="ident">new_layout_hash</span> <span class="op">=</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">Hasher::default</span>();
-                    <span class="ident">element</span>.<span class="ident">hash_layout</span>(<span class="kw-2">&amp;mut</span> <span class="ident">hasher</span>);
-
-                    <span class="ident">hasher</span>.<span class="ident">finish</span>()
-                };
-
-                <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">last_size</span> <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>.<span class="ident">last_layout</span>.<span class="ident">size</span>())
-                    <span class="op">|</span><span class="op">|</span> <span class="ident">new_layout_hash</span> <span class="op">!</span><span class="op">=</span> <span class="ident">state</span>.<span class="ident">last_layout_hash</span>
-                {
-                    <span class="ident">state</span>.<span class="ident">last_layout</span> <span class="op">=</span> <span class="ident">element</span>.<span class="ident">layout</span>(
-                        <span class="ident">renderer</span>.<span class="ident">deref</span>(),
-                        <span class="kw-2">&amp;</span><span class="ident">layout::Limits::new</span>(
-                            <span class="ident">Size::ZERO</span>,
-                            <span class="ident">state</span>.<span class="ident">last_size</span>.<span class="ident">unwrap_or</span>(<span class="ident">Size::ZERO</span>),
-                        ),
-                    );
-
-                    <span class="ident">state</span>.<span class="ident">last_layout_hash</span> <span class="op">=</span> <span class="ident">new_layout_hash</span>;
-                }
+                <span class="ident">state</span>.<span class="ident">last_layout</span> <span class="op">=</span> <span class="ident">element</span>.<span class="ident">layout</span>(
+                    <span class="ident">renderer</span>.<span class="ident">deref</span>(),
+                    <span class="kw-2">&amp;</span><span class="ident">layout::Limits::new</span>(
+                        <span class="ident">Size::ZERO</span>,
+                        <span class="ident">state</span>.<span class="ident">last_size</span>.<span class="ident">unwrap_or</span>(<span class="ident">Size::ZERO</span>),
+                    ),
+                );
 
                 <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">Content::Ready</span>(<span class="prelude-val">Some</span>(
                     <span class="ident">CacheBuilder</span> {
@@ -835,18 +789,6 @@
             )
         })
         .<span class="ident">unwrap_or_default</span>()
-    }
-
-    <span class="kw">fn</span> <span class="ident">hash_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Hasher</span>, <span class="ident">position</span>: <span class="ident">Point</span>) {
-        <span class="kw">struct</span> <span class="ident">Marker</span>;
-        <span class="ident">std::any::TypeId::of</span>::<span class="op">&lt;</span><span class="ident">Marker</span><span class="op">&gt;</span>().<span class="ident">hash</span>(<span class="ident">state</span>);
-
-        (<span class="ident">position</span>.<span class="ident">x</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">hash</span>(<span class="ident">state</span>);
-        (<span class="ident">position</span>.<span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">hash</span>(<span class="ident">state</span>);
-
-        <span class="self">self</span>.<span class="ident">with_overlay_maybe</span>(<span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> {
-            <span class="ident">overlay</span>.<span class="ident">hash_layout</span>(<span class="ident">state</span>);
-        });
     }
 
     <span class="kw">fn</span> <span class="ident">on_event</span>(
