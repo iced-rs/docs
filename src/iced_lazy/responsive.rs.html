@@ -430,6 +430,11 @@
 <span id="429">429</span>
 <span id="430">430</span>
 <span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Build responsive widgets.</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Cache</span>, <span class="ident">CacheBuilder</span>};
 
@@ -610,7 +615,7 @@
             <span class="kw">let</span> <span class="ident">content_layout</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">layout</span>(<span class="ident">layout</span>);
 
             <span class="kw">match</span> <span class="ident">content</span> {
-                <span class="ident">Content::Pending</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+                <span class="ident">Content::Pending</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
                 <span class="ident">Content::Ready</span>(<span class="ident">cache</span>) =&gt; {
                     <span class="kw-2">*</span><span class="ident">cache</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
                         <span class="ident">CacheBuilder</span> {
@@ -622,14 +627,19 @@
                         .<span class="ident">build</span>(),
                     );
 
-                    <span class="ident">cache</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">borrow_overlay</span>().<span class="ident">is_some</span>()
+                    <span class="ident">cache</span>
+                        .<span class="ident">as_ref</span>()
+                        .<span class="ident">unwrap</span>()
+                        .<span class="ident">borrow_overlay</span>()
+                        .<span class="ident">as_ref</span>()
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> <span class="ident">overlay</span>.<span class="ident">position</span>())
                 }
             }
         };
 
-        <span class="ident">has_overlay</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="ident">has_overlay</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">position</span><span class="op">|</span> {
             <span class="ident">overlay::Element::new</span>(
-                <span class="ident">layout</span>.<span class="ident">position</span>(),
+                <span class="ident">position</span>,
                 <span class="ident">Box::new</span>(<span class="ident">Overlay</span> { <span class="ident">instance</span>: <span class="self">self</span> }),
             )
         })
