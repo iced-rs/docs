@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Position","The position of the tooltip. Defaults to following the cursor."]],"type":[["Tooltip","An element decorating some content."]]});

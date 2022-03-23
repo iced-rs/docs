@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["arc","Build and draw curves."]],"struct":[["Arc","A segment of a differentiable curve."],["Builder","A [`Path`] builder."],["Path","An immutable set of points that may or may not be connected."]]});

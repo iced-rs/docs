@@ -264,13 +264,16 @@
 <span id="262">262</span>
 <span id="263">263</span>
 <span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>::{<span class="self">self</span>, <span class="ident">Event</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::overlay</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::container</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::pane_grid::TitleBar</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::pane_grid</span>::{<span class="ident">Draggable</span>, <span class="ident">TitleBar</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>};
 
 <span class="doccomment">/// The content of a [`Pane`].</span>
@@ -364,23 +367,6 @@
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">body</span>
                 .<span class="ident">draw</span>(<span class="ident">renderer</span>, <span class="ident">style</span>, <span class="ident">layout</span>, <span class="ident">cursor_position</span>, <span class="ident">viewport</span>);
-        }
-    }
-
-    <span class="doccomment">/// Returns whether the [`Content`] with the given [`Layout`] can be picked</span>
-    <span class="doccomment">/// at the provided cursor position.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">can_be_picked_at</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-    ) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">title_bar</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">title_bar</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>();
-            <span class="kw">let</span> <span class="ident">title_bar_layout</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
-
-            <span class="ident">title_bar</span>.<span class="ident">is_over_pick_area</span>(<span class="ident">title_bar_layout</span>, <span class="ident">cursor_position</span>)
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
         }
     }
 
@@ -515,6 +501,26 @@
             }
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">overlay</span>(<span class="ident">layout</span>, <span class="ident">renderer</span>)
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Draggable</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">Content</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+{
+    <span class="kw">fn</span> <span class="ident">can_be_dragged_at</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
+    ) -&gt; <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">title_bar</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">title_bar</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>();
+            <span class="kw">let</span> <span class="ident">title_bar_layout</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+
+            <span class="ident">title_bar</span>.<span class="ident">is_over_pick_area</span>(<span class="ident">title_bar_layout</span>, <span class="ident">cursor_position</span>)
+        } <span class="kw">else</span> {
+            <span class="bool-val">false</span>
         }
     }
 }

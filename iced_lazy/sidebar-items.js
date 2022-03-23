@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["component","Build and reuse custom widgets using The Elm Architecture."],["responsive","Build responsive widgets."]]});
+initSidebarItems({"mod":[["component","Build and reuse custom widgets using The Elm Architecture."],["pure",""],["responsive","Build responsive widgets."]]});

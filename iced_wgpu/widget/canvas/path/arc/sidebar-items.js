@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Arc","A segment of a differentiable curve."],["Elliptical","An elliptical [`Arc`]."]]});

@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["viewer","Zoom and pan on an image."]],"struct":[["Handle","An [`Image`] handle."],["Image","A frame that displays an image while keeping aspect ratio."],["Viewer","A frame that displays an image with the ability to zoom in/out and pan."]]});
+initSidebarItems({"mod":[["viewer","Zoom and pan on an image."]],"struct":[["Handle","An [`Image`] handle."],["Viewer","A frame that displays an image with the ability to zoom in/out and pan."]],"type":[["Image","A frame that displays an image."]]});

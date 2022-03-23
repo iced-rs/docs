@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Scrollbar","The appearance of a scrollable."],["Scroller","The appearance of the scroller of a scrollable."]]});

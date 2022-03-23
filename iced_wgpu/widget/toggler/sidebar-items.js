@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Style","The appearance of a toggler."]],"trait":[["StyleSheet","A set of rules that dictate the style of a toggler."]],"type":[["Toggler","A toggler that can be toggled"]]});

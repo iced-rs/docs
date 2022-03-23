@@ -295,7 +295,20 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::pane_grid</span>::{
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The state of a [`PaneGrid`].</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::pane_grid</span>::{
     <span class="ident">Axis</span>, <span class="ident">Configuration</span>, <span class="ident">Direction</span>, <span class="ident">Node</span>, <span class="ident">Pane</span>, <span class="ident">Split</span>,
 };
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Size</span>};
@@ -316,8 +329,13 @@
 <span class="doccomment">/// [`PaneGrid::new`]: crate::widget::PaneGrid::new</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">panes</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Pane</span>, <span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">internal</span>: <span class="ident">Internal</span>,
+    <span class="doccomment">/// The panes of the [`PaneGrid`].</span>
+    <span class="kw">pub</span> <span class="ident">panes</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Pane</span>, <span class="ident">T</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// The internal state of the [`PaneGrid`].</span>
+    <span class="kw">pub</span> <span class="ident">internal</span>: <span class="ident">Internal</span>,
+
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">action</span>: <span class="ident">Action</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -336,16 +354,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_configuration</span>(<span class="ident">config</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Configuration</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">panes</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
 
-        <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">last_id</span>) <span class="op">=</span>
-            <span class="ident"><span class="self">Self</span>::distribute_content</span>(<span class="kw-2">&amp;mut</span> <span class="ident">panes</span>, <span class="ident">config</span>.<span class="ident">into</span>(), <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">internal</span> <span class="op">=</span>
+            <span class="ident">Internal::from_configuration</span>(<span class="kw-2">&amp;mut</span> <span class="ident">panes</span>, <span class="ident">config</span>.<span class="ident">into</span>(), <span class="number">0</span>);
 
         <span class="ident">State</span> {
             <span class="ident">panes</span>,
-            <span class="ident">internal</span>: <span class="ident">Internal</span> {
-                <span class="ident">layout</span>,
-                <span class="ident">last_id</span>,
-                <span class="ident">action</span>: <span class="ident">Action::Idle</span>,
-            },
+            <span class="ident">internal</span>,
+            <span class="ident">action</span>: <span class="ident">Action::Idle</span>,
         }
     }
 
@@ -489,16 +504,34 @@
             <span class="prelude-val">None</span>
         }
     }
+}
 
-    <span class="kw">fn</span> <span class="ident">distribute_content</span>(
+<span class="doccomment">/// The internal state of a [`PaneGrid`].</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Internal</span> {
+    <span class="ident">layout</span>: <span class="ident">Node</span>,
+    <span class="ident">last_id</span>: <span class="ident">usize</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Internal</span> {
+    <span class="doccomment">/// Initializes the [`Internal`] state of a [`PaneGrid`] from a</span>
+    <span class="doccomment">/// [`Configuration`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_configuration</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
         <span class="ident">panes</span>: <span class="kw-2">&amp;mut</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Pane</span>, <span class="ident">T</span><span class="op">&gt;</span>,
         <span class="ident">content</span>: <span class="ident">Configuration</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
         <span class="ident">next_id</span>: <span class="ident">usize</span>,
-    ) -&gt; (<span class="ident">Node</span>, <span class="ident">usize</span>) {
-        <span class="kw">match</span> <span class="ident">content</span> {
+    ) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> (<span class="ident">layout</span>, <span class="ident">last_id</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">content</span> {
             <span class="ident">Configuration::Split</span> { <span class="ident">axis</span>, <span class="ident">ratio</span>, <span class="ident">a</span>, <span class="ident">b</span> } =&gt; {
-                <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">next_id</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::distribute_content</span>(<span class="ident">panes</span>, <span class="kw-2">*</span><span class="ident">a</span>, <span class="ident">next_id</span>);
-                <span class="kw">let</span> (<span class="ident">b</span>, <span class="ident">next_id</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::distribute_content</span>(<span class="ident">panes</span>, <span class="kw-2">*</span><span class="ident">b</span>, <span class="ident">next_id</span>);
+                <span class="kw">let</span> <span class="ident">Internal</span> {
+                    <span class="ident">layout</span>: <span class="ident">a</span>,
+                    <span class="ident">last_id</span>: <span class="ident">next_id</span>,
+                } <span class="op">=</span> <span class="ident"><span class="self">Self</span>::from_configuration</span>(<span class="ident">panes</span>, <span class="kw-2">*</span><span class="ident">a</span>, <span class="ident">next_id</span>);
+
+                <span class="kw">let</span> <span class="ident">Internal</span> {
+                    <span class="ident">layout</span>: <span class="ident">b</span>,
+                    <span class="ident">last_id</span>: <span class="ident">next_id</span>,
+                } <span class="op">=</span> <span class="ident"><span class="self">Self</span>::from_configuration</span>(<span class="ident">panes</span>, <span class="kw-2">*</span><span class="ident">b</span>, <span class="ident">next_id</span>);
 
                 (
                     <span class="ident">Node::Split</span> {
@@ -517,39 +550,53 @@
 
                 (<span class="ident">Node::Pane</span>(<span class="ident">id</span>), <span class="ident">next_id</span> <span class="op">+</span> <span class="number">1</span>)
             }
-        }
+        };
+
+        <span class="self">Self</span> { <span class="ident">layout</span>, <span class="ident">last_id</span> }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Internal</span> {
-    <span class="ident">layout</span>: <span class="ident">Node</span>,
-    <span class="ident">last_id</span>: <span class="ident">usize</span>,
-    <span class="ident">action</span>: <span class="ident">Action</span>,
-}
-
+<span class="doccomment">/// The current action of a [`PaneGrid`].</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
+    <span class="doccomment">/// The [`PaneGrid`] is idle.</span>
     <span class="ident">Idle</span>,
-    <span class="ident">Dragging</span> { <span class="ident">pane</span>: <span class="ident">Pane</span>, <span class="ident">origin</span>: <span class="ident">Point</span> },
-    <span class="ident">Resizing</span> { <span class="ident">split</span>: <span class="ident">Split</span>, <span class="ident">axis</span>: <span class="ident">Axis</span> },
+    <span class="doccomment">/// A [`Pane`] in the [`PaneGrid`] is being dragged.</span>
+    <span class="ident">Dragging</span> {
+        <span class="doccomment">/// The [`Pane`] being dragged.</span>
+        <span class="ident">pane</span>: <span class="ident">Pane</span>,
+        <span class="doccomment">/// The starting [`Point`] of the drag interaction.</span>
+        <span class="ident">origin</span>: <span class="ident">Point</span>,
+    },
+    <span class="doccomment">/// A [`Split`] in the [`PaneGrid`] is being dragged.</span>
+    <span class="ident">Resizing</span> {
+        <span class="doccomment">/// The [`Split`] being dragged.</span>
+        <span class="ident">split</span>: <span class="ident">Split</span>,
+        <span class="doccomment">/// The [`Axis`] of the [`Split`].</span>
+        <span class="ident">axis</span>: <span class="ident">Axis</span>,
+    },
 }
 
-<span class="kw">impl</span> <span class="ident">Internal</span> {
+<span class="kw">impl</span> <span class="ident">Action</span> {
+    <span class="doccomment">/// Returns the current [`Pane`] that is being dragged, if any.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">picked_pane</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Pane</span>, <span class="ident">Point</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">action</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">Action::Dragging</span> { <span class="ident">pane</span>, <span class="ident">origin</span>, .. } =&gt; <span class="prelude-val">Some</span>((<span class="ident">pane</span>, <span class="ident">origin</span>)),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
+    <span class="doccomment">/// Returns the current [`Split`] that is being dragged, if any.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">picked_split</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Split</span>, <span class="ident">Axis</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">action</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">Action::Resizing</span> { <span class="ident">split</span>, <span class="ident">axis</span>, .. } =&gt; <span class="prelude-val">Some</span>((<span class="ident">split</span>, <span class="ident">axis</span>)),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
+}
 
+<span class="kw">impl</span> <span class="ident">Internal</span> {
+    <span class="doccomment">/// Calculates the current [`Pane`] regions from the [`PaneGrid`] layout.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pane_regions</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">spacing</span>: <span class="ident">f32</span>,
@@ -558,36 +605,13 @@
         <span class="self">self</span>.<span class="ident">layout</span>.<span class="ident">pane_regions</span>(<span class="ident">spacing</span>, <span class="ident">size</span>)
     }
 
+    <span class="doccomment">/// Calculates the current [`Split`] regions from the [`PaneGrid`] layout.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_regions</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">spacing</span>: <span class="ident">f32</span>,
         <span class="ident">size</span>: <span class="ident">Size</span>,
     ) -&gt; <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">Split</span>, (<span class="ident">Axis</span>, <span class="ident">Rectangle</span>, <span class="ident">f32</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">layout</span>.<span class="ident">split_regions</span>(<span class="ident">spacing</span>, <span class="ident">size</span>)
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pick_pane</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pane</span>: <span class="kw-2">&amp;</span><span class="ident">Pane</span>, <span class="ident">origin</span>: <span class="ident">Point</span>) {
-        <span class="self">self</span>.<span class="ident">action</span> <span class="op">=</span> <span class="ident">Action::Dragging</span> {
-            <span class="ident">pane</span>: <span class="kw-2">*</span><span class="ident">pane</span>,
-            <span class="ident">origin</span>,
-        };
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pick_split</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">split</span>: <span class="kw-2">&amp;</span><span class="ident">Split</span>, <span class="ident">axis</span>: <span class="ident">Axis</span>) {
-        <span class="comment">// TODO: Obtain `axis` from layout itself. Maybe we should implement</span>
-        <span class="comment">// `Node::find_split`</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">picked_pane</span>().<span class="ident">is_some</span>() {
-            <span class="kw">return</span>;
-        }
-
-        <span class="self">self</span>.<span class="ident">action</span> <span class="op">=</span> <span class="ident">Action::Resizing</span> {
-            <span class="ident">split</span>: <span class="kw-2">*</span><span class="ident">split</span>,
-            <span class="ident">axis</span>,
-        };
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">idle</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">action</span> <span class="op">=</span> <span class="ident">Action::Idle</span>;
     }
 }
 </code></pre></div>

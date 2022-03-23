@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Handle","An [`Image`] handle."]],"type":[["Image","A frame that displays an image."]]});
