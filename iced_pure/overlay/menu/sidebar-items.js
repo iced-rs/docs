@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Menu","A list of selectable options."],["State","The local state of a [`Menu`]."],["Style","The appearance of a menu."]]});

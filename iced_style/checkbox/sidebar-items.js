@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Style","The appearance of a checkbox."]],"trait":[["StyleSheet","A set of rules that dictate the style of a checkbox."]]});

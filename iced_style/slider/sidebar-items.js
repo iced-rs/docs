@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["HandleShape","The shape of the handle of a slider."]],"struct":[["Handle","The appearance of the handle of a slider."],["Style","The appearance of a slider."]],"trait":[["StyleSheet","A set of rules that dictate the style of a slider."]]});

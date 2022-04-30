@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["every","Returns a [`Subscription`] that produces messages at a set interval."]]});
