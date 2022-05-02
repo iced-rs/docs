@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["SurfaceError","Result of an unsuccessful call to [`Compositor::draw`]."]],"trait":[["Compositor","A graphics compositor that can draw to windows."],["GLCompositor","A basic OpenGL compositor."]]});
+initSidebarItems({"enum":[["SurfaceError","Result of an unsuccessful call to [`Compositor::present`]."]],"trait":[["Compositor","A graphics compositor that can draw to windows."],["GLCompositor","A basic OpenGL compositor."]]});

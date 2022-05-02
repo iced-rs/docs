@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["helpers",""],["overlay",""],["widget",""]],"struct":[["Element",""],["Pure",""],["State",""]]});
+initSidebarItems({"mod":[["helpers","Helper functions to create pure widgets."],["overlay","Display interactive elements on top of other widgets."],["widget","Use the built-in widgets or create your own."]],"struct":[["Element","A generic [`Widget`]."],["Pure","A bridge between impure and pure widgets."],["State","The internal state of a [`Pure`] widget."]]});

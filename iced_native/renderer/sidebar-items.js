@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Null","A renderer that does nothing."],["Quad","A polygon with four sides."],["Style","The styling attributes of a [`Renderer`]."]],"trait":[["Renderer","A component that can take the state of a user interface and produce an output for its users."]]});
+initSidebarItems({"struct":[["Null","A renderer that does nothing."],["Quad","A polygon with four sides."],["Style","The styling attributes of a [`Renderer`]."]],"trait":[["Renderer","A component that can be used by widgets to draw themselves on a screen."]]});

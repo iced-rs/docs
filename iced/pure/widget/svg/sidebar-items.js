@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Handle","An [`Svg`] handle."],["Svg","A vector graphics image."]]});
+initSidebarItems({"struct":[["Handle","A handle of Svg data."],["Svg","A vector graphics image."]]});
