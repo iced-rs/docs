@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["GLCompositor","A basic OpenGL compositor."]]});

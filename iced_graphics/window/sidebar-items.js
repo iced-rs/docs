@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["SurfaceError","Result of an unsuccessful call to [`Compositor::present`]."]],"trait":[["Compositor","A graphics compositor that can draw to windows."],["GLCompositor","A basic OpenGL compositor."]]});
+initSidebarItems({"mod":[["compositor","A compositor is responsible for initializing a renderer and managing window surfaces."],["gl_compositor","A compositor is responsible for initializing a renderer and managing window surfaces."]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Event","A window-related event."]],"fn":[["move_to","Moves a window to the given logical coordinates."],["resize","Resizes the window to the given logical dimensions."]]});

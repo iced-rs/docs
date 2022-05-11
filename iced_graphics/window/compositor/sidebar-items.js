@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["SurfaceError","Result of an unsuccessful call to [`Compositor::present`]."]],"struct":[["Information","Contains informations about the graphics (e.g. graphics adapter, graphics backend)."]],"trait":[["Compositor","A graphics compositor that can draw to windows."]]});

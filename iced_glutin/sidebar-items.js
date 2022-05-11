@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Error","An error that occurred while running an application."],["Mode","The mode of a window-based application."]],"mod":[["application","Create interactive, native cross-platform applications."],["clipboard","Access the clipboard."],["conversion","Convert `winit` types into `iced_native` types, and viceversa."],["settings","Configure your application."],["window","Interact with the window of your application."]]});
+initSidebarItems({"mod":[["application","Create interactive, native cross-platform applications."]]});
