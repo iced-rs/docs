@@ -152,9 +152,25 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">BoxFuture</span>, <span class="ident">MaybeSend</span>, <span class="ident">Subscription</span>};
 
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">channel::mpsc</span>, <span class="ident">sink::Sink</span>};
+<span class="kw">use</span> <span class="ident">futures</span>::{
+    <span class="ident">channel::mpsc</span>,
+    <span class="ident">sink</span>::{<span class="ident">Sink</span>, <span class="ident">SinkExt</span>},
+};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">marker::PhantomData</span>};
 
 <span class="doccomment">/// A registry of subscription streams.</span>
@@ -218,7 +234,7 @@
             <span class="op">+</span> <span class="ident">MaybeSend</span>
             <span class="op">+</span> <span class="ident">Clone</span>,
     {
-        <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future::FutureExt</span>, <span class="ident">stream::StreamExt</span>};
+        <span class="kw">use</span> <span class="ident">futures::stream::StreamExt</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">futures</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BoxFuture</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
@@ -239,19 +255,29 @@
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">let</span> (<span class="ident">cancel</span>, <span class="ident">cancelled</span>) <span class="op">=</span> <span class="ident">futures::channel::oneshot::channel</span>();
+            <span class="kw">let</span> (<span class="ident">cancel</span>, <span class="kw-2">mut</span> <span class="ident">canceled</span>) <span class="op">=</span> <span class="ident">futures::channel::oneshot::channel</span>();
 
             <span class="comment">// TODO: Use bus if/when it supports async</span>
             <span class="kw">let</span> (<span class="ident">event_sender</span>, <span class="ident">event_receiver</span>) <span class="op">=</span>
                 <span class="ident">futures::channel::mpsc::channel</span>(<span class="number">100</span>);
 
-            <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">recipe</span>.<span class="ident">stream</span>(<span class="ident">event_receiver</span>.<span class="ident">boxed</span>());
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">receiver</span> <span class="op">=</span> <span class="ident">receiver</span>.<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">recipe</span>.<span class="ident">stream</span>(<span class="ident">event_receiver</span>.<span class="ident">boxed</span>());
 
-            <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="ident">futures::future::select</span>(
-                <span class="ident">cancelled</span>,
-                <span class="ident">stream</span>.<span class="ident">map</span>(<span class="prelude-val">Ok</span>).<span class="ident">forward</span>(<span class="ident">receiver</span>.<span class="ident">clone</span>()),
-            )
-            .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ());
+            <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> {
+                <span class="kw">loop</span> {
+                    <span class="kw">let</span> <span class="ident">select</span> <span class="op">=</span>
+                        <span class="ident">futures::future::select</span>(<span class="kw-2">&amp;mut</span> <span class="ident">canceled</span>, <span class="ident">stream</span>.<span class="ident">next</span>());
+
+                    <span class="kw">match</span> <span class="ident">select</span>.<span class="kw">await</span> {
+                        <span class="ident">futures::future::Either::Left</span>(<span class="kw">_</span>)
+                        <span class="op">|</span> <span class="ident">futures::future::Either::Right</span>((<span class="prelude-val">None</span>, <span class="kw">_</span>)) =&gt; <span class="kw">break</span>,
+                        <span class="ident">futures::future::Either::Right</span>((<span class="prelude-val">Some</span>(<span class="ident">message</span>), <span class="kw">_</span>)) =&gt; {
+                            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">receiver</span>.<span class="ident">send</span>(<span class="ident">message</span>).<span class="kw">await</span>;
+                        }
+                    }
+                }
+            };
 
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">subscriptions</span>.<span class="ident">insert</span>(
                 <span class="ident">id</span>,
