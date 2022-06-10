@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Canvas","A widget capable of drawing 2D graphics."]],"trait":[["Program","The state and logic of a `Canvas`."],["_","The state and logic of a `Canvas`."]]});
+initSidebarItems({"struct":[["Canvas","A widget capable of drawing 2D graphics."]],"trait":[["Program","The state and logic of a `Canvas`."]]});
