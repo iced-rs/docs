@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Svg","A vector graphics image."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Svg","A vector graphics image."]]};

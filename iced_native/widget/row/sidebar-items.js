@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Row","A container that distributes its contents horizontally."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Row","A container that distributes its contents horizontally."]]};

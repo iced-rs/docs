@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Error","An error produced when using `Icon::from_rgba` with invalid arguments."]],"struct":[["Icon","The icon of a window."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Error","An error produced when using `Icon::from_rgba` with invalid arguments."]],"struct":[["Icon","The icon of a window."]]};

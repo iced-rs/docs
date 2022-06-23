@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["time","Listen and react to time."]],"type":[["Executor","A `tokio` executor."]]});
+window.SIDEBAR_ITEMS = {"mod":[["time","Listen and react to time."]],"type":[["Executor","A `tokio` executor."]]};

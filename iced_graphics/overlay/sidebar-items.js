@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["menu","Build and show dropdown menus."]]});
+window.SIDEBAR_ITEMS = {"mod":[["menu","Build and show dropdown menus."]]};

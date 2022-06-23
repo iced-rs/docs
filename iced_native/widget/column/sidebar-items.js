@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Column","A container that distributes its contents vertically."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Column","A container that distributes its contents vertically."]]};

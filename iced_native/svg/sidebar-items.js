@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Data","The data of a vectorial image."]],"struct":[["Handle","A handle of Svg data."]],"trait":[["Renderer","A [`Renderer`] that can render vector graphics."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Data","The data of a vectorial image."]],"struct":[["Handle","A handle of Svg data."]],"trait":[["Renderer","A [`Renderer`] that can render vector graphics."]]};

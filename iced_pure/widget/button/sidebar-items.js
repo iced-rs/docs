@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Button","A generic widget that produces a message when pressed."],["Style","The appearance of a button."]],"trait":[["StyleSheet","A set of rules that dictate the style of a button."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Button","A generic widget that produces a message when pressed."],["Style","The appearance of a button."]],"trait":[["StyleSheet","A set of rules that dictate the style of a button."]]};

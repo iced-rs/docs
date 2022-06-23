@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Null","A renderer that does nothing."],["Quad","A polygon with four sides."],["Style","The styling attributes of a [`Renderer`]."]],"trait":[["Renderer","A component that can be used by widgets to draw themselves on a screen."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Null","A renderer that does nothing."],["Quad","A polygon with four sides."],["Style","The styling attributes of a [`Renderer`]."]],"trait":[["Renderer","A component that can be used by widgets to draw themselves on a screen."]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["PlatformSpecific","The platform specific window settings of an application."],["Settings","The settings of an application."],["Window","The window settings of an application."]]});
+window.SIDEBAR_ITEMS = {"struct":[["PlatformSpecific","The platform specific window settings of an application."],["Settings","The settings of an application."],["Window","The window settings of an application."]]};

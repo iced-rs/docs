@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["State","The internal [`State`] of a widget."]],"struct":[["Tag","The identifier of some widget state."],["Tree","A persistent state widget tree."]]});
+window.SIDEBAR_ITEMS = {"enum":[["State","The internal [`State`] of a widget."]],"struct":[["Tag","The identifier of some widget state."],["Tree","A persistent state widget tree."]]};

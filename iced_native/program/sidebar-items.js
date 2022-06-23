@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["State","The execution state of a [`Program`]. It leverages caching, event processing, and rendering primitive storage."]],"trait":[["Program","The core of a user interface application following The Elm Architecture."]]});
+window.SIDEBAR_ITEMS = {"struct":[["State","The execution state of a [`Program`]. It leverages caching, event processing, and rendering primitive storage."]],"trait":[["Program","The core of a user interface application following The Elm Architecture."]]};

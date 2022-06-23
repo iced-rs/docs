@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Kind","The kind of mouse click."]],"struct":[["Click","A mouse click."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Kind","The kind of mouse click."]],"struct":[["Click","A mouse click."]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Event","A touch interaction."]],"struct":[["Finger","A unique identifier representing a finger on a touch interaction."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Event","A touch interaction."]],"struct":[["Finger","A unique identifier representing a finger on a touch interaction."]]};

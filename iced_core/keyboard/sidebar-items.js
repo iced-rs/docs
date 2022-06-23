@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Event","A keyboard event."],["KeyCode","The symbolic name of a keyboard key."]],"struct":[["Modifiers","The current state of the keyboard modifiers."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Event","A keyboard event."],["KeyCode","The symbolic name of a keyboard key."]],"struct":[["Modifiers","The current state of the keyboard modifiers."]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Backend","The graphics backend of a `Renderer`."],["Image","A graphics backend that supports image rendering."],["Svg","A graphics backend that supports SVG rendering."],["Text","A graphics backend that supports text rendering."]]});
+window.SIDEBAR_ITEMS = {"trait":[["Backend","The graphics backend of a `Renderer`."],["Image","A graphics backend that supports image rendering."],["Svg","A graphics backend that supports SVG rendering."],["Text","A graphics backend that supports text rendering."]]};

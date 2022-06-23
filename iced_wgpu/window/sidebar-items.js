@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Compositor","A window graphics backend for iced powered by `wgpu`."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Compositor","A window graphics backend for iced powered by `wgpu`."]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Image","A frame that displays an image while keeping aspect ratio."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Image","A frame that displays an image while keeping aspect ratio."]]};

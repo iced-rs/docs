@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Style","The appearance of a container."]],"trait":[["StyleSheet","A set of rules that dictate the style of a container."]],"type":[["Container","An element decorating some content."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Style","The appearance of a container."]],"trait":[["StyleSheet","A set of rules that dictate the style of a container."]],"type":[["Container","An element decorating some content."]]};

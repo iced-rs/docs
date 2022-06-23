@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["time","Listen and react to time."]],"struct":[["Executor","An `async-std` executor."]]});
+window.SIDEBAR_ITEMS = {"mod":[["time","Listen and react to time."]],"struct":[["Executor","An `async-std` executor."]]};

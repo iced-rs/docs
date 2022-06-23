@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Space","An amount of empty space."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Space","An amount of empty space."]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["time","Listen and react to time."]],"struct":[["Executor","A `smol` executor."]]});
+window.SIDEBAR_ITEMS = {"mod":[["time","Listen and react to time."]],"struct":[["Executor","A `smol` executor."]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["GLCompositor","A basic OpenGL compositor."]]});
+window.SIDEBAR_ITEMS = {"trait":[["GLCompositor","A basic OpenGL compositor."]]};
