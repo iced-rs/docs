@@ -1200,7 +1200,7 @@
             <span class="ident">theme</span>,
             <span class="ident">layout</span>,
             <span class="ident">cursor_position</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>,
+            <span class="self">self</span>.<span class="ident">state</span>,
             <span class="ident">value</span>.<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">value</span>),
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">placeholder</span>,
             <span class="self">self</span>.<span class="ident">size</span>,
@@ -1222,7 +1222,7 @@
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
 {
-    <span class="kw">let</span> <span class="ident">text_size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">unwrap_or</span>(<span class="ident">renderer</span>.<span class="ident">default_size</span>());
+    <span class="kw">let</span> <span class="ident">text_size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">renderer</span>.<span class="ident">default_size</span>());
 
     <span class="kw">let</span> <span class="ident">limits</span> <span class="op">=</span> <span class="ident">limits</span>
         .<span class="ident">pad</span>(<span class="ident">padding</span>)
@@ -1522,7 +1522,7 @@
                                 <span class="prelude-val">None</span> =&gt; {
                                     <span class="kw">let</span> <span class="ident">content</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">clipboard</span>
                                         .<span class="ident">read</span>()
-                                        .<span class="ident">unwrap_or</span>(<span class="ident">String::new</span>())
+                                        .<span class="ident">unwrap_or_default</span>()
                                         .<span class="ident">chars</span>()
                                         .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_control</span>())
                                         .<span class="ident">collect</span>();
@@ -1621,7 +1621,7 @@
     <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="kw">let</span> <span class="ident">secure_value</span> <span class="op">=</span> <span class="ident">is_secure</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">secure</span>());
-    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">secure_value</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>);
+    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">secure_value</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="ident">value</span>);
 
     <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
     <span class="kw">let</span> <span class="ident">text_bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">bounds</span>();
@@ -1647,16 +1647,16 @@
     );
 
     <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_string</span>();
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">unwrap_or</span>(<span class="ident">renderer</span>.<span class="ident">default_size</span>());
+    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">renderer</span>.<span class="ident">default_size</span>());
 
     <span class="kw">let</span> (<span class="ident">cursor</span>, <span class="ident">offset</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_focused</span>() {
-        <span class="kw">match</span> <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>) {
+        <span class="kw">match</span> <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
             <span class="ident">cursor::State::Index</span>(<span class="ident">position</span>) =&gt; {
                 <span class="kw">let</span> (<span class="ident">text_value_width</span>, <span class="ident">offset</span>) <span class="op">=</span>
                     <span class="ident">measure_cursor_and_scroll_offset</span>(
                         <span class="ident">renderer</span>,
                         <span class="ident">text_bounds</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">value</span>,
+                        <span class="ident">value</span>,
                         <span class="ident">size</span>,
                         <span class="ident">position</span>,
                         <span class="ident">font</span>.<span class="ident">clone</span>(),
@@ -1688,7 +1688,7 @@
                     <span class="ident">measure_cursor_and_scroll_offset</span>(
                         <span class="ident">renderer</span>,
                         <span class="ident">text_bounds</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">value</span>,
+                        <span class="ident">value</span>,
                         <span class="ident">size</span>,
                         <span class="ident">left</span>,
                         <span class="ident">font</span>.<span class="ident">clone</span>(),
@@ -1698,7 +1698,7 @@
                     <span class="ident">measure_cursor_and_scroll_offset</span>(
                         <span class="ident">renderer</span>,
                         <span class="ident">text_bounds</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">value</span>,
+                        <span class="ident">value</span>,
                         <span class="ident">size</span>,
                         <span class="ident">right</span>,
                         <span class="ident">font</span>.<span class="ident">clone</span>(),
@@ -2022,16 +2022,16 @@
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
 {
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">unwrap_or</span>(<span class="ident">renderer</span>.<span class="ident">default_size</span>());
+    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">renderer</span>.<span class="ident">default_size</span>());
 
     <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span>
-        <span class="ident">offset</span>(<span class="ident">renderer</span>, <span class="ident">text_bounds</span>, <span class="ident">font</span>.<span class="ident">clone</span>(), <span class="ident">size</span>, <span class="kw-2">&amp;</span><span class="ident">value</span>, <span class="kw-2">&amp;</span><span class="ident">state</span>);
+        <span class="ident">offset</span>(<span class="ident">renderer</span>, <span class="ident">text_bounds</span>, <span class="ident">font</span>.<span class="ident">clone</span>(), <span class="ident">size</span>, <span class="ident">value</span>, <span class="ident">state</span>);
 
     <span class="ident">renderer</span>
         .<span class="ident">hit_test</span>(
             <span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">to_string</span>(),
             <span class="ident">size</span>.<span class="ident">into</span>(),
-            <span class="ident">font</span>.<span class="ident">clone</span>(),
+            <span class="ident">font</span>,
             <span class="ident">Size::INFINITY</span>,
             <span class="ident">Point::new</span>(<span class="ident">x</span> <span class="op">+</span> <span class="ident">offset</span>, <span class="ident">text_bounds</span>.<span class="ident">height</span> <span class="op">/</span> <span class="number">2.0</span>),
             <span class="bool-val">true</span>,

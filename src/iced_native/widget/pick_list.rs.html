@@ -561,7 +561,6 @@
 <span id="553">553</span>
 <span id="554">554</span>
 <span id="555">555</span>
-<span id="556">556</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of selectable values.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alignment</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>::{<span class="self">self</span>, <span class="ident">Event</span>};
@@ -724,7 +723,7 @@
 
     <span class="kw">let</span> <span class="ident">limits</span> <span class="op">=</span> <span class="ident">limits</span>.<span class="ident">width</span>(<span class="ident">width</span>).<span class="ident">height</span>(<span class="ident">Length::Shrink</span>).<span class="ident">pad</span>(<span class="ident">padding</span>);
 
-    <span class="kw">let</span> <span class="ident">text_size</span> <span class="op">=</span> <span class="ident">text_size</span>.<span class="ident">unwrap_or</span>(<span class="ident">renderer</span>.<span class="ident">default_size</span>());
+    <span class="kw">let</span> <span class="ident">text_size</span> <span class="op">=</span> <span class="ident">text_size</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">renderer</span>.<span class="ident">default_size</span>());
 
     <span class="kw">let</span> <span class="ident">max_width</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">width</span> {
         <span class="ident">Length::Shrink</span> =&gt; {
@@ -971,10 +970,9 @@
 
     <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="ident">selected</span>.<span class="ident">map</span>(<span class="ident">ToString::to_string</span>);
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>) <span class="op">=</span>
-        <span class="ident">label</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">String::as_str</span>).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">placeholder</span>)
-    {
-        <span class="kw">let</span> <span class="ident">text_size</span> <span class="op">=</span> <span class="ident">f32::from</span>(<span class="ident">text_size</span>.<span class="ident">unwrap_or</span>(<span class="ident">renderer</span>.<span class="ident">default_size</span>()));
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>) <span class="op">=</span> <span class="ident">label</span>.<span class="ident">as_deref</span>().<span class="ident">or</span>(<span class="ident">placeholder</span>) {
+        <span class="kw">let</span> <span class="ident">text_size</span> <span class="op">=</span>
+            <span class="ident">f32::from</span>(<span class="ident">text_size</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">renderer</span>.<span class="ident">default_size</span>()));
 
         <span class="ident">renderer</span>.<span class="ident">fill_text</span>(<span class="ident">Text</span> {
             <span class="ident">content</span>: <span class="ident">label</span>,
@@ -1024,7 +1022,7 @@
             <span class="self">self</span>.<span class="ident">padding</span>,
             <span class="self">self</span>.<span class="ident">text_size</span>,
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">font</span>,
-            <span class="self">self</span>.<span class="ident">placeholder</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">String::as_str</span>),
+            <span class="self">self</span>.<span class="ident">placeholder</span>.<span class="ident">as_deref</span>(),
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">options</span>,
         )
     }
@@ -1077,7 +1075,7 @@
             <span class="self">self</span>.<span class="ident">padding</span>,
             <span class="self">self</span>.<span class="ident">text_size</span>,
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">font</span>,
-            <span class="self">self</span>.<span class="ident">placeholder</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">String::as_str</span>),
+            <span class="self">self</span>.<span class="ident">placeholder</span>.<span class="ident">as_deref</span>(),
             <span class="self">self</span>.<span class="ident">selected</span>.<span class="ident">as_ref</span>(),
             <span class="self">self</span>.<span class="ident">style</span>,
         )
@@ -1090,7 +1088,7 @@
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">overlay::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">overlay</span>(
             <span class="ident">layout</span>,
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
+            <span class="self">self</span>.<span class="ident">state</span>,
             <span class="self">self</span>.<span class="ident">padding</span>,
             <span class="self">self</span>.<span class="ident">text_size</span>,
             <span class="self">self</span>.<span class="ident">font</span>.<span class="ident">clone</span>(),
@@ -1100,8 +1098,8 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">PickList</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PickList</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">ToString</span> <span class="op">+</span> <span class="ident">Eq</span>,
     [<span class="ident">T</span>]: <span class="ident">ToOwned</span><span class="op">&lt;</span><span class="ident">Owned</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -1114,8 +1112,8 @@
     <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>:
         <span class="ident">Into</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">menu::StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="ident">Element::new</span>(<span class="self">self</span>)
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">pick_list</span>: <span class="ident">PickList</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">Element::new</span>(<span class="ident">pick_list</span>)
     }
 }
 </code></pre></div>
