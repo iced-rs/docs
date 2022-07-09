@@ -284,6 +284,15 @@
 <span id="276">276</span>
 <span id="277">277</span>
 <span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Decorate content and apply alignment.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alignment</span>::{<span class="self">self</span>, <span class="ident">Alignment</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>::{<span class="self">self</span>, <span class="ident">Event</span>};
@@ -298,13 +307,17 @@
 
 <span class="kw">use</span> <span class="ident">std::u32</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_style::container</span>::{<span class="ident">Style</span>, <span class="ident">StyleSheet</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_style::container</span>::{<span class="ident">Appearance</span>, <span class="ident">StyleSheet</span>};
 
 <span class="doccomment">/// An element decorating some content.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// It is normally used for alignment purposes.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+{
     <span class="ident">padding</span>: <span class="ident">Padding</span>,
     <span class="ident">width</span>: <span class="ident">Length</span>,
     <span class="ident">height</span>: <span class="ident">Length</span>,
@@ -312,13 +325,14 @@
     <span class="ident">max_height</span>: <span class="ident">u32</span>,
     <span class="ident">horizontal_alignment</span>: <span class="ident">alignment::Horizontal</span>,
     <span class="ident">vertical_alignment</span>: <span class="ident">alignment::Vertical</span>,
-    <span class="ident">style_sheet</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
     <span class="ident">content</span>: <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="doccomment">/// Creates an empty [`Container`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">content</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span>
@@ -333,7 +347,7 @@
             <span class="ident">max_height</span>: <span class="ident">u32::MAX</span>,
             <span class="ident">horizontal_alignment</span>: <span class="ident">alignment::Horizontal::Left</span>,
             <span class="ident">vertical_alignment</span>: <span class="ident">alignment::Vertical::Top</span>,
-            <span class="ident">style_sheet</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">style</span>: <span class="ident">Default::default</span>(),
             <span class="ident">content</span>: <span class="ident">content</span>.<span class="ident">into</span>(),
         }
     }
@@ -395,9 +409,9 @@
     <span class="doccomment">/// Sets the style of the [`Container`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">style_sheet</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">style</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span><span class="op">&gt;</span>,
     ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">style_sheet</span> <span class="op">=</span> <span class="ident">style_sheet</span>.<span class="ident">into</span>();
+        <span class="self">self</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>.<span class="ident">into</span>();
         <span class="self">self</span>
     }
 }
@@ -432,6 +446,7 @@
     <span class="kw">for</span> <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
         <span class="self">self</span>.<span class="ident">width</span>
@@ -495,17 +510,19 @@
     <span class="kw">fn</span> <span class="ident">draw</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
+        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
         <span class="ident">renderer_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
         <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
     ) {
-        <span class="kw">let</span> <span class="ident">style</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">style_sheet</span>.<span class="ident">style</span>();
+        <span class="kw">let</span> <span class="ident">style</span> <span class="op">=</span> <span class="ident">theme</span>.<span class="ident">appearance</span>(<span class="self">self</span>.<span class="ident">style</span>);
 
         <span class="ident">draw_background</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">style</span>, <span class="ident">layout</span>.<span class="ident">bounds</span>());
 
         <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">draw</span>(
             <span class="ident">renderer</span>,
+            <span class="ident">theme</span>,
             <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span> {
                 <span class="ident">text_color</span>: <span class="ident">style</span>
                     .<span class="ident">text_color</span>
@@ -530,20 +547,20 @@
 <span class="doccomment">/// Draws the background of a [`Container`] given its [`Style`] and its `bounds`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw_background</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>(
     <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-    <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">Style</span>,
+    <span class="ident">appearance</span>: <span class="kw-2">&amp;</span><span class="ident">Appearance</span>,
     <span class="ident">bounds</span>: <span class="ident">Rectangle</span>,
 ) <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
 {
-    <span class="kw">if</span> <span class="ident">style</span>.<span class="ident">background</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">style</span>.<span class="ident">border_width</span> <span class="op">&gt;</span> <span class="number">0.0</span> {
+    <span class="kw">if</span> <span class="ident">appearance</span>.<span class="ident">background</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">appearance</span>.<span class="ident">border_width</span> <span class="op">&gt;</span> <span class="number">0.0</span> {
         <span class="ident">renderer</span>.<span class="ident">fill_quad</span>(
             <span class="ident">renderer::Quad</span> {
                 <span class="ident">bounds</span>,
-                <span class="ident">border_radius</span>: <span class="ident">style</span>.<span class="ident">border_radius</span>,
-                <span class="ident">border_width</span>: <span class="ident">style</span>.<span class="ident">border_width</span>,
-                <span class="ident">border_color</span>: <span class="ident">style</span>.<span class="ident">border_color</span>,
+                <span class="ident">border_radius</span>: <span class="ident">appearance</span>.<span class="ident">border_radius</span>,
+                <span class="ident">border_width</span>: <span class="ident">appearance</span>.<span class="ident">border_width</span>,
+                <span class="ident">border_color</span>: <span class="ident">appearance</span>.<span class="ident">border_color</span>,
             },
-            <span class="ident">style</span>
+            <span class="ident">appearance</span>
                 .<span class="ident">background</span>
                 .<span class="ident">unwrap_or</span>(<span class="ident">Background::Color</span>(<span class="ident">Color::TRANSPARENT</span>)),
         );
@@ -553,8 +570,9 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident"><span class="kw">crate</span>::Renderer</span>,
     <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
+    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="kw">fn</span> <span class="ident">from</span>(
         <span class="ident">column</span>: <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
@@ -563,5 +581,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f2d93935f 2022-07-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1517f5de0 2022-07-07)" ></div>
 </body></html>

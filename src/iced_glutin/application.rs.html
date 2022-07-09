@@ -414,10 +414,28 @@
 <span id="406">406</span>
 <span id="407">407</span>
 <span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Error</span>, <span class="ident">Executor</span>, <span class="ident">Runtime</span>};
 
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_winit::application::StyleSheet</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_winit::Application</span>;
 
 <span class="kw">use</span> <span class="ident">iced_graphics::window</span>;
@@ -425,6 +443,7 @@
 <span class="kw">use</span> <span class="ident">iced_winit::conversion</span>;
 <span class="kw">use</span> <span class="ident">iced_winit::futures</span>;
 <span class="kw">use</span> <span class="ident">iced_winit::futures::channel::mpsc</span>;
+<span class="kw">use</span> <span class="ident">iced_winit::renderer</span>;
 <span class="kw">use</span> <span class="ident">iced_winit::user_interface</span>;
 <span class="kw">use</span> <span class="ident">iced_winit</span>::{<span class="ident">Clipboard</span>, <span class="ident">Debug</span>, <span class="ident">Proxy</span>, <span class="ident">Settings</span>};
 
@@ -441,6 +460,7 @@
     <span class="ident">A</span>: <span class="ident">Application</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">E</span>: <span class="ident">Executor</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">C</span>: <span class="ident">window::GLCompositor</span><span class="op">&lt;</span><span class="ident">Renderer</span> <span class="op">=</span> <span class="ident">A::Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident">iced_native::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="kw">use</span> <span class="ident">futures::task</span>;
     <span class="kw">use</span> <span class="ident">futures::Future</span>;
@@ -619,12 +639,14 @@
     <span class="ident">A</span>: <span class="ident">Application</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">E</span>: <span class="ident">Executor</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">C</span>: <span class="ident">window::GLCompositor</span><span class="op">&lt;</span><span class="ident">Renderer</span> <span class="op">=</span> <span class="ident">A::Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident">iced_native::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="kw">use</span> <span class="ident">glutin::event</span>;
     <span class="kw">use</span> <span class="ident">iced_winit::futures::stream::StreamExt</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">application::State::new</span>(<span class="kw-2">&amp;</span><span class="ident">application</span>, <span class="ident">context</span>.<span class="ident">window</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">viewport_version</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">viewport_version</span>();
+
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_interface</span> <span class="op">=</span>
         <span class="ident">ManuallyDrop::new</span>(<span class="ident">application::build_user_interface</span>(
             <span class="kw-2">&amp;mut</span> <span class="ident">application</span>,
@@ -704,8 +726,14 @@
                 }
 
                 <span class="ident">debug</span>.<span class="ident">draw_started</span>();
-                <span class="kw">let</span> <span class="ident">new_mouse_interaction</span> <span class="op">=</span>
-                    <span class="ident">user_interface</span>.<span class="ident">draw</span>(<span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>, <span class="ident">state</span>.<span class="ident">cursor_position</span>());
+                <span class="kw">let</span> <span class="ident">new_mouse_interaction</span> <span class="op">=</span> <span class="ident">user_interface</span>.<span class="ident">draw</span>(
+                    <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
+                    <span class="ident">state</span>.<span class="ident">theme</span>(),
+                    <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span> {
+                        <span class="ident">text_color</span>: <span class="ident">state</span>.<span class="ident">text_color</span>(),
+                    },
+                    <span class="ident">state</span>.<span class="ident">cursor_position</span>(),
+                );
                 <span class="ident">debug</span>.<span class="ident">draw_finished</span>();
 
                 <span class="kw">if</span> <span class="ident">new_mouse_interaction</span> <span class="op">!</span><span class="op">=</span> <span class="ident">mouse_interaction</span> {
@@ -757,8 +785,14 @@
                     <span class="ident">debug</span>.<span class="ident">layout_finished</span>();
 
                     <span class="ident">debug</span>.<span class="ident">draw_started</span>();
-                    <span class="kw">let</span> <span class="ident">new_mouse_interaction</span> <span class="op">=</span> <span class="ident">user_interface</span>
-                        .<span class="ident">draw</span>(<span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>, <span class="ident">state</span>.<span class="ident">cursor_position</span>());
+                    <span class="kw">let</span> <span class="ident">new_mouse_interaction</span> <span class="op">=</span> <span class="ident">user_interface</span>.<span class="ident">draw</span>(
+                        <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
+                        <span class="ident">state</span>.<span class="ident">theme</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span> {
+                            <span class="ident">text_color</span>: <span class="ident">state</span>.<span class="ident">text_color</span>(),
+                        },
+                        <span class="ident">state</span>.<span class="ident">cursor_position</span>(),
+                    );
                     <span class="ident">debug</span>.<span class="ident">draw_finished</span>();
 
                     <span class="kw">if</span> <span class="ident">new_mouse_interaction</span> <span class="op">!</span><span class="op">=</span> <span class="ident">mouse_interaction</span> {
@@ -823,5 +857,5 @@
     <span class="ident">drop</span>(<span class="ident">ManuallyDrop::into_inner</span>(<span class="ident">user_interface</span>));
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glutin" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f2d93935f 2022-07-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glutin" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1517f5de0 2022-07-07)" ></div>
 </body></html>

@@ -76,19 +76,29 @@
 <span id="68">68</span>
 <span id="69">69</span>
 <span id="70">70</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::Tree</span>;
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Write some text for your users to read.</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::Tree</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Element</span>, <span class="ident">Widget</span>};
 
 <span class="kw">use</span> <span class="ident">iced_native::layout</span>::{<span class="self">self</span>, <span class="ident">Layout</span>};
 <span class="kw">use</span> <span class="ident">iced_native::renderer</span>;
 <span class="kw">use</span> <span class="ident">iced_native::text</span>;
+<span class="kw">use</span> <span class="ident">iced_native::widget</span>;
 <span class="kw">use</span> <span class="ident">iced_native</span>::{<span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_native::widget::Text</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_native::widget::text</span>::{<span class="ident">Appearance</span>, <span class="ident">StyleSheet</span>, <span class="ident">Text</span>};
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Text</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">widget::text::StyleSheet</span>,
 {
     <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">iced_native::Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::width</span>(<span class="self">self</span>)
@@ -112,6 +122,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">_tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
         <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
+        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
         <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
@@ -120,6 +131,7 @@
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">iced_native::Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::draw</span>(
             <span class="self">self</span>,
             <span class="ident">renderer</span>,
+            <span class="ident">theme</span>,
             <span class="ident">style</span>,
             <span class="ident">layout</span>,
             <span class="ident">cursor_position</span>,
@@ -132,6 +144,7 @@
     <span class="kw">for</span> <span class="ident">Text</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">widget::text::StyleSheet</span>,
 {
     <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
         <span class="ident">Element::new</span>(<span class="self">self</span>)
@@ -141,11 +154,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">widget::text::StyleSheet</span>,
 {
     <span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
         <span class="ident">Text::new</span>(<span class="self">self</span>).<span class="ident">into</span>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_pure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f2d93935f 2022-07-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_pure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1517f5de0 2022-07-07)" ></div>
 </body></html>

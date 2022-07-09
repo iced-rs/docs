@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["FillMode","The fill mode of a rule."]],"struct":[["Rule","Display a horizontal or vertical rule for dividing content."],["Style","The appearance of a rule."]],"trait":[["StyleSheet","A set of rules that dictate the style of a rule."]]};
+window.SIDEBAR_ITEMS = {"enum":[["FillMode","The fill mode of a rule."]],"struct":[["Appearance","The appearance of a rule."],["Rule","Display a horizontal or vertical rule for dividing content."]],"trait":[["StyleSheet","A set of rules that dictate the style of a rule."]]};

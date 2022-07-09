@@ -412,6 +412,22 @@
 <span id="404">404</span>
 <span id="405">405</span>
 <span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Allow your users to perform actions by pressing a button.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A [`Button`] has some local [`State`].</span>
@@ -426,7 +442,7 @@
     <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Vector</span>, <span class="ident">Widget</span>,
 };
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_style::button</span>::{<span class="ident">Style</span>, <span class="ident">StyleSheet</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_style::button</span>::{<span class="ident">Appearance</span>, <span class="ident">StyleSheet</span>};
 
 <span class="doccomment">/// A generic widget that produces a message when pressed.</span>
 <span class="doccomment">///</span>
@@ -469,20 +485,25 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Button</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Button</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+{
     <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">State</span>,
     <span class="ident">content</span>: <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
     <span class="ident">on_press</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
     <span class="ident">width</span>: <span class="ident">Length</span>,
     <span class="ident">height</span>: <span class="ident">Length</span>,
     <span class="ident">padding</span>: <span class="ident">Padding</span>,
-    <span class="ident">style_sheet</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Button</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Message</span>: <span class="ident">Clone</span>,
     <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="doccomment">/// Creates a new [`Button`] with some local [`State`] and the given</span>
     <span class="doccomment">/// content.</span>
@@ -497,7 +518,7 @@
             <span class="ident">width</span>: <span class="ident">Length::Shrink</span>,
             <span class="ident">height</span>: <span class="ident">Length::Shrink</span>,
             <span class="ident">padding</span>: <span class="ident">Padding::new</span>(<span class="number">5</span>),
-            <span class="ident">style_sheet</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">style</span>: <span class="ident">Default::default</span>(),
         }
     }
 
@@ -526,12 +547,12 @@
         <span class="self">self</span>
     }
 
-    <span class="doccomment">/// Sets the style of the [`Button`].</span>
+    <span class="doccomment">/// Sets the style of this [`Button`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">style_sheet</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
     ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">style_sheet</span> <span class="op">=</span> <span class="ident">style_sheet</span>.<span class="ident">into</span>();
+        <span class="self">self</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
         <span class="self">self</span>
     }
 }
@@ -609,23 +630,29 @@
     <span class="ident">bounds</span>: <span class="ident">Rectangle</span>,
     <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
     <span class="ident">is_enabled</span>: <span class="ident">bool</span>,
-    <span class="ident">style_sheet</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">StyleSheet</span>,
+    <span class="ident">style_sheet</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">StyleSheet</span><span class="op">&lt;</span>
+        <span class="ident">Style</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
+    <span class="op">&gt;</span>,
+    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
     <span class="ident">state</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">State</span>,
-) -&gt; <span class="ident">Style</span> {
+) -&gt; <span class="ident">Appearance</span>
+<span class="kw">where</span>
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+{
     <span class="kw">let</span> <span class="ident">is_mouse_over</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">contains</span>(<span class="ident">cursor_position</span>);
 
     <span class="kw">let</span> <span class="ident">styling</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">is_enabled</span> {
-        <span class="ident">style_sheet</span>.<span class="ident">disabled</span>()
+        <span class="ident">style_sheet</span>.<span class="ident">disabled</span>(<span class="ident">style</span>)
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_mouse_over</span> {
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">state</span>();
 
         <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_pressed</span> {
-            <span class="ident">style_sheet</span>.<span class="ident">pressed</span>()
+            <span class="ident">style_sheet</span>.<span class="ident">pressed</span>(<span class="ident">style</span>)
         } <span class="kw">else</span> {
-            <span class="ident">style_sheet</span>.<span class="ident">hovered</span>()
+            <span class="ident">style_sheet</span>.<span class="ident">hovered</span>(<span class="ident">style</span>)
         }
     } <span class="kw">else</span> {
-        <span class="ident">style_sheet</span>.<span class="ident">active</span>()
+        <span class="ident">style_sheet</span>.<span class="ident">active</span>(<span class="ident">style</span>)
     };
 
     <span class="kw">if</span> <span class="ident">styling</span>.<span class="ident">background</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">styling</span>.<span class="ident">border_width</span> <span class="op">&gt;</span> <span class="number">0.0</span> {
@@ -701,6 +728,7 @@
 <span class="kw">where</span>
     <span class="ident">Message</span>: <span class="ident">Clone</span>,
     <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
         <span class="self">self</span>.<span class="ident">width</span>
@@ -768,6 +796,7 @@
     <span class="kw">fn</span> <span class="ident">draw</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
+        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
         <span class="ident">_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
@@ -781,12 +810,14 @@
             <span class="ident">bounds</span>,
             <span class="ident">cursor_position</span>,
             <span class="self">self</span>.<span class="ident">on_press</span>.<span class="ident">is_some</span>(),
-            <span class="self">self</span>.<span class="ident">style_sheet</span>.<span class="ident">as_ref</span>(),
+            <span class="ident">theme</span>,
+            <span class="self">self</span>.<span class="ident">style</span>,
             <span class="op">|</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>,
         );
 
         <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">draw</span>(
             <span class="ident">renderer</span>,
+            <span class="ident">theme</span>,
             <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span> {
                 <span class="ident">text_color</span>: <span class="ident">styling</span>.<span class="ident">text_color</span>,
             },
@@ -811,6 +842,7 @@
 <span class="kw">where</span>
     <span class="ident">Message</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Clone</span>,
     <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="kw">fn</span> <span class="ident">from</span>(
         <span class="ident">button</span>: <span class="ident">Button</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
@@ -819,5 +851,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f2d93935f 2022-07-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1517f5de0 2022-07-07)" ></div>
 </body></html>

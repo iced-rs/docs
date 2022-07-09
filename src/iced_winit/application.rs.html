@@ -650,6 +650,34 @@
 <span id="642">642</span>
 <span id="643">643</span>
 <span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.</span>
 <span class="kw">mod</span> <span class="ident">state</span>;
 
@@ -658,9 +686,10 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::clipboard</span>::{<span class="self">self</span>, <span class="ident">Clipboard</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::conversion</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">Color</span>, <span class="ident">Command</span>, <span class="ident">Debug</span>, <span class="ident">Error</span>, <span class="ident">Executor</span>, <span class="ident">Mode</span>, <span class="ident">Proxy</span>, <span class="ident">Runtime</span>, <span class="ident">Settings</span>,
-    <span class="ident">Size</span>, <span class="ident">Subscription</span>,
+    <span class="ident">Command</span>, <span class="ident">Debug</span>, <span class="ident">Error</span>, <span class="ident">Executor</span>, <span class="ident">Mode</span>, <span class="ident">Proxy</span>, <span class="ident">Runtime</span>, <span class="ident">Settings</span>, <span class="ident">Size</span>,
+    <span class="ident">Subscription</span>,
 };
 
 <span class="kw">use</span> <span class="ident">iced_futures::futures</span>;
@@ -669,6 +698,8 @@
 <span class="kw">use</span> <span class="ident">iced_graphics::window</span>;
 <span class="kw">use</span> <span class="ident">iced_native::program::Program</span>;
 <span class="kw">use</span> <span class="ident">iced_native::user_interface</span>::{<span class="self">self</span>, <span class="ident">UserInterface</span>};
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_native::application</span>::{<span class="ident">Appearance</span>, <span class="ident">StyleSheet</span>};
 
 <span class="kw">use</span> <span class="ident">std::mem::ManuallyDrop</span>;
 
@@ -683,7 +714,10 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// When using an [`Application`] with the `debug` feature enabled, a debug view</span>
 <span class="doccomment">/// can be toggled by pressing `F12`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Application</span>: <span class="ident">Program</span> {
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Application</span>: <span class="ident">Program</span>
+<span class="kw">where</span>
+    <span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">StyleSheet</span>,
+{
     <span class="doccomment">/// The data needed to initialize your [`Application`].</span>
     <span class="kw">type</span> <span class="ident">Flags</span>;
 
@@ -702,6 +736,16 @@
     <span class="doccomment">/// This title can be dynamic! The runtime will automatically update the</span>
     <span class="doccomment">/// title of your application when necessary.</span>
     <span class="kw">fn</span> <span class="ident">title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span>;
+
+    <span class="doccomment">/// Returns the current [`Theme`] of the [`Application`].</span>
+    <span class="kw">fn</span> <span class="ident">theme</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>;
+
+    <span class="doccomment">/// Returns the [`Style`] variation of the [`Theme`].</span>
+    <span class="kw">fn</span> <span class="ident">style</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+    ) -&gt; <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span> {
+        <span class="ident">Default::default</span>()
+    }
 
     <span class="doccomment">/// Returns the event `Subscription` for the current state of the</span>
     <span class="doccomment">/// application.</span>
@@ -724,13 +768,6 @@
     <span class="doccomment">/// By default, an application will run in windowed mode.</span>
     <span class="kw">fn</span> <span class="ident">mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Mode</span> {
         <span class="ident">Mode::Windowed</span>
-    }
-
-    <span class="doccomment">/// Returns the background [`Color`] of the [`Application`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, it returns [`Color::WHITE`].</span>
-    <span class="kw">fn</span> <span class="ident">background_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Color</span> {
-        <span class="ident">Color::WHITE</span>
     }
 
     <span class="doccomment">/// Returns the scale factor of the [`Application`].</span>
@@ -764,6 +801,7 @@
     <span class="ident">A</span>: <span class="ident">Application</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">E</span>: <span class="ident">Executor</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">C</span>: <span class="ident">window::Compositor</span><span class="op">&lt;</span><span class="ident">Renderer</span> <span class="op">=</span> <span class="ident">A::Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="kw">use</span> <span class="ident">futures::task</span>;
     <span class="kw">use</span> <span class="ident">futures::Future</span>;
@@ -899,6 +937,7 @@
     <span class="ident">A</span>: <span class="ident">Application</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">E</span>: <span class="ident">Executor</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">C</span>: <span class="ident">window::Compositor</span><span class="op">&lt;</span><span class="ident">Renderer</span> <span class="op">=</span> <span class="ident">A::Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="kw">use</span> <span class="ident">iced_futures::futures::stream::StreamExt</span>;
     <span class="kw">use</span> <span class="ident">winit::event</span>;
@@ -993,8 +1032,14 @@
                 }
 
                 <span class="ident">debug</span>.<span class="ident">draw_started</span>();
-                <span class="kw">let</span> <span class="ident">new_mouse_interaction</span> <span class="op">=</span>
-                    <span class="ident">user_interface</span>.<span class="ident">draw</span>(<span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>, <span class="ident">state</span>.<span class="ident">cursor_position</span>());
+                <span class="kw">let</span> <span class="ident">new_mouse_interaction</span> <span class="op">=</span> <span class="ident">user_interface</span>.<span class="ident">draw</span>(
+                    <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
+                    <span class="ident">state</span>.<span class="ident">theme</span>(),
+                    <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span> {
+                        <span class="ident">text_color</span>: <span class="ident">state</span>.<span class="ident">text_color</span>(),
+                    },
+                    <span class="ident">state</span>.<span class="ident">cursor_position</span>(),
+                );
                 <span class="ident">debug</span>.<span class="ident">draw_finished</span>();
 
                 <span class="kw">if</span> <span class="ident">new_mouse_interaction</span> <span class="op">!</span><span class="op">=</span> <span class="ident">mouse_interaction</span> {
@@ -1041,8 +1086,14 @@
                     <span class="ident">debug</span>.<span class="ident">layout_finished</span>();
 
                     <span class="ident">debug</span>.<span class="ident">draw_started</span>();
-                    <span class="kw">let</span> <span class="ident">new_mouse_interaction</span> <span class="op">=</span> <span class="ident">user_interface</span>
-                        .<span class="ident">draw</span>(<span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>, <span class="ident">state</span>.<span class="ident">cursor_position</span>());
+                    <span class="kw">let</span> <span class="ident">new_mouse_interaction</span> <span class="op">=</span> <span class="ident">user_interface</span>.<span class="ident">draw</span>(
+                        <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
+                        <span class="ident">state</span>.<span class="ident">theme</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span> {
+                            <span class="ident">text_color</span>: <span class="ident">state</span>.<span class="ident">text_color</span>(),
+                        },
+                        <span class="ident">state</span>.<span class="ident">cursor_position</span>(),
+                    );
 
                     <span class="kw">if</span> <span class="ident">new_mouse_interaction</span> <span class="op">!</span><span class="op">=</span> <span class="ident">mouse_interaction</span> {
                         <span class="ident">window</span>.<span class="ident">set_cursor_icon</span>(<span class="ident">conversion::mouse_interaction</span>(
@@ -1149,7 +1200,10 @@
     <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">A::Renderer</span>,
     <span class="ident">size</span>: <span class="ident">Size</span>,
     <span class="ident">debug</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Debug</span>,
-) -&gt; <span class="ident">UserInterface</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A::Message</span>, <span class="ident">A::Renderer</span><span class="op">&gt;</span> {
+) -&gt; <span class="ident">UserInterface</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A::Message</span>, <span class="ident">A::Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">StyleSheet</span>,
+{
     <span class="ident">debug</span>.<span class="ident">view_started</span>();
     <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">view</span>();
     <span class="ident">debug</span>.<span class="ident">view_finished</span>();
@@ -1172,7 +1226,9 @@
     <span class="ident">messages</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">A::Message</span><span class="op">&gt;</span>,
     <span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="ident">winit::window::Window</span>,
     <span class="ident">graphics_info</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">compositor::Information</span> <span class="op">+</span> <span class="ident">Copy</span>,
-) {
+) <span class="kw">where</span>
+    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">StyleSheet</span>,
+{
     <span class="kw">for</span> <span class="ident">message</span> <span class="kw">in</span> <span class="ident">messages</span>.<span class="ident">drain</span>(..) {
         <span class="ident">debug</span>.<span class="ident">log_message</span>(<span class="kw-2">&amp;</span><span class="ident">message</span>);
 
@@ -1295,5 +1351,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f2d93935f 2022-07-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1517f5de0 2022-07-07)" ></div>
 </body></html>

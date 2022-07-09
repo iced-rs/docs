@@ -125,8 +125,12 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pure</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Color</span>, <span class="ident">Command</span>, <span class="ident">Error</span>, <span class="ident">Settings</span>, <span class="ident">Subscription</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Command</span>, <span class="ident">Error</span>, <span class="ident">Settings</span>, <span class="ident">Subscription</span>, <span class="ident">Theme</span>};
 
 <span class="doccomment">/// A pure version of [`Sandbox`].</span>
 <span class="doccomment">///</span>
@@ -161,11 +165,14 @@
     <span class="doccomment">/// These widgets can produce __messages__ based on user interaction.</span>
     <span class="kw">fn</span> <span class="ident">view</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">pure::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident"><span class="self">Self</span>::Message</span><span class="op">&gt;</span>;
 
-    <span class="doccomment">/// Returns the background color of the [`Sandbox`].</span>
+    <span class="doccomment">/// Returns the current [`Theme`] of the [`Sandbox`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, it returns [`Color::WHITE`].</span>
-    <span class="kw">fn</span> <span class="ident">background_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Color</span> {
-        <span class="ident">Color::WHITE</span>
+    <span class="doccomment">/// If you want to use your own custom theme type, you will have to use an</span>
+    <span class="doccomment">/// [`Application`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// By default, it returns [`Theme::default`].</span>
+    <span class="kw">fn</span> <span class="ident">theme</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Theme</span> {
+        <span class="ident">Theme::default</span>()
     }
 
     <span class="doccomment">/// Returns the scale factor of the [`Sandbox`].</span>
@@ -209,6 +216,7 @@
     <span class="kw">type</span> <span class="ident">Executor</span> <span class="op">=</span> <span class="ident">iced_futures::backend::null::Executor</span>;
     <span class="kw">type</span> <span class="ident">Flags</span> <span class="op">=</span> ();
     <span class="kw">type</span> <span class="ident">Message</span> <span class="op">=</span> <span class="ident">T::Message</span>;
+    <span class="kw">type</span> <span class="ident">Theme</span> <span class="op">=</span> <span class="ident">Theme</span>;
 
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_flags</span>: ()) -&gt; (<span class="self">Self</span>, <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T::Message</span><span class="op">&gt;</span>) {
         (<span class="ident">T::new</span>(), <span class="ident">Command::none</span>())
@@ -224,16 +232,16 @@
         <span class="ident">Command::none</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">subscription</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">T::Message</span><span class="op">&gt;</span> {
-        <span class="ident">Subscription::none</span>()
-    }
-
     <span class="kw">fn</span> <span class="ident">view</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">pure::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T::Message</span><span class="op">&gt;</span> {
         <span class="ident">T::view</span>(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">background_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Color</span> {
-        <span class="ident">T::background_color</span>(<span class="self">self</span>)
+    <span class="kw">fn</span> <span class="ident">theme</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Theme</span> {
+        <span class="ident">T::theme</span>(<span class="self">self</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">subscription</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">T::Message</span><span class="op">&gt;</span> {
+        <span class="ident">Subscription::none</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">scale_factor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
@@ -245,5 +253,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f2d93935f 2022-07-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1517f5de0 2022-07-07)" ></div>
 </body></html>

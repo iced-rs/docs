@@ -213,7 +213,29 @@
 <span id="205">205</span>
 <span id="206">206</span>
 <span id="207">207</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::conversion</span>;
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::application</span>::{<span class="self">self</span>, <span class="ident">StyleSheet</span> <span class="kw">as</span> <span class="kw">_</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::conversion</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Application</span>, <span class="ident">Color</span>, <span class="ident">Debug</span>, <span class="ident">Mode</span>, <span class="ident">Point</span>, <span class="ident">Size</span>, <span class="ident">Viewport</span>};
 
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
@@ -221,26 +243,34 @@
 <span class="kw">use</span> <span class="ident">winit::window::Window</span>;
 
 <span class="doccomment">/// The state of a windowed [`Application`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Application</span><span class="op">&gt;</span> {
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Application</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">application::StyleSheet</span>,
+{
     <span class="ident">title</span>: <span class="ident">String</span>,
     <span class="ident">mode</span>: <span class="ident">Mode</span>,
-    <span class="ident">background_color</span>: <span class="ident">Color</span>,
     <span class="ident">scale_factor</span>: <span class="ident">f64</span>,
     <span class="ident">viewport</span>: <span class="ident">Viewport</span>,
     <span class="ident">viewport_version</span>: <span class="ident">usize</span>,
     <span class="ident">cursor_position</span>: <span class="ident">winit::dpi::PhysicalPosition</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>,
     <span class="ident">modifiers</span>: <span class="ident">winit::event::ModifiersState</span>,
+    <span class="ident">theme</span>: <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>,
+    <span class="ident">appearance</span>: <span class="ident">application::Appearance</span>,
     <span class="ident">application</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Application</span><span class="op">&gt;</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Application</span><span class="op">&gt;</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">application::StyleSheet</span>,
+{
     <span class="doccomment">/// Creates a new [`State`] for the provided [`Application`] and window.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">application</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>, <span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="ident">Window</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">title</span>();
         <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">mode</span>();
-        <span class="kw">let</span> <span class="ident">background_color</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">background_color</span>();
         <span class="kw">let</span> <span class="ident">scale_factor</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">scale_factor</span>();
+        <span class="kw">let</span> <span class="ident">theme</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">theme</span>();
+        <span class="kw">let</span> <span class="ident">appearance</span> <span class="op">=</span> <span class="ident">theme</span>.<span class="ident">appearance</span>(<span class="ident">application</span>.<span class="ident">style</span>());
 
         <span class="kw">let</span> <span class="ident">viewport</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">physical_size</span> <span class="op">=</span> <span class="ident">window</span>.<span class="ident">inner_size</span>();
@@ -254,20 +284,16 @@
         <span class="self">Self</span> {
             <span class="ident">title</span>,
             <span class="ident">mode</span>,
-            <span class="ident">background_color</span>,
             <span class="ident">scale_factor</span>,
             <span class="ident">viewport</span>,
             <span class="ident">viewport_version</span>: <span class="number">0</span>,
             <span class="comment">// TODO: Encode cursor availability in the type-system</span>
             <span class="ident">cursor_position</span>: <span class="ident">winit::dpi::PhysicalPosition::new</span>(<span class="op">-</span><span class="number">1.0</span>, <span class="op">-</span><span class="number">1.0</span>),
             <span class="ident">modifiers</span>: <span class="ident">winit::event::ModifiersState::default</span>(),
+            <span class="ident">theme</span>,
+            <span class="ident">appearance</span>,
             <span class="ident">application</span>: <span class="ident">PhantomData</span>,
         }
-    }
-
-    <span class="doccomment">/// Returns the current background [`Color`] of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">background_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Color</span> {
-        <span class="self">self</span>.<span class="ident">background_color</span>
     }
 
     <span class="doccomment">/// Returns the current [`Viewport`] of the [`State`].</span>
@@ -308,6 +334,21 @@
     <span class="doccomment">/// Returns the current keyboard modifiers of the [`State`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">modifiers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">winit::event::ModifiersState</span> {
         <span class="self">self</span>.<span class="ident">modifiers</span>
+    }
+
+    <span class="doccomment">/// Returns the current theme of the [`State`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">theme</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">theme</span>
+    }
+
+    <span class="doccomment">/// Returns the current background [`Color`] of the [`State`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">background_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Color</span> {
+        <span class="self">self</span>.<span class="ident">appearance</span>.<span class="ident">background_color</span>
+    }
+
+    <span class="doccomment">/// Returns the current text [`Color`] of the [`State`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Color</span> {
+        <span class="self">self</span>.<span class="ident">appearance</span>.<span class="ident">text_color</span>
     }
 
     <span class="doccomment">/// Processes the provided window event and updates the [`State`]</span>
@@ -402,9 +443,6 @@
             <span class="self">self</span>.<span class="ident">mode</span> <span class="op">=</span> <span class="ident">new_mode</span>;
         }
 
-        <span class="comment">// Update background color</span>
-        <span class="self">self</span>.<span class="ident">background_color</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">background_color</span>();
-
         <span class="comment">// Update scale factor</span>
         <span class="kw">let</span> <span class="ident">new_scale_factor</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">scale_factor</span>();
 
@@ -418,8 +456,12 @@
 
             <span class="self">self</span>.<span class="ident">scale_factor</span> <span class="op">=</span> <span class="ident">new_scale_factor</span>;
         }
+
+        <span class="comment">// Update theme and appearance</span>
+        <span class="self">self</span>.<span class="ident">theme</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">theme</span>();
+        <span class="self">self</span>.<span class="ident">appearance</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">theme</span>.<span class="ident">appearance</span>(<span class="ident">application</span>.<span class="ident">style</span>());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f2d93935f 2022-07-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1517f5de0 2022-07-07)" ></div>
 </body></html>

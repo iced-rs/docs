@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Background",""],["Danger",""],["EXTENDED_DARK",""],["EXTENDED_LIGHT",""],["Extended",""],["Pair",""],["Palette",""],["Primary",""],["Secondary",""],["Success",""]]};

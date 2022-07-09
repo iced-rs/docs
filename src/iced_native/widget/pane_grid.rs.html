@@ -832,6 +832,28 @@
 <span id="824">824</span>
 <span id="825">825</span>
 <span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Let your users split regions of your application and organize layout dynamically.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [![Pane grid - Iced](https://thumbs.gfycat.com/MixedFlatJellyfish-small.gif)](https://gfycat.com/mixedflatjellyfish)</span>
@@ -870,6 +892,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::overlay</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::touch</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::container</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">Clipboard</span>, <span class="ident">Color</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>,
     <span class="ident">Vector</span>, <span class="ident">Widget</span>,
@@ -927,7 +950,11 @@
 <span class="doccomment">///     .on_resize(10, Message::PaneResized);</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PaneGrid</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PaneGrid</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="ident">container::StyleSheet</span>,
+{
     <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">state::Internal</span>,
     <span class="ident">action</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">state::Action</span>,
     <span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Pane</span>, <span class="ident">Content</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
@@ -937,12 +964,13 @@
     <span class="ident">on_click</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">Pane</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">on_drag</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">DragEvent</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">on_resize</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u16</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">ResizeEvent</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
-    <span class="ident">style_sheet</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">PaneGrid</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="ident">container::StyleSheet</span>,
 {
     <span class="doccomment">/// Creates a [`PaneGrid`] with the given [`State`] and view function.</span>
     <span class="doccomment">///</span>
@@ -970,7 +998,7 @@
             <span class="ident">on_click</span>: <span class="prelude-val">None</span>,
             <span class="ident">on_drag</span>: <span class="prelude-val">None</span>,
             <span class="ident">on_resize</span>: <span class="prelude-val">None</span>,
-            <span class="ident">style_sheet</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">style</span>: <span class="ident">Default::default</span>(),
         }
     }
 
@@ -1030,8 +1058,11 @@
     }
 
     <span class="doccomment">/// Sets the style of the [`PaneGrid`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">style</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">style_sheet</span> <span class="op">=</span> <span class="ident">style</span>.<span class="ident">into</span>();
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">style</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>.<span class="ident">into</span>();
         <span class="self">self</span>
     }
 }
@@ -1302,11 +1333,12 @@
     <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
     <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
     <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-    <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
+    <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
+    <span class="ident">default_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
     <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
     <span class="ident">spacing</span>: <span class="ident">u16</span>,
     <span class="ident">resize_leeway</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-    <span class="ident">style_sheet</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">StyleSheet</span>,
+    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
     <span class="ident">elements</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">Pane</span>, <span class="ident">T</span>)<span class="op">&gt;</span>,
     <span class="ident">draw_pane</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(
         <span class="ident">T</span>,
@@ -1318,6 +1350,7 @@
     ),
 ) <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
 {
     <span class="kw">let</span> <span class="ident">picked_pane</span> <span class="op">=</span> <span class="ident">action</span>.<span class="ident">picked_pane</span>();
 
@@ -1379,7 +1412,7 @@
                             <span class="ident">draw_pane</span>(
                                 <span class="ident">pane</span>,
                                 <span class="ident">renderer</span>,
-                                <span class="ident">style</span>,
+                                <span class="ident">default_style</span>,
                                 <span class="ident">layout</span>,
                                 <span class="ident">pane_cursor_position</span>,
                                 <span class="ident">viewport</span>,
@@ -1392,7 +1425,7 @@
                 <span class="ident">draw_pane</span>(
                     <span class="ident">pane</span>,
                     <span class="ident">renderer</span>,
-                    <span class="ident">style</span>,
+                    <span class="ident">default_style</span>,
                     <span class="ident">layout</span>,
                     <span class="ident">pane_cursor_position</span>,
                     <span class="ident">viewport</span>,
@@ -1403,9 +1436,9 @@
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">axis</span>, <span class="ident">split_region</span>, <span class="ident">is_picked</span>)) <span class="op">=</span> <span class="ident">picked_split</span> {
         <span class="kw">let</span> <span class="ident">highlight</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_picked</span> {
-            <span class="ident">style_sheet</span>.<span class="ident">picked_split</span>()
+            <span class="ident">theme</span>.<span class="ident">picked_split</span>(<span class="ident">style</span>)
         } <span class="kw">else</span> {
-            <span class="ident">style_sheet</span>.<span class="ident">hovered_split</span>()
+            <span class="ident">theme</span>.<span class="ident">hovered_split</span>(<span class="ident">style</span>)
         };
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">highlight</span>) <span class="op">=</span> <span class="ident">highlight</span> {
@@ -1483,6 +1516,7 @@
     <span class="kw">for</span> <span class="ident">PaneGrid</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="ident">container::StyleSheet</span>,
 {
     <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
         <span class="self">self</span>.<span class="ident">width</span>
@@ -1588,6 +1622,7 @@
     <span class="kw">fn</span> <span class="ident">draw</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
+        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
         <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
@@ -1599,14 +1634,22 @@
             <span class="ident">layout</span>,
             <span class="ident">cursor_position</span>,
             <span class="ident">renderer</span>,
+            <span class="ident">theme</span>,
             <span class="ident">style</span>,
             <span class="ident">viewport</span>,
             <span class="self">self</span>.<span class="ident">spacing</span>,
             <span class="self">self</span>.<span class="ident">on_resize</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">leeway</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">leeway</span>),
-            <span class="self">self</span>.<span class="ident">style_sheet</span>.<span class="ident">as_ref</span>(),
+            <span class="self">self</span>.<span class="ident">style</span>,
             <span class="self">self</span>.<span class="ident">elements</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">pane</span>, <span class="ident">content</span>)<span class="op">|</span> (<span class="kw-2">*</span><span class="ident">pane</span>, <span class="ident">content</span>)),
             <span class="op">|</span><span class="ident">pane</span>, <span class="ident">renderer</span>, <span class="ident">style</span>, <span class="ident">layout</span>, <span class="ident">cursor_position</span>, <span class="ident">rectangle</span><span class="op">|</span> {
-                <span class="ident">pane</span>.<span class="ident">draw</span>(<span class="ident">renderer</span>, <span class="ident">style</span>, <span class="ident">layout</span>, <span class="ident">cursor_position</span>, <span class="ident">rectangle</span>);
+                <span class="ident">pane</span>.<span class="ident">draw</span>(
+                    <span class="ident">renderer</span>,
+                    <span class="ident">theme</span>,
+                    <span class="ident">style</span>,
+                    <span class="ident">layout</span>,
+                    <span class="ident">cursor_position</span>,
+                    <span class="ident">rectangle</span>,
+                );
             },
         )
     }
@@ -1627,8 +1670,9 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PaneGrid</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident"><span class="kw">crate</span>::Renderer</span>,
     <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
+    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="ident">container::StyleSheet</span>,
 {
     <span class="kw">fn</span> <span class="ident">from</span>(
         <span class="ident">pane_grid</span>: <span class="ident">PaneGrid</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
@@ -1659,5 +1703,5 @@
         .<span class="ident">next</span>()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f2d93935f 2022-07-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1517f5de0 2022-07-07)" ></div>
 </body></html>

@@ -282,6 +282,19 @@
 <span id="274">274</span>
 <span id="275">275</span>
 <span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Show toggle controls using checkboxes.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alignment</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>::{<span class="self">self</span>, <span class="ident">Event</span>};
@@ -296,7 +309,7 @@
     <span class="ident">Widget</span>,
 };
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_style::checkbox</span>::{<span class="ident">Style</span>, <span class="ident">StyleSheet</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_style::checkbox</span>::{<span class="ident">Appearance</span>, <span class="ident">StyleSheet</span>};
 
 <span class="doccomment">/// A box that can be checked.</span>
 <span class="doccomment">///</span>
@@ -316,7 +329,11 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// ![Checkbox drawn by `iced_wgpu`](https://github.com/iced-rs/iced/blob/7760618fb112074bc40b148944521f312152012a/docs/images/checkbox.png?raw=true)</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Checkbox</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Checkbox</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="ident">widget::text::StyleSheet</span>,
+{
     <span class="ident">is_checked</span>: <span class="ident">bool</span>,
     <span class="ident">on_toggle</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">bool</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">label</span>: <span class="ident">String</span>,
@@ -325,10 +342,14 @@
     <span class="ident">spacing</span>: <span class="ident">u16</span>,
     <span class="ident">text_size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
     <span class="ident">font</span>: <span class="ident">Renderer::Font</span>,
-    <span class="ident">style_sheet</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span><span class="op">&gt;</span> <span class="ident">Checkbox</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Checkbox</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="ident">widget::text::StyleSheet</span>,
+{
     <span class="doccomment">/// The default size of a [`Checkbox`].</span>
     <span class="kw">const</span> <span class="ident">DEFAULT_SIZE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">20</span>;
 
@@ -356,7 +377,7 @@
             <span class="ident">spacing</span>: <span class="ident"><span class="self">Self</span>::DEFAULT_SPACING</span>,
             <span class="ident">text_size</span>: <span class="prelude-val">None</span>,
             <span class="ident">font</span>: <span class="ident">Renderer::Font::default</span>(),
-            <span class="ident">style_sheet</span>: <span class="ident">Default::default</span>(),
+            <span class="ident">style</span>: <span class="ident">Default::default</span>(),
         }
     }
 
@@ -395,9 +416,9 @@
     <span class="doccomment">/// Sets the style of the [`Checkbox`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">style_sheet</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">style</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span><span class="op">&gt;</span>,
     ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">style_sheet</span> <span class="op">=</span> <span class="ident">style_sheet</span>.<span class="ident">into</span>();
+        <span class="self">self</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>.<span class="ident">into</span>();
         <span class="self">self</span>
     }
 }
@@ -406,6 +427,7 @@
     <span class="kw">for</span> <span class="ident">Checkbox</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="ident">widget::text::StyleSheet</span>,
 {
     <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
         <span class="self">self</span>.<span class="ident">width</span>
@@ -481,6 +503,7 @@
     <span class="kw">fn</span> <span class="ident">draw</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
+        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
         <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
@@ -492,9 +515,9 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>();
 
         <span class="kw">let</span> <span class="ident">custom_style</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_mouse_over</span> {
-            <span class="self">self</span>.<span class="ident">style_sheet</span>.<span class="ident">hovered</span>(<span class="self">self</span>.<span class="ident">is_checked</span>)
+            <span class="ident">theme</span>.<span class="ident">hovered</span>(<span class="self">self</span>.<span class="ident">style</span>, <span class="self">self</span>.<span class="ident">is_checked</span>)
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">style_sheet</span>.<span class="ident">active</span>(<span class="self">self</span>.<span class="ident">is_checked</span>)
+            <span class="ident">theme</span>.<span class="ident">active</span>(<span class="self">self</span>.<span class="ident">style</span>, <span class="self">self</span>.<span class="ident">is_checked</span>)
         };
 
         {
@@ -536,9 +559,11 @@
                 <span class="ident">style</span>,
                 <span class="ident">label_layout</span>,
                 <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">label</span>,
-                <span class="self">self</span>.<span class="ident">font</span>.<span class="ident">clone</span>(),
                 <span class="self">self</span>.<span class="ident">text_size</span>,
-                <span class="ident">custom_style</span>.<span class="ident">text_color</span>,
+                <span class="self">self</span>.<span class="ident">font</span>.<span class="ident">clone</span>(),
+                <span class="ident">widget::text::Appearance</span> {
+                    <span class="ident">color</span>: <span class="ident">custom_style</span>.<span class="ident">text_color</span>,
+                },
                 <span class="ident">alignment::Horizontal::Left</span>,
                 <span class="ident">alignment::Vertical::Center</span>,
             );
@@ -549,8 +574,9 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Checkbox</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">text::Renderer</span>,
     <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
+    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">text::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="ident">widget::text::StyleSheet</span>,
 {
     <span class="kw">fn</span> <span class="ident">from</span>(
         <span class="ident">checkbox</span>: <span class="ident">Checkbox</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
@@ -559,5 +585,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f2d93935f 2022-07-02)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1517f5de0 2022-07-07)" ></div>
 </body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Menu","A list of selectable options."],["State","The local state of a [`Menu`]."],["Style","The appearance of a menu."]]};
+window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of a menu."],["Menu","A list of selectable options."],["State","The local state of a [`Menu`]."]],"trait":[["StyleSheet",""]]};

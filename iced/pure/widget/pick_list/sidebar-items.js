@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Menu","The appearance of a menu."],["Style","The appearance of a pick list."]],"trait":[["StyleSheet","A set of rules that dictate the style of a container."]],"type":[["PickList","A widget allowing the selection of a single value from a list of options."]]};
+window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of a pick list."]],"trait":[["StyleSheet","A set of rules that dictate the style of a container."]],"type":[["PickList","A widget allowing the selection of a single value from a list of options."]]};
