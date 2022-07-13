@@ -278,6 +278,19 @@
 <span id="270">270</span>
 <span id="271">271</span>
 <span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::tree</span>::{<span class="self">self</span>, <span class="ident">Tree</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Element</span>, <span class="ident">Widget</span>};
@@ -326,6 +339,7 @@
     <span class="ident">padding</span>: <span class="ident">Padding</span>,
     <span class="ident">size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
     <span class="ident">on_change</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">String</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">on_paste</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">String</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">on_submit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
     <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
 }
@@ -355,6 +369,7 @@
             <span class="ident">padding</span>: <span class="ident">Padding::ZERO</span>,
             <span class="ident">size</span>: <span class="prelude-val">None</span>,
             <span class="ident">on_change</span>: <span class="ident">Box::new</span>(<span class="ident">on_change</span>),
+            <span class="ident">on_paste</span>: <span class="prelude-val">None</span>,
             <span class="ident">on_submit</span>: <span class="prelude-val">None</span>,
             <span class="ident">style</span>: <span class="ident">Default::default</span>(),
         }
@@ -363,6 +378,16 @@
     <span class="doccomment">/// Converts the [`TextInput`] into a secure password input.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">password</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">is_secure</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="self">self</span>
+    }
+
+    <span class="doccomment">/// Sets the message that should be produced when some text is pasted into</span>
+    <span class="doccomment">/// the [`TextInput`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on_paste</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">on_paste</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">String</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+    ) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">on_paste</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">on_paste</span>));
         <span class="self">self</span>
     }
 
@@ -495,6 +520,7 @@
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">font</span>,
             <span class="self">self</span>.<span class="ident">is_secure</span>,
             <span class="self">self</span>.<span class="ident">on_change</span>.<span class="ident">as_ref</span>(),
+            <span class="self">self</span>.<span class="ident">on_paste</span>.<span class="ident">as_deref</span>(),
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">on_submit</span>,
             <span class="op">|</span><span class="op">|</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">text_input::State</span><span class="op">&gt;</span>(),
         )
@@ -551,5 +577,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_pure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c396bb3b8 2022-07-10)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_pure" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1c7b36d4d 2022-07-12)" ></div>
 </body></html>
