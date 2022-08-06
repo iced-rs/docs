@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"trait":[["Application","A pure version of `Application`."],["StyleSheet",""]]};

@@ -258,13 +258,16 @@
 <span id="256">256</span>
 <span id="257">257</span>
 <span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Draw 2D graphics for your users.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A [`Canvas`] widget can be used to draw different kinds of 2D shapes in a</span>
 <span class="doccomment">//! [`Frame`]. It can be used for animation, data visualization, game graphics,</span>
 <span class="doccomment">//! and more!</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>::{<span class="self">self</span>, <span class="ident">Renderer</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Backend</span>, <span class="ident">Primitive</span>};
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">event</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">path</span>;
@@ -289,42 +292,31 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">stroke</span>::{<span class="ident">LineCap</span>, <span class="ident">LineDash</span>, <span class="ident">LineJoin</span>, <span class="ident">Stroke</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">text::Text</span>;
 
-<span class="kw">use</span> <span class="ident">iced_native::layout</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Backend</span>, <span class="ident">Primitive</span>, <span class="ident">Renderer</span>};
+
+<span class="kw">use</span> <span class="ident">iced_native::layout</span>::{<span class="self">self</span>, <span class="ident">Layout</span>};
 <span class="kw">use</span> <span class="ident">iced_native::mouse</span>;
+<span class="kw">use</span> <span class="ident">iced_native::renderer</span>;
+<span class="kw">use</span> <span class="ident">iced_native::widget::tree</span>::{<span class="self">self</span>, <span class="ident">Tree</span>};
 <span class="kw">use</span> <span class="ident">iced_native</span>::{
-    <span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>,
-    <span class="ident">Widget</span>,
+    <span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>, <span class="ident">Widget</span>,
 };
 
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 
 <span class="doccomment">/// A widget capable of drawing 2D graphics.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">/// The repository has a couple of [examples] showcasing how to use a</span>
-<span class="doccomment">/// [`Canvas`]:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - [`clock`], an application that uses the [`Canvas`] widget to draw a clock</span>
-<span class="doccomment">/// and its hands to display the current time.</span>
-<span class="doccomment">/// - [`game_of_life`], an interactive version of the Game of Life, invented by</span>
-<span class="doccomment">/// John Conway.</span>
-<span class="doccomment">/// - [`solar_system`], an animated solar system drawn using the [`Canvas`] widget</span>
-<span class="doccomment">/// and showcasing how to compose different transforms.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [examples]: https://github.com/iced-rs/iced/tree/0.4/examples</span>
-<span class="doccomment">/// [`clock`]: https://github.com/iced-rs/iced/tree/0.4/examples/clock</span>
-<span class="doccomment">/// [`game_of_life`]: https://github.com/iced-rs/iced/tree/0.4/examples/game_of_life</span>
-<span class="doccomment">/// [`solar_system`]: https://github.com/iced-rs/iced/tree/0.4/examples/solar_system</span>
-<span class="doccomment">///</span>
 <span class="doccomment">/// ## Drawing a simple circle</span>
 <span class="doccomment">/// If you want to get a quick overview, here&#39;s how we can draw a simple circle:</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```no_run</span>
 <span class="doccomment">/// # mod iced {</span>
-<span class="doccomment">/// #     pub use iced_graphics::canvas;</span>
+<span class="doccomment">/// #     pub mod widget {</span>
+<span class="doccomment">/// #         pub use iced_graphics::widget::canvas;</span>
+<span class="doccomment">/// #     }</span>
 <span class="doccomment">/// #     pub use iced_native::{Color, Rectangle, Theme};</span>
 <span class="doccomment">/// # }</span>
-<span class="doccomment">/// use iced::canvas::{self, Canvas, Cursor, Fill, Frame, Geometry, Path, Program};</span>
+<span class="doccomment">/// use iced::widget::canvas::{self, Canvas, Cursor, Fill, Frame, Geometry, Path, Program};</span>
 <span class="doccomment">/// use iced::{Color, Rectangle, Theme};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// // First, we define the data we need for drawing</span>
@@ -335,7 +327,9 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// // Then, we implement the `Program` trait</span>
 <span class="doccomment">/// impl Program&lt;()&gt; for Circle {</span>
-<span class="doccomment">///     fn draw(&amp;self, _theme: &amp;Theme, bounds: Rectangle, _cursor: Cursor) -&gt; Vec&lt;Geometry&gt;{</span>
+<span class="doccomment">///     type State = ();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///     fn draw(&amp;self, _state: &amp;(), _theme: &amp;Theme, bounds: Rectangle, _cursor: Cursor) -&gt; Vec&lt;Geometry&gt;{</span>
 <span class="doccomment">///         // We prepare a new `Frame`</span>
 <span class="doccomment">///         let mut frame = Frame::new(bounds.size());</span>
 <span class="doccomment">///</span>
@@ -400,6 +394,15 @@
     <span class="ident">P</span>: <span class="ident">Program</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">B</span>: <span class="ident">Backend</span>,
 {
+    <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::Tag</span> {
+        <span class="kw">struct</span> <span class="ident">Tag</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">T</span>);
+        <span class="ident">tree::Tag::of</span>::<span class="op">&lt;</span><span class="ident">Tag</span><span class="op">&lt;</span><span class="ident">P::State</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+    }
+
+    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::State</span> {
+        <span class="ident">tree::State::new</span>(<span class="ident">P::State::default</span>())
+    }
+
     <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
         <span class="self">self</span>.<span class="ident">width</span>
     }
@@ -421,6 +424,7 @@
 
     <span class="kw">fn</span> <span class="ident">on_event</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
         <span class="ident">event</span>: <span class="ident">iced_native::Event</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
@@ -443,8 +447,10 @@
         <span class="kw">let</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">Cursor::from_window_position</span>(<span class="ident">cursor_position</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">canvas_event</span>) <span class="op">=</span> <span class="ident">canvas_event</span> {
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">P::State</span><span class="op">&gt;</span>();
+
             <span class="kw">let</span> (<span class="ident">event_status</span>, <span class="ident">message</span>) <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">program</span>.<span class="ident">update</span>(<span class="ident">canvas_event</span>, <span class="ident">bounds</span>, <span class="ident">cursor</span>);
+                <span class="self">self</span>.<span class="ident">program</span>.<span class="ident">update</span>(<span class="ident">state</span>, <span class="ident">canvas_event</span>, <span class="ident">bounds</span>, <span class="ident">cursor</span>);
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="ident">message</span> {
                 <span class="ident">shell</span>.<span class="ident">publish</span>(<span class="ident">message</span>);
@@ -458,6 +464,7 @@
 
     <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
         <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
@@ -465,12 +472,14 @@
     ) -&gt; <span class="ident">mouse::Interaction</span> {
         <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
         <span class="kw">let</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">Cursor::from_window_position</span>(<span class="ident">cursor_position</span>);
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">P::State</span><span class="op">&gt;</span>();
 
-        <span class="self">self</span>.<span class="ident">program</span>.<span class="ident">mouse_interaction</span>(<span class="ident">bounds</span>, <span class="ident">cursor</span>)
+        <span class="self">self</span>.<span class="ident">program</span>.<span class="ident">mouse_interaction</span>(<span class="ident">state</span>, <span class="ident">bounds</span>, <span class="ident">cursor</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">draw</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
         <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span>,
         <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
         <span class="ident">_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
@@ -488,12 +497,13 @@
 
         <span class="kw">let</span> <span class="ident">translation</span> <span class="op">=</span> <span class="ident">Vector::new</span>(<span class="ident">bounds</span>.<span class="ident">x</span>, <span class="ident">bounds</span>.<span class="ident">y</span>);
         <span class="kw">let</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">Cursor::from_window_position</span>(<span class="ident">cursor_position</span>);
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">P::State</span><span class="op">&gt;</span>();
 
         <span class="ident">renderer</span>.<span class="ident">with_translation</span>(<span class="ident">translation</span>, <span class="op">|</span><span class="ident">renderer</span><span class="op">|</span> {
             <span class="ident">renderer</span>.<span class="ident">draw_primitive</span>(<span class="ident">Primitive::Group</span> {
                 <span class="ident">primitives</span>: <span class="self">self</span>
                     .<span class="ident">program</span>
-                    .<span class="ident">draw</span>(<span class="ident">theme</span>, <span class="ident">bounds</span>, <span class="ident">cursor</span>)
+                    .<span class="ident">draw</span>(<span class="ident">state</span>, <span class="ident">theme</span>, <span class="ident">bounds</span>, <span class="ident">cursor</span>)
                     .<span class="ident">into_iter</span>()
                     .<span class="ident">map</span>(<span class="ident">Geometry::into_primitive</span>)
                     .<span class="ident">collect</span>(),
@@ -505,7 +515,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">P</span>, <span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Canvas</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">T</span>, <span class="ident">P</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="lifetime">&#39;static</span>,
+    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
     <span class="ident">P</span>: <span class="ident">Program</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
     <span class="ident">B</span>: <span class="ident">Backend</span>,
     <span class="ident">T</span>: <span class="lifetime">&#39;a</span>,
@@ -517,4 +527,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1b57946a4 2022-08-03)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f6f9d5e73 2022-08-04)" ></div></body></html>

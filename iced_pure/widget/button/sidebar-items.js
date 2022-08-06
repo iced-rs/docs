@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of a button."],["Button","A generic widget that produces a message when pressed."]],"trait":[["StyleSheet","A set of rules that dictate the style of a button."]]};

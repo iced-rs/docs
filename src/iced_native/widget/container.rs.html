@@ -297,6 +297,42 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Decorate content and apply alignment.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alignment</span>::{<span class="self">self</span>, <span class="ident">Alignment</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>::{<span class="self">self</span>, <span class="ident">Event</span>};
@@ -304,6 +340,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::overlay</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget</span>::{<span class="ident">Operation</span>, <span class="ident">Tree</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">Background</span>, <span class="ident">Clipboard</span>, <span class="ident">Color</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Padding</span>, <span class="ident">Point</span>,
     <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Widget</span>,
@@ -420,6 +457,159 @@
     }
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+    <span class="kw">for</span> <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+{
+    <span class="kw">fn</span> <span class="ident">children</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Tree</span><span class="op">&gt;</span> {
+        <span class="macro">vec!</span>[<span class="ident">Tree::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>)]
+    }
+
+    <span class="kw">fn</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>) {
+        <span class="ident">tree</span>.<span class="ident">diff_children</span>(<span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>))
+    }
+
+    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
+        <span class="self">self</span>.<span class="ident">width</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
+        <span class="self">self</span>.<span class="ident">height</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">layout</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
+    ) -&gt; <span class="ident">layout::Node</span> {
+        <span class="ident">layout</span>(
+            <span class="ident">renderer</span>,
+            <span class="ident">limits</span>,
+            <span class="self">self</span>.<span class="ident">width</span>,
+            <span class="self">self</span>.<span class="ident">height</span>,
+            <span class="self">self</span>.<span class="ident">max_width</span>,
+            <span class="self">self</span>.<span class="ident">max_height</span>,
+            <span class="self">self</span>.<span class="ident">padding</span>,
+            <span class="self">self</span>.<span class="ident">horizontal_alignment</span>,
+            <span class="self">self</span>.<span class="ident">vertical_alignment</span>,
+            <span class="op">|</span><span class="ident">renderer</span>, <span class="ident">limits</span><span class="op">|</span> {
+                <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget</span>().<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">limits</span>)
+            },
+        )
+    }
+
+    <span class="kw">fn</span> <span class="ident">operate</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">operation</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
+    ) {
+        <span class="ident">operation</span>.<span class="ident">container</span>(<span class="prelude-val">None</span>, <span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">operation</span><span class="op">|</span> {
+            <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget</span>().<span class="ident">operate</span>(
+                <span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
+                <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
+                <span class="ident">operation</span>,
+            );
+        });
+    }
+
+    <span class="kw">fn</span> <span class="ident">on_event</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
+        <span class="ident">event</span>: <span class="ident">Event</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
+        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
+        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">event::Status</span> {
+        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget_mut</span>().<span class="ident">on_event</span>(
+            <span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
+            <span class="ident">event</span>,
+            <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
+            <span class="ident">cursor_position</span>,
+            <span class="ident">renderer</span>,
+            <span class="ident">clipboard</span>,
+            <span class="ident">shell</span>,
+        )
+    }
+
+    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
+        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+    ) -&gt; <span class="ident">mouse::Interaction</span> {
+        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget</span>().<span class="ident">mouse_interaction</span>(
+            <span class="kw-2">&amp;</span><span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
+            <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
+            <span class="ident">cursor_position</span>,
+            <span class="ident">viewport</span>,
+            <span class="ident">renderer</span>,
+        )
+    }
+
+    <span class="kw">fn</span> <span class="ident">draw</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
+        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
+        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
+        <span class="ident">renderer_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
+        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+    ) {
+        <span class="kw">let</span> <span class="ident">style</span> <span class="op">=</span> <span class="ident">theme</span>.<span class="ident">appearance</span>(<span class="self">self</span>.<span class="ident">style</span>);
+
+        <span class="ident">draw_background</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">style</span>, <span class="ident">layout</span>.<span class="ident">bounds</span>());
+
+        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget</span>().<span class="ident">draw</span>(
+            <span class="kw-2">&amp;</span><span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
+            <span class="ident">renderer</span>,
+            <span class="ident">theme</span>,
+            <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span> {
+                <span class="ident">text_color</span>: <span class="ident">style</span>
+                    .<span class="ident">text_color</span>
+                    .<span class="ident">unwrap_or</span>(<span class="ident">renderer_style</span>.<span class="ident">text_color</span>),
+            },
+            <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
+            <span class="ident">cursor_position</span>,
+            <span class="ident">viewport</span>,
+        );
+    }
+
+    <span class="kw">fn</span> <span class="ident">overlay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">Tree</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">overlay::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
+            <span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
+            <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
+            <span class="ident">renderer</span>,
+        )
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
+    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+{
+    <span class="kw">fn</span> <span class="ident">from</span>(
+        <span class="ident">column</span>: <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
+        <span class="ident">Element::new</span>(<span class="ident">column</span>)
+    }
+}
+
 <span class="doccomment">/// Computes the layout of a [`Container`].</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">layout</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>(
     <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
@@ -454,110 +644,6 @@
     <span class="ident">layout::Node::with_children</span>(<span class="ident">size</span>.<span class="ident">pad</span>(<span class="ident">padding</span>), <span class="macro">vec!</span>[<span class="ident">content</span>])
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
-{
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">width</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">height</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">layout</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="ident">layout</span>(
-            <span class="ident">renderer</span>,
-            <span class="ident">limits</span>,
-            <span class="self">self</span>.<span class="ident">width</span>,
-            <span class="self">self</span>.<span class="ident">height</span>,
-            <span class="self">self</span>.<span class="ident">max_width</span>,
-            <span class="self">self</span>.<span class="ident">max_height</span>,
-            <span class="self">self</span>.<span class="ident">padding</span>,
-            <span class="self">self</span>.<span class="ident">horizontal_alignment</span>,
-            <span class="self">self</span>.<span class="ident">vertical_alignment</span>,
-            <span class="op">|</span><span class="ident">renderer</span>, <span class="ident">limits</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">limits</span>),
-        )
-    }
-
-    <span class="kw">fn</span> <span class="ident">on_event</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">event</span>: <span class="ident">Event</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">event::Status</span> {
-        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">widget</span>.<span class="ident">on_event</span>(
-            <span class="ident">event</span>,
-            <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">cursor_position</span>,
-            <span class="ident">renderer</span>,
-            <span class="ident">clipboard</span>,
-            <span class="ident">shell</span>,
-        )
-    }
-
-    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">widget</span>.<span class="ident">mouse_interaction</span>(
-            <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">cursor_position</span>,
-            <span class="ident">viewport</span>,
-            <span class="ident">renderer</span>,
-        )
-    }
-
-    <span class="kw">fn</span> <span class="ident">draw</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">renderer_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-    ) {
-        <span class="kw">let</span> <span class="ident">style</span> <span class="op">=</span> <span class="ident">theme</span>.<span class="ident">appearance</span>(<span class="self">self</span>.<span class="ident">style</span>);
-
-        <span class="ident">draw_background</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">style</span>, <span class="ident">layout</span>.<span class="ident">bounds</span>());
-
-        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">draw</span>(
-            <span class="ident">renderer</span>,
-            <span class="ident">theme</span>,
-            <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span> {
-                <span class="ident">text_color</span>: <span class="ident">style</span>
-                    .<span class="ident">text_color</span>
-                    .<span class="ident">unwrap_or</span>(<span class="ident">renderer_style</span>.<span class="ident">text_color</span>),
-            },
-            <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">cursor_position</span>,
-            <span class="ident">viewport</span>,
-        );
-    }
-
-    <span class="kw">fn</span> <span class="ident">overlay</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">overlay::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">content</span>
-            .<span class="ident">overlay</span>(<span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(), <span class="ident">renderer</span>)
-    }
-}
-
 <span class="doccomment">/// Draws the background of a [`Container`] given its [`Style`] and its `bounds`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw_background</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>(
     <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
@@ -580,19 +666,5 @@
         );
     }
 }
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
-    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from</span>(
-        <span class="ident">column</span>: <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="ident">Element::new</span>(<span class="ident">column</span>)
-    }
-}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1b57946a4 2022-08-03)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f6f9d5e73 2022-08-04)" ></div></body></html>

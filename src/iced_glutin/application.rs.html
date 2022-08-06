@@ -425,6 +425,12 @@
 <span id="423">423</span>
 <span id="424">424</span>
 <span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Error</span>, <span class="ident">Executor</span>, <span class="ident">Runtime</span>};
@@ -439,7 +445,7 @@
 <span class="kw">use</span> <span class="ident">iced_winit::futures::channel::mpsc</span>;
 <span class="kw">use</span> <span class="ident">iced_winit::renderer</span>;
 <span class="kw">use</span> <span class="ident">iced_winit::user_interface</span>;
-<span class="kw">use</span> <span class="ident">iced_winit</span>::{<span class="ident">Clipboard</span>, <span class="ident">Debug</span>, <span class="ident">Proxy</span>, <span class="ident">Settings</span>};
+<span class="kw">use</span> <span class="ident">iced_winit</span>::{<span class="ident">Clipboard</span>, <span class="ident">Command</span>, <span class="ident">Debug</span>, <span class="ident">Proxy</span>, <span class="ident">Settings</span>};
 
 <span class="kw">use</span> <span class="ident">glutin::window::Window</span>;
 <span class="kw">use</span> <span class="ident">std::mem::ManuallyDrop</span>;
@@ -466,9 +472,9 @@
     <span class="ident">debug</span>.<span class="ident">startup_started</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event_loop</span> <span class="op">=</span> <span class="ident">EventLoop::with_user_event</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">event_loop</span>.<span class="ident">create_proxy</span>();
+    <span class="kw">let</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">event_loop</span>.<span class="ident">create_proxy</span>();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runtime</span> <span class="op">=</span> {
+    <span class="kw">let</span> <span class="ident">runtime</span> <span class="op">=</span> {
         <span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="ident">E::new</span>().<span class="ident">map_err</span>(<span class="ident">Error::ExecutorCreationFailed</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">Proxy::new</span>(<span class="ident">event_loop</span>.<span class="ident">create_proxy</span>());
 
@@ -480,8 +486,6 @@
 
         <span class="ident">runtime</span>.<span class="ident">enter</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">A::new</span>(<span class="ident">flags</span>))
     };
-
-    <span class="kw">let</span> <span class="ident">subscription</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">subscription</span>();
 
     <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> {
         <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">settings</span>.<span class="ident">window</span>.<span class="ident">into_builder</span>(
@@ -552,18 +556,6 @@
         })<span class="question-mark">?</span>
     };
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">clipboard</span> <span class="op">=</span> <span class="ident">Clipboard::connect</span>(<span class="ident">context</span>.<span class="ident">window</span>());
-
-    <span class="ident">application::run_command</span>(
-        <span class="ident">init_command</span>,
-        <span class="kw-2">&amp;mut</span> <span class="ident">runtime</span>,
-        <span class="kw-2">&amp;mut</span> <span class="ident">clipboard</span>,
-        <span class="kw-2">&amp;mut</span> <span class="ident">proxy</span>,
-        <span class="ident">context</span>.<span class="ident">window</span>(),
-        <span class="op">|</span><span class="op">|</span> <span class="ident">compositor</span>.<span class="ident">fetch_information</span>(),
-    );
-    <span class="ident">runtime</span>.<span class="ident">track</span>(<span class="ident">subscription</span>);
-
     <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">mpsc::unbounded</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">instance</span> <span class="op">=</span> <span class="ident">Box::pin</span>(<span class="ident">run_instance</span>::<span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">E</span>, <span class="ident">C</span><span class="op">&gt;</span>(
@@ -571,11 +563,11 @@
         <span class="ident">compositor</span>,
         <span class="ident">renderer</span>,
         <span class="ident">runtime</span>,
-        <span class="ident">clipboard</span>,
         <span class="ident">proxy</span>,
         <span class="ident">debug</span>,
         <span class="ident">receiver</span>,
         <span class="ident">context</span>,
+        <span class="ident">init_command</span>,
         <span class="ident">settings</span>.<span class="ident">exit_on_close_request</span>,
     ));
 
@@ -623,11 +615,11 @@
     <span class="kw-2">mut</span> <span class="ident">compositor</span>: <span class="ident">C</span>,
     <span class="kw-2">mut</span> <span class="ident">renderer</span>: <span class="ident">A::Renderer</span>,
     <span class="kw-2">mut</span> <span class="ident">runtime</span>: <span class="ident">Runtime</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">Proxy</span><span class="op">&lt;</span><span class="ident">A::Message</span><span class="op">&gt;</span>, <span class="ident">A::Message</span><span class="op">&gt;</span>,
-    <span class="kw-2">mut</span> <span class="ident">clipboard</span>: <span class="ident">Clipboard</span>,
     <span class="kw-2">mut</span> <span class="ident">proxy</span>: <span class="ident">glutin::event_loop::EventLoopProxy</span><span class="op">&lt;</span><span class="ident">A::Message</span><span class="op">&gt;</span>,
     <span class="kw-2">mut</span> <span class="ident">debug</span>: <span class="ident">Debug</span>,
     <span class="kw-2">mut</span> <span class="ident">receiver</span>: <span class="ident">mpsc::UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">glutin::event::Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">A::Message</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw-2">mut</span> <span class="ident">context</span>: <span class="ident">glutin::ContextWrapper</span><span class="op">&lt;</span><span class="ident">glutin::PossiblyCurrent</span>, <span class="ident">Window</span><span class="op">&gt;</span>,
+    <span class="ident">init_command</span>: <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">A::Message</span><span class="op">&gt;</span>,
     <span class="ident">exit_on_close_request</span>: <span class="ident">bool</span>,
 ) <span class="kw">where</span>
     <span class="ident">A</span>: <span class="ident">Application</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -638,12 +630,29 @@
     <span class="kw">use</span> <span class="ident">glutin::event</span>;
     <span class="kw">use</span> <span class="ident">iced_winit::futures::stream::StreamExt</span>;
 
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">clipboard</span> <span class="op">=</span> <span class="ident">Clipboard::connect</span>(<span class="ident">context</span>.<span class="ident">window</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <span class="ident">user_interface::Cache::default</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">application::State::new</span>(<span class="kw-2">&amp;</span><span class="ident">application</span>, <span class="ident">context</span>.<span class="ident">window</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">viewport_version</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">viewport_version</span>();
 
+    <span class="ident">application::run_command</span>(
+        <span class="kw-2">&amp;</span><span class="ident">application</span>,
+        <span class="kw-2">&amp;mut</span> <span class="ident">cache</span>,
+        <span class="kw-2">&amp;</span><span class="ident">state</span>,
+        <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
+        <span class="ident">init_command</span>,
+        <span class="kw-2">&amp;mut</span> <span class="ident">runtime</span>,
+        <span class="kw-2">&amp;mut</span> <span class="ident">clipboard</span>,
+        <span class="kw-2">&amp;mut</span> <span class="ident">proxy</span>,
+        <span class="kw-2">&amp;mut</span> <span class="ident">debug</span>,
+        <span class="ident">context</span>.<span class="ident">window</span>(),
+        <span class="op">|</span><span class="op">|</span> <span class="ident">compositor</span>.<span class="ident">fetch_information</span>(),
+    );
+    <span class="ident">runtime</span>.<span class="ident">track</span>(<span class="ident">application</span>.<span class="ident">subscription</span>());
+
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_interface</span> <span class="op">=</span>
         <span class="ident">ManuallyDrop::new</span>(<span class="ident">application::build_user_interface</span>(
-            <span class="kw-2">&amp;mut</span> <span class="ident">application</span>,
+            <span class="kw-2">&amp;</span><span class="ident">application</span>,
             <span class="ident">user_interface::Cache::default</span>(),
             <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
             <span class="ident">state</span>.<span class="ident">logical_size</span>(),
@@ -685,12 +694,15 @@
                         <span class="ident">user_interface::State::Outdated</span>
                     )
                 {
-                    <span class="kw">let</span> <span class="ident">cache</span> <span class="op">=</span>
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span>
                         <span class="ident">ManuallyDrop::into_inner</span>(<span class="ident">user_interface</span>).<span class="ident">into_cache</span>();
 
                     <span class="comment">// Update application</span>
                     <span class="ident">application::update</span>(
                         <span class="kw-2">&amp;mut</span> <span class="ident">application</span>,
+                        <span class="kw-2">&amp;mut</span> <span class="ident">cache</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">state</span>,
+                        <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
                         <span class="kw-2">&amp;mut</span> <span class="ident">runtime</span>,
                         <span class="kw-2">&amp;mut</span> <span class="ident">clipboard</span>,
                         <span class="kw-2">&amp;mut</span> <span class="ident">proxy</span>,
@@ -707,7 +719,7 @@
 
                     <span class="ident">user_interface</span> <span class="op">=</span>
                         <span class="ident">ManuallyDrop::new</span>(<span class="ident">application::build_user_interface</span>(
-                            <span class="kw-2">&amp;mut</span> <span class="ident">application</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">application</span>,
                             <span class="ident">cache</span>,
                             <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
                             <span class="ident">state</span>.<span class="ident">logical_size</span>(),
@@ -851,4 +863,4 @@
     <span class="ident">drop</span>(<span class="ident">ManuallyDrop::into_inner</span>(<span class="ident">user_interface</span>));
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glutin" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1b57946a4 2022-08-03)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glutin" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f6f9d5e73 2022-08-04)" ></div></body></html>

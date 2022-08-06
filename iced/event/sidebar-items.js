@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Event","A user interface event."],["MacOS","Describes an event specific to MacOS"],["PlatformSpecific","A platform specific event"],["Status","The status of an [`Event`] after being processed."]]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of a radio button."],["Radio","A circular button representing a choice."]],"trait":[["StyleSheet","A set of rules that dictate the style of a radio button."]]};

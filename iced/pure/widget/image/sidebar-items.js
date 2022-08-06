@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Handle","A handle of some image data."]],"type":[["Image","A frame that displays an image."]]};

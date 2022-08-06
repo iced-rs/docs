@@ -1034,6 +1034,72 @@
 <span id="1032">1032</span>
 <span id="1033">1033</span>
 <span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A [`TextInput`] has some local [`State`].</span>
@@ -1055,9 +1121,12 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::text</span>::{<span class="self">self</span>, <span class="ident">Text</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::touch</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::operation</span>::{<span class="self">self</span>, <span class="ident">Operation</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::tree</span>::{<span class="self">self</span>, <span class="ident">Tree</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">Clipboard</span>, <span class="ident">Color</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Padding</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>,
-    <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>, <span class="ident">Widget</span>,
+    <span class="ident">Clipboard</span>, <span class="ident">Color</span>, <span class="ident">Command</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Padding</span>, <span class="ident">Point</span>,
+    <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>, <span class="ident">Widget</span>,
 };
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_style::text_input</span>::{<span class="ident">Appearance</span>, <span class="ident">StyleSheet</span>};
@@ -1066,20 +1135,15 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use iced_native::renderer::Null;</span>
-<span class="doccomment">/// # use iced_native::widget::text_input;</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// # pub type TextInput&lt;&#39;a, Message&gt; = iced_native::widget::TextInput&lt;&#39;a, Message, Null&gt;;</span>
+<span class="doccomment">/// # pub type TextInput&lt;&#39;a, Message&gt; = iced_native::widget::TextInput&lt;&#39;a, Message, iced_native::renderer::Null&gt;;</span>
 <span class="doccomment">/// #[derive(Debug, Clone)]</span>
 <span class="doccomment">/// enum Message {</span>
 <span class="doccomment">///     TextInputChanged(String),</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let mut state = text_input::State::new();</span>
 <span class="doccomment">/// let value = &quot;Some text&quot;;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let input = TextInput::new(</span>
-<span class="doccomment">///     &amp;mut state,</span>
 <span class="doccomment">///     &quot;This is the placeholder...&quot;,</span>
 <span class="doccomment">///     value,</span>
 <span class="doccomment">///     Message::TextInputChanged,</span>
@@ -1093,7 +1157,7 @@
     <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
     <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
 {
-    <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">State</span>,
+    <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Id</span><span class="op">&gt;</span>,
     <span class="ident">placeholder</span>: <span class="ident">String</span>,
     <span class="ident">value</span>: <span class="ident">Value</span>,
     <span class="ident">is_secure</span>: <span class="ident">bool</span>,
@@ -1116,21 +1180,15 @@
     <span class="doccomment">/// Creates a new [`TextInput`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// It expects:</span>
-    <span class="doccomment">/// - some [`State`]</span>
-    <span class="doccomment">/// - a placeholder</span>
-    <span class="doccomment">/// - the current value</span>
-    <span class="doccomment">/// - a function that produces a message when the [`TextInput`] changes</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">State</span>,
-        <span class="ident">placeholder</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">on_change</span>: <span class="ident">F</span>,
-    ) -&gt; <span class="self">Self</span>
+    <span class="doccomment">/// - a placeholder,</span>
+    <span class="doccomment">/// - the current value, and</span>
+    <span class="doccomment">/// - a function that produces a message when the [`TextInput`] changes.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">placeholder</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">on_change</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">String</span>) -&gt; <span class="ident">Message</span>,
     {
         <span class="ident">TextInput</span> {
-            <span class="ident">state</span>,
+            <span class="ident">id</span>: <span class="prelude-val">None</span>,
             <span class="ident">placeholder</span>: <span class="ident">String::from</span>(<span class="ident">placeholder</span>),
             <span class="ident">value</span>: <span class="ident">Value::new</span>(<span class="ident">value</span>),
             <span class="ident">is_secure</span>: <span class="bool-val">false</span>,
@@ -1143,6 +1201,12 @@
             <span class="ident">on_submit</span>: <span class="prelude-val">None</span>,
             <span class="ident">style</span>: <span class="ident">Default::default</span>(),
         }
+    }
+
+    <span class="doccomment">/// Sets the [`Id`] of the [`TextInput`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">Id</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">id</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>);
+        <span class="self">self</span>
     }
 
     <span class="doccomment">/// Converts the [`TextInput`] into a secure password input.</span>
@@ -1163,7 +1227,7 @@
 
     <span class="doccomment">/// Sets the [`Font`] of the [`TextInput`].</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Font`]: crate::text::Renderer::Font</span>
+    <span class="doccomment">/// [`Font`]: text::Renderer::Font</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">font</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">font</span>: <span class="ident">Renderer::Font</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">font</span> <span class="op">=</span> <span class="ident">font</span>;
         <span class="self">self</span>
@@ -1202,17 +1266,13 @@
         <span class="self">self</span>
     }
 
-    <span class="doccomment">/// Returns the current [`State`] of the [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">State</span> {
-        <span class="self">self</span>.<span class="ident">state</span>
-    }
-
     <span class="doccomment">/// Draws the [`TextInput`] with the given [`Renderer`], overriding its</span>
-    <span class="doccomment">/// [`Value`] if provided.</span>
+    <span class="doccomment">/// [`text_input::Value`] if provided.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Renderer`]: text::Renderer</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
         <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
         <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
@@ -1224,7 +1284,7 @@
             <span class="ident">theme</span>,
             <span class="ident">layout</span>,
             <span class="ident">cursor_position</span>,
-            <span class="self">self</span>.<span class="ident">state</span>,
+            <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>(),
             <span class="ident">value</span>.<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">value</span>),
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">placeholder</span>,
             <span class="self">self</span>.<span class="ident">size</span>,
@@ -1233,6 +1293,150 @@
             <span class="self">self</span>.<span class="ident">style</span>,
         )
     }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+    <span class="kw">for</span> <span class="ident">TextInput</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Message</span>: <span class="ident">Clone</span>,
+    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+{
+    <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::Tag</span> {
+        <span class="ident">tree::Tag::of</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>()
+    }
+
+    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::State</span> {
+        <span class="ident">tree::State::new</span>(<span class="ident">State::new</span>())
+    }
+
+    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
+        <span class="self">self</span>.<span class="ident">width</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
+        <span class="ident">Length::Shrink</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">layout</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
+    ) -&gt; <span class="ident">layout::Node</span> {
+        <span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">limits</span>, <span class="self">self</span>.<span class="ident">width</span>, <span class="self">self</span>.<span class="ident">padding</span>, <span class="self">self</span>.<span class="ident">size</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">operate</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
+        <span class="ident">_layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">operation</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
+    ) {
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>();
+
+        <span class="ident">operation</span>.<span class="ident">focusable</span>(<span class="ident">state</span>, <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>));
+    }
+
+    <span class="kw">fn</span> <span class="ident">on_event</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
+        <span class="ident">event</span>: <span class="ident">Event</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
+        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
+        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">event::Status</span> {
+        <span class="ident">update</span>(
+            <span class="ident">event</span>,
+            <span class="ident">layout</span>,
+            <span class="ident">cursor_position</span>,
+            <span class="ident">renderer</span>,
+            <span class="ident">clipboard</span>,
+            <span class="ident">shell</span>,
+            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">value</span>,
+            <span class="self">self</span>.<span class="ident">size</span>,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">font</span>,
+            <span class="self">self</span>.<span class="ident">is_secure</span>,
+            <span class="self">self</span>.<span class="ident">on_change</span>.<span class="ident">as_ref</span>(),
+            <span class="self">self</span>.<span class="ident">on_paste</span>.<span class="ident">as_deref</span>(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">on_submit</span>,
+            <span class="op">|</span><span class="op">|</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>(),
+        )
+    }
+
+    <span class="kw">fn</span> <span class="ident">draw</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
+        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
+        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
+        <span class="ident">_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
+        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+    ) {
+        <span class="ident">draw</span>(
+            <span class="ident">renderer</span>,
+            <span class="ident">theme</span>,
+            <span class="ident">layout</span>,
+            <span class="ident">cursor_position</span>,
+            <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">value</span>,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">placeholder</span>,
+            <span class="self">self</span>.<span class="ident">size</span>,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">font</span>,
+            <span class="self">self</span>.<span class="ident">is_secure</span>,
+            <span class="self">self</span>.<span class="ident">style</span>,
+        )
+    }
+
+    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
+        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+    ) -&gt; <span class="ident">mouse::Interaction</span> {
+        <span class="ident">mouse_interaction</span>(<span class="ident">layout</span>, <span class="ident">cursor_position</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TextInput</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">text::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+{
+    <span class="kw">fn</span> <span class="ident">from</span>(
+        <span class="ident">text_input</span>: <span class="ident">TextInput</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
+        <span class="ident">Element::new</span>(<span class="ident">text_input</span>)
+    }
+}
+
+<span class="doccomment">/// The identifier of a [`TextInput`].</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Id</span>(<span class="ident">widget::Id</span>);
+
+<span class="kw">impl</span> <span class="ident">Id</span> {
+    <span class="doccomment">/// Creates a custom [`Id`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">std::borrow::Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">widget::Id::new</span>(<span class="ident">id</span>))
+    }
+
+    <span class="doccomment">/// Creates a unique [`Id`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function produces a different [`Id`] every time it is called.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unique</span>() -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">widget::Id::unique</span>())
+    }
+}
+
+<span class="doccomment">/// Produces a [`Command`] that focuses the [`TextInput`] with the given [`Id`].</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">focus</span><span class="op">&lt;</span><span class="ident">Message</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">id</span>: <span class="ident">Id</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span> {
+    <span class="ident">Command::widget</span>(<span class="ident">operation::focusable::focus</span>(<span class="ident">id</span>.<span class="number">0</span>))
 }
 
 <span class="doccomment">/// Computes the layout of a [`TextInput`].</span>
@@ -1813,93 +2017,6 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">TextInput</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="ident">Clone</span>,
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
-{
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">width</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="ident">Length::Shrink</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">layout</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">limits</span>, <span class="self">self</span>.<span class="ident">width</span>, <span class="self">self</span>.<span class="ident">padding</span>, <span class="self">self</span>.<span class="ident">size</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">on_event</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">event</span>: <span class="ident">Event</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">event::Status</span> {
-        <span class="ident">update</span>(
-            <span class="ident">event</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">renderer</span>,
-            <span class="ident">clipboard</span>,
-            <span class="ident">shell</span>,
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">value</span>,
-            <span class="self">self</span>.<span class="ident">size</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">font</span>,
-            <span class="self">self</span>.<span class="ident">is_secure</span>,
-            <span class="self">self</span>.<span class="ident">on_change</span>.<span class="ident">as_ref</span>(),
-            <span class="self">self</span>.<span class="ident">on_paste</span>.<span class="ident">as_deref</span>(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">on_submit</span>,
-            <span class="op">|</span><span class="op">|</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
-        )
-    }
-
-    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="ident">mouse_interaction</span>(<span class="ident">layout</span>, <span class="ident">cursor_position</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">draw</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-    ) {
-        <span class="self">self</span>.<span class="ident">draw</span>(<span class="ident">renderer</span>, <span class="ident">theme</span>, <span class="ident">layout</span>, <span class="ident">cursor_position</span>, <span class="prelude-val">None</span>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TextInput</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Clone</span>,
-    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from</span>(
-        <span class="ident">text_input</span>: <span class="ident">TextInput</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="ident">Element::new</span>(<span class="ident">text_input</span>)
-    }
-}
-
 <span class="doccomment">/// The state of a [`TextInput`].</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">State</span> {
@@ -1943,6 +2060,7 @@
     <span class="doccomment">/// Focuses the [`TextInput`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">focus</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">is_focused</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="self">self</span>.<span class="ident">move_cursor_to_end</span>();
     }
 
     <span class="doccomment">/// Unfocuses the [`TextInput`].</span>
@@ -1968,6 +2086,20 @@
     <span class="doccomment">/// Selects all the content of the [`TextInput`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">select_range</span>(<span class="number">0</span>, <span class="ident">usize::MAX</span>);
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">operation::Focusable</span> <span class="kw">for</span> <span class="ident">State</span> {
+    <span class="kw">fn</span> <span class="ident">is_focused</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="ident">State::is_focused</span>(<span class="self">self</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">focus</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="ident">State::focus</span>(<span class="self">self</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">unfocus</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="ident">State::unfocus</span>(<span class="self">self</span>)
     }
 }
 
@@ -2069,4 +2201,4 @@
         .<span class="ident">map</span>(<span class="ident">text::Hit::cursor</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1b57946a4 2022-08-03)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f6f9d5e73 2022-08-04)" ></div></body></html>

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["HandleShape","The shape of the handle of a slider."]],"struct":[["Appearance","The appearance of a slider."],["Handle","The appearance of the handle of a slider."],["Slider","An horizontal bar and a handle that selects a single value from a range of values."]],"trait":[["StyleSheet","A set of rules that dictate the style of a slider."]]};

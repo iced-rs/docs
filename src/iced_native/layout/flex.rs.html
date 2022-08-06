@@ -230,6 +230,8 @@
 <span id="228">228</span>
 <span id="229">229</span>
 <span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Distribute elements using a flex-based layout.</span>
 <span class="comment">// This code is heavily inspired by the [`druid`] codebase.</span>
 <span class="comment">//</span>
@@ -248,8 +250,10 @@
 <span class="comment">// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
 <span class="comment">// See the License for the specific language governing permissions and</span>
 <span class="comment">// limitations under the License.</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Element</span>;
+
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>::{<span class="ident">Limits</span>, <span class="ident">Node</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Alignment</span>, <span class="ident">Element</span>, <span class="ident">Padding</span>, <span class="ident">Point</span>, <span class="ident">Size</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Alignment</span>, <span class="ident">Padding</span>, <span class="ident">Point</span>, <span class="ident">Size</span>};
 
 <span class="doccomment">/// The main axis of a flex layout.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -316,8 +320,8 @@
 
         <span class="ident">items</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">child</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">cross_fill_factor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">axis</span> {
-                <span class="ident">Axis::Horizontal</span> =&gt; <span class="ident">child</span>.<span class="ident">height</span>(),
-                <span class="ident">Axis::Vertical</span> =&gt; <span class="ident">child</span>.<span class="ident">width</span>(),
+                <span class="ident">Axis::Horizontal</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">height</span>(),
+                <span class="ident">Axis::Vertical</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">width</span>(),
             }
             .<span class="ident">fill_factor</span>();
 
@@ -327,7 +331,7 @@
                 <span class="kw">let</span> <span class="ident">child_limits</span> <span class="op">=</span>
                     <span class="ident">Limits::new</span>(<span class="ident">Size::ZERO</span>, <span class="ident">Size::new</span>(<span class="ident">max_width</span>, <span class="ident">max_height</span>));
 
-                <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">child_limits</span>);
+                <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">child_limits</span>);
                 <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
 
                 <span class="ident">fill_cross</span> <span class="op">=</span> <span class="ident">fill_cross</span>.<span class="ident">max</span>(<span class="ident">axis</span>.<span class="ident">cross</span>(<span class="ident">size</span>));
@@ -339,8 +343,8 @@
 
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">child</span>) <span class="kw">in</span> <span class="ident">items</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
         <span class="kw">let</span> <span class="ident">fill_factor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">axis</span> {
-            <span class="ident">Axis::Horizontal</span> =&gt; <span class="ident">child</span>.<span class="ident">width</span>(),
-            <span class="ident">Axis::Vertical</span> =&gt; <span class="ident">child</span>.<span class="ident">height</span>(),
+            <span class="ident">Axis::Horizontal</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">width</span>(),
+            <span class="ident">Axis::Vertical</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">height</span>(),
         }
         .<span class="ident">fill_factor</span>();
 
@@ -362,7 +366,7 @@
                 <span class="ident">Size::new</span>(<span class="ident">max_width</span>, <span class="ident">max_height</span>),
             );
 
-            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">child_limits</span>);
+            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">child_limits</span>);
             <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
 
             <span class="ident">available</span> <span class="op">-</span><span class="op">=</span> <span class="ident">axis</span>.<span class="ident">main</span>(<span class="ident">size</span>);
@@ -381,8 +385,8 @@
 
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">child</span>) <span class="kw">in</span> <span class="ident">items</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
         <span class="kw">let</span> <span class="ident">fill_factor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">axis</span> {
-            <span class="ident">Axis::Horizontal</span> =&gt; <span class="ident">child</span>.<span class="ident">width</span>(),
-            <span class="ident">Axis::Vertical</span> =&gt; <span class="ident">child</span>.<span class="ident">height</span>(),
+            <span class="ident">Axis::Horizontal</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">width</span>(),
+            <span class="ident">Axis::Vertical</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">height</span>(),
         }
         .<span class="ident">fill_factor</span>();
 
@@ -411,7 +415,7 @@
                 <span class="ident">Size::new</span>(<span class="ident">max_width</span>, <span class="ident">max_height</span>),
             );
 
-            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">child_limits</span>);
+            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">child_limits</span>);
 
             <span class="kw">if</span> <span class="ident">align_items</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Alignment::Fill</span> {
                 <span class="ident">cross</span> <span class="op">=</span> <span class="ident">cross</span>.<span class="ident">max</span>(<span class="ident">axis</span>.<span class="ident">cross</span>(<span class="ident">layout</span>.<span class="ident">size</span>()));
@@ -461,4 +465,4 @@
     <span class="ident">Node::with_children</span>(<span class="ident">size</span>.<span class="ident">pad</span>(<span class="ident">padding</span>), <span class="ident">nodes</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1b57946a4 2022-08-03)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f6f9d5e73 2022-08-04)" ></div></body></html>

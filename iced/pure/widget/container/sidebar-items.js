@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of a container."]],"trait":[["StyleSheet","A set of rules that dictate the [`Appearance`] of a container."]],"type":[["Container","An element decorating some content."]]};

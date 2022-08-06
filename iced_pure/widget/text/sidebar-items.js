@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Appearance",""],["Text","A paragraph of text."]],"trait":[["StyleSheet",""]]};

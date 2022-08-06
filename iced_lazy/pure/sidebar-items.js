@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["component","Turns an implementor of [`Component`] into an [`Element`] that can be embedded in any application."],["responsive",""]],"struct":[["Responsive","A widget that is aware of its dimensions."]],"trait":[["Component","A reusable, custom widget that uses The Elm Architecture."]]};

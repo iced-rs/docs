@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Canvas","A widget capable of drawing 2D graphics."]],"trait":[["Program","The state and logic of a `Canvas`."]]};

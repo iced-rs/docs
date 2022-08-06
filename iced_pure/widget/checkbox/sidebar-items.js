@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of a checkbox."],["Checkbox","A box that can be checked."]],"trait":[["StyleSheet","A set of rules that dictate the style of a checkbox."]]};

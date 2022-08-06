@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of a progress bar."],["ProgressBar","A bar that displays progress."]],"trait":[["StyleSheet","A set of rules that dictate the style of a progress bar."]]};

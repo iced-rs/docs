@@ -398,12 +398,46 @@
 <span id="396">396</span>
 <span id="397">397</span>
 <span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Zoom and pan on an image.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>::{<span class="self">self</span>, <span class="ident">Event</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::image</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::tree</span>::{<span class="self">self</span>, <span class="ident">Tree</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>,
     <span class="ident">Widget</span>,
@@ -413,8 +447,7 @@
 
 <span class="doccomment">/// A frame that displays an image with the ability to zoom in/out and pan.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Viewer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Handle</span><span class="op">&gt;</span> {
-    <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">State</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Viewer</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span> {
     <span class="ident">padding</span>: <span class="ident">u16</span>,
     <span class="ident">width</span>: <span class="ident">Length</span>,
     <span class="ident">height</span>: <span class="ident">Length</span>,
@@ -424,11 +457,10 @@
     <span class="ident">handle</span>: <span class="ident">Handle</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Handle</span><span class="op">&gt;</span> <span class="ident">Viewer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Handle</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span> <span class="ident">Viewer</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Creates a new [`Viewer`] with the given [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">State</span>, <span class="ident">handle</span>: <span class="ident">Handle</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">handle</span>: <span class="ident">Handle</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Viewer</span> {
-            <span class="ident">state</span>,
             <span class="ident">padding</span>: <span class="number">0</span>,
             <span class="ident">width</span>: <span class="ident">Length::Shrink</span>,
             <span class="ident">height</span>: <span class="ident">Length::Shrink</span>,
@@ -481,43 +513,21 @@
         <span class="self">self</span>.<span class="ident">scale_step</span> <span class="op">=</span> <span class="ident">scale_step</span>;
         <span class="self">self</span>
     }
-
-    <span class="doccomment">/// Returns the bounds of the underlying image, given the bounds of</span>
-    <span class="doccomment">/// the [`Viewer`]. Scaling will be applied and original aspect ratio</span>
-    <span class="doccomment">/// will be respected.</span>
-    <span class="kw">fn</span> <span class="ident">image_size</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>, <span class="ident">bounds</span>: <span class="ident">Size</span>) -&gt; <span class="ident">Size</span>
-    <span class="kw">where</span>
-        <span class="ident">Renderer</span>: <span class="ident">image::Renderer</span><span class="op">&lt;</span><span class="ident">Handle</span> <span class="op">=</span> <span class="ident">Handle</span><span class="op">&gt;</span>,
-    {
-        <span class="kw">let</span> (<span class="ident">width</span>, <span class="ident">height</span>) <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">dimensions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handle</span>);
-
-        <span class="kw">let</span> (<span class="ident">width</span>, <span class="ident">height</span>) <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">dimensions</span> <span class="op">=</span> (<span class="ident">width</span> <span class="kw">as</span> <span class="ident">f32</span>, <span class="ident">height</span> <span class="kw">as</span> <span class="ident">f32</span>);
-
-            <span class="kw">let</span> <span class="ident">width_ratio</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">/</span> <span class="ident">dimensions</span>.<span class="number">0</span>;
-            <span class="kw">let</span> <span class="ident">height_ratio</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">/</span> <span class="ident">dimensions</span>.<span class="number">1</span>;
-
-            <span class="kw">let</span> <span class="ident">ratio</span> <span class="op">=</span> <span class="ident">width_ratio</span>.<span class="ident">min</span>(<span class="ident">height_ratio</span>);
-
-            <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">scale</span>;
-
-            <span class="kw">if</span> <span class="ident">ratio</span> <span class="op">&lt;</span> <span class="number">1.0</span> {
-                (<span class="ident">dimensions</span>.<span class="number">0</span> <span class="op">*</span> <span class="ident">ratio</span> <span class="op">*</span> <span class="ident">scale</span>, <span class="ident">dimensions</span>.<span class="number">1</span> <span class="op">*</span> <span class="ident">ratio</span> <span class="op">*</span> <span class="ident">scale</span>)
-            } <span class="kw">else</span> {
-                (<span class="ident">dimensions</span>.<span class="number">0</span> <span class="op">*</span> <span class="ident">scale</span>, <span class="ident">dimensions</span>.<span class="number">1</span> <span class="op">*</span> <span class="ident">scale</span>)
-            }
-        };
-
-        <span class="ident">Size::new</span>(<span class="ident">width</span>, <span class="ident">height</span>)
-    }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Handle</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Viewer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Handle</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Handle</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Viewer</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="ident">image::Renderer</span><span class="op">&lt;</span><span class="ident">Handle</span> <span class="op">=</span> <span class="ident">Handle</span><span class="op">&gt;</span>,
     <span class="ident">Handle</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Hash</span>,
 {
+    <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::Tag</span> {
+        <span class="ident">tree::Tag::of</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>()
+    }
+
+    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::State</span> {
+        <span class="ident">tree::State::new</span>(<span class="ident">State::new</span>())
+    }
+
     <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
         <span class="self">self</span>.<span class="ident">width</span>
     }
@@ -564,6 +574,7 @@
 
     <span class="kw">fn</span> <span class="ident">on_event</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
         <span class="ident">event</span>: <span class="ident">Event</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
@@ -581,39 +592,43 @@
                 <span class="kw">match</span> <span class="ident">delta</span> {
                     <span class="ident">mouse::ScrollDelta::Lines</span> { <span class="ident">y</span>, .. }
                     <span class="op">|</span> <span class="ident">mouse::ScrollDelta::Pixels</span> { <span class="ident">y</span>, .. } =&gt; {
-                        <span class="kw">let</span> <span class="ident">previous_scale</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">scale</span>;
+                        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>();
+                        <span class="kw">let</span> <span class="ident">previous_scale</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">scale</span>;
 
                         <span class="kw">if</span> <span class="ident">y</span> <span class="op">&lt;</span> <span class="number">0.0</span> <span class="op">&amp;&amp;</span> <span class="ident">previous_scale</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">min_scale</span>
                             <span class="op">|</span><span class="op">|</span> <span class="ident">y</span> <span class="op">&gt;</span> <span class="number">0.0</span> <span class="op">&amp;&amp;</span> <span class="ident">previous_scale</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">max_scale</span>
                         {
-                            <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">scale</span> <span class="op">=</span> (<span class="kw">if</span> <span class="ident">y</span> <span class="op">&gt;</span> <span class="number">0.0</span> {
-                                <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">scale</span> <span class="op">*</span> (<span class="number">1.0</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">scale_step</span>)
+                            <span class="ident">state</span>.<span class="ident">scale</span> <span class="op">=</span> (<span class="kw">if</span> <span class="ident">y</span> <span class="op">&gt;</span> <span class="number">0.0</span> {
+                                <span class="ident">state</span>.<span class="ident">scale</span> <span class="op">*</span> (<span class="number">1.0</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">scale_step</span>)
                             } <span class="kw">else</span> {
-                                <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">scale</span> <span class="op">/</span> (<span class="number">1.0</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">scale_step</span>)
+                                <span class="ident">state</span>.<span class="ident">scale</span> <span class="op">/</span> (<span class="number">1.0</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">scale_step</span>)
                             })
                             .<span class="ident">max</span>(<span class="self">self</span>.<span class="ident">min_scale</span>)
                             .<span class="ident">min</span>(<span class="self">self</span>.<span class="ident">max_scale</span>);
 
-                            <span class="kw">let</span> <span class="ident">image_size</span> <span class="op">=</span>
-                                <span class="self">self</span>.<span class="ident">image_size</span>(<span class="ident">renderer</span>, <span class="ident">bounds</span>.<span class="ident">size</span>());
+                            <span class="kw">let</span> <span class="ident">image_size</span> <span class="op">=</span> <span class="ident">image_size</span>(
+                                <span class="ident">renderer</span>,
+                                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handle</span>,
+                                <span class="ident">state</span>,
+                                <span class="ident">bounds</span>.<span class="ident">size</span>(),
+                            );
 
-                            <span class="kw">let</span> <span class="ident">factor</span> <span class="op">=</span>
-                                <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">scale</span> <span class="op">/</span> <span class="ident">previous_scale</span> <span class="op">-</span> <span class="number">1.0</span>;
+                            <span class="kw">let</span> <span class="ident">factor</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">scale</span> <span class="op">/</span> <span class="ident">previous_scale</span> <span class="op">-</span> <span class="number">1.0</span>;
 
                             <span class="kw">let</span> <span class="ident">cursor_to_center</span> <span class="op">=</span>
                                 <span class="ident">cursor_position</span> <span class="op">-</span> <span class="ident">bounds</span>.<span class="ident">center</span>();
 
                             <span class="kw">let</span> <span class="ident">adjustment</span> <span class="op">=</span> <span class="ident">cursor_to_center</span> <span class="op">*</span> <span class="ident">factor</span>
-                                <span class="op">+</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">current_offset</span> <span class="op">*</span> <span class="ident">factor</span>;
+                                <span class="op">+</span> <span class="ident">state</span>.<span class="ident">current_offset</span> <span class="op">*</span> <span class="ident">factor</span>;
 
-                            <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">current_offset</span> <span class="op">=</span> <span class="ident">Vector::new</span>(
+                            <span class="ident">state</span>.<span class="ident">current_offset</span> <span class="op">=</span> <span class="ident">Vector::new</span>(
                                 <span class="kw">if</span> <span class="ident">image_size</span>.<span class="ident">width</span> <span class="op">&gt;</span> <span class="ident">bounds</span>.<span class="ident">width</span> {
-                                    <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">current_offset</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">adjustment</span>.<span class="ident">x</span>
+                                    <span class="ident">state</span>.<span class="ident">current_offset</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">adjustment</span>.<span class="ident">x</span>
                                 } <span class="kw">else</span> {
                                     <span class="number">0.0</span>
                                 },
                                 <span class="kw">if</span> <span class="ident">image_size</span>.<span class="ident">height</span> <span class="op">&gt;</span> <span class="ident">bounds</span>.<span class="ident">height</span> {
-                                    <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">current_offset</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">adjustment</span>.<span class="ident">y</span>
+                                    <span class="ident">state</span>.<span class="ident">current_offset</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">adjustment</span>.<span class="ident">y</span>
                                 } <span class="kw">else</span> {
                                     <span class="number">0.0</span>
                                 },
@@ -627,21 +642,34 @@
             <span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::ButtonPressed</span>(<span class="ident">mouse::Button::Left</span>))
                 <span class="kw">if</span> <span class="ident">is_mouse_over</span> =&gt;
             {
-                <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">cursor_grabbed_at</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">cursor_position</span>);
-                <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">starting_offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">current_offset</span>;
+                <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>();
+
+                <span class="ident">state</span>.<span class="ident">cursor_grabbed_at</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">cursor_position</span>);
+                <span class="ident">state</span>.<span class="ident">starting_offset</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">current_offset</span>;
 
                 <span class="ident">event::Status::Captured</span>
             }
-            <span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::ButtonReleased</span>(<span class="ident">mouse::Button::Left</span>))
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">cursor_grabbed_at</span>.<span class="ident">is_some</span>() =&gt;
-            {
-                <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">cursor_grabbed_at</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+            <span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::ButtonReleased</span>(<span class="ident">mouse::Button::Left</span>)) =&gt; {
+                <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>();
 
-                <span class="ident">event::Status::Captured</span>
+                <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">cursor_grabbed_at</span>.<span class="ident">is_some</span>() {
+                    <span class="ident">state</span>.<span class="ident">cursor_grabbed_at</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+
+                    <span class="ident">event::Status::Captured</span>
+                } <span class="kw">else</span> {
+                    <span class="ident">event::Status::Ignored</span>
+                }
             }
             <span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::CursorMoved</span> { <span class="ident">position</span> }) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">origin</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">cursor_grabbed_at</span> {
-                    <span class="kw">let</span> <span class="ident">image_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">image_size</span>(<span class="ident">renderer</span>, <span class="ident">bounds</span>.<span class="ident">size</span>());
+                <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>();
+
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">origin</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">cursor_grabbed_at</span> {
+                    <span class="kw">let</span> <span class="ident">image_size</span> <span class="op">=</span> <span class="ident">image_size</span>(
+                        <span class="ident">renderer</span>,
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handle</span>,
+                        <span class="ident">state</span>,
+                        <span class="ident">bounds</span>.<span class="ident">size</span>(),
+                    );
 
                     <span class="kw">let</span> <span class="ident">hidden_width</span> <span class="op">=</span> (<span class="ident">image_size</span>.<span class="ident">width</span> <span class="op">-</span> <span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">/</span> <span class="number">2.0</span>)
                         .<span class="ident">max</span>(<span class="number">0.0</span>)
@@ -655,7 +683,7 @@
                     <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="ident">position</span> <span class="op">-</span> <span class="ident">origin</span>;
 
                     <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">&lt;</span> <span class="ident">image_size</span>.<span class="ident">width</span> {
-                        (<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">starting_offset</span>.<span class="ident">x</span> <span class="op">-</span> <span class="ident">delta</span>.<span class="ident">x</span>)
+                        (<span class="ident">state</span>.<span class="ident">starting_offset</span>.<span class="ident">x</span> <span class="op">-</span> <span class="ident">delta</span>.<span class="ident">x</span>)
                             .<span class="ident">min</span>(<span class="ident">hidden_width</span>)
                             .<span class="ident">max</span>(<span class="op">-</span><span class="ident">hidden_width</span>)
                     } <span class="kw">else</span> {
@@ -663,14 +691,14 @@
                     };
 
                     <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">&lt;</span> <span class="ident">image_size</span>.<span class="ident">height</span> {
-                        (<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">starting_offset</span>.<span class="ident">y</span> <span class="op">-</span> <span class="ident">delta</span>.<span class="ident">y</span>)
+                        (<span class="ident">state</span>.<span class="ident">starting_offset</span>.<span class="ident">y</span> <span class="op">-</span> <span class="ident">delta</span>.<span class="ident">y</span>)
                             .<span class="ident">min</span>(<span class="ident">hidden_height</span>)
                             .<span class="ident">max</span>(<span class="op">-</span><span class="ident">hidden_height</span>)
                     } <span class="kw">else</span> {
                         <span class="number">0.0</span>
                     };
 
-                    <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">current_offset</span> <span class="op">=</span> <span class="ident">Vector::new</span>(<span class="ident">x</span>, <span class="ident">y</span>);
+                    <span class="ident">state</span>.<span class="ident">current_offset</span> <span class="op">=</span> <span class="ident">Vector::new</span>(<span class="ident">x</span>, <span class="ident">y</span>);
 
                     <span class="ident">event::Status::Captured</span>
                 } <span class="kw">else</span> {
@@ -683,15 +711,17 @@
 
     <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
         <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
         <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
     ) -&gt; <span class="ident">mouse::Interaction</span> {
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>();
         <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
         <span class="kw">let</span> <span class="ident">is_mouse_over</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">contains</span>(<span class="ident">cursor_position</span>);
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">is_cursor_grabbed</span>() {
+        <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_cursor_grabbed</span>() {
             <span class="ident">mouse::Interaction::Grabbing</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_mouse_over</span> {
             <span class="ident">mouse::Interaction::Grab</span>
@@ -702,6 +732,7 @@
 
     <span class="kw">fn</span> <span class="ident">draw</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
         <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
         <span class="ident">_theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
         <span class="ident">_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
@@ -709,9 +740,11 @@
         <span class="ident">_cursor_position</span>: <span class="ident">Point</span>,
         <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
     ) {
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>();
         <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
 
-        <span class="kw">let</span> <span class="ident">image_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">image_size</span>(<span class="ident">renderer</span>, <span class="ident">bounds</span>.<span class="ident">size</span>());
+        <span class="kw">let</span> <span class="ident">image_size</span> <span class="op">=</span>
+            <span class="ident">image_size</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handle</span>, <span class="ident">state</span>, <span class="ident">bounds</span>.<span class="ident">size</span>());
 
         <span class="kw">let</span> <span class="ident">translation</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">image_top_left</span> <span class="op">=</span> <span class="ident">Vector::new</span>(
@@ -719,7 +752,7 @@
                 <span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">/</span> <span class="number">2.0</span> <span class="op">-</span> <span class="ident">image_size</span>.<span class="ident">height</span> <span class="op">/</span> <span class="number">2.0</span>,
             );
 
-            <span class="ident">image_top_left</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">offset</span>(<span class="ident">bounds</span>, <span class="ident">image_size</span>)
+            <span class="ident">image_top_left</span> <span class="op">-</span> <span class="ident">state</span>.<span class="ident">offset</span>(<span class="ident">bounds</span>, <span class="ident">image_size</span>)
         };
 
         <span class="ident">renderer</span>.<span class="ident">with_layer</span>(<span class="ident">bounds</span>, <span class="op">|</span><span class="ident">renderer</span><span class="op">|</span> {
@@ -785,16 +818,49 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Handle</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Viewer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Handle</span><span class="op">&gt;</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Handle</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Viewer</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">image::Renderer</span><span class="op">&lt;</span><span class="ident">Handle</span> <span class="op">=</span> <span class="ident">Handle</span><span class="op">&gt;</span>,
     <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
     <span class="ident">Handle</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">viewer</span>: <span class="ident">Viewer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Handle</span><span class="op">&gt;</span>) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">viewer</span>: <span class="ident">Viewer</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span>) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
         <span class="ident">Element::new</span>(<span class="ident">viewer</span>)
     }
 }
+
+<span class="doccomment">/// Returns the bounds of the underlying image, given the bounds of</span>
+<span class="doccomment">/// the [`Viewer`]. Scaling will be applied and original aspect ratio</span>
+<span class="doccomment">/// will be respected.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">image_size</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>(
+    <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+    <span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Renderer</span> <span class="kw">as</span> <span class="ident">image::Renderer</span><span class="op">&gt;</span><span class="ident">::Handle</span>,
+    <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">State</span>,
+    <span class="ident">bounds</span>: <span class="ident">Size</span>,
+) -&gt; <span class="ident">Size</span>
+<span class="kw">where</span>
+    <span class="ident">Renderer</span>: <span class="ident">image::Renderer</span>,
+{
+    <span class="kw">let</span> (<span class="ident">width</span>, <span class="ident">height</span>) <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">dimensions</span>(<span class="ident">handle</span>);
+
+    <span class="kw">let</span> (<span class="ident">width</span>, <span class="ident">height</span>) <span class="op">=</span> {
+        <span class="kw">let</span> <span class="ident">dimensions</span> <span class="op">=</span> (<span class="ident">width</span> <span class="kw">as</span> <span class="ident">f32</span>, <span class="ident">height</span> <span class="kw">as</span> <span class="ident">f32</span>);
+
+        <span class="kw">let</span> <span class="ident">width_ratio</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">/</span> <span class="ident">dimensions</span>.<span class="number">0</span>;
+        <span class="kw">let</span> <span class="ident">height_ratio</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">/</span> <span class="ident">dimensions</span>.<span class="number">1</span>;
+
+        <span class="kw">let</span> <span class="ident">ratio</span> <span class="op">=</span> <span class="ident">width_ratio</span>.<span class="ident">min</span>(<span class="ident">height_ratio</span>);
+        <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">scale</span>;
+
+        <span class="kw">if</span> <span class="ident">ratio</span> <span class="op">&lt;</span> <span class="number">1.0</span> {
+            (<span class="ident">dimensions</span>.<span class="number">0</span> <span class="op">*</span> <span class="ident">ratio</span> <span class="op">*</span> <span class="ident">scale</span>, <span class="ident">dimensions</span>.<span class="number">1</span> <span class="op">*</span> <span class="ident">ratio</span> <span class="op">*</span> <span class="ident">scale</span>)
+        } <span class="kw">else</span> {
+            (<span class="ident">dimensions</span>.<span class="number">0</span> <span class="op">*</span> <span class="ident">scale</span>, <span class="ident">dimensions</span>.<span class="number">1</span> <span class="op">*</span> <span class="ident">scale</span>)
+        }
+    };
+
+    <span class="ident">Size::new</span>(<span class="ident">width</span>, <span class="ident">height</span>)
+}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1b57946a4 2022-08-03)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f6f9d5e73 2022-08-04)" ></div></body></html>

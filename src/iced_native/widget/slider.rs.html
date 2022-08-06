@@ -467,6 +467,14 @@
 <span id="465">465</span>
 <span id="466">466</span>
 <span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Display an interactive selector of a single value from a range of values.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A [`Slider`] has some local [`State`].</span>
@@ -475,6 +483,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::touch</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::tree</span>::{<span class="self">self</span>, <span class="ident">Tree</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">Background</span>, <span class="ident">Clipboard</span>, <span class="ident">Color</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>,
     <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Widget</span>,
@@ -498,15 +507,15 @@
 <span class="doccomment">/// # use iced_native::renderer::Null;</span>
 <span class="doccomment">/// #</span>
 <span class="doccomment">/// # type Slider&lt;&#39;a, T, Message&gt; = slider::Slider&lt;&#39;a, T, Message, Null&gt;;</span>
+<span class="doccomment">/// #</span>
 <span class="doccomment">/// #[derive(Clone)]</span>
 <span class="doccomment">/// pub enum Message {</span>
 <span class="doccomment">///     SliderChanged(f32),</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let state = &amp;mut slider::State::new();</span>
 <span class="doccomment">/// let value = 50.0;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Slider::new(state, 0.0..=100.0, value, Message::SliderChanged);</span>
+<span class="doccomment">/// Slider::new(0.0..=100.0, value, Message::SliderChanged);</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ![Slider drawn by Coffee&#39;s renderer](https://github.com/hecrj/coffee/blob/bda9818f823dfcb8a7ad0ff4940b4d4b387b5208/images/ui/slider.png?raw=true)</span>
@@ -516,11 +525,10 @@
     <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
     <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
 {
-    <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">State</span>,
     <span class="ident">range</span>: <span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     <span class="ident">step</span>: <span class="ident">T</span>,
     <span class="ident">value</span>: <span class="ident">T</span>,
-    <span class="ident">on_change</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">T</span>) -&gt; <span class="ident">Message</span><span class="op">&gt;</span>,
+    <span class="ident">on_change</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">T</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
     <span class="ident">on_release</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
     <span class="ident">width</span>: <span class="ident">Length</span>,
     <span class="ident">height</span>: <span class="ident">u16</span>,
@@ -540,20 +548,14 @@
     <span class="doccomment">/// Creates a new [`Slider`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// It expects:</span>
-    <span class="doccomment">///   * the local [`State`] of the [`Slider`]</span>
     <span class="doccomment">///   * an inclusive range of possible values</span>
     <span class="doccomment">///   * the current value of the [`Slider`]</span>
     <span class="doccomment">///   * a function that will be called when the [`Slider`] is dragged.</span>
     <span class="doccomment">///   It receives the new value of the [`Slider`] and must produce a</span>
     <span class="doccomment">///   `Message`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">State</span>,
-        <span class="ident">range</span>: <span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">value</span>: <span class="ident">T</span>,
-        <span class="ident">on_change</span>: <span class="ident">F</span>,
-    ) -&gt; <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">range</span>: <span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">value</span>: <span class="ident">T</span>, <span class="ident">on_change</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">T</span>) -&gt; <span class="ident">Message</span>,
+        <span class="ident">F</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">T</span>) -&gt; <span class="ident">Message</span>,
     {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">value</span> <span class="op">&gt;</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">range</span>.<span class="ident">start</span>() {
             <span class="ident">value</span>
@@ -568,7 +570,6 @@
         };
 
         <span class="ident">Slider</span> {
-            <span class="ident">state</span>,
             <span class="ident">value</span>,
             <span class="ident">range</span>,
             <span class="ident">step</span>: <span class="ident">T::from</span>(<span class="number">1</span>),
@@ -616,6 +617,120 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">step</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">step</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">step</span> <span class="op">=</span> <span class="ident">step</span>;
         <span class="self">self</span>
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+    <span class="kw">for</span> <span class="ident">Slider</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">num_traits::FromPrimitive</span>,
+    <span class="ident">Message</span>: <span class="ident">Clone</span>,
+    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+{
+    <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::Tag</span> {
+        <span class="ident">tree::Tag::of</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>()
+    }
+
+    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::State</span> {
+        <span class="ident">tree::State::new</span>(<span class="ident">State::new</span>())
+    }
+
+    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
+        <span class="self">self</span>.<span class="ident">width</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
+        <span class="ident">Length::Shrink</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">layout</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
+    ) -&gt; <span class="ident">layout::Node</span> {
+        <span class="kw">let</span> <span class="ident">limits</span> <span class="op">=</span>
+            <span class="ident">limits</span>.<span class="ident">width</span>(<span class="self">self</span>.<span class="ident">width</span>).<span class="ident">height</span>(<span class="ident">Length::Units</span>(<span class="self">self</span>.<span class="ident">height</span>));
+
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">limits</span>.<span class="ident">resolve</span>(<span class="ident">Size::ZERO</span>);
+
+        <span class="ident">layout::Node::new</span>(<span class="ident">size</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">on_event</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
+        <span class="ident">event</span>: <span class="ident">Event</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
+        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+        <span class="ident">_clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
+        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">event::Status</span> {
+        <span class="ident">update</span>(
+            <span class="ident">event</span>,
+            <span class="ident">layout</span>,
+            <span class="ident">cursor_position</span>,
+            <span class="ident">shell</span>,
+            <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>(),
+            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">value</span>,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">range</span>,
+            <span class="self">self</span>.<span class="ident">step</span>,
+            <span class="self">self</span>.<span class="ident">on_change</span>.<span class="ident">as_ref</span>(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">on_release</span>,
+        )
+    }
+
+    <span class="kw">fn</span> <span class="ident">draw</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
+        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
+        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
+        <span class="ident">_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
+        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+    ) {
+        <span class="ident">draw</span>(
+            <span class="ident">renderer</span>,
+            <span class="ident">layout</span>,
+            <span class="ident">cursor_position</span>,
+            <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>(),
+            <span class="self">self</span>.<span class="ident">value</span>,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">range</span>,
+            <span class="ident">theme</span>,
+            <span class="self">self</span>.<span class="ident">style</span>,
+        )
+    }
+
+    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
+        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+    ) -&gt; <span class="ident">mouse::Interaction</span> {
+        <span class="ident">mouse_interaction</span>(
+            <span class="ident">layout</span>,
+            <span class="ident">cursor_position</span>,
+            <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>(),
+        )
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Slider</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">num_traits::FromPrimitive</span>,
+    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+{
+    <span class="kw">fn</span> <span class="ident">from</span>(
+        <span class="ident">slider</span>: <span class="ident">Slider</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
+        <span class="ident">Element::new</span>(<span class="ident">slider</span>)
     }
 }
 
@@ -835,104 +950,5 @@
         <span class="ident">State::default</span>()
     }
 }
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Slider</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">num_traits::FromPrimitive</span>,
-    <span class="ident">Message</span>: <span class="ident">Clone</span>,
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
-{
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">width</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="ident">Length::Shrink</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">layout</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="kw">let</span> <span class="ident">limits</span> <span class="op">=</span>
-            <span class="ident">limits</span>.<span class="ident">width</span>(<span class="self">self</span>.<span class="ident">width</span>).<span class="ident">height</span>(<span class="ident">Length::Units</span>(<span class="self">self</span>.<span class="ident">height</span>));
-
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">limits</span>.<span class="ident">resolve</span>(<span class="ident">Size::ZERO</span>);
-
-        <span class="ident">layout::Node::new</span>(<span class="ident">size</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">on_event</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">event</span>: <span class="ident">Event</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">_clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">event::Status</span> {
-        <span class="ident">update</span>(
-            <span class="ident">event</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">shell</span>,
-            <span class="self">self</span>.<span class="ident">state</span>,
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">value</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">range</span>,
-            <span class="self">self</span>.<span class="ident">step</span>,
-            <span class="self">self</span>.<span class="ident">on_change</span>.<span class="ident">as_ref</span>(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">on_release</span>,
-        )
-    }
-
-    <span class="kw">fn</span> <span class="ident">draw</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-    ) {
-        <span class="ident">draw</span>(
-            <span class="ident">renderer</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="self">self</span>.<span class="ident">state</span>,
-            <span class="self">self</span>.<span class="ident">value</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">range</span>,
-            <span class="ident">theme</span>,
-            <span class="self">self</span>.<span class="ident">style</span>,
-        )
-    }
-
-    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="ident">mouse_interaction</span>(<span class="ident">layout</span>, <span class="ident">cursor_position</span>, <span class="self">self</span>.<span class="ident">state</span>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Slider</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">num_traits::FromPrimitive</span>,
-    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Clone</span>,
-    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from</span>(
-        <span class="ident">slider</span>: <span class="ident">Slider</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="ident">Element::new</span>(<span class="ident">slider</span>)
-    }
-}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1b57946a4 2022-08-03)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f6f9d5e73 2022-08-04)" ></div></body></html>

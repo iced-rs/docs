@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Axis","The main axis of a flex layout."]],"fn":[["resolve","Computes the flex layout with the given axis and limits, applying spacing, padding and alignment to the items as needed."]]};

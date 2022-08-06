@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of a text input."]],"trait":[["StyleSheet","A set of rules that dictate the style of a text input."]],"type":[["TextInput","A field that can be filled with text."]]};

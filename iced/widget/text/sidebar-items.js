@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Appearance",""]],"trait":[["StyleSheet",""]],"type":[["Text","A paragraph of text."]]};

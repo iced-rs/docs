@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of a toggler."],["Toggler","A toggler widget."]],"trait":[["StyleSheet","A set of rules that dictate the style of a toggler."]]};

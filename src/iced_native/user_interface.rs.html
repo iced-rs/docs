@@ -505,12 +505,59 @@
 <span id="503">503</span>
 <span id="504">504</span>
 <span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Implement your own event loop to drive a user interface.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::application</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>::{<span class="self">self</span>, <span class="ident">Event</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>};
 
 <span class="doccomment">/// A set of interactive graphical elements with a specific [`Layout`].</span>
@@ -529,6 +576,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UserInterface</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
     <span class="ident">root</span>: <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
     <span class="ident">base</span>: <span class="ident">layout::Node</span>,
+    <span class="ident">state</span>: <span class="ident">widget::Tree</span>,
     <span class="ident">overlay</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">layout::Node</span><span class="op">&gt;</span>,
     <span class="ident">bounds</span>: <span class="ident">Size</span>,
 }
@@ -595,10 +643,13 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="ident">root</span>: <span class="ident">E</span>,
         <span class="ident">bounds</span>: <span class="ident">Size</span>,
-        <span class="ident">_cache</span>: <span class="ident">Cache</span>,
+        <span class="ident">cache</span>: <span class="ident">Cache</span>,
         <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
     ) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">root</span> <span class="op">=</span> <span class="ident">root</span>.<span class="ident">into</span>();
+
+        <span class="kw">let</span> <span class="ident">Cache</span> { <span class="kw-2">mut</span> <span class="ident">state</span> } <span class="op">=</span> <span class="ident">cache</span>;
+        <span class="ident">state</span>.<span class="ident">diff</span>(<span class="ident">root</span>.<span class="ident">as_widget</span>());
 
         <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span>
             <span class="ident">renderer</span>.<span class="ident">layout</span>(<span class="kw-2">&amp;</span><span class="ident">root</span>, <span class="kw-2">&amp;</span><span class="ident">layout::Limits::new</span>(<span class="ident">Size::ZERO</span>, <span class="ident">bounds</span>));
@@ -606,6 +657,7 @@
         <span class="ident">UserInterface</span> {
             <span class="ident">root</span>,
             <span class="ident">base</span>,
+            <span class="ident">state</span>,
             <span class="ident">overlay</span>: <span class="prelude-val">None</span>,
             <span class="ident">bounds</span>,
         }
@@ -689,9 +741,12 @@
         <span class="kw">use</span> <span class="ident">std::mem::ManuallyDrop</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Updated</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">manual_overlay</span> <span class="op">=</span> <span class="ident">ManuallyDrop::new</span>(
-            <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">overlay</span>(<span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>), <span class="ident">renderer</span>),
-        );
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">manual_overlay</span> <span class="op">=</span>
+            <span class="ident">ManuallyDrop::new</span>(<span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
+                <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
+                <span class="ident">renderer</span>,
+            ));
 
         <span class="kw">let</span> (<span class="ident">base_cursor</span>, <span class="ident">overlay_statuses</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">manual_overlay</span>.<span class="ident">is_some</span>() {
             <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bounds</span>;
@@ -722,9 +777,12 @@
                         <span class="kw-2">&amp;</span><span class="ident">layout::Limits::new</span>(<span class="ident">Size::ZERO</span>, <span class="self">self</span>.<span class="ident">bounds</span>),
                     );
 
-                    <span class="ident">manual_overlay</span> <span class="op">=</span> <span class="ident">ManuallyDrop::new</span>(
-                        <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">overlay</span>(<span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>), <span class="ident">renderer</span>),
-                    );
+                    <span class="ident">manual_overlay</span> <span class="op">=</span>
+                        <span class="ident">ManuallyDrop::new</span>(<span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
+                            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
+                            <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
+                            <span class="ident">renderer</span>,
+                        ));
 
                     <span class="kw">if</span> <span class="ident">manual_overlay</span>.<span class="ident">is_none</span>() {
                         <span class="kw">break</span>;
@@ -769,7 +827,8 @@
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shell</span> <span class="op">=</span> <span class="ident">Shell::new</span>(<span class="ident">messages</span>);
 
-                <span class="kw">let</span> <span class="ident">event_status</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">widget</span>.<span class="ident">on_event</span>(
+                <span class="kw">let</span> <span class="ident">event_status</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget_mut</span>().<span class="ident">on_event</span>(
+                    <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
                     <span class="ident">event</span>,
                     <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
                     <span class="ident">base_cursor</span>,
@@ -884,9 +943,11 @@
 
         <span class="kw">let</span> <span class="ident">viewport</span> <span class="op">=</span> <span class="ident">Rectangle::with_size</span>(<span class="self">self</span>.<span class="ident">bounds</span>);
 
-        <span class="kw">let</span> <span class="ident">base_cursor</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">overlay</span>) <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">overlay</span>(<span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>), <span class="ident">renderer</span>)
-        {
+        <span class="kw">let</span> <span class="ident">base_cursor</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">overlay</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
+            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
+            <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
+            <span class="ident">renderer</span>,
+        ) {
             <span class="kw">let</span> <span class="ident">overlay_layout</span> <span class="op">=</span> <span class="self">self</span>
                 .<span class="ident">overlay</span>
                 .<span class="ident">take</span>()
@@ -906,7 +967,8 @@
             <span class="ident">cursor_position</span>
         };
 
-        <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">widget</span>.<span class="ident">draw</span>(
+        <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">draw</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>,
             <span class="ident">renderer</span>,
             <span class="ident">theme</span>,
             <span class="ident">style</span>,
@@ -915,7 +977,8 @@
             <span class="kw-2">&amp;</span><span class="ident">viewport</span>,
         );
 
-        <span class="kw">let</span> <span class="ident">base_interaction</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">widget</span>.<span class="ident">mouse_interaction</span>(
+        <span class="kw">let</span> <span class="ident">base_interaction</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">mouse_interaction</span>(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>,
             <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
             <span class="ident">cursor_position</span>,
             <span class="kw-2">&amp;</span><span class="ident">viewport</span>,
@@ -937,52 +1000,79 @@
         <span class="ident">overlay</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">layout</span><span class="op">|</span> {
-                <span class="ident">root</span>.<span class="ident">overlay</span>(<span class="ident">Layout::new</span>(<span class="ident">base</span>), <span class="ident">renderer</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="ident">overlay_interaction</span> <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">mouse_interaction</span>(
-                        <span class="ident">Layout::new</span>(<span class="ident">layout</span>),
-                        <span class="ident">cursor_position</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">viewport</span>,
-                        <span class="ident">renderer</span>,
-                    );
-
-                    <span class="kw">let</span> <span class="ident">overlay_bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
-
-                    <span class="ident">renderer</span>.<span class="ident">with_layer</span>(<span class="ident">overlay_bounds</span>, <span class="op">|</span><span class="ident">renderer</span><span class="op">|</span> {
-                        <span class="ident">overlay</span>.<span class="ident">draw</span>(
-                            <span class="ident">renderer</span>,
-                            <span class="ident">theme</span>,
-                            <span class="ident">style</span>,
+                <span class="ident">root</span>.<span class="ident">as_widget</span>()
+                    .<span class="ident">overlay</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>, <span class="ident">Layout::new</span>(<span class="ident">base</span>), <span class="ident">renderer</span>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> {
+                        <span class="kw">let</span> <span class="ident">overlay_interaction</span> <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">mouse_interaction</span>(
                             <span class="ident">Layout::new</span>(<span class="ident">layout</span>),
                             <span class="ident">cursor_position</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">viewport</span>,
+                            <span class="ident">renderer</span>,
                         );
-                    });
 
-                    <span class="kw">if</span> <span class="ident">overlay_bounds</span>.<span class="ident">contains</span>(<span class="ident">cursor_position</span>) {
-                        <span class="ident">overlay_interaction</span>
-                    } <span class="kw">else</span> {
-                        <span class="ident">base_interaction</span>
-                    }
-                })
+                        <span class="kw">let</span> <span class="ident">overlay_bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
+
+                        <span class="ident">renderer</span>.<span class="ident">with_layer</span>(<span class="ident">overlay_bounds</span>, <span class="op">|</span><span class="ident">renderer</span><span class="op">|</span> {
+                            <span class="ident">overlay</span>.<span class="ident">draw</span>(
+                                <span class="ident">renderer</span>,
+                                <span class="ident">theme</span>,
+                                <span class="ident">style</span>,
+                                <span class="ident">Layout::new</span>(<span class="ident">layout</span>),
+                                <span class="ident">cursor_position</span>,
+                            );
+                        });
+
+                        <span class="kw">if</span> <span class="ident">overlay_bounds</span>.<span class="ident">contains</span>(<span class="ident">cursor_position</span>) {
+                            <span class="ident">overlay_interaction</span>
+                        } <span class="kw">else</span> {
+                            <span class="ident">base_interaction</span>
+                        }
+                    })
             })
             .<span class="ident">unwrap_or</span>(<span class="ident">base_interaction</span>)
+    }
+
+    <span class="doccomment">/// Applies a [`widget::Operation`] to the [`UserInterface`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">operate</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
+        <span class="ident">operation</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">widget::Operation</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
+    ) {
+        <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">operate</span>(
+            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
+            <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
+            <span class="ident">operation</span>,
+        );
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">layout</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">overlay</span>.<span class="ident">as_ref</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">overlay</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
+                <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
+                <span class="ident">renderer</span>,
+            ) {
+                <span class="ident">overlay</span>.<span class="ident">operate</span>(<span class="ident">Layout::new</span>(<span class="ident">layout</span>), <span class="ident">operation</span>);
+            }
+        }
     }
 
     <span class="doccomment">/// Relayouts and returns a new  [`UserInterface`] using the provided</span>
     <span class="doccomment">/// bounds.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">relayout</span>(<span class="self">self</span>, <span class="ident">bounds</span>: <span class="ident">Size</span>, <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::build</span>(<span class="self">self</span>.<span class="ident">root</span>, <span class="ident">bounds</span>, <span class="ident">Cache</span>, <span class="ident">renderer</span>)
+        <span class="ident"><span class="self">Self</span>::build</span>(<span class="self">self</span>.<span class="ident">root</span>, <span class="ident">bounds</span>, <span class="ident">Cache</span> { <span class="ident">state</span>: <span class="self">self</span>.<span class="ident">state</span> }, <span class="ident">renderer</span>)
     }
 
     <span class="doccomment">/// Extract the [`Cache`] of the [`UserInterface`], consuming it in the</span>
     <span class="doccomment">/// process.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_cache</span>(<span class="self">self</span>) -&gt; <span class="ident">Cache</span> {
-        <span class="ident">Cache</span>
+        <span class="ident">Cache</span> { <span class="ident">state</span>: <span class="self">self</span>.<span class="ident">state</span> }
     }
 }
 
 <span class="doccomment">/// Reusable data of a specific [`UserInterface`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cache</span>;
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cache</span> {
+    <span class="ident">state</span>: <span class="ident">widget::Tree</span>,
+}
 
 <span class="kw">impl</span> <span class="ident">Cache</span> {
     <span class="doccomment">/// Creates an empty [`Cache`].</span>
@@ -990,7 +1080,9 @@
     <span class="doccomment">/// You should use this to initialize a [`Cache`] before building your first</span>
     <span class="doccomment">/// [`UserInterface`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Cache</span> {
-        <span class="ident">Cache</span>
+        <span class="ident">Cache</span> {
+            <span class="ident">state</span>: <span class="ident">widget::Tree::empty</span>(),
+        }
     }
 }
 
@@ -1011,4 +1103,4 @@
     <span class="ident">Updated</span>,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (1b57946a4 2022-08-03)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f6f9d5e73 2022-08-04)" ></div></body></html>
