@@ -68,73 +68,73 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Allow your users to perform actions by pressing a button.</span>
-<span class="kw">use</span> <span class="ident">iced_core</span>::{<span class="ident">Background</span>, <span class="ident">Color</span>, <span class="ident">Vector</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! Allow your users to perform actions by pressing a button.
+</span><span class="kw">use </span>iced_core::{Background, Color, Vector};
 
-<span class="doccomment">/// The appearance of a button.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Appearance</span> {
-    <span class="kw">pub</span> <span class="ident">shadow_offset</span>: <span class="ident">Vector</span>,
-    <span class="kw">pub</span> <span class="ident">background</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Background</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">border_radius</span>: <span class="ident">f32</span>,
-    <span class="kw">pub</span> <span class="ident">border_width</span>: <span class="ident">f32</span>,
-    <span class="kw">pub</span> <span class="ident">border_color</span>: <span class="ident">Color</span>,
-    <span class="kw">pub</span> <span class="ident">text_color</span>: <span class="ident">Color</span>,
+<span class="doccomment">/// The appearance of a button.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub struct </span>Appearance {
+    <span class="kw">pub </span>shadow_offset: Vector,
+    <span class="kw">pub </span>background: <span class="prelude-ty">Option</span>&lt;Background&gt;,
+    <span class="kw">pub </span>border_radius: f32,
+    <span class="kw">pub </span>border_width: f32,
+    <span class="kw">pub </span>border_color: Color,
+    <span class="kw">pub </span>text_color: Color,
 }
 
-<span class="kw">impl</span> <span class="ident">std::default::Default</span> <span class="kw">for</span> <span class="ident">Appearance</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">shadow_offset</span>: <span class="ident">Vector::default</span>(),
-            <span class="ident">background</span>: <span class="prelude-val">None</span>,
-            <span class="ident">border_radius</span>: <span class="number">0.0</span>,
-            <span class="ident">border_width</span>: <span class="number">0.0</span>,
-            <span class="ident">border_color</span>: <span class="ident">Color::TRANSPARENT</span>,
-            <span class="ident">text_color</span>: <span class="ident">Color::BLACK</span>,
+<span class="kw">impl </span>std::default::Default <span class="kw">for </span>Appearance {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            shadow_offset: Vector::default(),
+            background: <span class="prelude-val">None</span>,
+            border_radius: <span class="number">0.0</span>,
+            border_width: <span class="number">0.0</span>,
+            border_color: Color::TRANSPARENT,
+            text_color: Color::BLACK,
         }
     }
 }
 
-<span class="doccomment">/// A set of rules that dictate the style of a button.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StyleSheet</span> {
-    <span class="kw">type</span> <span class="ident">Style</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Copy</span>;
+<span class="doccomment">/// A set of rules that dictate the style of a button.
+</span><span class="kw">pub trait </span>StyleSheet {
+    <span class="kw">type </span>Style: Default + Copy;
 
-    <span class="kw">fn</span> <span class="ident">active</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">style</span>: <span class="ident"><span class="self">Self</span>::Style</span>) -&gt; <span class="ident">Appearance</span>;
+    <span class="kw">fn </span>active(<span class="kw-2">&amp;</span><span class="self">self</span>, style: <span class="self">Self</span>::Style) -&gt; Appearance;
 
-    <span class="kw">fn</span> <span class="ident">hovered</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">style</span>: <span class="ident"><span class="self">Self</span>::Style</span>) -&gt; <span class="ident">Appearance</span> {
-        <span class="kw">let</span> <span class="ident">active</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">active</span>(<span class="ident">style</span>);
+    <span class="kw">fn </span>hovered(<span class="kw-2">&amp;</span><span class="self">self</span>, style: <span class="self">Self</span>::Style) -&gt; Appearance {
+        <span class="kw">let </span>active = <span class="self">self</span>.active(style);
 
-        <span class="ident">Appearance</span> {
-            <span class="ident">shadow_offset</span>: <span class="ident">active</span>.<span class="ident">shadow_offset</span> <span class="op">+</span> <span class="ident">Vector::new</span>(<span class="number">0.0</span>, <span class="number">1.0</span>),
-            ..<span class="ident">active</span>
+        Appearance {
+            shadow_offset: active.shadow_offset + Vector::new(<span class="number">0.0</span>, <span class="number">1.0</span>),
+            ..active
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">pressed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">style</span>: <span class="ident"><span class="self">Self</span>::Style</span>) -&gt; <span class="ident">Appearance</span> {
-        <span class="ident">Appearance</span> {
-            <span class="ident">shadow_offset</span>: <span class="ident">Vector::default</span>(),
-            ..<span class="self">self</span>.<span class="ident">active</span>(<span class="ident">style</span>)
+    <span class="kw">fn </span>pressed(<span class="kw-2">&amp;</span><span class="self">self</span>, style: <span class="self">Self</span>::Style) -&gt; Appearance {
+        Appearance {
+            shadow_offset: Vector::default(),
+            ..<span class="self">self</span>.active(style)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">disabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">style</span>: <span class="ident"><span class="self">Self</span>::Style</span>) -&gt; <span class="ident">Appearance</span> {
-        <span class="kw">let</span> <span class="ident">active</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">active</span>(<span class="ident">style</span>);
+    <span class="kw">fn </span>disabled(<span class="kw-2">&amp;</span><span class="self">self</span>, style: <span class="self">Self</span>::Style) -&gt; Appearance {
+        <span class="kw">let </span>active = <span class="self">self</span>.active(style);
 
-        <span class="ident">Appearance</span> {
-            <span class="ident">shadow_offset</span>: <span class="ident">Vector::default</span>(),
-            <span class="ident">background</span>: <span class="ident">active</span>.<span class="ident">background</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">background</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">background</span> {
-                <span class="ident">Background::Color</span>(<span class="ident">color</span>) =&gt; <span class="ident">Background::Color</span>(<span class="ident">Color</span> {
-                    <span class="ident">a</span>: <span class="ident">color</span>.<span class="ident">a</span> <span class="op">*</span> <span class="number">0.5</span>,
-                    ..<span class="ident">color</span>
+        Appearance {
+            shadow_offset: Vector::default(),
+            background: active.background.map(|background| <span class="kw">match </span>background {
+                Background::Color(color) =&gt; Background::Color(Color {
+                    a: color.a * <span class="number">0.5</span>,
+                    ..color
                 }),
             }),
-            <span class="ident">text_color</span>: <span class="ident">Color</span> {
-                <span class="ident">a</span>: <span class="ident">active</span>.<span class="ident">text_color</span>.<span class="ident">a</span> <span class="op">*</span> <span class="number">0.5</span>,
-                ..<span class="ident">active</span>.<span class="ident">text_color</span>
+            text_color: Color {
+                a: active.text_color.a * <span class="number">0.5</span>,
+                ..active.text_color
             },
-            ..<span class="ident">active</span>
+            ..active
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_style" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_style" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

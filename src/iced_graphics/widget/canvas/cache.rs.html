@@ -96,101 +96,101 @@
 <span id="94">94</span>
 <span id="95">95</span>
 <span id="96">96</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::canvas</span>::{<span class="ident">Frame</span>, <span class="ident">Geometry</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Primitive</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::widget::canvas::{Frame, Geometry};
+<span class="kw">use </span><span class="kw">crate</span>::Primitive;
 
-<span class="kw">use</span> <span class="ident">iced_native::Size</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cell::RefCell</span>, <span class="ident">sync::Arc</span>};
+<span class="kw">use </span>iced_native::Size;
+<span class="kw">use </span>std::{cell::RefCell, sync::Arc};
 
-<span class="kw">enum</span> <span class="ident">State</span> {
-    <span class="ident">Empty</span>,
-    <span class="ident">Filled</span> {
-        <span class="ident">bounds</span>: <span class="ident">Size</span>,
-        <span class="ident">primitive</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Primitive</span><span class="op">&gt;</span>,
+<span class="kw">enum </span>State {
+    Empty,
+    Filled {
+        bounds: Size,
+        primitive: Arc&lt;Primitive&gt;,
     },
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">State</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">State::Empty</span>
+<span class="kw">impl </span>Default <span class="kw">for </span>State {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        State::Empty
     }
 }
-<span class="doccomment">/// A simple cache that stores generated [`Geometry`] to avoid recomputation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A [`Cache`] will not redraw its geometry unless the dimensions of its layer</span>
-<span class="doccomment">/// change or it is explicitly cleared.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cache</span> {
-    <span class="ident">state</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A simple cache that stores generated [`Geometry`] to avoid recomputation.
+///
+/// A [`Cache`] will not redraw its geometry unless the dimensions of its layer
+/// change or it is explicitly cleared.
+</span><span class="attribute">#[derive(Debug, Default)]</span>
+<span class="kw">pub struct </span>Cache {
+    state: RefCell&lt;State&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Cache</span> {
-    <span class="doccomment">/// Creates a new empty [`Cache`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">Cache</span> {
-            <span class="ident">state</span>: <span class="ident">Default::default</span>(),
+<span class="kw">impl </span>Cache {
+    <span class="doccomment">/// Creates a new empty [`Cache`].
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        Cache {
+            state: Default::default(),
         }
     }
 
-    <span class="doccomment">/// Clears the [`Cache`], forcing a redraw the next time it is used.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">state</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">State::Empty</span>;
+    <span class="doccomment">/// Clears the [`Cache`], forcing a redraw the next time it is used.
+    </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw-2">*</span><span class="self">self</span>.state.borrow_mut() = State::Empty;
     }
 
-    <span class="doccomment">/// Draws [`Geometry`] using the provided closure and stores it in the</span>
-    <span class="doccomment">/// [`Cache`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The closure will only be called when</span>
-    <span class="doccomment">/// - the bounds have changed since the previous draw call.</span>
-    <span class="doccomment">/// - the [`Cache`] is empty or has been explicitly cleared.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Otherwise, the previously stored [`Geometry`] will be returned. The</span>
-    <span class="doccomment">/// [`Cache`] is not cleared in this case. In other words, it will keep</span>
-    <span class="doccomment">/// returning the stored [`Geometry`] if needed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bounds</span>: <span class="ident">Size</span>, <span class="ident">draw_fn</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Frame</span>)) -&gt; <span class="ident">Geometry</span> {
-        <span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
+    <span class="doccomment">/// Draws [`Geometry`] using the provided closure and stores it in the
+    /// [`Cache`].
+    ///
+    /// The closure will only be called when
+    /// - the bounds have changed since the previous draw call.
+    /// - the [`Cache`] is empty or has been explicitly cleared.
+    ///
+    /// Otherwise, the previously stored [`Geometry`] will be returned. The
+    /// [`Cache`] is not cleared in this case. In other words, it will keep
+    /// returning the stored [`Geometry`] if needed.
+    </span><span class="kw">pub fn </span>draw(<span class="kw-2">&amp;</span><span class="self">self</span>, bounds: Size, draw_fn: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;mut </span>Frame)) -&gt; Geometry {
+        <span class="kw">use </span>std::ops::Deref;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">State::Filled</span> {
-            <span class="ident">bounds</span>: <span class="ident">cached_bounds</span>,
-            <span class="ident">primitive</span>,
-        } <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">borrow</span>().<span class="ident">deref</span>()
+        <span class="kw">if let </span>State::Filled {
+            bounds: cached_bounds,
+            primitive,
+        } = <span class="self">self</span>.state.borrow().deref()
         {
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">cached_bounds</span> <span class="op">==</span> <span class="ident">bounds</span> {
-                <span class="kw">return</span> <span class="ident">Geometry::from_primitive</span>(<span class="ident">Primitive::Cached</span> {
-                    <span class="ident">cache</span>: <span class="ident">primitive</span>.<span class="ident">clone</span>(),
+            <span class="kw">if </span><span class="kw-2">*</span>cached_bounds == bounds {
+                <span class="kw">return </span>Geometry::from_primitive(Primitive::Cached {
+                    cache: primitive.clone(),
                 });
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">frame</span> <span class="op">=</span> <span class="ident">Frame::new</span>(<span class="ident">bounds</span>);
-        <span class="ident">draw_fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">frame</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>frame = Frame::new(bounds);
+        draw_fn(<span class="kw-2">&amp;mut </span>frame);
 
-        <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">geometry</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">into_geometry</span>();
+        <span class="kw">let </span>primitive = {
+            <span class="kw">let </span>geometry = frame.into_geometry();
 
-            <span class="ident">Arc::new</span>(<span class="ident">geometry</span>.<span class="ident">into_primitive</span>())
+            Arc::new(geometry.into_primitive())
         };
 
-        <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">state</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="ident">State::Filled</span> {
-            <span class="ident">bounds</span>,
-            <span class="ident">primitive</span>: <span class="ident">primitive</span>.<span class="ident">clone</span>(),
+        <span class="kw-2">*</span><span class="self">self</span>.state.borrow_mut() = State::Filled {
+            bounds,
+            primitive: primitive.clone(),
         };
 
-        <span class="ident">Geometry::from_primitive</span>(<span class="ident">Primitive::Cached</span> { <span class="ident">cache</span>: <span class="ident">primitive</span> })
+        Geometry::from_primitive(Primitive::Cached { cache: primitive })
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">State</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">State::Empty</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Empty&quot;</span>),
-            <span class="ident">State::Filled</span> { <span class="ident">primitive</span>, <span class="ident">bounds</span> } =&gt; <span class="ident">f</span>
-                .<span class="ident">debug_struct</span>(<span class="string">&quot;Filled&quot;</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;primitive&quot;</span>, <span class="ident">primitive</span>)
-                .<span class="ident">field</span>(<span class="string">&quot;bounds&quot;</span>, <span class="ident">bounds</span>)
-                .<span class="ident">finish</span>(),
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>State {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            State::Empty =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Empty&quot;</span>),
+            State::Filled { primitive, bounds } =&gt; f
+                .debug_struct(<span class="string">&quot;Filled&quot;</span>)
+                .field(<span class="string">&quot;primitive&quot;</span>, primitive)
+                .field(<span class="string">&quot;bounds&quot;</span>, bounds)
+                .finish(),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

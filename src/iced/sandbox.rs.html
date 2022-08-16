@@ -210,215 +210,215 @@
 <span id="208">208</span>
 <span id="209">209</span>
 <span id="210">210</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::theme</span>::{<span class="self">self</span>, <span class="ident">Theme</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Application</span>, <span class="ident">Command</span>, <span class="ident">Element</span>, <span class="ident">Error</span>, <span class="ident">Settings</span>, <span class="ident">Subscription</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::theme::{<span class="self">self</span>, Theme};
+<span class="kw">use crate</span>::{Application, Command, Element, Error, Settings, Subscription};
 
-<span class="doccomment">/// A sandboxed [`Application`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If you are a just getting started with the library, this trait offers a</span>
-<span class="doccomment">/// simpler interface than [`Application`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Unlike an [`Application`], a [`Sandbox`] cannot run any asynchronous</span>
-<span class="doccomment">/// actions or be initialized with some external flags. However, both traits</span>
-<span class="doccomment">/// are very similar and upgrading from a [`Sandbox`] is very straightforward.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Therefore, it is recommended to always start by implementing this trait and</span>
-<span class="doccomment">/// upgrade only once necessary.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">/// [The repository has a bunch of examples] that use the [`Sandbox`] trait:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - [`bezier_tool`], a Paint-like tool for drawing Bézier curves using the</span>
-<span class="doccomment">/// [`Canvas widget`].</span>
-<span class="doccomment">/// - [`counter`], the classic counter example explained in [the overview].</span>
-<span class="doccomment">/// - [`custom_widget`], a demonstration of how to build a custom widget that</span>
-<span class="doccomment">/// draws a circle.</span>
-<span class="doccomment">/// - [`geometry`], a custom widget showcasing how to draw geometry with the</span>
-<span class="doccomment">/// `Mesh2D` primitive in [`iced_wgpu`].</span>
-<span class="doccomment">/// - [`pane_grid`], a grid of panes that can be split, resized, and</span>
-<span class="doccomment">/// reorganized.</span>
-<span class="doccomment">/// - [`progress_bar`], a simple progress bar that can be filled by using a</span>
-<span class="doccomment">/// slider.</span>
-<span class="doccomment">/// - [`styling`], an example showcasing custom styling with a light and dark</span>
-<span class="doccomment">/// theme.</span>
-<span class="doccomment">/// - [`svg`], an application that renders the [Ghostscript Tiger] by leveraging</span>
-<span class="doccomment">/// the [`Svg` widget].</span>
-<span class="doccomment">/// - [`tour`], a simple UI tour that can run both on native platforms and the</span>
-<span class="doccomment">/// web!</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [The repository has a bunch of examples]: https://github.com/iced-rs/iced/tree/0.4/examples</span>
-<span class="doccomment">/// [`bezier_tool`]: https://github.com/iced-rs/iced/tree/0.4/examples/bezier_tool</span>
-<span class="doccomment">/// [`counter`]: https://github.com/iced-rs/iced/tree/0.4/examples/counter</span>
-<span class="doccomment">/// [`custom_widget`]: https://github.com/iced-rs/iced/tree/0.4/examples/custom_widget</span>
-<span class="doccomment">/// [`geometry`]: https://github.com/iced-rs/iced/tree/0.4/examples/geometry</span>
-<span class="doccomment">/// [`pane_grid`]: https://github.com/iced-rs/iced/tree/0.4/examples/pane_grid</span>
-<span class="doccomment">/// [`progress_bar`]: https://github.com/iced-rs/iced/tree/0.4/examples/progress_bar</span>
-<span class="doccomment">/// [`styling`]: https://github.com/iced-rs/iced/tree/0.4/examples/styling</span>
-<span class="doccomment">/// [`svg`]: https://github.com/iced-rs/iced/tree/0.4/examples/svg</span>
-<span class="doccomment">/// [`tour`]: https://github.com/iced-rs/iced/tree/0.4/examples/tour</span>
-<span class="doccomment">/// [`Canvas widget`]: crate::widget::Canvas</span>
-<span class="doccomment">/// [the overview]: index.html#overview</span>
-<span class="doccomment">/// [`iced_wgpu`]: https://github.com/iced-rs/iced/tree/0.4/wgpu</span>
-<span class="doccomment">/// [`Svg` widget]: crate::widget::Svg</span>
-<span class="doccomment">/// [Ghostscript Tiger]: https://commons.wikimedia.org/wiki/File:Ghostscript_Tiger.svg</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## A simple &quot;Hello, world!&quot;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If you just want to get started, here is a simple [`Sandbox`] that</span>
-<span class="doccomment">/// says &quot;Hello, world!&quot;:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// use iced::{Element, Sandbox, Settings};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// pub fn main() -&gt; iced::Result {</span>
-<span class="doccomment">///     Hello::run(Settings::default())</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// struct Hello;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// impl Sandbox for Hello {</span>
-<span class="doccomment">///     type Message = ();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     fn new() -&gt; Hello {</span>
-<span class="doccomment">///         Hello</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     fn title(&amp;self) -&gt; String {</span>
-<span class="doccomment">///         String::from(&quot;A cool application&quot;)</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     fn update(&amp;mut self, _message: Self::Message) {</span>
-<span class="doccomment">///         // This application has no interactions</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     fn view(&amp;self) -&gt; Element&lt;Self::Message&gt; {</span>
-<span class="doccomment">///         &quot;Hello, world!&quot;.into()</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Sandbox</span> {
-    <span class="doccomment">/// The type of __messages__ your [`Sandbox`] will produce.</span>
-    <span class="kw">type</span> <span class="ident">Message</span>: <span class="ident">std::fmt::Debug</span> <span class="op">+</span> <span class="ident">Send</span>;
+<span class="doccomment">/// A sandboxed [`Application`].
+///
+/// If you are a just getting started with the library, this trait offers a
+/// simpler interface than [`Application`].
+///
+/// Unlike an [`Application`], a [`Sandbox`] cannot run any asynchronous
+/// actions or be initialized with some external flags. However, both traits
+/// are very similar and upgrading from a [`Sandbox`] is very straightforward.
+///
+/// Therefore, it is recommended to always start by implementing this trait and
+/// upgrade only once necessary.
+///
+/// # Examples
+/// [The repository has a bunch of examples] that use the [`Sandbox`] trait:
+///
+/// - [`bezier_tool`], a Paint-like tool for drawing Bézier curves using the
+/// [`Canvas widget`].
+/// - [`counter`], the classic counter example explained in [the overview].
+/// - [`custom_widget`], a demonstration of how to build a custom widget that
+/// draws a circle.
+/// - [`geometry`], a custom widget showcasing how to draw geometry with the
+/// `Mesh2D` primitive in [`iced_wgpu`].
+/// - [`pane_grid`], a grid of panes that can be split, resized, and
+/// reorganized.
+/// - [`progress_bar`], a simple progress bar that can be filled by using a
+/// slider.
+/// - [`styling`], an example showcasing custom styling with a light and dark
+/// theme.
+/// - [`svg`], an application that renders the [Ghostscript Tiger] by leveraging
+/// the [`Svg` widget].
+/// - [`tour`], a simple UI tour that can run both on native platforms and the
+/// web!
+///
+/// [The repository has a bunch of examples]: https://github.com/iced-rs/iced/tree/0.4/examples
+/// [`bezier_tool`]: https://github.com/iced-rs/iced/tree/0.4/examples/bezier_tool
+/// [`counter`]: https://github.com/iced-rs/iced/tree/0.4/examples/counter
+/// [`custom_widget`]: https://github.com/iced-rs/iced/tree/0.4/examples/custom_widget
+/// [`geometry`]: https://github.com/iced-rs/iced/tree/0.4/examples/geometry
+/// [`pane_grid`]: https://github.com/iced-rs/iced/tree/0.4/examples/pane_grid
+/// [`progress_bar`]: https://github.com/iced-rs/iced/tree/0.4/examples/progress_bar
+/// [`styling`]: https://github.com/iced-rs/iced/tree/0.4/examples/styling
+/// [`svg`]: https://github.com/iced-rs/iced/tree/0.4/examples/svg
+/// [`tour`]: https://github.com/iced-rs/iced/tree/0.4/examples/tour
+/// [`Canvas widget`]: crate::widget::Canvas
+/// [the overview]: index.html#overview
+/// [`iced_wgpu`]: https://github.com/iced-rs/iced/tree/0.4/wgpu
+/// [`Svg` widget]: crate::widget::Svg
+/// [Ghostscript Tiger]: https://commons.wikimedia.org/wiki/File:Ghostscript_Tiger.svg
+///
+/// ## A simple &quot;Hello, world!&quot;
+///
+/// If you just want to get started, here is a simple [`Sandbox`] that
+/// says &quot;Hello, world!&quot;:
+///
+/// ```no_run
+/// use iced::{Element, Sandbox, Settings};
+///
+/// pub fn main() -&gt; iced::Result {
+///     Hello::run(Settings::default())
+/// }
+///
+/// struct Hello;
+///
+/// impl Sandbox for Hello {
+///     type Message = ();
+///
+///     fn new() -&gt; Hello {
+///         Hello
+///     }
+///
+///     fn title(&amp;self) -&gt; String {
+///         String::from(&quot;A cool application&quot;)
+///     }
+///
+///     fn update(&amp;mut self, _message: Self::Message) {
+///         // This application has no interactions
+///     }
+///
+///     fn view(&amp;self) -&gt; Element&lt;Self::Message&gt; {
+///         &quot;Hello, world!&quot;.into()
+///     }
+/// }
+/// ```
+</span><span class="kw">pub trait </span>Sandbox {
+    <span class="doccomment">/// The type of __messages__ your [`Sandbox`] will produce.
+    </span><span class="kw">type </span>Message: std::fmt::Debug + Send;
 
-    <span class="doccomment">/// Initializes the [`Sandbox`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Here is where you should return the initial state of your app.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span>;
+    <span class="doccomment">/// Initializes the [`Sandbox`].
+    ///
+    /// Here is where you should return the initial state of your app.
+    </span><span class="kw">fn </span>new() -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Returns the current title of the [`Sandbox`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This title can be dynamic! The runtime will automatically update the</span>
-    <span class="doccomment">/// title of your application when necessary.</span>
-    <span class="kw">fn</span> <span class="ident">title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span>;
+    <span class="doccomment">/// Returns the current title of the [`Sandbox`].
+    ///
+    /// This title can be dynamic! The runtime will automatically update the
+    /// title of your application when necessary.
+    </span><span class="kw">fn </span>title(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String;
 
-    <span class="doccomment">/// Handles a __message__ and updates the state of the [`Sandbox`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is where you define your __update logic__. All the __messages__,</span>
-    <span class="doccomment">/// produced by user interactions, will be handled by this method.</span>
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident"><span class="self">Self</span>::Message</span>);
+    <span class="doccomment">/// Handles a __message__ and updates the state of the [`Sandbox`].
+    ///
+    /// This is where you define your __update logic__. All the __messages__,
+    /// produced by user interactions, will be handled by this method.
+    </span><span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: <span class="self">Self</span>::Message);
 
-    <span class="doccomment">/// Returns the widgets to display in the [`Sandbox`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// These widgets can produce __messages__ based on user interaction.</span>
-    <span class="kw">fn</span> <span class="ident">view</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident"><span class="self">Self</span>::Message</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Returns the widgets to display in the [`Sandbox`].
+    ///
+    /// These widgets can produce __messages__ based on user interaction.
+    </span><span class="kw">fn </span>view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Element&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>::Message&gt;;
 
-    <span class="doccomment">/// Returns the current [`Theme`] of the [`Sandbox`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If you want to use your own custom theme type, you will have to use an</span>
-    <span class="doccomment">/// [`Application`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, it returns [`Theme::default`].</span>
-    <span class="kw">fn</span> <span class="ident">theme</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Theme</span> {
-        <span class="ident">Theme::default</span>()
+    <span class="doccomment">/// Returns the current [`Theme`] of the [`Sandbox`].
+    ///
+    /// If you want to use your own custom theme type, you will have to use an
+    /// [`Application`].
+    ///
+    /// By default, it returns [`Theme::default`].
+    </span><span class="kw">fn </span>theme(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Theme {
+        Theme::default()
     }
 
-    <span class="doccomment">/// Returns the current style variant of [`theme::Application`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, it returns [`theme::Application::default`].</span>
-    <span class="kw">fn</span> <span class="ident">style</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">theme::Application</span> {
-        <span class="ident">theme::Application::default</span>()
+    <span class="doccomment">/// Returns the current style variant of [`theme::Application`].
+    ///
+    /// By default, it returns [`theme::Application::default`].
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; theme::Application {
+        theme::Application::default()
     }
 
-    <span class="doccomment">/// Returns the scale factor of the [`Sandbox`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It can be used to dynamically control the size of the UI at runtime</span>
-    <span class="doccomment">/// (i.e. zooming).</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// For instance, a scale factor of `2.0` will make widgets twice as big,</span>
-    <span class="doccomment">/// while a scale factor of `0.5` will shrink them to half their size.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, it returns `1.0`.</span>
-    <span class="kw">fn</span> <span class="ident">scale_factor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
-        <span class="number">1.0</span>
-    }
+    <span class="doccomment">/// Returns the scale factor of the [`Sandbox`].
+    ///
+    /// It can be used to dynamically control the size of the UI at runtime
+    /// (i.e. zooming).
+    ///
+    /// For instance, a scale factor of `2.0` will make widgets twice as big,
+    /// while a scale factor of `0.5` will shrink them to half their size.
+    ///
+    /// By default, it returns `1.0`.
+    </span><span class="kw">fn </span>scale_factor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="number">1.0
+    </span>}
 
-    <span class="doccomment">/// Returns whether the [`Sandbox`] should be terminated.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, it returns `false`.</span>
-    <span class="kw">fn</span> <span class="ident">should_exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="bool-val">false</span>
-    }
+    <span class="doccomment">/// Returns whether the [`Sandbox`] should be terminated.
+    ///
+    /// By default, it returns `false`.
+    </span><span class="kw">fn </span>should_exit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="bool-val">false
+    </span>}
 
-    <span class="doccomment">/// Runs the [`Sandbox`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// On native platforms, this method will take control of the current thread</span>
-    <span class="doccomment">/// and __will NOT return__.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It should probably be that last thing you call in your `main` function.</span>
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="ident">settings</span>: <span class="ident">Settings</span><span class="op">&lt;</span>()<span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="self">Self</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Sized</span>,
+    <span class="doccomment">/// Runs the [`Sandbox`].
+    ///
+    /// On native platforms, this method will take control of the current thread
+    /// and __will NOT return__.
+    ///
+    /// It should probably be that last thing you call in your `main` function.
+    </span><span class="kw">fn </span>run(settings: Settings&lt;()&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
+    <span class="kw">where
+        </span><span class="self">Self</span>: <span class="lifetime">&#39;static </span>+ Sized,
     {
-        <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">Application</span><span class="op">&gt;</span><span class="ident">::run</span>(<span class="ident">settings</span>)
+        &lt;<span class="self">Self </span><span class="kw">as </span>Application&gt;::run(settings)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Application</span> <span class="kw">for</span> <span class="ident">T</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Sandbox</span>,
+<span class="kw">impl</span>&lt;T&gt; Application <span class="kw">for </span>T
+<span class="kw">where
+    </span>T: Sandbox,
 {
-    <span class="kw">type</span> <span class="ident">Executor</span> <span class="op">=</span> <span class="ident">iced_futures::backend::null::Executor</span>;
-    <span class="kw">type</span> <span class="ident">Flags</span> <span class="op">=</span> ();
-    <span class="kw">type</span> <span class="ident">Message</span> <span class="op">=</span> <span class="ident">T::Message</span>;
-    <span class="kw">type</span> <span class="ident">Theme</span> <span class="op">=</span> <span class="ident">Theme</span>;
+    <span class="kw">type </span>Executor = iced_futures::backend::null::Executor;
+    <span class="kw">type </span>Flags = ();
+    <span class="kw">type </span>Message = T::Message;
+    <span class="kw">type </span>Theme = Theme;
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_flags</span>: ()) -&gt; (<span class="self">Self</span>, <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T::Message</span><span class="op">&gt;</span>) {
-        (<span class="ident">T::new</span>(), <span class="ident">Command::none</span>())
+    <span class="kw">fn </span>new(_flags: ()) -&gt; (<span class="self">Self</span>, Command&lt;T::Message&gt;) {
+        (T::new(), Command::none())
     }
 
-    <span class="kw">fn</span> <span class="ident">title</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
-        <span class="ident">T::title</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>title(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        T::title(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">T::Message</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T::Message</span><span class="op">&gt;</span> {
-        <span class="ident">T::update</span>(<span class="self">self</span>, <span class="ident">message</span>);
+    <span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: T::Message) -&gt; Command&lt;T::Message&gt; {
+        T::update(<span class="self">self</span>, message);
 
-        <span class="ident">Command::none</span>()
+        Command::none()
     }
 
-    <span class="kw">fn</span> <span class="ident">view</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T::Message</span><span class="op">&gt;</span> {
-        <span class="ident">T::view</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Element&lt;<span class="lifetime">&#39;_</span>, T::Message&gt; {
+        T::view(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">theme</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Theme</span> {
-        <span class="ident">T::theme</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>theme(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Theme {
+        T::theme(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">style</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">theme::Application</span> {
-        <span class="ident">T::style</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; theme::Application {
+        T::style(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">subscription</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">T::Message</span><span class="op">&gt;</span> {
-        <span class="ident">Subscription::none</span>()
+    <span class="kw">fn </span>subscription(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Subscription&lt;T::Message&gt; {
+        Subscription::none()
     }
 
-    <span class="kw">fn</span> <span class="ident">scale_factor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
-        <span class="ident">T::scale_factor</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>scale_factor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        T::scale_factor(<span class="self">self</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">should_exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">T::should_exit</span>(<span class="self">self</span>)
+    <span class="kw">fn </span>should_exit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        T::should_exit(<span class="self">self</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

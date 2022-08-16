@@ -65,70 +65,70 @@
 <span id="63">63</span>
 <span id="64">64</span>
 <span id="65">65</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Position your widgets properly.</span>
-<span class="kw">mod</span> <span class="ident">limits</span>;
-<span class="kw">mod</span> <span class="ident">node</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Position your widgets properly.
+</span><span class="kw">mod </span>limits;
+<span class="kw">mod </span>node;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">flex</span>;
+<span class="kw">pub mod </span>flex;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">limits::Limits</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">node::Node</span>;
+<span class="kw">pub use </span>limits::Limits;
+<span class="kw">pub use </span>node::Node;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Vector</span>};
+<span class="kw">use crate</span>::{Point, Rectangle, Vector};
 
-<span class="doccomment">/// The bounds of a [`Node`] and its children, using absolute coordinates.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">position</span>: <span class="ident">Point</span>,
-    <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Node</span>,
+<span class="doccomment">/// The bounds of a [`Node`] and its children, using absolute coordinates.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub struct </span>Layout&lt;<span class="lifetime">&#39;a</span>&gt; {
+    position: Point,
+    node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Node,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new [`Layout`] for the given [`Node`] at the origin.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Node</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::with_offset</span>(<span class="ident">Vector::new</span>(<span class="number">0.0</span>, <span class="number">0.0</span>), <span class="ident">node</span>)
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Layout&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Creates a new [`Layout`] for the given [`Node`] at the origin.
+    </span><span class="kw">pub fn </span>new(node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Node) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::with_offset(Vector::new(<span class="number">0.0</span>, <span class="number">0.0</span>), node)
     }
 
-    <span class="doccomment">/// Creates a new [`Layout`] for the given [`Node`] with the provided offset</span>
-    <span class="doccomment">/// from the origin.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_offset</span>(<span class="ident">offset</span>: <span class="ident">Vector</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Node</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">node</span>.<span class="ident">bounds</span>();
+    <span class="doccomment">/// Creates a new [`Layout`] for the given [`Node`] with the provided offset
+    /// from the origin.
+    </span><span class="kw">pub fn </span>with_offset(offset: Vector, node: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Node) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>bounds = node.bounds();
 
-        <span class="self">Self</span> {
-            <span class="ident">position</span>: <span class="ident">Point::new</span>(<span class="ident">bounds</span>.<span class="ident">x</span>, <span class="ident">bounds</span>.<span class="ident">y</span>) <span class="op">+</span> <span class="ident">offset</span>,
-            <span class="ident">node</span>,
+        <span class="self">Self </span>{
+            position: Point::new(bounds.x, bounds.y) + offset,
+            node,
         }
     }
 
-    <span class="doccomment">/// Returns the position of the [`Layout`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Point</span> {
-        <span class="self">self</span>.<span class="ident">position</span>
+    <span class="doccomment">/// Returns the position of the [`Layout`].
+    </span><span class="kw">pub fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Point {
+        <span class="self">self</span>.position
     }
 
-    <span class="doccomment">/// Returns the bounds of the [`Layout`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned [`Rectangle`] describes the position and size of a</span>
-    <span class="doccomment">/// [`Node`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bounds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Rectangle</span> {
-        <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">node</span>.<span class="ident">bounds</span>();
+    <span class="doccomment">/// Returns the bounds of the [`Layout`].
+    ///
+    /// The returned [`Rectangle`] describes the position and size of a
+    /// [`Node`].
+    </span><span class="kw">pub fn </span>bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rectangle {
+        <span class="kw">let </span>bounds = <span class="self">self</span>.node.bounds();
 
-        <span class="ident">Rectangle</span> {
-            <span class="ident">x</span>: <span class="self">self</span>.<span class="ident">position</span>.<span class="ident">x</span>,
-            <span class="ident">y</span>: <span class="self">self</span>.<span class="ident">position</span>.<span class="ident">y</span>,
-            <span class="ident">width</span>: <span class="ident">bounds</span>.<span class="ident">width</span>,
-            <span class="ident">height</span>: <span class="ident">bounds</span>.<span class="ident">height</span>,
+        Rectangle {
+            x: <span class="self">self</span>.position.x,
+            y: <span class="self">self</span>.position.y,
+            width: bounds.width,
+            height: bounds.height,
         }
     }
 
-    <span class="doccomment">/// Returns an iterator over the [`Layout`] of the children of a [`Node`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">children</span>(<span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">node</span>.<span class="ident">children</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">node</span><span class="op">|</span> {
-            <span class="ident">Layout::with_offset</span>(
-                <span class="ident">Vector::new</span>(<span class="self">self</span>.<span class="ident">position</span>.<span class="ident">x</span>, <span class="self">self</span>.<span class="ident">position</span>.<span class="ident">y</span>),
-                <span class="ident">node</span>,
+    <span class="doccomment">/// Returns an iterator over the [`Layout`] of the children of a [`Node`].
+    </span><span class="kw">pub fn </span>children(<span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Layout&lt;<span class="lifetime">&#39;a</span>&gt;&gt; {
+        <span class="self">self</span>.node.children().iter().map(<span class="kw">move </span>|node| {
+            Layout::with_offset(
+                Vector::new(<span class="self">self</span>.position.x, <span class="self">self</span>.position.y),
+                node,
             )
         })
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

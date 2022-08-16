@@ -133,138 +133,138 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">glow::HasContext</span>;
+</pre><pre class="rust"><code><span class="kw">use </span>glow::HasContext;
 
-<span class="doccomment">/// The [`Version`] of a `Program`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Version</span> {
-    <span class="ident">vertex</span>: <span class="ident">String</span>,
-    <span class="ident">fragment</span>: <span class="ident">String</span>,
+<span class="doccomment">/// The [`Version`] of a `Program`.
+</span><span class="kw">pub struct </span>Version {
+    vertex: String,
+    fragment: String,
 }
 
-<span class="kw">impl</span> <span class="ident">Version</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>) -&gt; <span class="ident">Version</span> {
-        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="ident">gl</span>.<span class="ident">version</span>();
+<span class="kw">impl </span>Version {
+    <span class="kw">pub fn </span>new(gl: <span class="kw-2">&amp;</span>glow::Context) -&gt; Version {
+        <span class="kw">let </span>version = gl.version();
 
-        <span class="kw">let</span> (<span class="ident">vertex</span>, <span class="ident">fragment</span>) <span class="op">=</span> <span class="kw">match</span> (
-            <span class="ident">version</span>.<span class="ident">major</span>,
-            <span class="ident">version</span>.<span class="ident">minor</span>,
-            <span class="ident">version</span>.<span class="ident">is_embedded</span>,
+        <span class="kw">let </span>(vertex, fragment) = <span class="kw">match </span>(
+            version.major,
+            version.minor,
+            version.is_embedded,
         ) {
-            <span class="comment">// OpenGL 3.0+</span>
-            (<span class="number">3</span>, <span class="number">0</span> <span class="op">|</span> <span class="number">1</span> <span class="op">|</span> <span class="number">2</span>, <span class="bool-val">false</span>) =&gt; (
-                <span class="macro">format!</span>(<span class="string">&quot;#version 1{}0&quot;</span>, <span class="ident">version</span>.<span class="ident">minor</span> <span class="op">+</span> <span class="number">3</span>),
+            <span class="comment">// OpenGL 3.0+
+            </span>(<span class="number">3</span>, <span class="number">0 </span>| <span class="number">1 </span>| <span class="number">2</span>, <span class="bool-val">false</span>) =&gt; (
+                <span class="macro">format!</span>(<span class="string">&quot;#version 1{}0&quot;</span>, version.minor + <span class="number">3</span>),
                 <span class="macro">format!</span>(
                     <span class="string">&quot;#version 1{}0\n#define HIGHER_THAN_300 1&quot;</span>,
-                    <span class="ident">version</span>.<span class="ident">minor</span> <span class="op">+</span> <span class="number">3</span>
-                ),
+                    version.minor + <span class="number">3
+                </span>),
             ),
-            <span class="comment">// OpenGL 3.3+</span>
-            (<span class="number">3</span> <span class="op">|</span> <span class="number">4</span>, <span class="kw">_</span>, <span class="bool-val">false</span>) =&gt; (
-                <span class="macro">format!</span>(<span class="string">&quot;#version {}{}0&quot;</span>, <span class="ident">version</span>.<span class="ident">major</span>, <span class="ident">version</span>.<span class="ident">minor</span>),
+            <span class="comment">// OpenGL 3.3+
+            </span>(<span class="number">3 </span>| <span class="number">4</span>, <span class="kw">_</span>, <span class="bool-val">false</span>) =&gt; (
+                <span class="macro">format!</span>(<span class="string">&quot;#version {}{}0&quot;</span>, version.major, version.minor),
                 <span class="macro">format!</span>(
                     <span class="string">&quot;#version {}{}0\n#define HIGHER_THAN_300 1&quot;</span>,
-                    <span class="ident">version</span>.<span class="ident">major</span>, <span class="ident">version</span>.<span class="ident">minor</span>
+                    version.major, version.minor
                 ),
             ),
-            <span class="comment">// OpenGL ES 3.0+</span>
-            (<span class="number">3</span>, <span class="kw">_</span>, <span class="bool-val">true</span>) =&gt; (
-                <span class="macro">format!</span>(<span class="string">&quot;#version 3{}0 es&quot;</span>, <span class="ident">version</span>.<span class="ident">minor</span>),
+            <span class="comment">// OpenGL ES 3.0+
+            </span>(<span class="number">3</span>, <span class="kw">_</span>, <span class="bool-val">true</span>) =&gt; (
+                <span class="macro">format!</span>(<span class="string">&quot;#version 3{}0 es&quot;</span>, version.minor),
                 <span class="macro">format!</span>(
                     <span class="string">&quot;#version 3{}0 es\n#define HIGHER_THAN_300 1&quot;</span>,
-                    <span class="ident">version</span>.<span class="ident">minor</span>
+                    version.minor
                 ),
             ),
-            <span class="comment">// OpenGL ES 2.0+</span>
-            (<span class="number">2</span>, <span class="kw">_</span>, <span class="bool-val">true</span>) =&gt; (
-                <span class="ident">String::from</span>(
+            <span class="comment">// OpenGL ES 2.0+
+            </span>(<span class="number">2</span>, <span class="kw">_</span>, <span class="bool-val">true</span>) =&gt; (
+                String::from(
                     <span class="string">&quot;#version 100\n#define in attribute\n#define out varying&quot;</span>,
                 ),
-                <span class="ident">String::from</span>(<span class="string">&quot;#version 100\n#define in varying&quot;</span>),
+                String::from(<span class="string">&quot;#version 100\n#define in varying&quot;</span>),
             ),
-            <span class="comment">// OpenGL 2.1</span>
-            (<span class="number">2</span>, <span class="kw">_</span>, <span class="bool-val">false</span>) =&gt; (
-                <span class="ident">String::from</span>(
+            <span class="comment">// OpenGL 2.1
+            </span>(<span class="number">2</span>, <span class="kw">_</span>, <span class="bool-val">false</span>) =&gt; (
+                String::from(
                     <span class="string">&quot;#version 120\n#define in attribute\n#define out varying&quot;</span>,
                 ),
-                <span class="ident">String::from</span>(<span class="string">&quot;#version 120\n#define in varying&quot;</span>),
+                String::from(<span class="string">&quot;#version 120\n#define in varying&quot;</span>),
             ),
-            <span class="comment">// OpenGL 1.1+</span>
-            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Incompatible context version: {:?}&quot;</span>, <span class="ident">version</span>),
+            <span class="comment">// OpenGL 1.1+
+            </span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;Incompatible context version: {:?}&quot;</span>, version),
         };
 
-        <span class="macro">log::info!</span>(<span class="string">&quot;Shader directive: {}&quot;</span>, <span class="ident">vertex</span>.<span class="ident">lines</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>());
+        <span class="macro">log::info!</span>(<span class="string">&quot;Shader directive: {}&quot;</span>, vertex.lines().next().unwrap());
 
-        <span class="ident">Version</span> { <span class="ident">vertex</span>, <span class="ident">fragment</span> }
+        Version { vertex, fragment }
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Shader</span>(<span class="op">&lt;</span><span class="ident">glow::Context</span> <span class="kw">as</span> <span class="ident">HasContext</span><span class="op">&gt;</span><span class="ident">::Shader</span>);
+<span class="kw">pub struct </span>Shader(&lt;glow::Context <span class="kw">as </span>HasContext&gt;::Shader);
 
-<span class="kw">impl</span> <span class="ident">Shader</span> {
-    <span class="kw">fn</span> <span class="ident">compile</span>(<span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>, <span class="ident">stage</span>: <span class="ident">u32</span>, <span class="ident">content</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Shader</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">shader</span> <span class="op">=</span> <span class="ident">gl</span>.<span class="ident">create_shader</span>(<span class="ident">stage</span>).<span class="ident">expect</span>(<span class="string">&quot;Cannot create shader&quot;</span>);
+<span class="kw">impl </span>Shader {
+    <span class="kw">fn </span>compile(gl: <span class="kw-2">&amp;</span>glow::Context, stage: u32, content: <span class="kw-2">&amp;</span>str) -&gt; Shader {
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>shader = gl.create_shader(stage).expect(<span class="string">&quot;Cannot create shader&quot;</span>);
 
-            <span class="ident">gl</span>.<span class="ident">shader_source</span>(<span class="ident">shader</span>, <span class="ident">content</span>);
-            <span class="ident">gl</span>.<span class="ident">compile_shader</span>(<span class="ident">shader</span>);
+            gl.shader_source(shader, content);
+            gl.compile_shader(shader);
 
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">gl</span>.<span class="ident">get_shader_compile_status</span>(<span class="ident">shader</span>) {
-                <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">gl</span>.<span class="ident">get_shader_info_log</span>(<span class="ident">shader</span>));
+            <span class="kw">if </span>!gl.get_shader_compile_status(shader) {
+                <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, gl.get_shader_info_log(shader));
             }
 
-            <span class="ident">Shader</span>(<span class="ident">shader</span>)
+            Shader(shader)
         }
     }
 
-    <span class="doccomment">/// Creates a vertex [`Shader`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vertex</span>(
-        <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>,
-        <span class="ident">version</span>: <span class="kw-2">&amp;</span><span class="ident">Version</span>,
-        <span class="ident">content</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">content</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}\n{}&quot;</span>, <span class="ident">version</span>.<span class="ident">vertex</span>, <span class="ident">content</span>);
+    <span class="doccomment">/// Creates a vertex [`Shader`].
+    </span><span class="kw">pub fn </span>vertex(
+        gl: <span class="kw-2">&amp;</span>glow::Context,
+        version: <span class="kw-2">&amp;</span>Version,
+        content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>content = <span class="macro">format!</span>(<span class="string">&quot;{}\n{}&quot;</span>, version.vertex, content);
 
-        <span class="ident">Shader::compile</span>(<span class="ident">gl</span>, <span class="ident">glow::VERTEX_SHADER</span>, <span class="kw-2">&amp;</span><span class="ident">content</span>)
+        Shader::compile(gl, glow::VERTEX_SHADER, <span class="kw-2">&amp;</span>content)
     }
 
-    <span class="doccomment">/// Creates a fragment [`Shader`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fragment</span>(
-        <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>,
-        <span class="ident">version</span>: <span class="kw-2">&amp;</span><span class="ident">Version</span>,
-        <span class="ident">content</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">content</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}\n{}&quot;</span>, <span class="ident">version</span>.<span class="ident">fragment</span>, <span class="ident">content</span>);
+    <span class="doccomment">/// Creates a fragment [`Shader`].
+    </span><span class="kw">pub fn </span>fragment(
+        gl: <span class="kw-2">&amp;</span>glow::Context,
+        version: <span class="kw-2">&amp;</span>Version,
+        content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>content = <span class="macro">format!</span>(<span class="string">&quot;{}\n{}&quot;</span>, version.fragment, content);
 
-        <span class="ident">Shader::compile</span>(<span class="ident">gl</span>, <span class="ident">glow::FRAGMENT_SHADER</span>, <span class="kw-2">&amp;</span><span class="ident">content</span>)
+        Shader::compile(gl, glow::FRAGMENT_SHADER, <span class="kw-2">&amp;</span>content)
     }
 }
 
-<span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">create</span>(
-    <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>,
-    <span class="ident">shaders</span>: <span class="kw-2">&amp;</span>[<span class="ident">Shader</span>],
-    <span class="ident">attributes</span>: <span class="kw-2">&amp;</span>[(<span class="ident">u32</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>)],
-) -&gt; <span class="op">&lt;</span><span class="ident">glow::Context</span> <span class="kw">as</span> <span class="ident">HasContext</span><span class="op">&gt;</span><span class="ident">::Program</span> {
-    <span class="kw">let</span> <span class="ident">program</span> <span class="op">=</span> <span class="ident">gl</span>.<span class="ident">create_program</span>().<span class="ident">expect</span>(<span class="string">&quot;Cannot create program&quot;</span>);
+<span class="kw">pub unsafe fn </span>create(
+    gl: <span class="kw-2">&amp;</span>glow::Context,
+    shaders: <span class="kw-2">&amp;</span>[Shader],
+    attributes: <span class="kw-2">&amp;</span>[(u32, <span class="kw-2">&amp;</span>str)],
+) -&gt; &lt;glow::Context <span class="kw">as </span>HasContext&gt;::Program {
+    <span class="kw">let </span>program = gl.create_program().expect(<span class="string">&quot;Cannot create program&quot;</span>);
 
-    <span class="kw">for</span> <span class="ident">shader</span> <span class="kw">in</span> <span class="ident">shaders</span> {
-        <span class="ident">gl</span>.<span class="ident">attach_shader</span>(<span class="ident">program</span>, <span class="ident">shader</span>.<span class="number">0</span>);
+    <span class="kw">for </span>shader <span class="kw">in </span>shaders {
+        gl.attach_shader(program, shader.<span class="number">0</span>);
     }
 
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">name</span>) <span class="kw">in</span> <span class="ident">attributes</span> {
-        <span class="ident">gl</span>.<span class="ident">bind_attrib_location</span>(<span class="ident">program</span>, <span class="kw-2">*</span><span class="ident">i</span>, <span class="ident">name</span>);
+    <span class="kw">for </span>(i, name) <span class="kw">in </span>attributes {
+        gl.bind_attrib_location(program, <span class="kw-2">*</span>i, name);
     }
 
-    <span class="ident">gl</span>.<span class="ident">link_program</span>(<span class="ident">program</span>);
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">gl</span>.<span class="ident">get_program_link_status</span>(<span class="ident">program</span>) {
-        <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">gl</span>.<span class="ident">get_program_info_log</span>(<span class="ident">program</span>));
+    gl.link_program(program);
+    <span class="kw">if </span>!gl.get_program_link_status(program) {
+        <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, gl.get_program_info_log(program));
     }
 
-    <span class="kw">for</span> <span class="ident">shader</span> <span class="kw">in</span> <span class="ident">shaders</span> {
-        <span class="ident">gl</span>.<span class="ident">detach_shader</span>(<span class="ident">program</span>, <span class="ident">shader</span>.<span class="number">0</span>);
-        <span class="ident">gl</span>.<span class="ident">delete_shader</span>(<span class="ident">shader</span>.<span class="number">0</span>);
+    <span class="kw">for </span>shader <span class="kw">in </span>shaders {
+        gl.detach_shader(program, shader.<span class="number">0</span>);
+        gl.delete_shader(shader.<span class="number">0</span>);
     }
 
-    <span class="ident">program</span>
+    program
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

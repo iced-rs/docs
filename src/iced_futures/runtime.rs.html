@@ -108,113 +108,113 @@
 <span id="106">106</span>
 <span id="107">107</span>
 <span id="108">108</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Run commands and keep track of subscriptions.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::subscription</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">BoxFuture</span>, <span class="ident">Executor</span>, <span class="ident">MaybeSend</span>, <span class="ident">Subscription</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! Run commands and keep track of subscriptions.
+</span><span class="kw">use </span><span class="kw">crate</span>::subscription;
+<span class="kw">use crate</span>::{BoxFuture, Executor, MaybeSend, Subscription};
 
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">channel::mpsc</span>, <span class="ident">Sink</span>};
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+<span class="kw">use </span>futures::{channel::mpsc, Sink};
+<span class="kw">use </span>std::marker::PhantomData;
 
-<span class="doccomment">/// A batteries-included runtime of commands and subscriptions.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If you have an [`Executor`], a [`Runtime`] can be leveraged to run any</span>
-<span class="doccomment">/// [`Command`] or [`Subscription`] and get notified of the results!</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Command`]: crate::Command</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Runtime</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span>, <span class="ident">Executor</span>, <span class="ident">Sender</span>, <span class="ident">Message</span><span class="op">&gt;</span> {
-    <span class="ident">executor</span>: <span class="ident">Executor</span>,
-    <span class="ident">sender</span>: <span class="ident">Sender</span>,
-    <span class="ident">subscriptions</span>: <span class="ident">subscription::Tracker</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span><span class="op">&gt;</span>,
-    <span class="ident">_message</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A batteries-included runtime of commands and subscriptions.
+///
+/// If you have an [`Executor`], a [`Runtime`] can be leveraged to run any
+/// [`Command`] or [`Subscription`] and get notified of the results!
+///
+/// [`Command`]: crate::Command
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Runtime&lt;Hasher, Event, Executor, Sender, Message&gt; {
+    executor: Executor,
+    sender: Sender,
+    subscriptions: subscription::Tracker&lt;Hasher, Event&gt;,
+    _message: PhantomData&lt;Message&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span>, <span class="ident">Executor</span>, <span class="ident">Sender</span>, <span class="ident">Message</span><span class="op">&gt;</span>
-    <span class="ident">Runtime</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span>, <span class="ident">Executor</span>, <span class="ident">Sender</span>, <span class="ident">Message</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Hasher</span>: <span class="ident">std::hash::Hasher</span> <span class="op">+</span> <span class="ident">Default</span>,
-    <span class="ident">Event</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">Executor</span>: <span class="ident"><span class="self">self</span>::Executor</span>,
-    <span class="ident">Sender</span>: <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">mpsc::SendError</span><span class="op">&gt;</span>
-        <span class="op">+</span> <span class="ident">Unpin</span>
-        <span class="op">+</span> <span class="ident">MaybeSend</span>
-        <span class="op">+</span> <span class="ident">Clone</span>
-        <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">Message</span>: <span class="ident">MaybeSend</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="kw">impl</span>&lt;Hasher, Event, Executor, Sender, Message&gt;
+    Runtime&lt;Hasher, Event, Executor, Sender, Message&gt;
+<span class="kw">where
+    </span>Hasher: std::hash::Hasher + Default,
+    Event: Send + Clone + <span class="lifetime">&#39;static</span>,
+    Executor: <span class="self">self</span>::Executor,
+    Sender: Sink&lt;Message, Error = mpsc::SendError&gt;
+        + Unpin
+        + MaybeSend
+        + Clone
+        + <span class="lifetime">&#39;static</span>,
+    Message: MaybeSend + <span class="lifetime">&#39;static</span>,
 {
-    <span class="doccomment">/// Creates a new empty [`Runtime`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// You need to provide:</span>
-    <span class="doccomment">/// - an [`Executor`] to spawn futures</span>
-    <span class="doccomment">/// - a `Sender` implementing `Sink` to receive the results</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">executor</span>: <span class="ident">Executor</span>, <span class="ident">sender</span>: <span class="ident">Sender</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">executor</span>,
-            <span class="ident">sender</span>,
-            <span class="ident">subscriptions</span>: <span class="ident">subscription::Tracker::new</span>(),
-            <span class="ident">_message</span>: <span class="ident">PhantomData</span>,
+    <span class="doccomment">/// Creates a new empty [`Runtime`].
+    ///
+    /// You need to provide:
+    /// - an [`Executor`] to spawn futures
+    /// - a `Sender` implementing `Sink` to receive the results
+    </span><span class="kw">pub fn </span>new(executor: Executor, sender: Sender) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            executor,
+            sender,
+            subscriptions: subscription::Tracker::new(),
+            _message: PhantomData,
         }
     }
 
-    <span class="doccomment">/// Runs the given closure inside the [`Executor`] of the [`Runtime`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [`Executor::enter`] to learn more.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
-        <span class="self">self</span>.<span class="ident">executor</span>.<span class="ident">enter</span>(<span class="ident">f</span>)
+    <span class="doccomment">/// Runs the given closure inside the [`Executor`] of the [`Runtime`].
+    ///
+    /// See [`Executor::enter`] to learn more.
+    </span><span class="kw">pub fn </span>enter&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce() -&gt; R) -&gt; R {
+        <span class="self">self</span>.executor.enter(f)
     }
 
-    <span class="doccomment">/// Spawns a [`Future`] in the [`Runtime`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The resulting `Message` will be forwarded to the `Sender` of the</span>
-    <span class="doccomment">/// [`Runtime`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Future`]: BoxFuture</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">BoxFuture</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>) {
-        <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">FutureExt</span>, <span class="ident">SinkExt</span>};
+    <span class="doccomment">/// Spawns a [`Future`] in the [`Runtime`].
+    ///
+    /// The resulting `Message` will be forwarded to the `Sender` of the
+    /// [`Runtime`].
+    ///
+    /// [`Future`]: BoxFuture
+    </span><span class="kw">pub fn </span>spawn(<span class="kw-2">&amp;mut </span><span class="self">self</span>, future: BoxFuture&lt;Message&gt;) {
+        <span class="kw">use </span>futures::{FutureExt, SinkExt};
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sender</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sender</span>.<span class="ident">clone</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>sender = <span class="self">self</span>.sender.clone();
 
-        <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="ident">future</span>.<span class="ident">then</span>(<span class="op">|</span><span class="ident">message</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">message</span>).<span class="kw">await</span>;
+        <span class="kw">let </span>future = future.then(|message| <span class="kw">async move </span>{
+            <span class="kw">let _ </span>= sender.send(message).<span class="kw">await</span>;
         });
 
-        <span class="self">self</span>.<span class="ident">executor</span>.<span class="ident">spawn</span>(<span class="ident">future</span>);
+        <span class="self">self</span>.executor.spawn(future);
     }
 
-    <span class="doccomment">/// Tracks a [`Subscription`] in the [`Runtime`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It will spawn new streams or close old ones as necessary! See</span>
-    <span class="doccomment">/// [`Tracker::update`] to learn more about this!</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Tracker::update`]: subscription::Tracker::update</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">track</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">subscription</span>: <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Tracks a [`Subscription`] in the [`Runtime`].
+    ///
+    /// It will spawn new streams or close old ones as necessary! See
+    /// [`Tracker::update`] to learn more about this!
+    ///
+    /// [`Tracker::update`]: subscription::Tracker::update
+    </span><span class="kw">pub fn </span>track(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        subscription: Subscription&lt;Hasher, Event, Message&gt;,
     ) {
-        <span class="kw">let</span> <span class="ident">Runtime</span> {
-            <span class="ident">executor</span>,
-            <span class="ident">subscriptions</span>,
-            <span class="ident">sender</span>,
+        <span class="kw">let </span>Runtime {
+            executor,
+            subscriptions,
+            sender,
             ..
-        } <span class="op">=</span> <span class="self">self</span>;
+        } = <span class="self">self</span>;
 
-        <span class="kw">let</span> <span class="ident">futures</span> <span class="op">=</span> <span class="ident">executor</span>
-            .<span class="ident">enter</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">subscriptions</span>.<span class="ident">update</span>(<span class="ident">subscription</span>, <span class="ident">sender</span>.<span class="ident">clone</span>()));
+        <span class="kw">let </span>futures = executor
+            .enter(|| subscriptions.update(subscription, sender.clone()));
 
-        <span class="kw">for</span> <span class="ident">future</span> <span class="kw">in</span> <span class="ident">futures</span> {
-            <span class="ident">executor</span>.<span class="ident">spawn</span>(<span class="ident">future</span>);
+        <span class="kw">for </span>future <span class="kw">in </span>futures {
+            executor.spawn(future);
         }
     }
 
-    <span class="doccomment">/// Broadcasts an event to all the subscriptions currently alive in the</span>
-    <span class="doccomment">/// [`Runtime`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See [`Tracker::broadcast`] to learn more.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Tracker::broadcast`]: subscription::Tracker::broadcast</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">broadcast</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>) {
-        <span class="self">self</span>.<span class="ident">subscriptions</span>.<span class="ident">broadcast</span>(<span class="ident">event</span>);
+    <span class="doccomment">/// Broadcasts an event to all the subscriptions currently alive in the
+    /// [`Runtime`].
+    ///
+    /// See [`Tracker::broadcast`] to learn more.
+    ///
+    /// [`Tracker::broadcast`]: subscription::Tracker::broadcast
+    </span><span class="kw">pub fn </span>broadcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: Event) {
+        <span class="self">self</span>.subscriptions.broadcast(event);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_futures" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_futures" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

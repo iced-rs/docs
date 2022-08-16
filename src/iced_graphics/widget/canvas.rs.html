@@ -263,268 +263,268 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Draw 2D graphics for your users.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! A [`Canvas`] widget can be used to draw different kinds of 2D shapes in a</span>
-<span class="doccomment">//! [`Frame`]. It can be used for animation, data visualization, game graphics,</span>
-<span class="doccomment">//! and more!</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Draw 2D graphics for your users.
+//!
+//! A [`Canvas`] widget can be used to draw different kinds of 2D shapes in a
+//! [`Frame`]. It can be used for animation, data visualization, game graphics,
+//! and more!
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">event</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">path</span>;
+</span><span class="kw">pub mod </span>event;
+<span class="kw">pub mod </span>path;
 
-<span class="kw">mod</span> <span class="ident">cache</span>;
-<span class="kw">mod</span> <span class="ident">cursor</span>;
-<span class="kw">mod</span> <span class="ident">fill</span>;
-<span class="kw">mod</span> <span class="ident">frame</span>;
-<span class="kw">mod</span> <span class="ident">geometry</span>;
-<span class="kw">mod</span> <span class="ident">program</span>;
-<span class="kw">mod</span> <span class="ident">stroke</span>;
-<span class="kw">mod</span> <span class="ident">text</span>;
+<span class="kw">mod </span>cache;
+<span class="kw">mod </span>cursor;
+<span class="kw">mod </span>fill;
+<span class="kw">mod </span>frame;
+<span class="kw">mod </span>geometry;
+<span class="kw">mod </span>program;
+<span class="kw">mod </span>stroke;
+<span class="kw">mod </span>text;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cache::Cache</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cursor::Cursor</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">event::Event</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fill</span>::{<span class="ident">Fill</span>, <span class="ident">FillRule</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">frame::Frame</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">geometry::Geometry</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">path::Path</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">program::Program</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">stroke</span>::{<span class="ident">LineCap</span>, <span class="ident">LineDash</span>, <span class="ident">LineJoin</span>, <span class="ident">Stroke</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">text::Text</span>;
+<span class="kw">pub use </span>cache::Cache;
+<span class="kw">pub use </span>cursor::Cursor;
+<span class="kw">pub use </span>event::Event;
+<span class="kw">pub use </span>fill::{Fill, FillRule};
+<span class="kw">pub use </span>frame::Frame;
+<span class="kw">pub use </span>geometry::Geometry;
+<span class="kw">pub use </span>path::Path;
+<span class="kw">pub use </span>program::Program;
+<span class="kw">pub use </span>stroke::{LineCap, LineDash, LineJoin, Stroke};
+<span class="kw">pub use </span>text::Text;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Backend</span>, <span class="ident">Primitive</span>, <span class="ident">Renderer</span>};
+<span class="kw">use crate</span>::{Backend, Primitive, Renderer};
 
-<span class="kw">use</span> <span class="ident">iced_native::layout</span>::{<span class="self">self</span>, <span class="ident">Layout</span>};
-<span class="kw">use</span> <span class="ident">iced_native::mouse</span>;
-<span class="kw">use</span> <span class="ident">iced_native::renderer</span>;
-<span class="kw">use</span> <span class="ident">iced_native::widget::tree</span>::{<span class="self">self</span>, <span class="ident">Tree</span>};
-<span class="kw">use</span> <span class="ident">iced_native</span>::{
-    <span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>, <span class="ident">Widget</span>,
+<span class="kw">use </span>iced_native::layout::{<span class="self">self</span>, Layout};
+<span class="kw">use </span>iced_native::mouse;
+<span class="kw">use </span>iced_native::renderer;
+<span class="kw">use </span>iced_native::widget::tree::{<span class="self">self</span>, Tree};
+<span class="kw">use </span>iced_native::{
+    Clipboard, Element, Length, Point, Rectangle, Shell, Size, Vector, Widget,
 };
 
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+<span class="kw">use </span>std::marker::PhantomData;
 
-<span class="doccomment">/// A widget capable of drawing 2D graphics.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ## Drawing a simple circle</span>
-<span class="doccomment">/// If you want to get a quick overview, here&#39;s how we can draw a simple circle:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```no_run</span>
-<span class="doccomment">/// # mod iced {</span>
-<span class="doccomment">/// #     pub mod widget {</span>
-<span class="doccomment">/// #         pub use iced_graphics::widget::canvas;</span>
-<span class="doccomment">/// #     }</span>
-<span class="doccomment">/// #     pub use iced_native::{Color, Rectangle, Theme};</span>
-<span class="doccomment">/// # }</span>
-<span class="doccomment">/// use iced::widget::canvas::{self, Canvas, Cursor, Fill, Frame, Geometry, Path, Program};</span>
-<span class="doccomment">/// use iced::{Color, Rectangle, Theme};</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // First, we define the data we need for drawing</span>
-<span class="doccomment">/// #[derive(Debug)]</span>
-<span class="doccomment">/// struct Circle {</span>
-<span class="doccomment">///     radius: f32,</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Then, we implement the `Program` trait</span>
-<span class="doccomment">/// impl Program&lt;()&gt; for Circle {</span>
-<span class="doccomment">///     type State = ();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     fn draw(&amp;self, _state: &amp;(), _theme: &amp;Theme, bounds: Rectangle, _cursor: Cursor) -&gt; Vec&lt;Geometry&gt;{</span>
-<span class="doccomment">///         // We prepare a new `Frame`</span>
-<span class="doccomment">///         let mut frame = Frame::new(bounds.size());</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///         // We create a `Path` representing a simple circle</span>
-<span class="doccomment">///         let circle = Path::circle(frame.center(), self.radius);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///         // And fill it with some color</span>
-<span class="doccomment">///         frame.fill(&amp;circle, Color::BLACK);</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///         // Finally, we produce the geometry</span>
-<span class="doccomment">///         vec![frame.into_geometry()]</span>
-<span class="doccomment">///     }</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// // Finally, we simply use our `Circle` to create the `Canvas`!</span>
-<span class="doccomment">/// let canvas = Canvas::new(Circle { radius: 50.0 });</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Canvas</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Theme</span>, <span class="ident">P</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Program</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Theme</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A widget capable of drawing 2D graphics.
+///
+/// ## Drawing a simple circle
+/// If you want to get a quick overview, here&#39;s how we can draw a simple circle:
+///
+/// ```no_run
+/// # mod iced {
+/// #     pub mod widget {
+/// #         pub use iced_graphics::widget::canvas;
+/// #     }
+/// #     pub use iced_native::{Color, Rectangle, Theme};
+/// # }
+/// use iced::widget::canvas::{self, Canvas, Cursor, Fill, Frame, Geometry, Path, Program};
+/// use iced::{Color, Rectangle, Theme};
+///
+/// // First, we define the data we need for drawing
+/// #[derive(Debug)]
+/// struct Circle {
+///     radius: f32,
+/// }
+///
+/// // Then, we implement the `Program` trait
+/// impl Program&lt;()&gt; for Circle {
+///     type State = ();
+///
+///     fn draw(&amp;self, _state: &amp;(), _theme: &amp;Theme, bounds: Rectangle, _cursor: Cursor) -&gt; Vec&lt;Geometry&gt;{
+///         // We prepare a new `Frame`
+///         let mut frame = Frame::new(bounds.size());
+///
+///         // We create a `Path` representing a simple circle
+///         let circle = Path::circle(frame.center(), self.radius);
+///
+///         // And fill it with some color
+///         frame.fill(&amp;circle, Color::BLACK);
+///
+///         // Finally, we produce the geometry
+///         vec![frame.into_geometry()]
+///     }
+/// }
+///
+/// // Finally, we simply use our `Circle` to create the `Canvas`!
+/// let canvas = Canvas::new(Circle { radius: 50.0 });
+/// ```
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Canvas&lt;Message, Theme, P&gt;
+<span class="kw">where
+    </span>P: Program&lt;Message, Theme&gt;,
 {
-    <span class="ident">width</span>: <span class="ident">Length</span>,
-    <span class="ident">height</span>: <span class="ident">Length</span>,
-    <span class="ident">program</span>: <span class="ident">P</span>,
-    <span class="ident">message_</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
-    <span class="ident">theme_</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Theme</span><span class="op">&gt;</span>,
+    width: Length,
+    height: Length,
+    program: P,
+    message_: PhantomData&lt;Message&gt;,
+    theme_: PhantomData&lt;Theme&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Theme</span>, <span class="ident">P</span><span class="op">&gt;</span> <span class="ident">Canvas</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Theme</span>, <span class="ident">P</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Program</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Theme</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;Message, Theme, P&gt; Canvas&lt;Message, Theme, P&gt;
+<span class="kw">where
+    </span>P: Program&lt;Message, Theme&gt;,
 {
-    <span class="kw">const</span> <span class="ident">DEFAULT_SIZE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">100</span>;
+    <span class="kw">const </span>DEFAULT_SIZE: u16 = <span class="number">100</span>;
 
-    <span class="doccomment">/// Creates a new [`Canvas`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">program</span>: <span class="ident">P</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Canvas</span> {
-            <span class="ident">width</span>: <span class="ident">Length::Units</span>(<span class="ident"><span class="self">Self</span>::DEFAULT_SIZE</span>),
-            <span class="ident">height</span>: <span class="ident">Length::Units</span>(<span class="ident"><span class="self">Self</span>::DEFAULT_SIZE</span>),
-            <span class="ident">program</span>,
-            <span class="ident">message_</span>: <span class="ident">PhantomData</span>,
-            <span class="ident">theme_</span>: <span class="ident">PhantomData</span>,
+    <span class="doccomment">/// Creates a new [`Canvas`].
+    </span><span class="kw">pub fn </span>new(program: P) -&gt; <span class="self">Self </span>{
+        Canvas {
+            width: Length::Units(<span class="self">Self</span>::DEFAULT_SIZE),
+            height: Length::Units(<span class="self">Self</span>::DEFAULT_SIZE),
+            program,
+            message_: PhantomData,
+            theme_: PhantomData,
         }
     }
 
-    <span class="doccomment">/// Sets the width of the [`Canvas`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">width</span>: <span class="ident">Length</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">width</span> <span class="op">=</span> <span class="ident">width</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the width of the [`Canvas`].
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the height of the [`Canvas`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">height</span>: <span class="ident">Length</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">height</span> <span class="op">=</span> <span class="ident">height</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the height of the [`Canvas`].
+    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: Length) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.height = height;
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">P</span>, <span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Canvas</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">T</span>, <span class="ident">P</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Program</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">B</span>: <span class="ident">Backend</span>,
+<span class="kw">impl</span>&lt;Message, P, B, T&gt; Widget&lt;Message, Renderer&lt;B, T&gt;&gt; <span class="kw">for </span>Canvas&lt;Message, T, P&gt;
+<span class="kw">where
+    </span>P: Program&lt;Message, T&gt;,
+    B: Backend,
 {
-    <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::Tag</span> {
-        <span class="kw">struct</span> <span class="ident">Tag</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">T</span>);
-        <span class="ident">tree::Tag::of</span>::<span class="op">&lt;</span><span class="ident">Tag</span><span class="op">&lt;</span><span class="ident">P::State</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+    <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
+        <span class="kw">struct </span>Tag&lt;T&gt;(T);
+        tree::Tag::of::&lt;Tag&lt;P::State&gt;&gt;()
     }
 
-    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::State</span> {
-        <span class="ident">tree::State::new</span>(<span class="ident">P::State::default</span>())
+    <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
+        tree::State::new(P::State::default())
     }
 
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">width</span>
+    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.width
     }
 
-    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">height</span>
+    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.height
     }
 
-    <span class="kw">fn</span> <span class="ident">layout</span>(
+    <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="kw">let</span> <span class="ident">limits</span> <span class="op">=</span> <span class="ident">limits</span>.<span class="ident">width</span>(<span class="self">self</span>.<span class="ident">width</span>).<span class="ident">height</span>(<span class="self">self</span>.<span class="ident">height</span>);
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">limits</span>.<span class="ident">resolve</span>(<span class="ident">Size::ZERO</span>);
+        _renderer: <span class="kw-2">&amp;</span>Renderer&lt;B, T&gt;,
+        limits: <span class="kw-2">&amp;</span>layout::Limits,
+    ) -&gt; layout::Node {
+        <span class="kw">let </span>limits = limits.width(<span class="self">self</span>.width).height(<span class="self">self</span>.height);
+        <span class="kw">let </span>size = limits.resolve(Size::ZERO);
 
-        <span class="ident">layout::Node::new</span>(<span class="ident">size</span>)
+        layout::Node::new(size)
     }
 
-    <span class="kw">fn</span> <span class="ident">on_event</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
-        <span class="ident">event</span>: <span class="ident">iced_native::Event</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">_clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">event::Status</span> {
-        <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
+    <span class="kw">fn </span>on_event(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
+        event: iced_native::Event,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        _renderer: <span class="kw-2">&amp;</span>Renderer&lt;B, T&gt;,
+        _clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
+    ) -&gt; event::Status {
+        <span class="kw">let </span>bounds = layout.bounds();
 
-        <span class="kw">let</span> <span class="ident">canvas_event</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">event</span> {
-            <span class="ident">iced_native::Event::Mouse</span>(<span class="ident">mouse_event</span>) =&gt; {
-                <span class="prelude-val">Some</span>(<span class="ident">Event::Mouse</span>(<span class="ident">mouse_event</span>))
+        <span class="kw">let </span>canvas_event = <span class="kw">match </span>event {
+            iced_native::Event::Mouse(mouse_event) =&gt; {
+                <span class="prelude-val">Some</span>(Event::Mouse(mouse_event))
             }
-            <span class="ident">iced_native::Event::Keyboard</span>(<span class="ident">keyboard_event</span>) =&gt; {
-                <span class="prelude-val">Some</span>(<span class="ident">Event::Keyboard</span>(<span class="ident">keyboard_event</span>))
+            iced_native::Event::Keyboard(keyboard_event) =&gt; {
+                <span class="prelude-val">Some</span>(Event::Keyboard(keyboard_event))
             }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">Cursor::from_window_position</span>(<span class="ident">cursor_position</span>);
+        <span class="kw">let </span>cursor = Cursor::from_window_position(cursor_position);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">canvas_event</span>) <span class="op">=</span> <span class="ident">canvas_event</span> {
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">P::State</span><span class="op">&gt;</span>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(canvas_event) = canvas_event {
+            <span class="kw">let </span>state = tree.state.downcast_mut::&lt;P::State&gt;();
 
-            <span class="kw">let</span> (<span class="ident">event_status</span>, <span class="ident">message</span>) <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">program</span>.<span class="ident">update</span>(<span class="ident">state</span>, <span class="ident">canvas_event</span>, <span class="ident">bounds</span>, <span class="ident">cursor</span>);
+            <span class="kw">let </span>(event_status, message) =
+                <span class="self">self</span>.program.update(state, canvas_event, bounds, cursor);
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="ident">message</span> {
-                <span class="ident">shell</span>.<span class="ident">publish</span>(<span class="ident">message</span>);
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = message {
+                shell.publish(message);
             }
 
-            <span class="kw">return</span> <span class="ident">event_status</span>;
+            <span class="kw">return </span>event_status;
         }
 
-        <span class="ident">event::Status::Ignored</span>
+        event::Status::Ignored
     }
 
-    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
+    <span class="kw">fn </span>mouse_interaction(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
-        <span class="kw">let</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">Cursor::from_window_position</span>(<span class="ident">cursor_position</span>);
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">P::State</span><span class="op">&gt;</span>();
+        tree: <span class="kw-2">&amp;</span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        _viewport: <span class="kw-2">&amp;</span>Rectangle,
+        _renderer: <span class="kw-2">&amp;</span>Renderer&lt;B, T&gt;,
+    ) -&gt; mouse::Interaction {
+        <span class="kw">let </span>bounds = layout.bounds();
+        <span class="kw">let </span>cursor = Cursor::from_window_position(cursor_position);
+        <span class="kw">let </span>state = tree.state.downcast_ref::&lt;P::State&gt;();
 
-        <span class="self">self</span>.<span class="ident">program</span>.<span class="ident">mouse_interaction</span>(<span class="ident">state</span>, <span class="ident">bounds</span>, <span class="ident">cursor</span>)
+        <span class="self">self</span>.program.mouse_interaction(state, bounds, cursor)
     }
 
-    <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-        <span class="ident">_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        tree: <span class="kw-2">&amp;</span>Tree,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer&lt;B, T&gt;,
+        theme: <span class="kw-2">&amp;</span>T,
+        _style: <span class="kw-2">&amp;</span>renderer::Style,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="kw">use</span> <span class="ident">iced_native::Renderer</span> <span class="kw">as</span> <span class="kw">_</span>;
+        <span class="kw">use </span>iced_native::Renderer <span class="kw">as _</span>;
 
-        <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
+        <span class="kw">let </span>bounds = layout.bounds();
 
-        <span class="kw">if</span> <span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">&lt;</span> <span class="number">1.0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">&lt;</span> <span class="number">1.0</span> {
+        <span class="kw">if </span>bounds.width &lt; <span class="number">1.0 </span>|| bounds.height &lt; <span class="number">1.0 </span>{
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">translation</span> <span class="op">=</span> <span class="ident">Vector::new</span>(<span class="ident">bounds</span>.<span class="ident">x</span>, <span class="ident">bounds</span>.<span class="ident">y</span>);
-        <span class="kw">let</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">Cursor::from_window_position</span>(<span class="ident">cursor_position</span>);
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">P::State</span><span class="op">&gt;</span>();
+        <span class="kw">let </span>translation = Vector::new(bounds.x, bounds.y);
+        <span class="kw">let </span>cursor = Cursor::from_window_position(cursor_position);
+        <span class="kw">let </span>state = tree.state.downcast_ref::&lt;P::State&gt;();
 
-        <span class="ident">renderer</span>.<span class="ident">with_translation</span>(<span class="ident">translation</span>, <span class="op">|</span><span class="ident">renderer</span><span class="op">|</span> {
-            <span class="ident">renderer</span>.<span class="ident">draw_primitive</span>(<span class="ident">Primitive::Group</span> {
-                <span class="ident">primitives</span>: <span class="self">self</span>
-                    .<span class="ident">program</span>
-                    .<span class="ident">draw</span>(<span class="ident">state</span>, <span class="ident">theme</span>, <span class="ident">bounds</span>, <span class="ident">cursor</span>)
-                    .<span class="ident">into_iter</span>()
-                    .<span class="ident">map</span>(<span class="ident">Geometry::into_primitive</span>)
-                    .<span class="ident">collect</span>(),
+        renderer.with_translation(translation, |renderer| {
+            renderer.draw_primitive(Primitive::Group {
+                primitives: <span class="self">self
+                    </span>.program
+                    .draw(state, theme, bounds, cursor)
+                    .into_iter()
+                    .map(Geometry::into_primitive)
+                    .collect(),
             });
         });
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">P</span>, <span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Canvas</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">T</span>, <span class="ident">P</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
-    <span class="ident">P</span>: <span class="ident">Program</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
-    <span class="ident">B</span>: <span class="ident">Backend</span>,
-    <span class="ident">T</span>: <span class="lifetime">&#39;a</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, P, B, T&gt; From&lt;Canvas&lt;Message, T, P&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&lt;B, T&gt;&gt;
+<span class="kw">where
+    </span>Message: <span class="lifetime">&#39;a</span>,
+    P: Program&lt;Message, T&gt; + <span class="lifetime">&#39;a</span>,
+    B: Backend,
+    T: <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(
-        <span class="ident">canvas</span>: <span class="ident">Canvas</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">T</span>, <span class="ident">P</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">Element::new</span>(<span class="ident">canvas</span>)
+    <span class="kw">fn </span>from(
+        canvas: Canvas&lt;Message, T, P&gt;,
+    ) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&lt;B, T&gt;&gt; {
+        Element::new(canvas)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

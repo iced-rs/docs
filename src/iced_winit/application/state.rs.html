@@ -228,233 +228,233 @@
 <span id="226">226</span>
 <span id="227">227</span>
 <span id="228">228</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::application</span>::{<span class="self">self</span>, <span class="ident">StyleSheet</span> <span class="kw">as</span> <span class="kw">_</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::conversion</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Application</span>, <span class="ident">Color</span>, <span class="ident">Debug</span>, <span class="ident">Mode</span>, <span class="ident">Point</span>, <span class="ident">Size</span>, <span class="ident">Viewport</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::application::{<span class="self">self</span>, StyleSheet <span class="kw">as _</span>};
+<span class="kw">use </span><span class="kw">crate</span>::conversion;
+<span class="kw">use crate</span>::{Application, Color, Debug, Mode, Point, Size, Viewport};
 
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">winit::event</span>::{<span class="ident">Touch</span>, <span class="ident">WindowEvent</span>};
-<span class="kw">use</span> <span class="ident">winit::window::Window</span>;
+<span class="kw">use </span>std::marker::PhantomData;
+<span class="kw">use </span>winit::event::{Touch, WindowEvent};
+<span class="kw">use </span>winit::window::Window;
 
-<span class="doccomment">/// The state of a windowed [`Application`].</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Application</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">application::StyleSheet</span>,
+<span class="doccomment">/// The state of a windowed [`Application`].
+</span><span class="attribute">#[allow(missing_debug_implementations)]</span>
+<span class="kw">pub struct </span>State&lt;A: Application&gt;
+<span class="kw">where
+    </span>&lt;A::Renderer <span class="kw">as </span><span class="kw">crate</span>::Renderer&gt;::Theme: application::StyleSheet,
 {
-    <span class="ident">title</span>: <span class="ident">String</span>,
-    <span class="ident">mode</span>: <span class="ident">Mode</span>,
-    <span class="ident">scale_factor</span>: <span class="ident">f64</span>,
-    <span class="ident">viewport</span>: <span class="ident">Viewport</span>,
-    <span class="ident">viewport_version</span>: <span class="ident">usize</span>,
-    <span class="ident">cursor_position</span>: <span class="ident">winit::dpi::PhysicalPosition</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>,
-    <span class="ident">modifiers</span>: <span class="ident">winit::event::ModifiersState</span>,
-    <span class="ident">theme</span>: <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>,
-    <span class="ident">appearance</span>: <span class="ident">application::Appearance</span>,
-    <span class="ident">application</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
+    title: String,
+    mode: Mode,
+    scale_factor: f64,
+    viewport: Viewport,
+    viewport_version: usize,
+    cursor_position: winit::dpi::PhysicalPosition&lt;f64&gt;,
+    modifiers: winit::event::ModifiersState,
+    theme: &lt;A::Renderer <span class="kw">as </span><span class="kw">crate</span>::Renderer&gt;::Theme,
+    appearance: application::Appearance,
+    application: PhantomData&lt;A&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Application</span><span class="op">&gt;</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">application::StyleSheet</span>,
+<span class="kw">impl</span>&lt;A: Application&gt; State&lt;A&gt;
+<span class="kw">where
+    </span>&lt;A::Renderer <span class="kw">as </span><span class="kw">crate</span>::Renderer&gt;::Theme: application::StyleSheet,
 {
-    <span class="doccomment">/// Creates a new [`State`] for the provided [`Application`] and window.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">application</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>, <span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="ident">Window</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">title</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">title</span>();
-        <span class="kw">let</span> <span class="ident">mode</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">mode</span>();
-        <span class="kw">let</span> <span class="ident">scale_factor</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">scale_factor</span>();
-        <span class="kw">let</span> <span class="ident">theme</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">theme</span>();
-        <span class="kw">let</span> <span class="ident">appearance</span> <span class="op">=</span> <span class="ident">theme</span>.<span class="ident">appearance</span>(<span class="ident">application</span>.<span class="ident">style</span>());
+    <span class="doccomment">/// Creates a new [`State`] for the provided [`Application`] and window.
+    </span><span class="kw">pub fn </span>new(application: <span class="kw-2">&amp;</span>A, window: <span class="kw-2">&amp;</span>Window) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>title = application.title();
+        <span class="kw">let </span>mode = application.mode();
+        <span class="kw">let </span>scale_factor = application.scale_factor();
+        <span class="kw">let </span>theme = application.theme();
+        <span class="kw">let </span>appearance = theme.appearance(application.style());
 
-        <span class="kw">let</span> <span class="ident">viewport</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">physical_size</span> <span class="op">=</span> <span class="ident">window</span>.<span class="ident">inner_size</span>();
+        <span class="kw">let </span>viewport = {
+            <span class="kw">let </span>physical_size = window.inner_size();
 
-            <span class="ident">Viewport::with_physical_size</span>(
-                <span class="ident">Size::new</span>(<span class="ident">physical_size</span>.<span class="ident">width</span>, <span class="ident">physical_size</span>.<span class="ident">height</span>),
-                <span class="ident">window</span>.<span class="ident">scale_factor</span>() <span class="op">*</span> <span class="ident">scale_factor</span>,
+            Viewport::with_physical_size(
+                Size::new(physical_size.width, physical_size.height),
+                window.scale_factor() * scale_factor,
             )
         };
 
-        <span class="self">Self</span> {
-            <span class="ident">title</span>,
-            <span class="ident">mode</span>,
-            <span class="ident">scale_factor</span>,
-            <span class="ident">viewport</span>,
-            <span class="ident">viewport_version</span>: <span class="number">0</span>,
-            <span class="comment">// TODO: Encode cursor availability in the type-system</span>
-            <span class="ident">cursor_position</span>: <span class="ident">winit::dpi::PhysicalPosition::new</span>(<span class="op">-</span><span class="number">1.0</span>, <span class="op">-</span><span class="number">1.0</span>),
-            <span class="ident">modifiers</span>: <span class="ident">winit::event::ModifiersState::default</span>(),
-            <span class="ident">theme</span>,
-            <span class="ident">appearance</span>,
-            <span class="ident">application</span>: <span class="ident">PhantomData</span>,
+        <span class="self">Self </span>{
+            title,
+            mode,
+            scale_factor,
+            viewport,
+            viewport_version: <span class="number">0</span>,
+            <span class="comment">// TODO: Encode cursor availability in the type-system
+            </span>cursor_position: winit::dpi::PhysicalPosition::new(-<span class="number">1.0</span>, -<span class="number">1.0</span>),
+            modifiers: winit::event::ModifiersState::default(),
+            theme,
+            appearance,
+            application: PhantomData,
         }
     }
 
-    <span class="doccomment">/// Returns the current [`Viewport`] of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">viewport</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Viewport</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">viewport</span>
+    <span class="doccomment">/// Returns the current [`Viewport`] of the [`State`].
+    </span><span class="kw">pub fn </span>viewport(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Viewport {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.viewport
     }
 
-    <span class="doccomment">/// Returns the version of the [`Viewport`] of the [`State`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The version is incremented every time the [`Viewport`] changes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">viewport_version</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">viewport_version</span>
+    <span class="doccomment">/// Returns the version of the [`Viewport`] of the [`State`].
+    ///
+    /// The version is incremented every time the [`Viewport`] changes.
+    </span><span class="kw">pub fn </span>viewport_version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.viewport_version
     }
 
-    <span class="doccomment">/// Returns the physical [`Size`] of the [`Viewport`] of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">physical_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Size</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">viewport</span>.<span class="ident">physical_size</span>()
+    <span class="doccomment">/// Returns the physical [`Size`] of the [`Viewport`] of the [`State`].
+    </span><span class="kw">pub fn </span>physical_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;u32&gt; {
+        <span class="self">self</span>.viewport.physical_size()
     }
 
-    <span class="doccomment">/// Returns the logical [`Size`] of the [`Viewport`] of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">logical_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Size</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">viewport</span>.<span class="ident">logical_size</span>()
+    <span class="doccomment">/// Returns the logical [`Size`] of the [`Viewport`] of the [`State`].
+    </span><span class="kw">pub fn </span>logical_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;f32&gt; {
+        <span class="self">self</span>.viewport.logical_size()
     }
 
-    <span class="doccomment">/// Returns the current scale factor of the [`Viewport`] of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scale_factor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
-        <span class="self">self</span>.<span class="ident">viewport</span>.<span class="ident">scale_factor</span>()
+    <span class="doccomment">/// Returns the current scale factor of the [`Viewport`] of the [`State`].
+    </span><span class="kw">pub fn </span>scale_factor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
+        <span class="self">self</span>.viewport.scale_factor()
     }
 
-    <span class="doccomment">/// Returns the current cursor position of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Point</span> {
-        <span class="ident">conversion::cursor_position</span>(
-            <span class="self">self</span>.<span class="ident">cursor_position</span>,
-            <span class="self">self</span>.<span class="ident">viewport</span>.<span class="ident">scale_factor</span>(),
+    <span class="doccomment">/// Returns the current cursor position of the [`State`].
+    </span><span class="kw">pub fn </span>cursor_position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Point {
+        conversion::cursor_position(
+            <span class="self">self</span>.cursor_position,
+            <span class="self">self</span>.viewport.scale_factor(),
         )
     }
 
-    <span class="doccomment">/// Returns the current keyboard modifiers of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">modifiers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">winit::event::ModifiersState</span> {
-        <span class="self">self</span>.<span class="ident">modifiers</span>
+    <span class="doccomment">/// Returns the current keyboard modifiers of the [`State`].
+    </span><span class="kw">pub fn </span>modifiers(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; winit::event::ModifiersState {
+        <span class="self">self</span>.modifiers
     }
 
-    <span class="doccomment">/// Returns the current theme of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">theme</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">theme</span>
+    <span class="doccomment">/// Returns the current theme of the [`State`].
+    </span><span class="kw">pub fn </span>theme(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>&lt;A::Renderer <span class="kw">as </span><span class="kw">crate</span>::Renderer&gt;::Theme {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.theme
     }
 
-    <span class="doccomment">/// Returns the current background [`Color`] of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">background_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Color</span> {
-        <span class="self">self</span>.<span class="ident">appearance</span>.<span class="ident">background_color</span>
+    <span class="doccomment">/// Returns the current background [`Color`] of the [`State`].
+    </span><span class="kw">pub fn </span>background_color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Color {
+        <span class="self">self</span>.appearance.background_color
     }
 
-    <span class="doccomment">/// Returns the current text [`Color`] of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Color</span> {
-        <span class="self">self</span>.<span class="ident">appearance</span>.<span class="ident">text_color</span>
+    <span class="doccomment">/// Returns the current text [`Color`] of the [`State`].
+    </span><span class="kw">pub fn </span>text_color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Color {
+        <span class="self">self</span>.appearance.text_color
     }
 
-    <span class="doccomment">/// Processes the provided window event and updates the [`State`]</span>
-    <span class="doccomment">/// accordingly.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="ident">Window</span>,
-        <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">WindowEvent</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">_debug</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Debug</span>,
+    <span class="doccomment">/// Processes the provided window event and updates the [`State`]
+    /// accordingly.
+    </span><span class="kw">pub fn </span>update(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        window: <span class="kw-2">&amp;</span>Window,
+        event: <span class="kw-2">&amp;</span>WindowEvent&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _debug: <span class="kw-2">&amp;mut </span>Debug,
     ) {
-        <span class="kw">match</span> <span class="ident">event</span> {
-            <span class="ident">WindowEvent::Resized</span>(<span class="ident">new_size</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">Size::new</span>(<span class="ident">new_size</span>.<span class="ident">width</span>, <span class="ident">new_size</span>.<span class="ident">height</span>);
+        <span class="kw">match </span>event {
+            WindowEvent::Resized(new_size) =&gt; {
+                <span class="kw">let </span>size = Size::new(new_size.width, new_size.height);
 
-                <span class="self">self</span>.<span class="ident">viewport</span> <span class="op">=</span> <span class="ident">Viewport::with_physical_size</span>(
-                    <span class="ident">size</span>,
-                    <span class="ident">window</span>.<span class="ident">scale_factor</span>() <span class="op">*</span> <span class="self">self</span>.<span class="ident">scale_factor</span>,
+                <span class="self">self</span>.viewport = Viewport::with_physical_size(
+                    size,
+                    window.scale_factor() * <span class="self">self</span>.scale_factor,
                 );
 
-                <span class="self">self</span>.<span class="ident">viewport_version</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">viewport_version</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
+                <span class="self">self</span>.viewport_version = <span class="self">self</span>.viewport_version.wrapping_add(<span class="number">1</span>);
             }
-            <span class="ident">WindowEvent::ScaleFactorChanged</span> {
-                <span class="ident">scale_factor</span>: <span class="ident">new_scale_factor</span>,
-                <span class="ident">new_inner_size</span>,
+            WindowEvent::ScaleFactorChanged {
+                scale_factor: new_scale_factor,
+                new_inner_size,
             } =&gt; {
-                <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span>
-                    <span class="ident">Size::new</span>(<span class="ident">new_inner_size</span>.<span class="ident">width</span>, <span class="ident">new_inner_size</span>.<span class="ident">height</span>);
+                <span class="kw">let </span>size =
+                    Size::new(new_inner_size.width, new_inner_size.height);
 
-                <span class="self">self</span>.<span class="ident">viewport</span> <span class="op">=</span> <span class="ident">Viewport::with_physical_size</span>(
-                    <span class="ident">size</span>,
-                    <span class="ident">new_scale_factor</span> <span class="op">*</span> <span class="self">self</span>.<span class="ident">scale_factor</span>,
+                <span class="self">self</span>.viewport = Viewport::with_physical_size(
+                    size,
+                    new_scale_factor * <span class="self">self</span>.scale_factor,
                 );
 
-                <span class="self">self</span>.<span class="ident">viewport_version</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">viewport_version</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
+                <span class="self">self</span>.viewport_version = <span class="self">self</span>.viewport_version.wrapping_add(<span class="number">1</span>);
             }
-            <span class="ident">WindowEvent::CursorMoved</span> { <span class="ident">position</span>, .. }
-            <span class="op">|</span> <span class="ident">WindowEvent::Touch</span>(<span class="ident">Touch</span> {
-                <span class="ident">location</span>: <span class="ident">position</span>, ..
+            WindowEvent::CursorMoved { position, .. }
+            | WindowEvent::Touch(Touch {
+                location: position, ..
             }) =&gt; {
-                <span class="self">self</span>.<span class="ident">cursor_position</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">position</span>;
+                <span class="self">self</span>.cursor_position = <span class="kw-2">*</span>position;
             }
-            <span class="ident">WindowEvent::CursorLeft</span> { .. } =&gt; {
-                <span class="comment">// TODO: Encode cursor availability in the type-system</span>
-                <span class="self">self</span>.<span class="ident">cursor_position</span> <span class="op">=</span>
-                    <span class="ident">winit::dpi::PhysicalPosition::new</span>(<span class="op">-</span><span class="number">1.0</span>, <span class="op">-</span><span class="number">1.0</span>);
+            WindowEvent::CursorLeft { .. } =&gt; {
+                <span class="comment">// TODO: Encode cursor availability in the type-system
+                </span><span class="self">self</span>.cursor_position =
+                    winit::dpi::PhysicalPosition::new(-<span class="number">1.0</span>, -<span class="number">1.0</span>);
             }
-            <span class="ident">WindowEvent::ModifiersChanged</span>(<span class="ident">new_modifiers</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">modifiers</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">new_modifiers</span>;
+            WindowEvent::ModifiersChanged(new_modifiers) =&gt; {
+                <span class="self">self</span>.modifiers = <span class="kw-2">*</span>new_modifiers;
             }
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;debug&quot;</span>)]</span>
-            <span class="ident">WindowEvent::KeyboardInput</span> {
-                <span class="ident">input</span>:
-                    <span class="ident">winit::event::KeyboardInput</span> {
-                        <span class="ident">virtual_keycode</span>: <span class="prelude-val">Some</span>(<span class="ident">winit::event::VirtualKeyCode::F12</span>),
-                        <span class="ident">state</span>: <span class="ident">winit::event::ElementState::Pressed</span>,
+            <span class="attribute">#[cfg(feature = <span class="string">&quot;debug&quot;</span>)]</span>
+            WindowEvent::KeyboardInput {
+                input:
+                    winit::event::KeyboardInput {
+                        virtual_keycode: <span class="prelude-val">Some</span>(winit::event::VirtualKeyCode::F12),
+                        state: winit::event::ElementState::Pressed,
                         ..
                     },
                 ..
-            } =&gt; <span class="ident">_debug</span>.<span class="ident">toggle</span>(),
-            <span class="kw">_</span> =&gt; {}
+            } =&gt; _debug.toggle(),
+            <span class="kw">_ </span>=&gt; {}
         }
     }
 
-    <span class="doccomment">/// Synchronizes the [`State`] with its [`Application`] and its respective</span>
-    <span class="doccomment">/// window.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Normally an [`Application`] should be synchronized with its [`State`]</span>
-    <span class="doccomment">/// and window after calling [`Application::update`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Application::update`]: crate::Program::update</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">synchronize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">application</span>: <span class="kw-2">&amp;</span><span class="ident">A</span>, <span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="ident">Window</span>) {
-        <span class="comment">// Update window title</span>
-        <span class="kw">let</span> <span class="ident">new_title</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">title</span>();
+    <span class="doccomment">/// Synchronizes the [`State`] with its [`Application`] and its respective
+    /// window.
+    ///
+    /// Normally an [`Application`] should be synchronized with its [`State`]
+    /// and window after calling [`Application::update`].
+    ///
+    /// [`Application::update`]: crate::Program::update
+    </span><span class="kw">pub fn </span>synchronize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, application: <span class="kw-2">&amp;</span>A, window: <span class="kw-2">&amp;</span>Window) {
+        <span class="comment">// Update window title
+        </span><span class="kw">let </span>new_title = application.title();
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">title</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new_title</span> {
-            <span class="ident">window</span>.<span class="ident">set_title</span>(<span class="kw-2">&amp;</span><span class="ident">new_title</span>);
+        <span class="kw">if </span><span class="self">self</span>.title != new_title {
+            window.set_title(<span class="kw-2">&amp;</span>new_title);
 
-            <span class="self">self</span>.<span class="ident">title</span> <span class="op">=</span> <span class="ident">new_title</span>;
+            <span class="self">self</span>.title = new_title;
         }
 
-        <span class="comment">// Update window mode</span>
-        <span class="kw">let</span> <span class="ident">new_mode</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">mode</span>();
+        <span class="comment">// Update window mode
+        </span><span class="kw">let </span>new_mode = application.mode();
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mode</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new_mode</span> {
-            <span class="ident">window</span>.<span class="ident">set_fullscreen</span>(<span class="ident">conversion::fullscreen</span>(
-                <span class="ident">window</span>.<span class="ident">current_monitor</span>(),
-                <span class="ident">new_mode</span>,
+        <span class="kw">if </span><span class="self">self</span>.mode != new_mode {
+            window.set_fullscreen(conversion::fullscreen(
+                window.current_monitor(),
+                new_mode,
             ));
 
-            <span class="ident">window</span>.<span class="ident">set_visible</span>(<span class="ident">conversion::visible</span>(<span class="ident">new_mode</span>));
+            window.set_visible(conversion::visible(new_mode));
 
-            <span class="self">self</span>.<span class="ident">mode</span> <span class="op">=</span> <span class="ident">new_mode</span>;
+            <span class="self">self</span>.mode = new_mode;
         }
 
-        <span class="comment">// Update scale factor</span>
-        <span class="kw">let</span> <span class="ident">new_scale_factor</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">scale_factor</span>();
+        <span class="comment">// Update scale factor
+        </span><span class="kw">let </span>new_scale_factor = application.scale_factor();
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">scale_factor</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new_scale_factor</span> {
-            <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">window</span>.<span class="ident">inner_size</span>();
+        <span class="kw">if </span><span class="self">self</span>.scale_factor != new_scale_factor {
+            <span class="kw">let </span>size = window.inner_size();
 
-            <span class="self">self</span>.<span class="ident">viewport</span> <span class="op">=</span> <span class="ident">Viewport::with_physical_size</span>(
-                <span class="ident">Size::new</span>(<span class="ident">size</span>.<span class="ident">width</span>, <span class="ident">size</span>.<span class="ident">height</span>),
-                <span class="ident">window</span>.<span class="ident">scale_factor</span>() <span class="op">*</span> <span class="ident">new_scale_factor</span>,
+            <span class="self">self</span>.viewport = Viewport::with_physical_size(
+                Size::new(size.width, size.height),
+                window.scale_factor() * new_scale_factor,
             );
 
-            <span class="self">self</span>.<span class="ident">scale_factor</span> <span class="op">=</span> <span class="ident">new_scale_factor</span>;
+            <span class="self">self</span>.scale_factor = new_scale_factor;
         }
 
-        <span class="comment">// Update theme and appearance</span>
-        <span class="self">self</span>.<span class="ident">theme</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">theme</span>();
-        <span class="self">self</span>.<span class="ident">appearance</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">theme</span>.<span class="ident">appearance</span>(<span class="ident">application</span>.<span class="ident">style</span>());
+        <span class="comment">// Update theme and appearance
+        </span><span class="self">self</span>.theme = application.theme();
+        <span class="self">self</span>.appearance = <span class="self">self</span>.theme.appearance(application.style());
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

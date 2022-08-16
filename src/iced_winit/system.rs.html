@@ -41,46 +41,46 @@
 <span id="39">39</span>
 <span id="40">40</span>
 <span id="41">41</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Access the native system.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::command</span>::{<span class="self">self</span>, <span class="ident">Command</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_native::system</span>::<span class="kw-2">*</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Access the native system.
+</span><span class="kw">use </span><span class="kw">crate</span>::command::{<span class="self">self</span>, Command};
+<span class="kw">pub use </span>iced_native::system::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="ident">iced_graphics::compositor</span>;
+<span class="kw">use </span>iced_graphics::compositor;
 
-<span class="doccomment">/// Query for available system information.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fetch_information</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>(
-    <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Information</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span> {
-    <span class="ident">Command::single</span>(<span class="ident">command::Action::System</span>(<span class="ident">Action::QueryInformation</span>(
-        <span class="ident">Box::new</span>(<span class="ident">f</span>),
+<span class="doccomment">/// Query for available system information.
+</span><span class="kw">pub fn </span>fetch_information&lt;Message&gt;(
+    f: <span class="kw">impl </span>Fn(Information) -&gt; Message + Send + <span class="lifetime">&#39;static</span>,
+) -&gt; Command&lt;Message&gt; {
+    Command::single(command::Action::System(Action::QueryInformation(
+        Box::new(f),
     )))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">information</span>(
-    <span class="ident">graphics_info</span>: <span class="ident">compositor::Information</span>,
-) -&gt; <span class="ident">Information</span> {
-    <span class="kw">use</span> <span class="ident">sysinfo</span>::{<span class="ident">ProcessExt</span>, <span class="ident">ProcessorExt</span>, <span class="ident">System</span>, <span class="ident">SystemExt</span>};
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">system</span> <span class="op">=</span> <span class="ident">System::new_all</span>();
-    <span class="ident">system</span>.<span class="ident">refresh_all</span>();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>information(
+    graphics_info: compositor::Information,
+) -&gt; Information {
+    <span class="kw">use </span>sysinfo::{ProcessExt, ProcessorExt, System, SystemExt};
+    <span class="kw">let </span><span class="kw-2">mut </span>system = System::new_all();
+    system.refresh_all();
 
-    <span class="kw">let</span> <span class="ident">cpu</span> <span class="op">=</span> <span class="ident">system</span>.<span class="ident">global_processor_info</span>();
+    <span class="kw">let </span>cpu = system.global_processor_info();
 
-    <span class="kw">let</span> <span class="ident">memory_used</span> <span class="op">=</span> <span class="ident">sysinfo::get_current_pid</span>()
-        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">pid</span><span class="op">|</span> <span class="ident">system</span>.<span class="ident">process</span>(<span class="ident">pid</span>).<span class="ident">ok_or</span>(<span class="string">&quot;Process not found&quot;</span>))
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">process</span><span class="op">|</span> <span class="ident">process</span>.<span class="ident">memory</span>())
-        .<span class="ident">ok</span>();
+    <span class="kw">let </span>memory_used = sysinfo::get_current_pid()
+        .and_then(|pid| system.process(pid).ok_or(<span class="string">&quot;Process not found&quot;</span>))
+        .map(|process| process.memory())
+        .ok();
 
-    <span class="ident">Information</span> {
-        <span class="ident">system_name</span>: <span class="ident">system</span>.<span class="ident">name</span>(),
-        <span class="ident">system_kernel</span>: <span class="ident">system</span>.<span class="ident">kernel_version</span>(),
-        <span class="ident">system_version</span>: <span class="ident">system</span>.<span class="ident">long_os_version</span>(),
-        <span class="ident">cpu_brand</span>: <span class="ident">cpu</span>.<span class="ident">brand</span>().<span class="ident">into</span>(),
-        <span class="ident">cpu_cores</span>: <span class="ident">system</span>.<span class="ident">physical_core_count</span>(),
-        <span class="ident">memory_total</span>: <span class="ident">system</span>.<span class="ident">total_memory</span>(),
-        <span class="ident">memory_used</span>,
-        <span class="ident">graphics_adapter</span>: <span class="ident">graphics_info</span>.<span class="ident">adapter</span>,
-        <span class="ident">graphics_backend</span>: <span class="ident">graphics_info</span>.<span class="ident">backend</span>,
+    Information {
+        system_name: system.name(),
+        system_kernel: system.kernel_version(),
+        system_version: system.long_os_version(),
+        cpu_brand: cpu.brand().into(),
+        cpu_cores: system.physical_core_count(),
+        memory_total: system.total_memory(),
+        memory_used,
+        graphics_adapter: graphics_info.adapter,
+        graphics_backend: graphics_info.backend,
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

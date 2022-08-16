@@ -17,10 +17,10 @@ showing a single counter, we want to display many of them. We can reuse
 the <code>Counter</code> type as it is!</p>
 <p>We use composition to model the <strong>state</strong> of our new application:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">counter::Counter</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>counter::Counter;
 
-<span class="kw">struct</span> <span class="ident">ManyCounters</span> {
-    <span class="ident">counters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Counter</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>ManyCounters {
+    counters: Vec&lt;Counter&gt;,
 }</code></pre></div>
 <p>We can store the state of multiple counters now. However, the
 <strong>messages</strong> we implemented before describe the user interactions
@@ -28,32 +28,32 @@ of a <strong>single</strong> counter. Right now, we need to also identify which
 counter is receiving user interactions. Can we use composition again?
 Yes.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Message</span> {
-    <span class="ident">Counter</span>(<span class="ident">usize</span>, <span class="ident">counter::Message</span>)
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub enum </span>Message {
+    Counter(usize, counter::Message)
 }</code></pre></div>
 <p>We compose the previous <strong>messages</strong> with the index of the counter
 producing them. Let’s implement our <strong>view logic</strong> now:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">iced_native::Element</span>;
-<span class="kw">use</span> <span class="ident">iced_native::widget::Row</span>;
-<span class="kw">use</span> <span class="ident">iced_wgpu::Renderer</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>iced_native::Element;
+<span class="kw">use </span>iced_native::widget::Row;
+<span class="kw">use </span>iced_wgpu::Renderer;
 
-<span class="kw">impl</span> <span class="ident">ManyCounters</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">view</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Row</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="comment">// We can quickly populate a `Row` by folding over our counters</span>
-        <span class="self">self</span>.<span class="ident">counters</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>().<span class="ident">fold</span>(
-            <span class="ident">Row::new</span>().<span class="ident">spacing</span>(<span class="number">20</span>),
-            <span class="op">|</span><span class="ident">row</span>, (<span class="ident">index</span>, <span class="ident">counter</span>)<span class="op">|</span> {
-                <span class="comment">// We display the counter</span>
-                <span class="kw">let</span> <span class="ident">element</span>: <span class="ident">Element</span><span class="op">&lt;</span><span class="ident">counter::Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="op">=</span>
-                    <span class="ident">counter</span>.<span class="ident">view</span>().<span class="ident">into</span>();
+<span class="kw">impl </span>ManyCounters {
+    <span class="kw">pub fn </span>view(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Row&lt;Message, Renderer&gt; {
+        <span class="comment">// We can quickly populate a `Row` by folding over our counters
+        </span><span class="self">self</span>.counters.iter_mut().enumerate().fold(
+            Row::new().spacing(<span class="number">20</span>),
+            |row, (index, counter)| {
+                <span class="comment">// We display the counter
+                </span><span class="kw">let </span>element: Element&lt;counter::Message, Renderer&gt; =
+                    counter.view().into();
 
-                <span class="ident">row</span>.<span class="ident">push</span>(
-                    <span class="comment">// Here we turn our `Element&lt;counter::Message&gt;` into</span>
-                    <span class="comment">// an `Element&lt;Message&gt;` by combining the `index` and the</span>
-                    <span class="comment">// message of the `element`.</span>
-                    <span class="ident">element</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">message</span><span class="op">|</span> <span class="ident">Message::Counter</span>(<span class="ident">index</span>, <span class="ident">message</span>))
+                row.push(
+                    <span class="comment">// Here we turn our `Element&lt;counter::Message&gt;` into
+                    // an `Element&lt;Message&gt;` by combining the `index` and the
+                    // message of the `element`.
+                    </span>element.map(<span class="kw">move </span>|message| Message::Counter(index, message))
                 )
             }
         )
@@ -62,12 +62,12 @@ producing them. Let’s implement our <strong>view logic</strong> now:</p>
 <p>Finally, our <strong>update logic</strong> is pretty straightforward: simple
 delegation.</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">impl</span> <span class="ident">ManyCounters</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">Message</span>) {
-        <span class="kw">match</span> <span class="ident">message</span> {
-            <span class="ident">Message::Counter</span>(<span class="ident">index</span>, <span class="ident">counter_msg</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">counter</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">counters</span>.<span class="ident">get_mut</span>(<span class="ident">index</span>) {
-                    <span class="ident">counter</span>.<span class="ident">update</span>(<span class="ident">counter_msg</span>);
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">impl </span>ManyCounters {
+    <span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: Message) {
+        <span class="kw">match </span>message {
+            Message::Counter(index, counter_msg) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(counter) = <span class="self">self</span>.counters.get_mut(index) {
+                    counter.update(counter_msg);
                 }
             }
         }
@@ -116,4 +116,4 @@ method by default <a href="https://docs.rs/palette/0.6.1/palette/palette/chromat
 </div></details></div></details><details class="rustdoc-toggle implementors-toggle"><summary><section id="impl-TryIntoColor%3CU%3E-for-Element%3C%27a%2C%20Message%2C%20Renderer%3E" class="impl has-srclink"><span class="rightside"><a class="srclink" href="https://docs.rs/palette/0.6.1/palette/src/palette/convert.rs.html#514">source</a></span><a href="#impl-TryIntoColor%3CU%3E-for-Element%3C%27a%2C%20Message%2C%20Renderer%3E" class="anchor"></a><h3 class="code-header in-band">impl&lt;T, U&gt; <a class="trait" href="https://docs.rs/palette/0.6.1/palette/palette/convert/trait.TryIntoColor.html" title="trait palette::convert::TryIntoColor">TryIntoColor</a>&lt;U&gt; for T <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;U: <a class="trait" href="https://docs.rs/palette/0.6.1/palette/palette/convert/trait.TryFromColor.html" title="trait palette::convert::TryFromColor">TryFromColor</a>&lt;T&gt;,&nbsp;</span></h3></section></summary><div class="impl-items"><details class="rustdoc-toggle method-toggle" open><summary><section id="method.try_into_color" class="method trait-impl has-srclink"><span class="rightside"><a class="srclink" href="https://docs.rs/palette/0.6.1/palette/src/palette/convert.rs.html#519">source</a></span><a href="#method.try_into_color" class="anchor"></a><h4 class="code-header">fn <a href="https://docs.rs/palette/0.6.1/palette/palette/convert/trait.TryIntoColor.html#tymethod.try_into_color" class="fnname">try_into_color</a>(self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;U, <a class="struct" href="https://docs.rs/palette/0.6.1/palette/palette/convert/struct.OutOfBounds.html" title="struct palette::convert::OutOfBounds">OutOfBounds</a>&lt;U&gt;&gt;</h4></section></summary><div class='docblock'><p>Convert into T, returning ok if the color is inside of its defined
 range, otherwise an <code>OutOfBounds</code> error is returned which contains
 the unclamped color. <a href="https://docs.rs/palette/0.6.1/palette/palette/convert/trait.TryIntoColor.html#tymethod.try_into_color">Read more</a></p>
-</div></details></div></details><details class="rustdoc-toggle implementors-toggle"><summary><section id="impl-VZip%3CV%3E-for-Element%3C%27a%2C%20Message%2C%20Renderer%3E" class="impl has-srclink"><a href="#impl-VZip%3CV%3E-for-Element%3C%27a%2C%20Message%2C%20Renderer%3E" class="anchor"></a><h3 class="code-header in-band">impl&lt;V, T&gt; VZip&lt;V&gt; for T <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;V: MultiLane&lt;T&gt;,&nbsp;</span></h3></section></summary><div class="impl-items"><section id="method.vzip" class="method trait-impl has-srclink"><a href="#method.vzip" class="anchor"></a><h4 class="code-header">fn <a class="fnname">vzip</a>(self) -&gt; V</h4></section></div></details></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</div></details></div></details><details class="rustdoc-toggle implementors-toggle"><summary><section id="impl-VZip%3CV%3E-for-Element%3C%27a%2C%20Message%2C%20Renderer%3E" class="impl has-srclink"><a href="#impl-VZip%3CV%3E-for-Element%3C%27a%2C%20Message%2C%20Renderer%3E" class="anchor"></a><h3 class="code-header in-band">impl&lt;V, T&gt; VZip&lt;V&gt; for T <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;V: MultiLane&lt;T&gt;,&nbsp;</span></h3></section></summary><div class="impl-items"><section id="method.vzip" class="method trait-impl has-srclink"><a href="#method.vzip" class="anchor"></a><h4 class="code-header">fn <a class="fnname">vzip</a>(self) -&gt; V</h4></section></div></details></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

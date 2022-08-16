@@ -255,260 +255,260 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::program</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::quad</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::text</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::triangle</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Settings</span>, <span class="ident">Transformation</span>, <span class="ident">Viewport</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::program;
+<span class="kw">use </span><span class="kw">crate</span>::quad;
+<span class="kw">use </span><span class="kw">crate</span>::text;
+<span class="kw">use </span><span class="kw">crate</span>::triangle;
+<span class="kw">use crate</span>::{Settings, Transformation, Viewport};
 
-<span class="kw">use</span> <span class="ident">iced_graphics::backend</span>;
-<span class="kw">use</span> <span class="ident">iced_graphics::font</span>;
-<span class="kw">use</span> <span class="ident">iced_graphics</span>::{<span class="ident">Layer</span>, <span class="ident">Primitive</span>};
-<span class="kw">use</span> <span class="ident">iced_native::alignment</span>;
-<span class="kw">use</span> <span class="ident">iced_native</span>::{<span class="ident">Font</span>, <span class="ident">Size</span>};
+<span class="kw">use </span>iced_graphics::backend;
+<span class="kw">use </span>iced_graphics::font;
+<span class="kw">use </span>iced_graphics::{Layer, Primitive};
+<span class="kw">use </span>iced_native::alignment;
+<span class="kw">use </span>iced_native::{Font, Size};
 
-<span class="doccomment">/// A [`glow`] graphics backend for [`iced`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`glow`]: https://github.com/grovesNL/glow</span>
-<span class="doccomment">/// [`iced`]: https://github.com/iced-rs/iced</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Backend</span> {
-    <span class="ident">quad_pipeline</span>: <span class="ident">quad::Pipeline</span>,
-    <span class="ident">text_pipeline</span>: <span class="ident">text::Pipeline</span>,
-    <span class="ident">triangle_pipeline</span>: <span class="ident">triangle::Pipeline</span>,
-    <span class="ident">default_text_size</span>: <span class="ident">u16</span>,
+<span class="doccomment">/// A [`glow`] graphics backend for [`iced`].
+///
+/// [`glow`]: https://github.com/grovesNL/glow
+/// [`iced`]: https://github.com/iced-rs/iced
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Backend {
+    quad_pipeline: quad::Pipeline,
+    text_pipeline: text::Pipeline,
+    triangle_pipeline: triangle::Pipeline,
+    default_text_size: u16,
 }
 
-<span class="kw">impl</span> <span class="ident">Backend</span> {
-    <span class="doccomment">/// Creates a new [`Backend`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>, <span class="ident">settings</span>: <span class="ident">Settings</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">text_pipeline</span> <span class="op">=</span> <span class="ident">text::Pipeline::new</span>(
-            <span class="ident">gl</span>,
-            <span class="ident">settings</span>.<span class="ident">default_font</span>,
-            <span class="ident">settings</span>.<span class="ident">text_multithreading</span>,
+<span class="kw">impl </span>Backend {
+    <span class="doccomment">/// Creates a new [`Backend`].
+    </span><span class="kw">pub fn </span>new(gl: <span class="kw-2">&amp;</span>glow::Context, settings: Settings) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>text_pipeline = text::Pipeline::new(
+            gl,
+            settings.default_font,
+            settings.text_multithreading,
         );
 
-        <span class="kw">let</span> <span class="ident">shader_version</span> <span class="op">=</span> <span class="ident">program::Version::new</span>(<span class="ident">gl</span>);
+        <span class="kw">let </span>shader_version = program::Version::new(gl);
 
-        <span class="kw">let</span> <span class="ident">quad_pipeline</span> <span class="op">=</span> <span class="ident">quad::Pipeline::new</span>(<span class="ident">gl</span>, <span class="kw-2">&amp;</span><span class="ident">shader_version</span>);
-        <span class="kw">let</span> <span class="ident">triangle_pipeline</span> <span class="op">=</span> <span class="ident">triangle::Pipeline::new</span>(<span class="ident">gl</span>, <span class="kw-2">&amp;</span><span class="ident">shader_version</span>);
+        <span class="kw">let </span>quad_pipeline = quad::Pipeline::new(gl, <span class="kw-2">&amp;</span>shader_version);
+        <span class="kw">let </span>triangle_pipeline = triangle::Pipeline::new(gl, <span class="kw-2">&amp;</span>shader_version);
 
-        <span class="self">Self</span> {
-            <span class="ident">quad_pipeline</span>,
-            <span class="ident">text_pipeline</span>,
-            <span class="ident">triangle_pipeline</span>,
-            <span class="ident">default_text_size</span>: <span class="ident">settings</span>.<span class="ident">default_text_size</span>,
+        <span class="self">Self </span>{
+            quad_pipeline,
+            text_pipeline,
+            triangle_pipeline,
+            default_text_size: settings.default_text_size,
         }
     }
 
-    <span class="doccomment">/// Draws the provided primitives in the default framebuffer.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The text provided as overlay will be rendered on top of the primitives.</span>
-    <span class="doccomment">/// This is useful for rendering debug information.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">present</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>,
-        <span class="ident">primitives</span>: <span class="kw-2">&amp;</span>[<span class="ident">Primitive</span>],
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Viewport</span>,
-        <span class="ident">overlay_text</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>],
+    <span class="doccomment">/// Draws the provided primitives in the default framebuffer.
+    ///
+    /// The text provided as overlay will be rendered on top of the primitives.
+    /// This is useful for rendering debug information.
+    </span><span class="kw">pub fn </span>present&lt;T: AsRef&lt;str&gt;&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        gl: <span class="kw-2">&amp;</span>glow::Context,
+        primitives: <span class="kw-2">&amp;</span>[Primitive],
+        viewport: <span class="kw-2">&amp;</span>Viewport,
+        overlay_text: <span class="kw-2">&amp;</span>[T],
     ) {
-        <span class="kw">let</span> <span class="ident">viewport_size</span> <span class="op">=</span> <span class="ident">viewport</span>.<span class="ident">physical_size</span>();
-        <span class="kw">let</span> <span class="ident">scale_factor</span> <span class="op">=</span> <span class="ident">viewport</span>.<span class="ident">scale_factor</span>() <span class="kw">as</span> <span class="ident">f32</span>;
-        <span class="kw">let</span> <span class="ident">projection</span> <span class="op">=</span> <span class="ident">viewport</span>.<span class="ident">projection</span>();
+        <span class="kw">let </span>viewport_size = viewport.physical_size();
+        <span class="kw">let </span>scale_factor = viewport.scale_factor() <span class="kw">as </span>f32;
+        <span class="kw">let </span>projection = viewport.projection();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">layers</span> <span class="op">=</span> <span class="ident">Layer::generate</span>(<span class="ident">primitives</span>, <span class="ident">viewport</span>);
-        <span class="ident">layers</span>.<span class="ident">push</span>(<span class="ident">Layer::overlay</span>(<span class="ident">overlay_text</span>, <span class="ident">viewport</span>));
+        <span class="kw">let </span><span class="kw-2">mut </span>layers = Layer::generate(primitives, viewport);
+        layers.push(Layer::overlay(overlay_text, viewport));
 
-        <span class="kw">for</span> <span class="ident">layer</span> <span class="kw">in</span> <span class="ident">layers</span> {
-            <span class="self">self</span>.<span class="ident">flush</span>(
-                <span class="ident">gl</span>,
-                <span class="ident">scale_factor</span>,
-                <span class="ident">projection</span>,
-                <span class="kw-2">&amp;</span><span class="ident">layer</span>,
-                <span class="ident">viewport_size</span>.<span class="ident">height</span>,
+        <span class="kw">for </span>layer <span class="kw">in </span>layers {
+            <span class="self">self</span>.flush(
+                gl,
+                scale_factor,
+                projection,
+                <span class="kw-2">&amp;</span>layer,
+                viewport_size.height,
             );
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">flush</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>,
-        <span class="ident">scale_factor</span>: <span class="ident">f32</span>,
-        <span class="ident">transformation</span>: <span class="ident">Transformation</span>,
-        <span class="ident">layer</span>: <span class="kw-2">&amp;</span><span class="ident">Layer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">target_height</span>: <span class="ident">u32</span>,
+    <span class="kw">fn </span>flush(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        gl: <span class="kw-2">&amp;</span>glow::Context,
+        scale_factor: f32,
+        transformation: Transformation,
+        layer: <span class="kw-2">&amp;</span>Layer&lt;<span class="lifetime">&#39;_</span>&gt;,
+        target_height: u32,
     ) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> (<span class="ident">layer</span>.<span class="ident">bounds</span> <span class="op">*</span> <span class="ident">scale_factor</span>).<span class="ident">snap</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>bounds = (layer.bounds * scale_factor).snap();
 
-        <span class="kw">if</span> <span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">&lt;</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">&lt;</span> <span class="number">1</span> {
+        <span class="kw">if </span>bounds.width &lt; <span class="number">1 </span>|| bounds.height &lt; <span class="number">1 </span>{
             <span class="kw">return</span>;
         }
 
-        <span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">height</span>.<span class="ident">min</span>(<span class="ident">target_height</span>);
+        bounds.height = bounds.height.min(target_height);
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">layer</span>.<span class="ident">quads</span>.<span class="ident">is_empty</span>() {
-            <span class="self">self</span>.<span class="ident">quad_pipeline</span>.<span class="ident">draw</span>(
-                <span class="ident">gl</span>,
-                <span class="ident">target_height</span>,
-                <span class="kw-2">&amp;</span><span class="ident">layer</span>.<span class="ident">quads</span>,
-                <span class="ident">transformation</span>,
-                <span class="ident">scale_factor</span>,
-                <span class="ident">bounds</span>,
+        <span class="kw">if </span>!layer.quads.is_empty() {
+            <span class="self">self</span>.quad_pipeline.draw(
+                gl,
+                target_height,
+                <span class="kw-2">&amp;</span>layer.quads,
+                transformation,
+                scale_factor,
+                bounds,
             );
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">layer</span>.<span class="ident">meshes</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="ident">scaled</span> <span class="op">=</span> <span class="ident">transformation</span>
-                <span class="op">*</span> <span class="ident">Transformation::scale</span>(<span class="ident">scale_factor</span>, <span class="ident">scale_factor</span>);
+        <span class="kw">if </span>!layer.meshes.is_empty() {
+            <span class="kw">let </span>scaled = transformation
+                * Transformation::scale(scale_factor, scale_factor);
 
-            <span class="self">self</span>.<span class="ident">triangle_pipeline</span>.<span class="ident">draw</span>(
-                <span class="ident">gl</span>,
-                <span class="ident">target_height</span>,
-                <span class="ident">scaled</span>,
-                <span class="ident">scale_factor</span>,
-                <span class="kw-2">&amp;</span><span class="ident">layer</span>.<span class="ident">meshes</span>,
+            <span class="self">self</span>.triangle_pipeline.draw(
+                gl,
+                target_height,
+                scaled,
+                scale_factor,
+                <span class="kw-2">&amp;</span>layer.meshes,
             );
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">layer</span>.<span class="ident">text</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">for</span> <span class="ident">text</span> <span class="kw">in</span> <span class="ident">layer</span>.<span class="ident">text</span>.<span class="ident">iter</span>() {
-                <span class="comment">// Target physical coordinates directly to avoid blurry text</span>
-                <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">glow_glyph::Section</span> {
-                    <span class="comment">// TODO: We `round` here to avoid rerasterizing text when</span>
-                    <span class="comment">// its position changes slightly. This can make text feel a</span>
-                    <span class="comment">// bit &quot;jumpy&quot;. We may be able to do better once we improve</span>
-                    <span class="comment">// our text rendering/caching pipeline.</span>
-                    <span class="ident">screen_position</span>: (
-                        (<span class="ident">text</span>.<span class="ident">bounds</span>.<span class="ident">x</span> <span class="op">*</span> <span class="ident">scale_factor</span>).<span class="ident">round</span>(),
-                        (<span class="ident">text</span>.<span class="ident">bounds</span>.<span class="ident">y</span> <span class="op">*</span> <span class="ident">scale_factor</span>).<span class="ident">round</span>(),
+        <span class="kw">if </span>!layer.text.is_empty() {
+            <span class="kw">for </span>text <span class="kw">in </span>layer.text.iter() {
+                <span class="comment">// Target physical coordinates directly to avoid blurry text
+                </span><span class="kw">let </span>text = glow_glyph::Section {
+                    <span class="comment">// TODO: We `round` here to avoid rerasterizing text when
+                    // its position changes slightly. This can make text feel a
+                    // bit &quot;jumpy&quot;. We may be able to do better once we improve
+                    // our text rendering/caching pipeline.
+                    </span>screen_position: (
+                        (text.bounds.x * scale_factor).round(),
+                        (text.bounds.y * scale_factor).round(),
                     ),
-                    <span class="comment">// TODO: Fix precision issues with some scale factors.</span>
-                    <span class="comment">//</span>
-                    <span class="comment">// The `ceil` here can cause some words to render on the</span>
-                    <span class="comment">// same line when they should not.</span>
-                    <span class="comment">//</span>
-                    <span class="comment">// Ideally, `wgpu_glyph` should be able to compute layout</span>
-                    <span class="comment">// using logical positions, and then apply the proper</span>
-                    <span class="comment">// scaling when rendering. This would ensure that both</span>
-                    <span class="comment">// measuring and rendering follow the same layout rules.</span>
-                    <span class="ident">bounds</span>: (
-                        (<span class="ident">text</span>.<span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">*</span> <span class="ident">scale_factor</span>).<span class="ident">ceil</span>(),
-                        (<span class="ident">text</span>.<span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">*</span> <span class="ident">scale_factor</span>).<span class="ident">ceil</span>(),
+                    <span class="comment">// TODO: Fix precision issues with some scale factors.
+                    //
+                    // The `ceil` here can cause some words to render on the
+                    // same line when they should not.
+                    //
+                    // Ideally, `wgpu_glyph` should be able to compute layout
+                    // using logical positions, and then apply the proper
+                    // scaling when rendering. This would ensure that both
+                    // measuring and rendering follow the same layout rules.
+                    </span>bounds: (
+                        (text.bounds.width * scale_factor).ceil(),
+                        (text.bounds.height * scale_factor).ceil(),
                     ),
-                    <span class="ident">text</span>: <span class="macro">vec!</span>[<span class="ident">glow_glyph::Text</span> {
-                        <span class="ident">text</span>: <span class="ident">text</span>.<span class="ident">content</span>,
-                        <span class="ident">scale</span>: <span class="ident">glow_glyph::ab_glyph::PxScale</span> {
-                            <span class="ident">x</span>: <span class="ident">text</span>.<span class="ident">size</span> <span class="op">*</span> <span class="ident">scale_factor</span>,
-                            <span class="ident">y</span>: <span class="ident">text</span>.<span class="ident">size</span> <span class="op">*</span> <span class="ident">scale_factor</span>,
+                    text: <span class="macro">vec!</span>[glow_glyph::Text {
+                        text: text.content,
+                        scale: glow_glyph::ab_glyph::PxScale {
+                            x: text.size * scale_factor,
+                            y: text.size * scale_factor,
                         },
-                        <span class="ident">font_id</span>: <span class="self">self</span>.<span class="ident">text_pipeline</span>.<span class="ident">find_font</span>(<span class="ident">text</span>.<span class="ident">font</span>),
-                        <span class="ident">extra</span>: <span class="ident">glow_glyph::Extra</span> {
-                            <span class="ident">color</span>: <span class="ident">text</span>.<span class="ident">color</span>,
-                            <span class="ident">z</span>: <span class="number">0.0</span>,
+                        font_id: <span class="self">self</span>.text_pipeline.find_font(text.font),
+                        extra: glow_glyph::Extra {
+                            color: text.color,
+                            z: <span class="number">0.0</span>,
                         },
                     }],
-                    <span class="ident">layout</span>: <span class="ident">glow_glyph::Layout::default</span>()
-                        .<span class="ident">h_align</span>(<span class="kw">match</span> <span class="ident">text</span>.<span class="ident">horizontal_alignment</span> {
-                            <span class="ident">alignment::Horizontal::Left</span> =&gt; {
-                                <span class="ident">glow_glyph::HorizontalAlign::Left</span>
+                    layout: glow_glyph::Layout::default()
+                        .h_align(<span class="kw">match </span>text.horizontal_alignment {
+                            alignment::Horizontal::Left =&gt; {
+                                glow_glyph::HorizontalAlign::Left
                             }
-                            <span class="ident">alignment::Horizontal::Center</span> =&gt; {
-                                <span class="ident">glow_glyph::HorizontalAlign::Center</span>
+                            alignment::Horizontal::Center =&gt; {
+                                glow_glyph::HorizontalAlign::Center
                             }
-                            <span class="ident">alignment::Horizontal::Right</span> =&gt; {
-                                <span class="ident">glow_glyph::HorizontalAlign::Right</span>
+                            alignment::Horizontal::Right =&gt; {
+                                glow_glyph::HorizontalAlign::Right
                             }
                         })
-                        .<span class="ident">v_align</span>(<span class="kw">match</span> <span class="ident">text</span>.<span class="ident">vertical_alignment</span> {
-                            <span class="ident">alignment::Vertical::Top</span> =&gt; {
-                                <span class="ident">glow_glyph::VerticalAlign::Top</span>
+                        .v_align(<span class="kw">match </span>text.vertical_alignment {
+                            alignment::Vertical::Top =&gt; {
+                                glow_glyph::VerticalAlign::Top
                             }
-                            <span class="ident">alignment::Vertical::Center</span> =&gt; {
-                                <span class="ident">glow_glyph::VerticalAlign::Center</span>
+                            alignment::Vertical::Center =&gt; {
+                                glow_glyph::VerticalAlign::Center
                             }
-                            <span class="ident">alignment::Vertical::Bottom</span> =&gt; {
-                                <span class="ident">glow_glyph::VerticalAlign::Bottom</span>
+                            alignment::Vertical::Bottom =&gt; {
+                                glow_glyph::VerticalAlign::Bottom
                             }
                         }),
                 };
 
-                <span class="self">self</span>.<span class="ident">text_pipeline</span>.<span class="ident">queue</span>(<span class="ident">text</span>);
+                <span class="self">self</span>.text_pipeline.queue(text);
             }
 
-            <span class="self">self</span>.<span class="ident">text_pipeline</span>.<span class="ident">draw_queued</span>(
-                <span class="ident">gl</span>,
-                <span class="ident">transformation</span>,
-                <span class="ident">glow_glyph::Region</span> {
-                    <span class="ident">x</span>: <span class="ident">bounds</span>.<span class="ident">x</span>,
-                    <span class="ident">y</span>: <span class="ident">target_height</span> <span class="op">-</span> (<span class="ident">bounds</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">bounds</span>.<span class="ident">height</span>),
-                    <span class="ident">width</span>: <span class="ident">bounds</span>.<span class="ident">width</span>,
-                    <span class="ident">height</span>: <span class="ident">bounds</span>.<span class="ident">height</span>,
+            <span class="self">self</span>.text_pipeline.draw_queued(
+                gl,
+                transformation,
+                glow_glyph::Region {
+                    x: bounds.x,
+                    y: target_height - (bounds.y + bounds.height),
+                    width: bounds.width,
+                    height: bounds.height,
                 },
             );
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">iced_graphics::Backend</span> <span class="kw">for</span> <span class="ident">Backend</span> {
-    <span class="kw">fn</span> <span class="ident">trim_measurements</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">text_pipeline</span>.<span class="ident">trim_measurement_cache</span>()
+<span class="kw">impl </span>iced_graphics::Backend <span class="kw">for </span>Backend {
+    <span class="kw">fn </span>trim_measurements(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.text_pipeline.trim_measurement_cache()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">backend::Text</span> <span class="kw">for</span> <span class="ident">Backend</span> {
-    <span class="kw">const</span> <span class="ident">ICON_FONT</span>: <span class="ident">Font</span> <span class="op">=</span> <span class="ident">font::ICONS</span>;
-    <span class="kw">const</span> <span class="ident">CHECKMARK_ICON</span>: <span class="ident">char</span> <span class="op">=</span> <span class="ident">font::CHECKMARK_ICON</span>;
-    <span class="kw">const</span> <span class="ident">ARROW_DOWN_ICON</span>: <span class="ident">char</span> <span class="op">=</span> <span class="ident">font::ARROW_DOWN_ICON</span>;
+<span class="kw">impl </span>backend::Text <span class="kw">for </span>Backend {
+    <span class="kw">const </span>ICON_FONT: Font = font::ICONS;
+    <span class="kw">const </span>CHECKMARK_ICON: char = font::CHECKMARK_ICON;
+    <span class="kw">const </span>ARROW_DOWN_ICON: char = font::ARROW_DOWN_ICON;
 
-    <span class="kw">fn</span> <span class="ident">default_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u16</span> {
-        <span class="self">self</span>.<span class="ident">default_text_size</span>
+    <span class="kw">fn </span>default_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u16 {
+        <span class="self">self</span>.default_text_size
     }
 
-    <span class="kw">fn</span> <span class="ident">measure</span>(
+    <span class="kw">fn </span>measure(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">contents</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">size</span>: <span class="ident">f32</span>,
-        <span class="ident">font</span>: <span class="ident">Font</span>,
-        <span class="ident">bounds</span>: <span class="ident">Size</span>,
-    ) -&gt; (<span class="ident">f32</span>, <span class="ident">f32</span>) {
-        <span class="self">self</span>.<span class="ident">text_pipeline</span>.<span class="ident">measure</span>(<span class="ident">contents</span>, <span class="ident">size</span>, <span class="ident">font</span>, <span class="ident">bounds</span>)
+        contents: <span class="kw-2">&amp;</span>str,
+        size: f32,
+        font: Font,
+        bounds: Size,
+    ) -&gt; (f32, f32) {
+        <span class="self">self</span>.text_pipeline.measure(contents, size, font, bounds)
     }
 
-    <span class="kw">fn</span> <span class="ident">hit_test</span>(
+    <span class="kw">fn </span>hit_test(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">contents</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">size</span>: <span class="ident">f32</span>,
-        <span class="ident">font</span>: <span class="ident">Font</span>,
-        <span class="ident">bounds</span>: <span class="ident">Size</span>,
-        <span class="ident">point</span>: <span class="ident">iced_native::Point</span>,
-        <span class="ident">nearest_only</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">text::Hit</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">text_pipeline</span>.<span class="ident">hit_test</span>(
-            <span class="ident">contents</span>,
-            <span class="ident">size</span>,
-            <span class="ident">font</span>,
-            <span class="ident">bounds</span>,
-            <span class="ident">point</span>,
-            <span class="ident">nearest_only</span>,
+        contents: <span class="kw-2">&amp;</span>str,
+        size: f32,
+        font: Font,
+        bounds: Size,
+        point: iced_native::Point,
+        nearest_only: bool,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;text::Hit&gt; {
+        <span class="self">self</span>.text_pipeline.hit_test(
+            contents,
+            size,
+            font,
+            bounds,
+            point,
+            nearest_only,
         )
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;image&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">backend::Image</span> <span class="kw">for</span> <span class="ident">Backend</span> {
-    <span class="kw">fn</span> <span class="ident">dimensions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_handle</span>: <span class="kw-2">&amp;</span><span class="ident">iced_native::image::Handle</span>) -&gt; (<span class="ident">u32</span>, <span class="ident">u32</span>) {
+<span class="attribute">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]</span>
+<span class="kw">impl </span>backend::Image <span class="kw">for </span>Backend {
+    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, _handle: <span class="kw-2">&amp;</span>iced_native::image::Handle) -&gt; (u32, u32) {
         (<span class="number">50</span>, <span class="number">50</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;svg&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">backend::Svg</span> <span class="kw">for</span> <span class="ident">Backend</span> {
-    <span class="kw">fn</span> <span class="ident">viewport_dimensions</span>(
+<span class="attribute">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]</span>
+<span class="kw">impl </span>backend::Svg <span class="kw">for </span>Backend {
+    <span class="kw">fn </span>viewport_dimensions(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_handle</span>: <span class="kw-2">&amp;</span><span class="ident">iced_native::svg::Handle</span>,
-    ) -&gt; (<span class="ident">u32</span>, <span class="ident">u32</span>) {
+        _handle: <span class="kw-2">&amp;</span>iced_native::svg::Handle,
+    ) -&gt; (u32, u32) {
         (<span class="number">50</span>, <span class="number">50</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

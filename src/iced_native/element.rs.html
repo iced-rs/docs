@@ -382,387 +382,387 @@
 <span id="380">380</span>
 <span id="381">381</span>
 <span id="382">382</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>::{<span class="self">self</span>, <span class="ident">Event</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::overlay</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::tree</span>::{<span class="self">self</span>, <span class="ident">Tree</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Clipboard</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Widget</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
+<span class="kw">use </span><span class="kw">crate</span>::layout;
+<span class="kw">use </span><span class="kw">crate</span>::mouse;
+<span class="kw">use </span><span class="kw">crate</span>::overlay;
+<span class="kw">use </span><span class="kw">crate</span>::renderer;
+<span class="kw">use </span><span class="kw">crate</span>::widget;
+<span class="kw">use </span><span class="kw">crate</span>::widget::tree::{<span class="self">self</span>, Tree};
+<span class="kw">use crate</span>::{Clipboard, Layout, Length, Point, Rectangle, Shell, Widget};
 
-<span class="kw">use</span> <span class="ident">std::borrow::Borrow</span>;
+<span class="kw">use </span>std::borrow::Borrow;
 
-<span class="doccomment">/// A generic [`Widget`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It is useful to build composable user interfaces that do not leak</span>
-<span class="doccomment">/// implementation details in their __view logic__.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If you have a [built-in widget], you should be able to use `Into&lt;Element&gt;`</span>
-<span class="doccomment">/// to turn it into an [`Element`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [built-in widget]: crate::widget</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-    <span class="ident">widget</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A generic [`Widget`].
+///
+/// It is useful to build composable user interfaces that do not leak
+/// implementation details in their __view logic__.
+///
+/// If you have a [built-in widget], you should be able to use `Into&lt;Element&gt;`
+/// to turn it into an [`Element`].
+///
+/// [built-in widget]: crate::widget
+</span><span class="attribute">#[allow(missing_debug_implementations)]</span>
+<span class="kw">pub struct </span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
+    widget: Box&lt;<span class="kw">dyn </span>Widget&lt;Message, Renderer&gt; + <span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new [`Element`] containing the given [`Widget`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">widget</span>: <span class="kw">impl</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
+    <span class="doccomment">/// Creates a new [`Element`] containing the given [`Widget`].
+    </span><span class="kw">pub fn </span>new(widget: <span class="kw">impl </span>Widget&lt;Message, Renderer&gt; + <span class="lifetime">&#39;a</span>) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Renderer: <span class="kw">crate</span>::Renderer,
     {
-        <span class="self">Self</span> {
-            <span class="ident">widget</span>: <span class="ident">Box::new</span>(<span class="ident">widget</span>),
+        <span class="self">Self </span>{
+            widget: Box::new(widget),
         }
     }
 
-    <span class="doccomment">/// Returns a reference to the [`Widget`] of the [`Element`],</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_widget</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">as_ref</span>()
+    <span class="doccomment">/// Returns a reference to the [`Widget`] of the [`Element`],
+    </span><span class="kw">pub fn </span>as_widget(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="kw">dyn </span>Widget&lt;Message, Renderer&gt; {
+        <span class="self">self</span>.widget.as_ref()
     }
 
-    <span class="doccomment">/// Returns a mutable reference to the [`Widget`] of the [`Element`],</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_widget_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">as_mut</span>()
+    <span class="doccomment">/// Returns a mutable reference to the [`Widget`] of the [`Element`],
+    </span><span class="kw">pub fn </span>as_widget_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Widget&lt;Message, Renderer&gt; {
+        <span class="self">self</span>.widget.as_mut()
     }
 
-    <span class="doccomment">/// Applies a transformation to the produced message of the [`Element`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is useful when you want to decouple different parts of your</span>
-    <span class="doccomment">/// UI and make them __composable__.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">/// Imagine we want to use [our counter](index.html#usage). But instead of</span>
-    <span class="doccomment">/// showing a single counter, we want to display many of them. We can reuse</span>
-    <span class="doccomment">/// the `Counter` type as it is!</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// We use composition to model the __state__ of our new application:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # mod counter {</span>
-    <span class="doccomment">/// #     pub struct Counter;</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// use counter::Counter;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// struct ManyCounters {</span>
-    <span class="doccomment">///     counters: Vec&lt;Counter&gt;,</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// We can store the state of multiple counters now. However, the</span>
-    <span class="doccomment">/// __messages__ we implemented before describe the user interactions</span>
-    <span class="doccomment">/// of a __single__ counter. Right now, we need to also identify which</span>
-    <span class="doccomment">/// counter is receiving user interactions. Can we use composition again?</span>
-    <span class="doccomment">/// Yes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # mod counter {</span>
-    <span class="doccomment">/// #     #[derive(Debug, Clone, Copy)]</span>
-    <span class="doccomment">/// #     pub enum Message {}</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// #[derive(Debug, Clone, Copy)]</span>
-    <span class="doccomment">/// pub enum Message {</span>
-    <span class="doccomment">///     Counter(usize, counter::Message)</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// We compose the previous __messages__ with the index of the counter</span>
-    <span class="doccomment">/// producing them. Let&#39;s implement our __view logic__ now:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # mod counter {</span>
-    <span class="doccomment">/// #     type Text = iced_native::widget::Text&lt;iced_native::renderer::Null&gt;;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// #     #[derive(Debug, Clone, Copy)]</span>
-    <span class="doccomment">/// #     pub enum Message {}</span>
-    <span class="doccomment">/// #     pub struct Counter;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// #     impl Counter {</span>
-    <span class="doccomment">/// #         pub fn view(&amp;mut self) -&gt; Text {</span>
-    <span class="doccomment">/// #             Text::new(&quot;&quot;)</span>
-    <span class="doccomment">/// #         }</span>
-    <span class="doccomment">/// #     }</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # mod iced_wgpu {</span>
-    <span class="doccomment">/// #     pub use iced_native::renderer::Null as Renderer;</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # use counter::Counter;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # struct ManyCounters {</span>
-    <span class="doccomment">/// #     counters: Vec&lt;Counter&gt;,</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # #[derive(Debug, Clone, Copy)]</span>
-    <span class="doccomment">/// # pub enum Message {</span>
-    <span class="doccomment">/// #    Counter(usize, counter::Message)</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// use iced_native::Element;</span>
-    <span class="doccomment">/// use iced_native::widget::Row;</span>
-    <span class="doccomment">/// use iced_wgpu::Renderer;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// impl ManyCounters {</span>
-    <span class="doccomment">///     pub fn view(&amp;mut self) -&gt; Row&lt;Message, Renderer&gt; {</span>
-    <span class="doccomment">///         // We can quickly populate a `Row` by folding over our counters</span>
-    <span class="doccomment">///         self.counters.iter_mut().enumerate().fold(</span>
-    <span class="doccomment">///             Row::new().spacing(20),</span>
-    <span class="doccomment">///             |row, (index, counter)| {</span>
-    <span class="doccomment">///                 // We display the counter</span>
-    <span class="doccomment">///                 let element: Element&lt;counter::Message, Renderer&gt; =</span>
-    <span class="doccomment">///                     counter.view().into();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///                 row.push(</span>
-    <span class="doccomment">///                     // Here we turn our `Element&lt;counter::Message&gt;` into</span>
-    <span class="doccomment">///                     // an `Element&lt;Message&gt;` by combining the `index` and the</span>
-    <span class="doccomment">///                     // message of the `element`.</span>
-    <span class="doccomment">///                     element.map(move |message| Message::Counter(index, message))</span>
-    <span class="doccomment">///                 )</span>
-    <span class="doccomment">///             }</span>
-    <span class="doccomment">///         )</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Finally, our __update logic__ is pretty straightforward: simple</span>
-    <span class="doccomment">/// delegation.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// # mod counter {</span>
-    <span class="doccomment">/// #     #[derive(Debug, Clone, Copy)]</span>
-    <span class="doccomment">/// #     pub enum Message {}</span>
-    <span class="doccomment">/// #     pub struct Counter;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// #     impl Counter {</span>
-    <span class="doccomment">/// #         pub fn update(&amp;mut self, _message: Message) {}</span>
-    <span class="doccomment">/// #     }</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # use counter::Counter;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # struct ManyCounters {</span>
-    <span class="doccomment">/// #     counters: Vec&lt;Counter&gt;,</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # #[derive(Debug, Clone, Copy)]</span>
-    <span class="doccomment">/// # pub enum Message {</span>
-    <span class="doccomment">/// #    Counter(usize, counter::Message)</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// impl ManyCounters {</span>
-    <span class="doccomment">///     pub fn update(&amp;mut self, message: Message) {</span>
-    <span class="doccomment">///         match message {</span>
-    <span class="doccomment">///             Message::Counter(index, counter_msg) =&gt; {</span>
-    <span class="doccomment">///                 if let Some(counter) = self.counters.get_mut(index) {</span>
-    <span class="doccomment">///                     counter.update(counter_msg);</span>
-    <span class="doccomment">///                 }</span>
-    <span class="doccomment">///             }</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Applies a transformation to the produced message of the [`Element`].
+    ///
+    /// This method is useful when you want to decouple different parts of your
+    /// UI and make them __composable__.
+    ///
+    /// # Example
+    /// Imagine we want to use [our counter](index.html#usage). But instead of
+    /// showing a single counter, we want to display many of them. We can reuse
+    /// the `Counter` type as it is!
+    ///
+    /// We use composition to model the __state__ of our new application:
+    ///
+    /// ```
+    /// # mod counter {
+    /// #     pub struct Counter;
+    /// # }
+    /// use counter::Counter;
+    ///
+    /// struct ManyCounters {
+    ///     counters: Vec&lt;Counter&gt;,
+    /// }
+    /// ```
+    ///
+    /// We can store the state of multiple counters now. However, the
+    /// __messages__ we implemented before describe the user interactions
+    /// of a __single__ counter. Right now, we need to also identify which
+    /// counter is receiving user interactions. Can we use composition again?
+    /// Yes.
+    ///
+    /// ```
+    /// # mod counter {
+    /// #     #[derive(Debug, Clone, Copy)]
+    /// #     pub enum Message {}
+    /// # }
+    /// #[derive(Debug, Clone, Copy)]
+    /// pub enum Message {
+    ///     Counter(usize, counter::Message)
+    /// }
+    /// ```
+    ///
+    /// We compose the previous __messages__ with the index of the counter
+    /// producing them. Let&#39;s implement our __view logic__ now:
+    ///
+    /// ```
+    /// # mod counter {
+    /// #     type Text = iced_native::widget::Text&lt;iced_native::renderer::Null&gt;;
+    /// #
+    /// #     #[derive(Debug, Clone, Copy)]
+    /// #     pub enum Message {}
+    /// #     pub struct Counter;
+    /// #
+    /// #     impl Counter {
+    /// #         pub fn view(&amp;mut self) -&gt; Text {
+    /// #             Text::new(&quot;&quot;)
+    /// #         }
+    /// #     }
+    /// # }
+    /// #
+    /// # mod iced_wgpu {
+    /// #     pub use iced_native::renderer::Null as Renderer;
+    /// # }
+    /// #
+    /// # use counter::Counter;
+    /// #
+    /// # struct ManyCounters {
+    /// #     counters: Vec&lt;Counter&gt;,
+    /// # }
+    /// #
+    /// # #[derive(Debug, Clone, Copy)]
+    /// # pub enum Message {
+    /// #    Counter(usize, counter::Message)
+    /// # }
+    /// use iced_native::Element;
+    /// use iced_native::widget::Row;
+    /// use iced_wgpu::Renderer;
+    ///
+    /// impl ManyCounters {
+    ///     pub fn view(&amp;mut self) -&gt; Row&lt;Message, Renderer&gt; {
+    ///         // We can quickly populate a `Row` by folding over our counters
+    ///         self.counters.iter_mut().enumerate().fold(
+    ///             Row::new().spacing(20),
+    ///             |row, (index, counter)| {
+    ///                 // We display the counter
+    ///                 let element: Element&lt;counter::Message, Renderer&gt; =
+    ///                     counter.view().into();
+    ///
+    ///                 row.push(
+    ///                     // Here we turn our `Element&lt;counter::Message&gt;` into
+    ///                     // an `Element&lt;Message&gt;` by combining the `index` and the
+    ///                     // message of the `element`.
+    ///                     element.map(move |message| Message::Counter(index, message))
+    ///                 )
+    ///             }
+    ///         )
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// Finally, our __update logic__ is pretty straightforward: simple
+    /// delegation.
+    ///
+    /// ```
+    /// # mod counter {
+    /// #     #[derive(Debug, Clone, Copy)]
+    /// #     pub enum Message {}
+    /// #     pub struct Counter;
+    /// #
+    /// #     impl Counter {
+    /// #         pub fn update(&amp;mut self, _message: Message) {}
+    /// #     }
+    /// # }
+    /// #
+    /// # use counter::Counter;
+    /// #
+    /// # struct ManyCounters {
+    /// #     counters: Vec&lt;Counter&gt;,
+    /// # }
+    /// #
+    /// # #[derive(Debug, Clone, Copy)]
+    /// # pub enum Message {
+    /// #    Counter(usize, counter::Message)
+    /// # }
+    /// impl ManyCounters {
+    ///     pub fn update(&amp;mut self, message: Message) {
+    ///         match message {
+    ///             Message::Counter(index, counter_msg) =&gt; {
+    ///                 if let Some(counter) = self.counters.get_mut(index) {
+    ///                     counter.update(counter_msg);
+    ///                 }
+    ///             }
+    ///         }
+    ///     }
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>map&lt;B&gt;(
         <span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">Message</span>) -&gt; <span class="ident">B</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
-    ) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
-        <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
-        <span class="ident">B</span>: <span class="lifetime">&#39;a</span>,
+        f: <span class="kw">impl </span>Fn(Message) -&gt; B + <span class="lifetime">&#39;a</span>,
+    ) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, B, Renderer&gt;
+    <span class="kw">where
+        </span>Message: <span class="lifetime">&#39;a</span>,
+        Renderer: <span class="kw">crate</span>::Renderer + <span class="lifetime">&#39;a</span>,
+        B: <span class="lifetime">&#39;a</span>,
     {
-        <span class="ident">Element::new</span>(<span class="ident">Map::new</span>(<span class="self">self</span>.<span class="ident">widget</span>, <span class="ident">f</span>))
+        Element::new(Map::new(<span class="self">self</span>.widget, f))
     }
 }
 
-<span class="kw">struct</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-    <span class="ident">widget</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">mapper</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">A</span>) -&gt; <span class="ident">B</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>Map&lt;<span class="lifetime">&#39;a</span>, A, B, Renderer&gt; {
+    widget: Box&lt;<span class="kw">dyn </span>Widget&lt;A, Renderer&gt; + <span class="lifetime">&#39;a</span>&gt;,
+    mapper: Box&lt;<span class="kw">dyn </span>Fn(A) -&gt; B + <span class="lifetime">&#39;a</span>&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="ident">widget</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-        <span class="ident">mapper</span>: <span class="ident">F</span>,
-    ) -&gt; <span class="ident">Map</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">A</span>) -&gt; <span class="ident">B</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A, B, Renderer&gt; Map&lt;<span class="lifetime">&#39;a</span>, A, B, Renderer&gt; {
+    <span class="kw">pub fn </span>new&lt;F&gt;(
+        widget: Box&lt;<span class="kw">dyn </span>Widget&lt;A, Renderer&gt; + <span class="lifetime">&#39;a</span>&gt;,
+        mapper: F,
+    ) -&gt; Map&lt;<span class="lifetime">&#39;a</span>, A, B, Renderer&gt;
+    <span class="kw">where
+        </span>F: <span class="lifetime">&#39;a </span>+ Fn(A) -&gt; B,
     {
-        <span class="ident">Map</span> {
-            <span class="ident">widget</span>,
-            <span class="ident">mapper</span>: <span class="ident">Box::new</span>(<span class="ident">mapper</span>),
+        Map {
+            widget,
+            mapper: Box::new(mapper),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>, <span class="ident">B</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
-    <span class="ident">A</span>: <span class="lifetime">&#39;a</span>,
-    <span class="ident">B</span>: <span class="lifetime">&#39;a</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, A, B, Renderer&gt; Widget&lt;B, Renderer&gt; <span class="kw">for </span>Map&lt;<span class="lifetime">&#39;a</span>, A, B, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: <span class="kw">crate</span>::Renderer + <span class="lifetime">&#39;a</span>,
+    A: <span class="lifetime">&#39;a</span>,
+    B: <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::Tag</span> {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">tag</span>()
+    <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
+        <span class="self">self</span>.widget.tag()
     }
 
-    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::State</span> {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">state</span>()
+    <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
+        <span class="self">self</span>.widget.state()
     }
 
-    <span class="kw">fn</span> <span class="ident">children</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Tree</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">children</span>()
+    <span class="kw">fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Tree&gt; {
+        <span class="self">self</span>.widget.children()
     }
 
-    <span class="kw">fn</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>) {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">diff</span>(<span class="ident">tree</span>)
+    <span class="kw">fn </span>diff(<span class="kw-2">&amp;</span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree) {
+        <span class="self">self</span>.widget.diff(tree)
     }
 
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">width</span>()
+    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.widget.width()
     }
 
-    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">height</span>()
+    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.widget.height()
     }
 
-    <span class="kw">fn</span> <span class="ident">layout</span>(
+    <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">limits</span>)
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        limits: <span class="kw-2">&amp;</span>layout::Limits,
+    ) -&gt; layout::Node {
+        <span class="self">self</span>.widget.layout(renderer, limits)
     }
 
-    <span class="kw">fn</span> <span class="ident">operate</span>(
+    <span class="kw">fn </span>operate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">operation</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">widget::Operation</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        operation: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::Operation&lt;B&gt;,
     ) {
-        <span class="kw">struct</span> <span class="ident">MapOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-            <span class="ident">operation</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">widget::Operation</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
+        <span class="kw">struct </span>MapOperation&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+            operation: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>widget::Operation&lt;B&gt;,
         }
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">widget::Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MapOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">container</span>(
-                <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-                <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">widget::Id</span><span class="op">&gt;</span>,
-                <span class="ident">operate_on_children</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(
-                    <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">widget::Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, B&gt; widget::Operation&lt;T&gt; <span class="kw">for </span>MapOperation&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+            <span class="kw">fn </span>container(
+                <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+                id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>widget::Id&gt;,
+                operate_on_children: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(
+                    <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::Operation&lt;T&gt;,
                 ),
             ) {
-                <span class="self">self</span>.<span class="ident">operation</span>.<span class="ident">container</span>(<span class="ident">id</span>, <span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">operation</span><span class="op">|</span> {
-                    <span class="ident">operate_on_children</span>(<span class="kw-2">&amp;mut</span> <span class="ident">MapOperation</span> { <span class="ident">operation</span> });
+                <span class="self">self</span>.operation.container(id, <span class="kw-2">&amp;mut </span>|operation| {
+                    operate_on_children(<span class="kw-2">&amp;mut </span>MapOperation { operation });
                 });
             }
 
-            <span class="kw">fn</span> <span class="ident">focusable</span>(
-                <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-                <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">widget::operation::Focusable</span>,
-                <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">widget::Id</span><span class="op">&gt;</span>,
+            <span class="kw">fn </span>focusable(
+                <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+                state: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::operation::Focusable,
+                id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>widget::Id&gt;,
             ) {
-                <span class="self">self</span>.<span class="ident">operation</span>.<span class="ident">focusable</span>(<span class="ident">state</span>, <span class="ident">id</span>);
+                <span class="self">self</span>.operation.focusable(state, id);
             }
         }
 
-        <span class="self">self</span>.<span class="ident">widget</span>
-            .<span class="ident">operate</span>(<span class="ident">tree</span>, <span class="ident">layout</span>, <span class="kw-2">&amp;mut</span> <span class="ident">MapOperation</span> { <span class="ident">operation</span> });
+        <span class="self">self</span>.widget
+            .operate(tree, layout, <span class="kw-2">&amp;mut </span>MapOperation { operation });
     }
 
-    <span class="kw">fn</span> <span class="ident">on_event</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
-        <span class="ident">event</span>: <span class="ident">Event</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">B</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">event::Status</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_messages</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_shell</span> <span class="op">=</span> <span class="ident">Shell::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">local_messages</span>);
+    <span class="kw">fn </span>on_event(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
+        event: Event,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, B&gt;,
+    ) -&gt; event::Status {
+        <span class="kw">let </span><span class="kw-2">mut </span>local_messages = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>local_shell = Shell::new(<span class="kw-2">&amp;mut </span>local_messages);
 
-        <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">on_event</span>(
-            <span class="ident">tree</span>,
-            <span class="ident">event</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">renderer</span>,
-            <span class="ident">clipboard</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">local_shell</span>,
+        <span class="kw">let </span>status = <span class="self">self</span>.widget.on_event(
+            tree,
+            event,
+            layout,
+            cursor_position,
+            renderer,
+            clipboard,
+            <span class="kw-2">&amp;mut </span>local_shell,
         );
 
-        <span class="ident">shell</span>.<span class="ident">merge</span>(<span class="ident">local_shell</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">mapper</span>);
+        shell.merge(local_shell, <span class="kw-2">&amp;</span><span class="self">self</span>.mapper);
 
-        <span class="ident">status</span>
+        status
     }
 
-    <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        tree: <span class="kw-2">&amp;</span>Tree,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        style: <span class="kw-2">&amp;</span>renderer::Style,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">draw</span>(
-            <span class="ident">tree</span>,
-            <span class="ident">renderer</span>,
-            <span class="ident">theme</span>,
-            <span class="ident">style</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">viewport</span>,
+        <span class="self">self</span>.widget.draw(
+            tree,
+            renderer,
+            theme,
+            style,
+            layout,
+            cursor_position,
+            viewport,
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
+    <span class="kw">fn </span>mouse_interaction(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">mouse_interaction</span>(
-            <span class="ident">tree</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">viewport</span>,
-            <span class="ident">renderer</span>,
+        tree: <span class="kw-2">&amp;</span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        viewport: <span class="kw-2">&amp;</span>Rectangle,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+    ) -&gt; mouse::Interaction {
+        <span class="self">self</span>.widget.mouse_interaction(
+            tree,
+            layout,
+            cursor_position,
+            viewport,
+            renderer,
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">overlay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">overlay::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">B</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">mapper</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">mapper</span>;
+    <span class="kw">fn </span>overlay&lt;<span class="lifetime">&#39;b</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;b</span>, B, Renderer&gt;&gt; {
+        <span class="kw">let </span>mapper = <span class="kw-2">&amp;</span><span class="self">self</span>.mapper;
 
-        <span class="self">self</span>.<span class="ident">widget</span>
-            .<span class="ident">overlay</span>(<span class="ident">tree</span>, <span class="ident">layout</span>, <span class="ident">renderer</span>)
-            .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> <span class="ident">overlay</span>.<span class="ident">map</span>(<span class="ident">mapper</span>))
+        <span class="self">self</span>.widget
+            .overlay(tree, layout, renderer)
+            .map(<span class="kw">move </span>|overlay| overlay.map(mapper))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Borrow&lt;<span class="kw">dyn </span>Widget&lt;Message, Renderer&gt; + <span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
 {
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>) {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">borrow</span>()
+    <span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Widget&lt;Message, Renderer&gt; + <span class="lifetime">&#39;a</span>) {
+        <span class="self">self</span>.widget.borrow()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Borrow</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Borrow&lt;<span class="kw">dyn </span>Widget&lt;Message, Renderer&gt; + <span class="lifetime">&#39;a</span>&gt;
+    <span class="kw">for </span><span class="kw-2">&amp;</span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
 {
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>) {
-        <span class="self">self</span>.<span class="ident">widget</span>.<span class="ident">borrow</span>()
+    <span class="kw">fn </span>borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Widget&lt;Message, Renderer&gt; + <span class="lifetime">&#39;a</span>) {
+        <span class="self">self</span>.widget.borrow()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

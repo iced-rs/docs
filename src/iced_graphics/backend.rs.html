@@ -76,81 +76,81 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Write a graphics backend.</span>
-<span class="kw">use</span> <span class="ident">iced_native::image</span>;
-<span class="kw">use</span> <span class="ident">iced_native::svg</span>;
-<span class="kw">use</span> <span class="ident">iced_native::text</span>;
-<span class="kw">use</span> <span class="ident">iced_native</span>::{<span class="ident">Font</span>, <span class="ident">Point</span>, <span class="ident">Size</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! Write a graphics backend.
+</span><span class="kw">use </span>iced_native::image;
+<span class="kw">use </span>iced_native::svg;
+<span class="kw">use </span>iced_native::text;
+<span class="kw">use </span>iced_native::{Font, Point, Size};
 
-<span class="doccomment">/// The graphics backend of a [`Renderer`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Renderer`]: crate::Renderer</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Backend</span> {
-    <span class="doccomment">/// Trims the measurements cache.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is currently necessary to properly trim the text cache in</span>
-    <span class="doccomment">/// `iced_wgpu` and `iced_glow` because of limitations in the text rendering</span>
-    <span class="doccomment">/// pipeline. It will be removed in the future.</span>
-    <span class="kw">fn</span> <span class="ident">trim_measurements</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {}
+<span class="doccomment">/// The graphics backend of a [`Renderer`].
+///
+/// [`Renderer`]: crate::Renderer
+</span><span class="kw">pub trait </span>Backend {
+    <span class="doccomment">/// Trims the measurements cache.
+    ///
+    /// This method is currently necessary to properly trim the text cache in
+    /// `iced_wgpu` and `iced_glow` because of limitations in the text rendering
+    /// pipeline. It will be removed in the future.
+    </span><span class="kw">fn </span>trim_measurements(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {}
 }
 
-<span class="doccomment">/// A graphics backend that supports text rendering.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Text</span> {
-    <span class="doccomment">/// The icon font of the backend.</span>
-    <span class="kw">const</span> <span class="ident">ICON_FONT</span>: <span class="ident">Font</span>;
+<span class="doccomment">/// A graphics backend that supports text rendering.
+</span><span class="kw">pub trait </span>Text {
+    <span class="doccomment">/// The icon font of the backend.
+    </span><span class="kw">const </span>ICON_FONT: Font;
 
-    <span class="doccomment">/// The `char` representing a ✔ icon in the [`ICON_FONT`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`ICON_FONT`]: Self::ICON_FONT</span>
-    <span class="kw">const</span> <span class="ident">CHECKMARK_ICON</span>: <span class="ident">char</span>;
+    <span class="doccomment">/// The `char` representing a ✔ icon in the [`ICON_FONT`].
+    ///
+    /// [`ICON_FONT`]: Self::ICON_FONT
+    </span><span class="kw">const </span>CHECKMARK_ICON: char;
 
-    <span class="doccomment">/// The `char` representing a ▼ icon in the built-in [`ICON_FONT`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`ICON_FONT`]: Self::ICON_FONT</span>
-    <span class="kw">const</span> <span class="ident">ARROW_DOWN_ICON</span>: <span class="ident">char</span>;
+    <span class="doccomment">/// The `char` representing a ▼ icon in the built-in [`ICON_FONT`].
+    ///
+    /// [`ICON_FONT`]: Self::ICON_FONT
+    </span><span class="kw">const </span>ARROW_DOWN_ICON: char;
 
-    <span class="doccomment">/// Returns the default size of text.</span>
-    <span class="kw">fn</span> <span class="ident">default_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u16</span>;
+    <span class="doccomment">/// Returns the default size of text.
+    </span><span class="kw">fn </span>default_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u16;
 
-    <span class="doccomment">/// Measures the text contents with the given size and font,</span>
-    <span class="doccomment">/// returning the size of a laid out paragraph that fits in the provided</span>
-    <span class="doccomment">/// bounds.</span>
-    <span class="kw">fn</span> <span class="ident">measure</span>(
+    <span class="doccomment">/// Measures the text contents with the given size and font,
+    /// returning the size of a laid out paragraph that fits in the provided
+    /// bounds.
+    </span><span class="kw">fn </span>measure(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">contents</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">size</span>: <span class="ident">f32</span>,
-        <span class="ident">font</span>: <span class="ident">Font</span>,
-        <span class="ident">bounds</span>: <span class="ident">Size</span>,
-    ) -&gt; (<span class="ident">f32</span>, <span class="ident">f32</span>);
+        contents: <span class="kw-2">&amp;</span>str,
+        size: f32,
+        font: Font,
+        bounds: Size,
+    ) -&gt; (f32, f32);
 
-    <span class="doccomment">/// Tests whether the provided point is within the boundaries of [`Text`]</span>
-    <span class="doccomment">/// laid out with the given parameters, returning information about</span>
-    <span class="doccomment">/// the nearest character.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If nearest_only is true, the hit test does not consider whether the</span>
-    <span class="doccomment">/// the point is interior to any glyph bounds, returning only the character</span>
-    <span class="doccomment">/// with the nearest centeroid.</span>
-    <span class="kw">fn</span> <span class="ident">hit_test</span>(
+    <span class="doccomment">/// Tests whether the provided point is within the boundaries of [`Text`]
+    /// laid out with the given parameters, returning information about
+    /// the nearest character.
+    ///
+    /// If nearest_only is true, the hit test does not consider whether the
+    /// the point is interior to any glyph bounds, returning only the character
+    /// with the nearest centeroid.
+    </span><span class="kw">fn </span>hit_test(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">contents</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">size</span>: <span class="ident">f32</span>,
-        <span class="ident">font</span>: <span class="ident">Font</span>,
-        <span class="ident">bounds</span>: <span class="ident">Size</span>,
-        <span class="ident">point</span>: <span class="ident">Point</span>,
-        <span class="ident">nearest_only</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">text::Hit</span><span class="op">&gt;</span>;
+        contents: <span class="kw-2">&amp;</span>str,
+        size: f32,
+        font: Font,
+        bounds: Size,
+        point: Point,
+        nearest_only: bool,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;text::Hit&gt;;
 }
 
-<span class="doccomment">/// A graphics backend that supports image rendering.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Image</span> {
-    <span class="doccomment">/// Returns the dimensions of the provided image.</span>
-    <span class="kw">fn</span> <span class="ident">dimensions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">image::Handle</span>) -&gt; (<span class="ident">u32</span>, <span class="ident">u32</span>);
+<span class="doccomment">/// A graphics backend that supports image rendering.
+</span><span class="kw">pub trait </span>Image {
+    <span class="doccomment">/// Returns the dimensions of the provided image.
+    </span><span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle) -&gt; (u32, u32);
 }
 
-<span class="doccomment">/// A graphics backend that supports SVG rendering.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Svg</span> {
-    <span class="doccomment">/// Returns the viewport dimensions of the provided SVG.</span>
-    <span class="kw">fn</span> <span class="ident">viewport_dimensions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">svg::Handle</span>) -&gt; (<span class="ident">u32</span>, <span class="ident">u32</span>);
+<span class="doccomment">/// A graphics backend that supports SVG rendering.
+</span><span class="kw">pub trait </span>Svg {
+    <span class="doccomment">/// Returns the viewport dimensions of the provided SVG.
+    </span><span class="kw">fn </span>viewport_dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>svg::Handle) -&gt; (u32, u32);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

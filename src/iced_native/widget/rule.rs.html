@@ -145,150 +145,150 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Display a horizontal or vertical rule for dividing content.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::Tree</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Color</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Size</span>, <span class="ident">Widget</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! Display a horizontal or vertical rule for dividing content.
+</span><span class="kw">use </span><span class="kw">crate</span>::layout;
+<span class="kw">use </span><span class="kw">crate</span>::renderer;
+<span class="kw">use </span><span class="kw">crate</span>::widget::Tree;
+<span class="kw">use crate</span>::{Color, Element, Layout, Length, Point, Rectangle, Size, Widget};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_style::rule</span>::{<span class="ident">Appearance</span>, <span class="ident">FillMode</span>, <span class="ident">StyleSheet</span>};
+<span class="kw">pub use </span>iced_style::rule::{Appearance, FillMode, StyleSheet};
 
-<span class="doccomment">/// Display a horizontal or vertical rule for dividing content.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rule</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="doccomment">/// Display a horizontal or vertical rule for dividing content.
+</span><span class="attribute">#[allow(missing_debug_implementations)]</span>
+<span class="kw">pub struct </span>Rule&lt;Renderer&gt;
+<span class="kw">where
+    </span>Renderer: <span class="kw">crate</span>::Renderer,
+    Renderer::Theme: StyleSheet,
 {
-    <span class="ident">width</span>: <span class="ident">Length</span>,
-    <span class="ident">height</span>: <span class="ident">Length</span>,
-    <span class="ident">is_horizontal</span>: <span class="ident">bool</span>,
-    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
+    width: Length,
+    height: Length,
+    is_horizontal: bool,
+    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Rule</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="kw">impl</span>&lt;Renderer&gt; Rule&lt;Renderer&gt;
+<span class="kw">where
+    </span>Renderer: <span class="kw">crate</span>::Renderer,
+    Renderer::Theme: StyleSheet,
 {
-    <span class="doccomment">/// Creates a horizontal [`Rule`] with the given height.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">horizontal</span>(<span class="ident">height</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Rule</span> {
-            <span class="ident">width</span>: <span class="ident">Length::Fill</span>,
-            <span class="ident">height</span>: <span class="ident">Length::Units</span>(<span class="ident">height</span>),
-            <span class="ident">is_horizontal</span>: <span class="bool-val">true</span>,
-            <span class="ident">style</span>: <span class="ident">Default::default</span>(),
+    <span class="doccomment">/// Creates a horizontal [`Rule`] with the given height.
+    </span><span class="kw">pub fn </span>horizontal(height: u16) -&gt; <span class="self">Self </span>{
+        Rule {
+            width: Length::Fill,
+            height: Length::Units(height),
+            is_horizontal: <span class="bool-val">true</span>,
+            style: Default::default(),
         }
     }
 
-    <span class="doccomment">/// Creates a vertical [`Rule`] with the given width.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">vertical</span>(<span class="ident">width</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Rule</span> {
-            <span class="ident">width</span>: <span class="ident">Length::Units</span>(<span class="ident">width</span>),
-            <span class="ident">height</span>: <span class="ident">Length::Fill</span>,
-            <span class="ident">is_horizontal</span>: <span class="bool-val">false</span>,
-            <span class="ident">style</span>: <span class="ident">Default::default</span>(),
+    <span class="doccomment">/// Creates a vertical [`Rule`] with the given width.
+    </span><span class="kw">pub fn </span>vertical(width: u16) -&gt; <span class="self">Self </span>{
+        Rule {
+            width: Length::Units(width),
+            height: Length::Fill,
+            is_horizontal: <span class="bool-val">false</span>,
+            style: Default::default(),
         }
     }
 
-    <span class="doccomment">/// Sets the style of the [`Rule`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">style</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>.<span class="ident">into</span>();
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the style of the [`Rule`].
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = style.into();
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Rule</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="kw">impl</span>&lt;Message, Renderer&gt; Widget&lt;Message, Renderer&gt; <span class="kw">for </span>Rule&lt;Renderer&gt;
+<span class="kw">where
+    </span>Renderer: <span class="kw">crate</span>::Renderer,
+    Renderer::Theme: StyleSheet,
 {
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">width</span>
+    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.width
     }
 
-    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">height</span>
+    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.height
     }
 
-    <span class="kw">fn</span> <span class="ident">layout</span>(
+    <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="kw">let</span> <span class="ident">limits</span> <span class="op">=</span> <span class="ident">limits</span>.<span class="ident">width</span>(<span class="self">self</span>.<span class="ident">width</span>).<span class="ident">height</span>(<span class="self">self</span>.<span class="ident">height</span>);
+        _renderer: <span class="kw-2">&amp;</span>Renderer,
+        limits: <span class="kw-2">&amp;</span>layout::Limits,
+    ) -&gt; layout::Node {
+        <span class="kw">let </span>limits = limits.width(<span class="self">self</span>.width).height(<span class="self">self</span>.height);
 
-        <span class="ident">layout::Node::new</span>(<span class="ident">limits</span>.<span class="ident">resolve</span>(<span class="ident">Size::ZERO</span>))
+        layout::Node::new(limits.resolve(Size::ZERO))
     }
 
-    <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">_cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        _state: <span class="kw-2">&amp;</span>Tree,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        _style: <span class="kw-2">&amp;</span>renderer::Style,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _cursor_position: Point,
+        _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
-        <span class="kw">let</span> <span class="ident">style</span> <span class="op">=</span> <span class="ident">theme</span>.<span class="ident">style</span>(<span class="self">self</span>.<span class="ident">style</span>);
+        <span class="kw">let </span>bounds = layout.bounds();
+        <span class="kw">let </span>style = theme.style(<span class="self">self</span>.style);
 
-        <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_horizontal</span> {
-            <span class="kw">let</span> <span class="ident">line_y</span> <span class="op">=</span> (<span class="ident">bounds</span>.<span class="ident">y</span> <span class="op">+</span> (<span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">/</span> <span class="number">2.0</span>)
-                <span class="op">-</span> (<span class="ident">style</span>.<span class="ident">width</span> <span class="kw">as</span> <span class="ident">f32</span> <span class="op">/</span> <span class="number">2.0</span>))
-                .<span class="ident">round</span>();
+        <span class="kw">let </span>bounds = <span class="kw">if </span><span class="self">self</span>.is_horizontal {
+            <span class="kw">let </span>line_y = (bounds.y + (bounds.height / <span class="number">2.0</span>)
+                - (style.width <span class="kw">as </span>f32 / <span class="number">2.0</span>))
+                .round();
 
-            <span class="kw">let</span> (<span class="ident">offset</span>, <span class="ident">line_width</span>) <span class="op">=</span> <span class="ident">style</span>.<span class="ident">fill_mode</span>.<span class="ident">fill</span>(<span class="ident">bounds</span>.<span class="ident">width</span>);
-            <span class="kw">let</span> <span class="ident">line_x</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">offset</span>;
+            <span class="kw">let </span>(offset, line_width) = style.fill_mode.fill(bounds.width);
+            <span class="kw">let </span>line_x = bounds.x + offset;
 
-            <span class="ident">Rectangle</span> {
-                <span class="ident">x</span>: <span class="ident">line_x</span>,
-                <span class="ident">y</span>: <span class="ident">line_y</span>,
-                <span class="ident">width</span>: <span class="ident">line_width</span>,
-                <span class="ident">height</span>: <span class="ident">style</span>.<span class="ident">width</span> <span class="kw">as</span> <span class="ident">f32</span>,
+            Rectangle {
+                x: line_x,
+                y: line_y,
+                width: line_width,
+                height: style.width <span class="kw">as </span>f32,
             }
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">line_x</span> <span class="op">=</span> (<span class="ident">bounds</span>.<span class="ident">x</span> <span class="op">+</span> (<span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">/</span> <span class="number">2.0</span>)
-                <span class="op">-</span> (<span class="ident">style</span>.<span class="ident">width</span> <span class="kw">as</span> <span class="ident">f32</span> <span class="op">/</span> <span class="number">2.0</span>))
-                .<span class="ident">round</span>();
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>line_x = (bounds.x + (bounds.width / <span class="number">2.0</span>)
+                - (style.width <span class="kw">as </span>f32 / <span class="number">2.0</span>))
+                .round();
 
-            <span class="kw">let</span> (<span class="ident">offset</span>, <span class="ident">line_height</span>) <span class="op">=</span> <span class="ident">style</span>.<span class="ident">fill_mode</span>.<span class="ident">fill</span>(<span class="ident">bounds</span>.<span class="ident">height</span>);
-            <span class="kw">let</span> <span class="ident">line_y</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">offset</span>;
+            <span class="kw">let </span>(offset, line_height) = style.fill_mode.fill(bounds.height);
+            <span class="kw">let </span>line_y = bounds.y + offset;
 
-            <span class="ident">Rectangle</span> {
-                <span class="ident">x</span>: <span class="ident">line_x</span>,
-                <span class="ident">y</span>: <span class="ident">line_y</span>,
-                <span class="ident">width</span>: <span class="ident">style</span>.<span class="ident">width</span> <span class="kw">as</span> <span class="ident">f32</span>,
-                <span class="ident">height</span>: <span class="ident">line_height</span>,
+            Rectangle {
+                x: line_x,
+                y: line_y,
+                width: style.width <span class="kw">as </span>f32,
+                height: line_height,
             }
         };
 
-        <span class="ident">renderer</span>.<span class="ident">fill_quad</span>(
-            <span class="ident">renderer::Quad</span> {
-                <span class="ident">bounds</span>,
-                <span class="ident">border_radius</span>: <span class="ident">style</span>.<span class="ident">radius</span>,
-                <span class="ident">border_width</span>: <span class="number">0.0</span>,
-                <span class="ident">border_color</span>: <span class="ident">Color::TRANSPARENT</span>,
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds,
+                border_radius: style.radius,
+                border_width: <span class="number">0.0</span>,
+                border_color: Color::TRANSPARENT,
             },
-            <span class="ident">style</span>.<span class="ident">color</span>,
+            style.color,
         );
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
-    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; From&lt;Rule&lt;Renderer&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Message: <span class="lifetime">&#39;a</span>,
+    Renderer: <span class="lifetime">&#39;a </span>+ <span class="kw">crate</span>::Renderer,
+    Renderer::Theme: StyleSheet,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">rule</span>: <span class="ident">Rule</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="ident">Element::new</span>(<span class="ident">rule</span>)
+    <span class="kw">fn </span>from(rule: Rule&lt;Renderer&gt;) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
+        Element::new(rule)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

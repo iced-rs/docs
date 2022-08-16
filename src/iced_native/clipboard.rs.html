@@ -62,67 +62,67 @@
 <span id="60">60</span>
 <span id="61">61</span>
 <span id="62">62</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Access the clipboard.</span>
-<span class="kw">use</span> <span class="ident">iced_futures::MaybeSend</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Access the clipboard.
+</span><span class="kw">use </span>iced_futures::MaybeSend;
 
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use </span>std::fmt;
 
-<span class="doccomment">/// A buffer for short-term storage and transfer within and between</span>
-<span class="doccomment">/// applications.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Clipboard</span> {
-    <span class="doccomment">/// Reads the current content of the [`Clipboard`] as text.</span>
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>;
+<span class="doccomment">/// A buffer for short-term storage and transfer within and between
+/// applications.
+</span><span class="kw">pub trait </span>Clipboard {
+    <span class="doccomment">/// Reads the current content of the [`Clipboard`] as text.
+    </span><span class="kw">fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt;;
 
-    <span class="doccomment">/// Writes the given text contents to the [`Clipboard`].</span>
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">contents</span>: <span class="ident">String</span>);
+    <span class="doccomment">/// Writes the given text contents to the [`Clipboard`].
+    </span><span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, contents: String);
 }
 
-<span class="doccomment">/// A null implementation of the [`Clipboard`] trait.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Null</span>;
+<span class="doccomment">/// A null implementation of the [`Clipboard`] trait.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub struct </span>Null;
 
-<span class="kw">impl</span> <span class="ident">Clipboard</span> <span class="kw">for</span> <span class="ident">Null</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-        <span class="prelude-val">None</span>
-    }
+<span class="kw">impl </span>Clipboard <span class="kw">for </span>Null {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+        <span class="prelude-val">None
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">_contents</span>: <span class="ident">String</span>) {}
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _contents: String) {}
 }
 
-<span class="doccomment">/// A clipboard action to be performed by some [`Command`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Command`]: crate::Command</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Read the clipboard and produce `T` with the result.</span>
-    <span class="ident">Read</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="ident">T</span><span class="op">&gt;</span>),
+<span class="doccomment">/// A clipboard action to be performed by some [`Command`].
+///
+/// [`Command`]: crate::Command
+</span><span class="kw">pub enum </span>Action&lt;T&gt; {
+    <span class="doccomment">/// Read the clipboard and produce `T` with the result.
+    </span>Read(Box&lt;<span class="kw">dyn </span>Fn(<span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; T&gt;),
 
-    <span class="doccomment">/// Write the given contents to the clipboard.</span>
-    <span class="ident">Write</span>(<span class="ident">String</span>),
+    <span class="doccomment">/// Write the given contents to the clipboard.
+    </span>Write(String),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Maps the output of a clipboard [`Action`] using the provided closure.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
+<span class="kw">impl</span>&lt;T&gt; Action&lt;T&gt; {
+    <span class="doccomment">/// Maps the output of a clipboard [`Action`] using the provided closure.
+    </span><span class="kw">pub fn </span>map&lt;A&gt;(
         <span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">T</span>) -&gt; <span class="ident">A</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">MaybeSend</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    ) -&gt; <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="lifetime">&#39;static</span>,
+        f: <span class="kw">impl </span>Fn(T) -&gt; A + <span class="lifetime">&#39;static </span>+ MaybeSend + Sync,
+    ) -&gt; Action&lt;A&gt;
+    <span class="kw">where
+        </span>T: <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Read</span>(<span class="ident">o</span>) =&gt; <span class="ident">Action::Read</span>(<span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">o</span>(<span class="ident">s</span>)))),
-            <span class="ident"><span class="self">Self</span>::Write</span>(<span class="ident">content</span>) =&gt; <span class="ident">Action::Write</span>(<span class="ident">content</span>),
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Read(o) =&gt; Action::Read(Box::new(<span class="kw">move </span>|s| f(o(s)))),
+            <span class="self">Self</span>::Write(content) =&gt; Action::Write(content),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Read</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Action::Read&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Write</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Action::Write&quot;</span>),
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Action&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Read(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::Read&quot;</span>),
+            <span class="self">Self</span>::Write(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::Write&quot;</span>),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

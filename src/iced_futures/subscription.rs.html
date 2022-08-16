@@ -228,233 +228,233 @@
 <span id="226">226</span>
 <span id="227">227</span>
 <span id="228">228</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Listen to external events in your application.</span>
-<span class="kw">mod</span> <span class="ident">tracker</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Listen to external events in your application.
+</span><span class="kw">mod </span>tracker;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tracker::Tracker</span>;
+<span class="kw">pub use </span>tracker::Tracker;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::BoxStream</span>;
+<span class="kw">use </span><span class="kw">crate</span>::BoxStream;
 
-<span class="doccomment">/// A request to listen to external events.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Besides performing async actions on demand with [`Command`], most</span>
-<span class="doccomment">/// applications also need to listen to external events passively.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A [`Subscription`] is normally provided to some runtime, like a [`Command`],</span>
-<span class="doccomment">/// and it will generate events as long as the user keeps requesting it.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// For instance, you can use a [`Subscription`] to listen to a WebSocket</span>
-<span class="doccomment">/// connection, keyboard presses, mouse events, time ticks, etc.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type is normally aliased by runtimes with a specific `Event` and/or</span>
-<span class="doccomment">/// `Hasher`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Command`]: crate::Command</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span>, <span class="ident">Output</span><span class="op">&gt;</span> {
-    <span class="ident">recipes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Output</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A request to listen to external events.
+///
+/// Besides performing async actions on demand with [`Command`], most
+/// applications also need to listen to external events passively.
+///
+/// A [`Subscription`] is normally provided to some runtime, like a [`Command`],
+/// and it will generate events as long as the user keeps requesting it.
+///
+/// For instance, you can use a [`Subscription`] to listen to a WebSocket
+/// connection, keyboard presses, mouse events, time ticks, etc.
+///
+/// This type is normally aliased by runtimes with a specific `Event` and/or
+/// `Hasher`.
+///
+/// [`Command`]: crate::Command
+</span><span class="kw">pub struct </span>Subscription&lt;Hasher, Event, Output&gt; {
+    recipes: Vec&lt;Box&lt;<span class="kw">dyn </span>Recipe&lt;Hasher, Event, Output = Output&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">O</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">H</span>: <span class="ident">std::hash::Hasher</span>,
+<span class="kw">impl</span>&lt;H, E, O&gt; Subscription&lt;H, E, O&gt;
+<span class="kw">where
+    </span>H: std::hash::Hasher,
 {
-    <span class="doccomment">/// Returns an empty [`Subscription`] that will not produce any output.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">recipes</span>: <span class="ident">Vec::new</span>(),
+    <span class="doccomment">/// Returns an empty [`Subscription`] that will not produce any output.
+    </span><span class="kw">pub fn </span>none() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            recipes: Vec::new(),
         }
     }
 
-    <span class="doccomment">/// Creates a [`Subscription`] from a [`Recipe`] describing it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_recipe</span>(
-        <span class="ident">recipe</span>: <span class="kw">impl</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">O</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">recipes</span>: <span class="macro">vec!</span>[<span class="ident">Box::new</span>(<span class="ident">recipe</span>)],
+    <span class="doccomment">/// Creates a [`Subscription`] from a [`Recipe`] describing it.
+    </span><span class="kw">pub fn </span>from_recipe(
+        recipe: <span class="kw">impl </span>Recipe&lt;H, E, Output = O&gt; + <span class="lifetime">&#39;static</span>,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            recipes: <span class="macro">vec!</span>[Box::new(recipe)],
         }
     }
 
-    <span class="doccomment">/// Batches all the provided subscriptions and returns the resulting</span>
-    <span class="doccomment">/// [`Subscription`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">batch</span>(
-        <span class="ident">subscriptions</span>: <span class="kw">impl</span> <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">O</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">recipes</span>: <span class="ident">subscriptions</span>
-                .<span class="ident">into_iter</span>()
-                .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">subscription</span><span class="op">|</span> <span class="ident">subscription</span>.<span class="ident">recipes</span>)
-                .<span class="ident">collect</span>(),
+    <span class="doccomment">/// Batches all the provided subscriptions and returns the resulting
+    /// [`Subscription`].
+    </span><span class="kw">pub fn </span>batch(
+        subscriptions: <span class="kw">impl </span>IntoIterator&lt;Item = Subscription&lt;H, E, O&gt;&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            recipes: subscriptions
+                .into_iter()
+                .flat_map(|subscription| subscription.recipes)
+                .collect(),
         }
     }
 
-    <span class="doccomment">/// Returns the different recipes of the [`Subscription`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recipes</span>(<span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">O</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">recipes</span>
+    <span class="doccomment">/// Returns the different recipes of the [`Subscription`].
+    </span><span class="kw">pub fn </span>recipes(<span class="self">self</span>) -&gt; Vec&lt;Box&lt;<span class="kw">dyn </span>Recipe&lt;H, E, Output = O&gt;&gt;&gt; {
+        <span class="self">self</span>.recipes
     }
 
-    <span class="doccomment">/// Adds a value to the [`Subscription`] context.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The value will be part of the identity of a [`Subscription`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, (<span class="ident">T</span>, <span class="ident">O</span>)<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">H</span>: <span class="lifetime">&#39;static</span>,
-        <span class="ident">E</span>: <span class="lifetime">&#39;static</span>,
-        <span class="ident">O</span>: <span class="lifetime">&#39;static</span>,
-        <span class="ident">T</span>: <span class="ident">std::hash::Hash</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Adds a value to the [`Subscription`] context.
+    ///
+    /// The value will be part of the identity of a [`Subscription`].
+    </span><span class="kw">pub fn </span>with&lt;T&gt;(<span class="kw-2">mut </span><span class="self">self</span>, value: T) -&gt; Subscription&lt;H, E, (T, O)&gt;
+    <span class="kw">where
+        </span>H: <span class="lifetime">&#39;static</span>,
+        E: <span class="lifetime">&#39;static</span>,
+        O: <span class="lifetime">&#39;static</span>,
+        T: std::hash::Hash + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     {
-        <span class="ident">Subscription</span> {
-            <span class="ident">recipes</span>: <span class="self">self</span>
-                .<span class="ident">recipes</span>
-                .<span class="ident">drain</span>(..)
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">recipe</span><span class="op">|</span> {
-                    <span class="ident">Box::new</span>(<span class="ident">With::new</span>(<span class="ident">recipe</span>, <span class="ident">value</span>.<span class="ident">clone</span>()))
-                        <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">T</span>, <span class="ident">O</span>)<span class="op">&gt;</span><span class="op">&gt;</span>
+        Subscription {
+            recipes: <span class="self">self
+                </span>.recipes
+                .drain(..)
+                .map(|recipe| {
+                    Box::new(With::new(recipe, value.clone()))
+                        <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>Recipe&lt;H, E, Output = (T, O)&gt;&gt;
                 })
-                .<span class="ident">collect</span>(),
+                .collect(),
         }
     }
 
-    <span class="doccomment">/// Transforms the [`Subscription`] output with the given function.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="kw">fn</span>(<span class="ident">O</span>) -&gt; <span class="ident">A</span>) -&gt; <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">H</span>: <span class="lifetime">&#39;static</span>,
-        <span class="ident">E</span>: <span class="lifetime">&#39;static</span>,
-        <span class="ident">O</span>: <span class="lifetime">&#39;static</span>,
-        <span class="ident">A</span>: <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Transforms the [`Subscription`] output with the given function.
+    </span><span class="kw">pub fn </span>map&lt;A&gt;(<span class="kw-2">mut </span><span class="self">self</span>, f: <span class="kw">fn</span>(O) -&gt; A) -&gt; Subscription&lt;H, E, A&gt;
+    <span class="kw">where
+        </span>H: <span class="lifetime">&#39;static</span>,
+        E: <span class="lifetime">&#39;static</span>,
+        O: <span class="lifetime">&#39;static</span>,
+        A: <span class="lifetime">&#39;static</span>,
     {
-        <span class="ident">Subscription</span> {
-            <span class="ident">recipes</span>: <span class="self">self</span>
-                .<span class="ident">recipes</span>
-                .<span class="ident">drain</span>(..)
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">recipe</span><span class="op">|</span> {
-                    <span class="ident">Box::new</span>(<span class="ident">Map::new</span>(<span class="ident">recipe</span>, <span class="ident">f</span>))
-                        <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span>
+        Subscription {
+            recipes: <span class="self">self
+                </span>.recipes
+                .drain(..)
+                .map(|recipe| {
+                    Box::new(Map::new(recipe, f))
+                        <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>Recipe&lt;H, E, Output = A&gt;&gt;
                 })
-                .<span class="ident">collect</span>(),
+                .collect(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">H</span><span class="op">&gt;</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">O</span>, <span class="ident">H</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Subscription&quot;</span>).<span class="ident">finish</span>()
+<span class="kw">impl</span>&lt;I, O, H&gt; std::fmt::Debug <span class="kw">for </span>Subscription&lt;I, O, H&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">&quot;Subscription&quot;</span>).finish()
     }
 }
 
-<span class="doccomment">/// The description of a [`Subscription`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A [`Recipe`] is the internal definition of a [`Subscription`]. It is used</span>
-<span class="doccomment">/// by runtimes to run and identify subscriptions. You can use it to create your</span>
-<span class="doccomment">/// own!</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Examples</span>
-<span class="doccomment">/// The repository has a couple of [examples] that use a custom [`Recipe`]:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// - [`download_progress`], a basic application that asynchronously downloads</span>
-<span class="doccomment">/// a dummy file of 100 MB and tracks the download progress.</span>
-<span class="doccomment">/// - [`stopwatch`], a watch with start/stop and reset buttons showcasing how</span>
-<span class="doccomment">/// to listen to time.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [examples]: https://github.com/iced-rs/iced/tree/0.4/examples</span>
-<span class="doccomment">/// [`download_progress`]: https://github.com/iced-rs/iced/tree/0.4/examples/download_progress</span>
-<span class="doccomment">/// [`stopwatch`]: https://github.com/iced-rs/iced/tree/0.4/examples/stopwatch</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">Hasher</span>: <span class="ident">std::hash::Hasher</span>, <span class="ident">Event</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The events that will be produced by a [`Subscription`] with this</span>
-    <span class="doccomment">/// [`Recipe`].</span>
-    <span class="kw">type</span> <span class="ident">Output</span>;
+<span class="doccomment">/// The description of a [`Subscription`].
+///
+/// A [`Recipe`] is the internal definition of a [`Subscription`]. It is used
+/// by runtimes to run and identify subscriptions. You can use it to create your
+/// own!
+///
+/// # Examples
+/// The repository has a couple of [examples] that use a custom [`Recipe`]:
+///
+/// - [`download_progress`], a basic application that asynchronously downloads
+/// a dummy file of 100 MB and tracks the download progress.
+/// - [`stopwatch`], a watch with start/stop and reset buttons showcasing how
+/// to listen to time.
+///
+/// [examples]: https://github.com/iced-rs/iced/tree/0.4/examples
+/// [`download_progress`]: https://github.com/iced-rs/iced/tree/0.4/examples/download_progress
+/// [`stopwatch`]: https://github.com/iced-rs/iced/tree/0.4/examples/stopwatch
+</span><span class="kw">pub trait </span>Recipe&lt;Hasher: std::hash::Hasher, Event&gt; {
+    <span class="doccomment">/// The events that will be produced by a [`Subscription`] with this
+    /// [`Recipe`].
+    </span><span class="kw">type </span>Output;
 
-    <span class="doccomment">/// Hashes the [`Recipe`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is used by runtimes to uniquely identify a [`Subscription`].</span>
-    <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Hasher</span>);
+    <span class="doccomment">/// Hashes the [`Recipe`].
+    ///
+    /// This is used by runtimes to uniquely identify a [`Subscription`].
+    </span><span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>Hasher);
 
-    <span class="doccomment">/// Executes the [`Recipe`] and produces the stream of events of its</span>
-    <span class="doccomment">/// [`Subscription`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It receives some stream of generic events, which is normally defined by</span>
-    <span class="doccomment">/// shells.</span>
-    <span class="kw">fn</span> <span class="ident">stream</span>(
-        <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">input</span>: <span class="ident">BoxStream</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">BoxStream</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Executes the [`Recipe`] and produces the stream of events of its
+    /// [`Subscription`].
+    ///
+    /// It receives some stream of generic events, which is normally defined by
+    /// shells.
+    </span><span class="kw">fn </span>stream(
+        <span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;,
+        input: BoxStream&lt;Event&gt;,
+    ) -&gt; BoxStream&lt;<span class="self">Self</span>::Output&gt;;
 }
 
-<span class="kw">struct</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="ident">recipe</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">mapper</span>: <span class="kw">fn</span>(<span class="ident">A</span>) -&gt; <span class="ident">B</span>,
+<span class="kw">struct </span>Map&lt;Hasher, Event, A, B&gt; {
+    recipe: Box&lt;<span class="kw">dyn </span>Recipe&lt;Hasher, Event, Output = A&gt;&gt;,
+    mapper: <span class="kw">fn</span>(A) -&gt; B,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">recipe</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">mapper</span>: <span class="kw">fn</span>(<span class="ident">A</span>) -&gt; <span class="ident">B</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">Map</span> { <span class="ident">recipe</span>, <span class="ident">mapper</span> }
+<span class="kw">impl</span>&lt;H, E, A, B&gt; Map&lt;H, E, A, B&gt; {
+    <span class="kw">fn </span>new(
+        recipe: Box&lt;<span class="kw">dyn </span>Recipe&lt;H, E, Output = A&gt;&gt;,
+        mapper: <span class="kw">fn</span>(A) -&gt; B,
+    ) -&gt; <span class="self">Self </span>{
+        Map { recipe, mapper }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <span class="lifetime">&#39;static</span>,
-    <span class="ident">B</span>: <span class="lifetime">&#39;static</span>,
-    <span class="ident">H</span>: <span class="ident">std::hash::Hasher</span>,
+<span class="kw">impl</span>&lt;H, E, A, B&gt; Recipe&lt;H, E&gt; <span class="kw">for </span>Map&lt;H, E, A, B&gt;
+<span class="kw">where
+    </span>A: <span class="lifetime">&#39;static</span>,
+    B: <span class="lifetime">&#39;static</span>,
+    H: std::hash::Hasher,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">B</span>;
+    <span class="kw">type </span>Output = B;
 
-    <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <span class="kw">use</span> <span class="ident">std::hash::Hash</span>;
+    <span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="kw">use </span>std::hash::Hash;
 
-        <span class="self">self</span>.<span class="ident">recipe</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
-        <span class="self">self</span>.<span class="ident">mapper</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
+        <span class="self">self</span>.recipe.hash(state);
+        <span class="self">self</span>.mapper.hash(state);
     }
 
-    <span class="kw">fn</span> <span class="ident">stream</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">input</span>: <span class="ident">BoxStream</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>) -&gt; <span class="ident">BoxStream</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">futures::StreamExt</span>;
+    <span class="kw">fn </span>stream(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, input: BoxStream&lt;E&gt;) -&gt; BoxStream&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">use </span>futures::StreamExt;
 
-        <span class="kw">let</span> <span class="ident">mapper</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mapper</span>;
+        <span class="kw">let </span>mapper = <span class="self">self</span>.mapper;
 
-        <span class="ident">Box::pin</span>(<span class="self">self</span>.<span class="ident">recipe</span>.<span class="ident">stream</span>(<span class="ident">input</span>).<span class="ident">map</span>(<span class="ident">mapper</span>))
-    }
-}
-
-<span class="kw">struct</span> <span class="ident">With</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="ident">recipe</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">value</span>: <span class="ident">B</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">With</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">recipe</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">value</span>: <span class="ident">B</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">With</span> { <span class="ident">recipe</span>, <span class="ident">value</span> }
+        Box::pin(<span class="self">self</span>.recipe.stream(input).map(mapper))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Recipe</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">With</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">A</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <span class="lifetime">&#39;static</span>,
-    <span class="ident">B</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">std::hash::Hash</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    <span class="ident">H</span>: <span class="ident">std::hash::Hasher</span>,
+<span class="kw">struct </span>With&lt;Hasher, Event, A, B&gt; {
+    recipe: Box&lt;<span class="kw">dyn </span>Recipe&lt;Hasher, Event, Output = A&gt;&gt;,
+    value: B,
+}
+
+<span class="kw">impl</span>&lt;H, E, A, B&gt; With&lt;H, E, A, B&gt; {
+    <span class="kw">fn </span>new(recipe: Box&lt;<span class="kw">dyn </span>Recipe&lt;H, E, Output = A&gt;&gt;, value: B) -&gt; <span class="self">Self </span>{
+        With { recipe, value }
+    }
+}
+
+<span class="kw">impl</span>&lt;H, E, A, B&gt; Recipe&lt;H, E&gt; <span class="kw">for </span>With&lt;H, E, A, B&gt;
+<span class="kw">where
+    </span>A: <span class="lifetime">&#39;static</span>,
+    B: <span class="lifetime">&#39;static </span>+ std::hash::Hash + Clone + Send + Sync,
+    H: std::hash::Hasher,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">B</span>, <span class="ident">A</span>);
+    <span class="kw">type </span>Output = (B, A);
 
-    <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <span class="kw">use</span> <span class="ident">std::hash::Hash</span>;
+    <span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="kw">use </span>std::hash::Hash;
 
-        <span class="ident">std::any::TypeId::of</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>().<span class="ident">hash</span>(<span class="ident">state</span>);
-        <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
-        <span class="self">self</span>.<span class="ident">recipe</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
+        std::any::TypeId::of::&lt;B&gt;().hash(state);
+        <span class="self">self</span>.value.hash(state);
+        <span class="self">self</span>.recipe.hash(state);
     }
 
-    <span class="kw">fn</span> <span class="ident">stream</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">input</span>: <span class="ident">BoxStream</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>) -&gt; <span class="ident">BoxStream</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">futures::StreamExt</span>;
+    <span class="kw">fn </span>stream(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, input: BoxStream&lt;E&gt;) -&gt; BoxStream&lt;<span class="self">Self</span>::Output&gt; {
+        <span class="kw">use </span>futures::StreamExt;
 
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">value</span>;
+        <span class="kw">let </span>value = <span class="self">self</span>.value;
 
-        <span class="ident">Box::pin</span>(
-            <span class="self">self</span>.<span class="ident">recipe</span>
-                .<span class="ident">stream</span>(<span class="ident">input</span>)
-                .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">element</span><span class="op">|</span> (<span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">element</span>)),
+        Box::pin(
+            <span class="self">self</span>.recipe
+                .stream(input)
+                .map(<span class="kw">move </span>|element| (value.clone(), element)),
         )
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_futures" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_futures" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

@@ -39,44 +39,44 @@
 <span id="37">37</span>
 <span id="38">38</span>
 <span id="39">39</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::system</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::system;
 
-<span class="kw">use</span> <span class="ident">iced_futures::MaybeSend</span>;
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use </span>iced_futures::MaybeSend;
+<span class="kw">use </span>std::fmt;
 
-<span class="doccomment">/// An operation to be performed on the system.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Query system information and produce `T` with the result.</span>
-    <span class="ident">QueryInformation</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>),
+<span class="doccomment">/// An operation to be performed on the system.
+</span><span class="kw">pub enum </span>Action&lt;T&gt; {
+    <span class="doccomment">/// Query system information and produce `T` with the result.
+    </span>QueryInformation(Box&lt;<span class="kw">dyn </span>Closure&lt;T&gt;&gt;),
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Fn</span>(<span class="ident">system::Information</span>) -&gt; <span class="ident">T</span> <span class="op">+</span> <span class="ident">MaybeSend</span> {}
+<span class="kw">pub trait </span>Closure&lt;T&gt;: Fn(system::Information) -&gt; T + MaybeSend {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">T</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Fn</span>(<span class="ident">system::Information</span>) -&gt; <span class="ident">O</span> <span class="op">+</span> <span class="ident">MaybeSend</span> {}
+<span class="kw">impl</span>&lt;T, O&gt; Closure&lt;O&gt; <span class="kw">for </span>T <span class="kw">where </span>T: Fn(system::Information) -&gt; O + MaybeSend {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Maps the output of a system [`Action`] using the provided closure.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
+<span class="kw">impl</span>&lt;T&gt; Action&lt;T&gt; {
+    <span class="doccomment">/// Maps the output of a system [`Action`] using the provided closure.
+    </span><span class="kw">pub fn </span>map&lt;A&gt;(
         <span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">T</span>) -&gt; <span class="ident">A</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">MaybeSend</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    ) -&gt; <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="lifetime">&#39;static</span>,
+        f: <span class="kw">impl </span>Fn(T) -&gt; A + <span class="lifetime">&#39;static </span>+ MaybeSend + Sync,
+    ) -&gt; Action&lt;A&gt;
+    <span class="kw">where
+        </span>T: <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::QueryInformation</span>(<span class="ident">o</span>) =&gt; {
-                <span class="ident">Action::QueryInformation</span>(<span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">o</span>(<span class="ident">s</span>))))
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::QueryInformation(o) =&gt; {
+                Action::QueryInformation(Box::new(<span class="kw">move </span>|s| f(o(s))))
             }
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::QueryInformation</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Action::QueryInformation&quot;</span>),
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Action&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::QueryInformation(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::QueryInformation&quot;</span>),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

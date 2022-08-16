@@ -218,223 +218,223 @@
 <span id="216">216</span>
 <span id="217">217</span>
 <span id="218">218</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Iced is a cross-platform GUI library focused on simplicity and type-safety.</span>
-<span class="doccomment">//! Inspired by [Elm].</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Features</span>
-<span class="doccomment">//! * Simple, easy-to-use, batteries-included API</span>
-<span class="doccomment">//! * Type-safe, reactive programming model</span>
-<span class="doccomment">//! * [Cross-platform support] (Windows, macOS, Linux, and the Web)</span>
-<span class="doccomment">//! * Responsive layout</span>
-<span class="doccomment">//! * Built-in widgets (including [text inputs], [scrollables], and more!)</span>
-<span class="doccomment">//! * Custom widget support (create your own!)</span>
-<span class="doccomment">//! * [Debug overlay with performance metrics]</span>
-<span class="doccomment">//! * First-class support for async actions (use futures!)</span>
-<span class="doccomment">//! * [Modular ecosystem] split into reusable parts:</span>
-<span class="doccomment">//!   * A [renderer-agnostic native runtime] enabling integration with existing</span>
-<span class="doccomment">//!     systems</span>
-<span class="doccomment">//!   * A [built-in renderer] supporting Vulkan, Metal, DX11, and DX12</span>
-<span class="doccomment">//!   * A [windowing shell]</span>
-<span class="doccomment">//!   * A [web runtime] leveraging the DOM</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Check out the [repository] and the [examples] for more details!</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [Cross-platform support]: https://github.com/iced-rs/iced/blob/master/docs/images/todos_desktop.jpg?raw=true</span>
-<span class="doccomment">//! [text inputs]: https://gfycat.com/alertcalmcrow-rust-gui</span>
-<span class="doccomment">//! [scrollables]: https://gfycat.com/perkybaggybaboon-rust-gui</span>
-<span class="doccomment">//! [Debug overlay with performance metrics]: https://gfycat.com/incredibledarlingbee</span>
-<span class="doccomment">//! [Modular ecosystem]: https://github.com/iced-rs/iced/blob/master/ECOSYSTEM.md</span>
-<span class="doccomment">//! [renderer-agnostic native runtime]: https://github.com/iced-rs/iced/0.4/master/native</span>
-<span class="doccomment">//! [`wgpu`]: https://github.com/gfx-rs/wgpu-rs</span>
-<span class="doccomment">//! [built-in renderer]: https://github.com/iced-rs/iced/tree/0.4/wgpu</span>
-<span class="doccomment">//! [windowing shell]: https://github.com/iced-rs/iced/tree/0.4/winit</span>
-<span class="doccomment">//! [`dodrio`]: https://github.com/fitzgen/dodrio</span>
-<span class="doccomment">//! [web runtime]: https://github.com/iced-rs/iced_web</span>
-<span class="doccomment">//! [examples]: https://github.com/iced-rs/iced/tree/0.4/examples</span>
-<span class="doccomment">//! [repository]: https://github.com/iced-rs/iced</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Overview</span>
-<span class="doccomment">//! Inspired by [The Elm Architecture], Iced expects you to split user</span>
-<span class="doccomment">//! interfaces into four different concepts:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!   * __State__ — the state of your application</span>
-<span class="doccomment">//!   * __Messages__ — user interactions or meaningful events that you care</span>
-<span class="doccomment">//!   about</span>
-<span class="doccomment">//!   * __View logic__ — a way to display your __state__ as widgets that</span>
-<span class="doccomment">//!   may produce __messages__ on user interaction</span>
-<span class="doccomment">//!   * __Update logic__ — a way to react to __messages__ and update your</span>
-<span class="doccomment">//!   __state__</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! We can build something to see how this works! Let&#39;s say we want a simple</span>
-<span class="doccomment">//! counter that can be incremented and decremented using two buttons.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! We start by modelling the __state__ of our application:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! struct Counter {</span>
-<span class="doccomment">//!     // The counter value</span>
-<span class="doccomment">//!     value: i32,</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Next, we need to define the possible user interactions of our counter:</span>
-<span class="doccomment">//! the button presses. These interactions are our __messages__:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! #[derive(Debug, Clone, Copy)]</span>
-<span class="doccomment">//! pub enum Message {</span>
-<span class="doccomment">//!     IncrementPressed,</span>
-<span class="doccomment">//!     DecrementPressed,</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Now, let&#39;s show the actual counter by putting it all together in our</span>
-<span class="doccomment">//! __view logic__:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # struct Counter {</span>
-<span class="doccomment">//! #     // The counter value</span>
-<span class="doccomment">//! #     value: i32,</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! #</span>
-<span class="doccomment">//! # #[derive(Debug, Clone, Copy)]</span>
-<span class="doccomment">//! # pub enum Message {</span>
-<span class="doccomment">//! #     IncrementPressed,</span>
-<span class="doccomment">//! #     DecrementPressed,</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! #</span>
-<span class="doccomment">//! use iced::widget::{button, column, text, Column};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! impl Counter {</span>
-<span class="doccomment">//!     pub fn view(&amp;mut self) -&gt; Column&lt;Message&gt; {</span>
-<span class="doccomment">//!         // We use a column: a simple vertical layout</span>
-<span class="doccomment">//!         column![</span>
-<span class="doccomment">//!             // The increment button. We tell it to produce an</span>
-<span class="doccomment">//!             // `IncrementPressed` message when pressed</span>
-<span class="doccomment">//!             button(&quot;+&quot;).on_press(Message::IncrementPressed),</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!             // We show the value of the counter here</span>
-<span class="doccomment">//!             text(self.value).size(50),</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!             // The decrement button. We tell it to produce a</span>
-<span class="doccomment">//!             button(&quot;-&quot;).on_press(Message::DecrementPressed),</span>
-<span class="doccomment">//!         ]</span>
-<span class="doccomment">//!     }</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Finally, we need to be able to react to any produced __messages__ and change</span>
-<span class="doccomment">//! our __state__ accordingly in our __update logic__:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! # struct Counter {</span>
-<span class="doccomment">//! #     // The counter value</span>
-<span class="doccomment">//! #     value: i32,</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! #</span>
-<span class="doccomment">//! # #[derive(Debug, Clone, Copy)]</span>
-<span class="doccomment">//! # pub enum Message {</span>
-<span class="doccomment">//! #     IncrementPressed,</span>
-<span class="doccomment">//! #     DecrementPressed,</span>
-<span class="doccomment">//! # }</span>
-<span class="doccomment">//! impl Counter {</span>
-<span class="doccomment">//!     // ...</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     pub fn update(&amp;mut self, message: Message) {</span>
-<span class="doccomment">//!         match message {</span>
-<span class="doccomment">//!             Message::IncrementPressed =&gt; {</span>
-<span class="doccomment">//!                 self.value += 1;</span>
-<span class="doccomment">//!             }</span>
-<span class="doccomment">//!             Message::DecrementPressed =&gt; {</span>
-<span class="doccomment">//!                 self.value -= 1;</span>
-<span class="doccomment">//!             }</span>
-<span class="doccomment">//!         }</span>
-<span class="doccomment">//!     }</span>
-<span class="doccomment">//! }</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! And that&#39;s everything! We just wrote a whole user interface. Iced is now</span>
-<span class="doccomment">//! able to:</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!   1. Take the result of our __view logic__ and layout its widgets.</span>
-<span class="doccomment">//!   1. Process events from our system and produce __messages__ for our</span>
-<span class="doccomment">//!      __update logic__.</span>
-<span class="doccomment">//!   1. Draw the resulting user interface.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Usage</span>
-<span class="doccomment">//! The [`Application`] and [`Sandbox`] traits should get you started quickly,</span>
-<span class="doccomment">//! streamlining all the process described above!</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [Elm]: https://elm-lang.org/</span>
-<span class="doccomment">//! [The Elm Architecture]: https://guide.elm-lang.org/architecture/</span>
-<span class="attribute">#![<span class="ident">doc</span>(
-    <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg&quot;</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Iced is a cross-platform GUI library focused on simplicity and type-safety.
+//! Inspired by [Elm].
+//!
+//! # Features
+//! * Simple, easy-to-use, batteries-included API
+//! * Type-safe, reactive programming model
+//! * [Cross-platform support] (Windows, macOS, Linux, and the Web)
+//! * Responsive layout
+//! * Built-in widgets (including [text inputs], [scrollables], and more!)
+//! * Custom widget support (create your own!)
+//! * [Debug overlay with performance metrics]
+//! * First-class support for async actions (use futures!)
+//! * [Modular ecosystem] split into reusable parts:
+//!   * A [renderer-agnostic native runtime] enabling integration with existing
+//!     systems
+//!   * A [built-in renderer] supporting Vulkan, Metal, DX11, and DX12
+//!   * A [windowing shell]
+//!   * A [web runtime] leveraging the DOM
+//!
+//! Check out the [repository] and the [examples] for more details!
+//!
+//! [Cross-platform support]: https://github.com/iced-rs/iced/blob/master/docs/images/todos_desktop.jpg?raw=true
+//! [text inputs]: https://gfycat.com/alertcalmcrow-rust-gui
+//! [scrollables]: https://gfycat.com/perkybaggybaboon-rust-gui
+//! [Debug overlay with performance metrics]: https://gfycat.com/incredibledarlingbee
+//! [Modular ecosystem]: https://github.com/iced-rs/iced/blob/master/ECOSYSTEM.md
+//! [renderer-agnostic native runtime]: https://github.com/iced-rs/iced/0.4/master/native
+//! [`wgpu`]: https://github.com/gfx-rs/wgpu-rs
+//! [built-in renderer]: https://github.com/iced-rs/iced/tree/0.4/wgpu
+//! [windowing shell]: https://github.com/iced-rs/iced/tree/0.4/winit
+//! [`dodrio`]: https://github.com/fitzgen/dodrio
+//! [web runtime]: https://github.com/iced-rs/iced_web
+//! [examples]: https://github.com/iced-rs/iced/tree/0.4/examples
+//! [repository]: https://github.com/iced-rs/iced
+//!
+//! # Overview
+//! Inspired by [The Elm Architecture], Iced expects you to split user
+//! interfaces into four different concepts:
+//!
+//!   * __State__ — the state of your application
+//!   * __Messages__ — user interactions or meaningful events that you care
+//!   about
+//!   * __View logic__ — a way to display your __state__ as widgets that
+//!   may produce __messages__ on user interaction
+//!   * __Update logic__ — a way to react to __messages__ and update your
+//!   __state__
+//!
+//! We can build something to see how this works! Let&#39;s say we want a simple
+//! counter that can be incremented and decremented using two buttons.
+//!
+//! We start by modelling the __state__ of our application:
+//!
+//! ```
+//! struct Counter {
+//!     // The counter value
+//!     value: i32,
+//! }
+//! ```
+//!
+//! Next, we need to define the possible user interactions of our counter:
+//! the button presses. These interactions are our __messages__:
+//!
+//! ```
+//! #[derive(Debug, Clone, Copy)]
+//! pub enum Message {
+//!     IncrementPressed,
+//!     DecrementPressed,
+//! }
+//! ```
+//!
+//! Now, let&#39;s show the actual counter by putting it all together in our
+//! __view logic__:
+//!
+//! ```
+//! # struct Counter {
+//! #     // The counter value
+//! #     value: i32,
+//! # }
+//! #
+//! # #[derive(Debug, Clone, Copy)]
+//! # pub enum Message {
+//! #     IncrementPressed,
+//! #     DecrementPressed,
+//! # }
+//! #
+//! use iced::widget::{button, column, text, Column};
+//!
+//! impl Counter {
+//!     pub fn view(&amp;mut self) -&gt; Column&lt;Message&gt; {
+//!         // We use a column: a simple vertical layout
+//!         column![
+//!             // The increment button. We tell it to produce an
+//!             // `IncrementPressed` message when pressed
+//!             button(&quot;+&quot;).on_press(Message::IncrementPressed),
+//!
+//!             // We show the value of the counter here
+//!             text(self.value).size(50),
+//!
+//!             // The decrement button. We tell it to produce a
+//!             button(&quot;-&quot;).on_press(Message::DecrementPressed),
+//!         ]
+//!     }
+//! }
+//! ```
+//!
+//! Finally, we need to be able to react to any produced __messages__ and change
+//! our __state__ accordingly in our __update logic__:
+//!
+//! ```
+//! # struct Counter {
+//! #     // The counter value
+//! #     value: i32,
+//! # }
+//! #
+//! # #[derive(Debug, Clone, Copy)]
+//! # pub enum Message {
+//! #     IncrementPressed,
+//! #     DecrementPressed,
+//! # }
+//! impl Counter {
+//!     // ...
+//!
+//!     pub fn update(&amp;mut self, message: Message) {
+//!         match message {
+//!             Message::IncrementPressed =&gt; {
+//!                 self.value += 1;
+//!             }
+//!             Message::DecrementPressed =&gt; {
+//!                 self.value -= 1;
+//!             }
+//!         }
+//!     }
+//! }
+//! ```
+//!
+//! And that&#39;s everything! We just wrote a whole user interface. Iced is now
+//! able to:
+//!
+//!   1. Take the result of our __view logic__ and layout its widgets.
+//!   1. Process events from our system and produce __messages__ for our
+//!      __update logic__.
+//!   1. Draw the resulting user interface.
+//!
+//! # Usage
+//! The [`Application`] and [`Sandbox`] traits should get you started quickly,
+//! streamlining all the process described above!
+//!
+//! [Elm]: https://elm-lang.org/
+//! [The Elm Architecture]: https://guide.elm-lang.org/architecture/
+</span><span class="attribute">#![doc(
+    html_logo_url = <span class="string">&quot;https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg&quot;
+</span>)]</span>
+<span class="attribute">#![deny(
+    missing_debug_implementations,
+    missing_docs,
+    unused_results,
+    clippy::extra_unused_lifetimes,
+    clippy::from_over_into,
+    clippy::needless_borrow,
+    clippy::new_without_default,
+    clippy::useless_conversion
 )]</span>
-<span class="attribute">#![<span class="ident">deny</span>(
-    <span class="ident">missing_debug_implementations</span>,
-    <span class="ident">missing_docs</span>,
-    <span class="ident">unused_results</span>,
-    <span class="ident">clippy::extra_unused_lifetimes</span>,
-    <span class="ident">clippy::from_over_into</span>,
-    <span class="ident">clippy::needless_borrow</span>,
-    <span class="ident">clippy::new_without_default</span>,
-    <span class="ident">clippy::useless_conversion</span>
-)]</span>
-<span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">rust_2018_idioms</span>, <span class="ident">unsafe_code</span>)]</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::inherent_to_string</span>, <span class="ident">clippy::type_complexity</span>)]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">feature</span>(<span class="ident">doc_cfg</span>))]</span>
+<span class="attribute">#![forbid(rust_2018_idioms, unsafe_code)]</span>
+<span class="attribute">#![allow(clippy::inherent_to_string, clippy::type_complexity)]</span>
+<span class="attribute">#![cfg_attr(docsrs, feature(doc_cfg))]</span>
 
-<span class="kw">mod</span> <span class="ident">element</span>;
-<span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">mod</span> <span class="ident">result</span>;
-<span class="kw">mod</span> <span class="ident">sandbox</span>;
+<span class="kw">mod </span>element;
+<span class="kw">mod </span>error;
+<span class="kw">mod </span>result;
+<span class="kw">mod </span>sandbox;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">application</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">clipboard</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">executor</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">keyboard</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">mouse</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">settings</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">time</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">widget</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">window</span>;
+<span class="kw">pub mod </span>application;
+<span class="kw">pub mod </span>clipboard;
+<span class="kw">pub mod </span>executor;
+<span class="kw">pub mod </span>keyboard;
+<span class="kw">pub mod </span>mouse;
+<span class="kw">pub mod </span>settings;
+<span class="kw">pub mod </span>time;
+<span class="kw">pub mod </span>widget;
+<span class="kw">pub mod </span>window;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;glow&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;wgpu&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">iced_winit</span> <span class="kw">as</span> <span class="ident">runtime</span>;
+<span class="attribute">#[cfg(all(not(feature = <span class="string">&quot;glow&quot;</span>), feature = <span class="string">&quot;wgpu&quot;</span>))]</span>
+<span class="kw">use </span>iced_winit <span class="kw">as </span>runtime;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;glow&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">iced_glutin</span> <span class="kw">as</span> <span class="ident">runtime</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;glow&quot;</span>)]</span>
+<span class="kw">use </span>iced_glutin <span class="kw">as </span>runtime;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;glow&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;wgpu&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">iced_wgpu</span> <span class="kw">as</span> <span class="ident">renderer</span>;
+<span class="attribute">#[cfg(all(not(feature = <span class="string">&quot;glow&quot;</span>), feature = <span class="string">&quot;wgpu&quot;</span>))]</span>
+<span class="kw">use </span>iced_wgpu <span class="kw">as </span>renderer;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;glow&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">iced_glow</span> <span class="kw">as</span> <span class="ident">renderer</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;glow&quot;</span>)]</span>
+<span class="kw">use </span>iced_glow <span class="kw">as </span>renderer;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_native::theme</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">runtime::event</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">runtime::subscription</span>;
+<span class="kw">pub use </span>iced_native::theme;
+<span class="kw">pub use </span>runtime::event;
+<span class="kw">pub use </span>runtime::subscription;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">application::Application</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">element::Element</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">error::Error</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">event::Event</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">executor::Executor</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">renderer::Renderer</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">result::Result</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sandbox::Sandbox</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">settings::Settings</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">subscription::Subscription</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">theme::Theme</span>;
+<span class="kw">pub use </span>application::Application;
+<span class="kw">pub use </span>element::Element;
+<span class="kw">pub use </span>error::Error;
+<span class="kw">pub use </span>event::Event;
+<span class="kw">pub use </span>executor::Executor;
+<span class="kw">pub use </span>renderer::Renderer;
+<span class="kw">pub use </span>result::Result;
+<span class="kw">pub use </span>sandbox::Sandbox;
+<span class="kw">pub use </span>settings::Settings;
+<span class="kw">pub use </span>subscription::Subscription;
+<span class="kw">pub use </span>theme::Theme;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">runtime::alignment</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">runtime::futures</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">runtime</span>::{
-    <span class="ident">Alignment</span>, <span class="ident">Background</span>, <span class="ident">Color</span>, <span class="ident">Command</span>, <span class="ident">ContentFit</span>, <span class="ident">Font</span>, <span class="ident">Length</span>, <span class="ident">Padding</span>,
-    <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>,
+<span class="kw">pub use </span>runtime::alignment;
+<span class="kw">pub use </span>runtime::futures;
+<span class="kw">pub use </span>runtime::{
+    Alignment, Background, Color, Command, ContentFit, Font, Length, Padding,
+    Point, Rectangle, Size, Vector,
 };
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;system&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">runtime::system</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;system&quot;</span>)]</span>
+<span class="kw">pub use </span>runtime::system;
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

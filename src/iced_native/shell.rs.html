@@ -77,82 +77,82 @@
 <span id="75">75</span>
 <span id="76">76</span>
 <span id="77">77</span>
-</pre><pre class="rust"><code><span class="doccomment">/// A connection to the state of a shell.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A [`Widget`] can leverage a [`Shell`] to trigger changes in an application,</span>
-<span class="doccomment">/// like publishing messages or invalidating the current layout.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Widget`]: crate::Widget</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span><span class="op">&gt;</span> {
-    <span class="ident">messages</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
-    <span class="ident">is_layout_invalid</span>: <span class="ident">bool</span>,
-    <span class="ident">are_widgets_invalid</span>: <span class="ident">bool</span>,
+</pre><pre class="rust"><code><span class="doccomment">/// A connection to the state of a shell.
+///
+/// A [`Widget`] can leverage a [`Shell`] to trigger changes in an application,
+/// like publishing messages or invalidating the current layout.
+///
+/// [`Widget`]: crate::Widget
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Shell&lt;<span class="lifetime">&#39;a</span>, Message&gt; {
+    messages: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;Message&gt;,
+    is_layout_invalid: bool,
+    are_widgets_invalid: bool,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span><span class="op">&gt;</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new [`Shell`] with the provided buffer of messages.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">messages</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">messages</span>,
-            <span class="ident">is_layout_invalid</span>: <span class="bool-val">false</span>,
-            <span class="ident">are_widgets_invalid</span>: <span class="bool-val">false</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message&gt; Shell&lt;<span class="lifetime">&#39;a</span>, Message&gt; {
+    <span class="doccomment">/// Creates a new [`Shell`] with the provided buffer of messages.
+    </span><span class="kw">pub fn </span>new(messages: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;Message&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            messages,
+            is_layout_invalid: <span class="bool-val">false</span>,
+            are_widgets_invalid: <span class="bool-val">false</span>,
         }
     }
 
-    <span class="doccomment">/// Triggers the given function if the layout is invalid, cleaning it in the</span>
-    <span class="doccomment">/// process.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">revalidate_layout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>()) {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_layout_invalid</span> {
-            <span class="self">self</span>.<span class="ident">is_layout_invalid</span> <span class="op">=</span> <span class="bool-val">false</span>;
+    <span class="doccomment">/// Triggers the given function if the layout is invalid, cleaning it in the
+    /// process.
+    </span><span class="kw">pub fn </span>revalidate_layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce()) {
+        <span class="kw">if </span><span class="self">self</span>.is_layout_invalid {
+            <span class="self">self</span>.is_layout_invalid = <span class="bool-val">false</span>;
 
-            <span class="ident">f</span>()
+            f()
         }
     }
 
-    <span class="doccomment">/// Returns whether the current layout is invalid or not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_layout_invalid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">is_layout_invalid</span>
+    <span class="doccomment">/// Returns whether the current layout is invalid or not.
+    </span><span class="kw">pub fn </span>is_layout_invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_layout_invalid
     }
 
-    <span class="doccomment">/// Publish the given `Message` for an application to process it.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">publish</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">Message</span>) {
-        <span class="self">self</span>.<span class="ident">messages</span>.<span class="ident">push</span>(<span class="ident">message</span>);
+    <span class="doccomment">/// Publish the given `Message` for an application to process it.
+    </span><span class="kw">pub fn </span>publish(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: Message) {
+        <span class="self">self</span>.messages.push(message);
     }
 
-    <span class="doccomment">/// Invalidates the current application layout.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The shell will relayout the application widgets.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invalidate_layout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">is_layout_invalid</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="doccomment">/// Invalidates the current application layout.
+    ///
+    /// The shell will relayout the application widgets.
+    </span><span class="kw">pub fn </span>invalidate_layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.is_layout_invalid = <span class="bool-val">true</span>;
     }
 
-    <span class="doccomment">/// Invalidates the current application widgets.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The shell will rebuild and relayout the widget tree.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">invalidate_widgets</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">are_widgets_invalid</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="doccomment">/// Invalidates the current application widgets.
+    ///
+    /// The shell will rebuild and relayout the widget tree.
+    </span><span class="kw">pub fn </span>invalidate_widgets(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.are_widgets_invalid = <span class="bool-val">true</span>;
     }
 
-    <span class="doccomment">/// Merges the current [`Shell`] with another one by applying the given</span>
-    <span class="doccomment">/// function to the messages of the latter.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is useful for composition.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">merge</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">B</span>) -&gt; <span class="ident">Message</span>) {
-        <span class="self">self</span>.<span class="ident">messages</span>.<span class="ident">extend</span>(<span class="ident">other</span>.<span class="ident">messages</span>.<span class="ident">drain</span>(..).<span class="ident">map</span>(<span class="ident">f</span>));
+    <span class="doccomment">/// Merges the current [`Shell`] with another one by applying the given
+    /// function to the messages of the latter.
+    ///
+    /// This method is useful for composition.
+    </span><span class="kw">pub fn </span>merge&lt;B&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: Shell&lt;<span class="lifetime">&#39;_</span>, B&gt;, f: <span class="kw">impl </span>Fn(B) -&gt; Message) {
+        <span class="self">self</span>.messages.extend(other.messages.drain(..).map(f));
 
-        <span class="self">self</span>.<span class="ident">is_layout_invalid</span> <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">is_layout_invalid</span> <span class="op">|</span><span class="op">|</span> <span class="ident">other</span>.<span class="ident">is_layout_invalid</span>;
+        <span class="self">self</span>.is_layout_invalid =
+            <span class="self">self</span>.is_layout_invalid || other.is_layout_invalid;
 
-        <span class="self">self</span>.<span class="ident">are_widgets_invalid</span> <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">are_widgets_invalid</span> <span class="op">|</span><span class="op">|</span> <span class="ident">other</span>.<span class="ident">are_widgets_invalid</span>;
+        <span class="self">self</span>.are_widgets_invalid =
+            <span class="self">self</span>.are_widgets_invalid || other.are_widgets_invalid;
     }
 
-    <span class="doccomment">/// Returns whether the widgets of the current application have been</span>
-    <span class="doccomment">/// invalidated.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">are_widgets_invalid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">are_widgets_invalid</span>
+    <span class="doccomment">/// Returns whether the widgets of the current application have been
+    /// invalidated.
+    </span><span class="kw">pub fn </span>are_widgets_invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.are_widgets_invalid
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

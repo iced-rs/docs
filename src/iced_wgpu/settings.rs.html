@@ -89,94 +89,94 @@
 <span id="87">87</span>
 <span id="88">88</span>
 <span id="89">89</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Configure a renderer.</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Antialiasing</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Configure a renderer.
+</span><span class="kw">pub use </span><span class="kw">crate</span>::Antialiasing;
 
-<span class="doccomment">/// The settings of a [`Backend`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Backend`]: crate::Backend</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Settings</span> {
-    <span class="doccomment">/// The present mode of the [`Backend`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Backend`]: crate::Backend</span>
-    <span class="kw">pub</span> <span class="ident">present_mode</span>: <span class="ident">wgpu::PresentMode</span>,
+<span class="doccomment">/// The settings of a [`Backend`].
+///
+/// [`Backend`]: crate::Backend
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]</span>
+<span class="kw">pub struct </span>Settings {
+    <span class="doccomment">/// The present mode of the [`Backend`].
+    ///
+    /// [`Backend`]: crate::Backend
+    </span><span class="kw">pub </span>present_mode: wgpu::PresentMode,
 
-    <span class="doccomment">/// The internal graphics backend to use.</span>
-    <span class="kw">pub</span> <span class="ident">internal_backend</span>: <span class="ident">wgpu::Backends</span>,
+    <span class="doccomment">/// The internal graphics backend to use.
+    </span><span class="kw">pub </span>internal_backend: wgpu::Backends,
 
-    <span class="doccomment">/// The bytes of the font that will be used by default.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `None` is provided, a default system font will be chosen.</span>
-    <span class="kw">pub</span> <span class="ident">default_font</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>]<span class="op">&gt;</span>,
+    <span class="doccomment">/// The bytes of the font that will be used by default.
+    ///
+    /// If `None` is provided, a default system font will be chosen.
+    </span><span class="kw">pub </span>default_font: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]&gt;,
 
-    <span class="doccomment">/// The default size of text.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, it will be set to 20.</span>
-    <span class="kw">pub</span> <span class="ident">default_text_size</span>: <span class="ident">u16</span>,
+    <span class="doccomment">/// The default size of text.
+    ///
+    /// By default, it will be set to 20.
+    </span><span class="kw">pub </span>default_text_size: u16,
 
-    <span class="doccomment">/// If enabled, spread text workload in multiple threads when multiple cores</span>
-    <span class="doccomment">/// are available.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, it is disabled.</span>
-    <span class="kw">pub</span> <span class="ident">text_multithreading</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// If enabled, spread text workload in multiple threads when multiple cores
+    /// are available.
+    ///
+    /// By default, it is disabled.
+    </span><span class="kw">pub </span>text_multithreading: bool,
 
-    <span class="doccomment">/// The antialiasing strategy that will be used for triangle primitives.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// By default, it is `None`.</span>
-    <span class="kw">pub</span> <span class="ident">antialiasing</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Antialiasing</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The antialiasing strategy that will be used for triangle primitives.
+    ///
+    /// By default, it is `None`.
+    </span><span class="kw">pub </span>antialiasing: <span class="prelude-ty">Option</span>&lt;Antialiasing&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Settings</span> {
-    <span class="doccomment">/// Creates new [`Settings`] using environment configuration.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Specifically:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - The `internal_backend` can be configured using the `WGPU_BACKEND`</span>
-    <span class="doccomment">/// environment variable. If the variable is not set, the primary backend</span>
-    <span class="doccomment">/// will be used. The following values are allowed:</span>
-    <span class="doccomment">///     - `vulkan`</span>
-    <span class="doccomment">///     - `metal`</span>
-    <span class="doccomment">///     - `dx12`</span>
-    <span class="doccomment">///     - `dx11`</span>
-    <span class="doccomment">///     - `gl`</span>
-    <span class="doccomment">///     - `webgpu`</span>
-    <span class="doccomment">///     - `primary`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_env</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">Settings</span> {
-            <span class="ident">internal_backend</span>: <span class="ident">backend_from_env</span>()
-                .<span class="ident">unwrap_or</span>(<span class="ident">wgpu::Backends::all</span>()),
-            ..<span class="ident"><span class="self">Self</span>::default</span>()
+<span class="kw">impl </span>Settings {
+    <span class="doccomment">/// Creates new [`Settings`] using environment configuration.
+    ///
+    /// Specifically:
+    ///
+    /// - The `internal_backend` can be configured using the `WGPU_BACKEND`
+    /// environment variable. If the variable is not set, the primary backend
+    /// will be used. The following values are allowed:
+    ///     - `vulkan`
+    ///     - `metal`
+    ///     - `dx12`
+    ///     - `dx11`
+    ///     - `gl`
+    ///     - `webgpu`
+    ///     - `primary`
+    </span><span class="kw">pub fn </span>from_env() -&gt; <span class="self">Self </span>{
+        Settings {
+            internal_backend: backend_from_env()
+                .unwrap_or(wgpu::Backends::all()),
+            ..<span class="self">Self</span>::default()
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Settings</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Settings</span> {
-        <span class="ident">Settings</span> {
-            <span class="ident">present_mode</span>: <span class="ident">wgpu::PresentMode::AutoVsync</span>,
-            <span class="ident">internal_backend</span>: <span class="ident">wgpu::Backends::all</span>(),
-            <span class="ident">default_font</span>: <span class="prelude-val">None</span>,
-            <span class="ident">default_text_size</span>: <span class="number">20</span>,
-            <span class="ident">text_multithreading</span>: <span class="bool-val">false</span>,
-            <span class="ident">antialiasing</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl </span>Default <span class="kw">for </span>Settings {
+    <span class="kw">fn </span>default() -&gt; Settings {
+        Settings {
+            present_mode: wgpu::PresentMode::AutoVsync,
+            internal_backend: wgpu::Backends::all(),
+            default_font: <span class="prelude-val">None</span>,
+            default_text_size: <span class="number">20</span>,
+            text_multithreading: <span class="bool-val">false</span>,
+            antialiasing: <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">backend_from_env</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">wgpu::Backends</span><span class="op">&gt;</span> {
-    <span class="ident">std::env::var</span>(<span class="string">&quot;WGPU_BACKEND&quot;</span>).<span class="ident">ok</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">backend</span><span class="op">|</span> {
-        <span class="kw">match</span> <span class="ident">backend</span>.<span class="ident">to_lowercase</span>().<span class="ident">as_str</span>() {
-            <span class="string">&quot;vulkan&quot;</span> =&gt; <span class="ident">wgpu::Backends::VULKAN</span>,
-            <span class="string">&quot;metal&quot;</span> =&gt; <span class="ident">wgpu::Backends::METAL</span>,
-            <span class="string">&quot;dx12&quot;</span> =&gt; <span class="ident">wgpu::Backends::DX12</span>,
-            <span class="string">&quot;dx11&quot;</span> =&gt; <span class="ident">wgpu::Backends::DX11</span>,
-            <span class="string">&quot;gl&quot;</span> =&gt; <span class="ident">wgpu::Backends::GL</span>,
-            <span class="string">&quot;webgpu&quot;</span> =&gt; <span class="ident">wgpu::Backends::BROWSER_WEBGPU</span>,
-            <span class="string">&quot;primary&quot;</span> =&gt; <span class="ident">wgpu::Backends::PRIMARY</span>,
-            <span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unknown backend: {}&quot;</span>, <span class="ident">other</span>),
+<span class="kw">fn </span>backend_from_env() -&gt; <span class="prelude-ty">Option</span>&lt;wgpu::Backends&gt; {
+    std::env::var(<span class="string">&quot;WGPU_BACKEND&quot;</span>).ok().map(|backend| {
+        <span class="kw">match </span>backend.to_lowercase().as_str() {
+            <span class="string">&quot;vulkan&quot; </span>=&gt; wgpu::Backends::VULKAN,
+            <span class="string">&quot;metal&quot; </span>=&gt; wgpu::Backends::METAL,
+            <span class="string">&quot;dx12&quot; </span>=&gt; wgpu::Backends::DX12,
+            <span class="string">&quot;dx11&quot; </span>=&gt; wgpu::Backends::DX11,
+            <span class="string">&quot;gl&quot; </span>=&gt; wgpu::Backends::GL,
+            <span class="string">&quot;webgpu&quot; </span>=&gt; wgpu::Backends::BROWSER_WEBGPU,
+            <span class="string">&quot;primary&quot; </span>=&gt; wgpu::Backends::PRIMARY,
+            other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unknown backend: {}&quot;</span>, other),
         }
     })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_wgpu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_wgpu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

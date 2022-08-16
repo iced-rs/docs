@@ -108,113 +108,113 @@
 <span id="106">106</span>
 <span id="107">107</span>
 <span id="108">108</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Backend</span>, <span class="ident">Color</span>, <span class="ident">Error</span>, <span class="ident">Renderer</span>, <span class="ident">Settings</span>, <span class="ident">Viewport</span>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{Backend, Color, Error, Renderer, Settings, Viewport};
 
-<span class="kw">use</span> <span class="ident">glow::HasContext</span>;
-<span class="kw">use</span> <span class="ident">iced_graphics</span>::{<span class="ident">compositor</span>, <span class="ident">Antialiasing</span>, <span class="ident">Size</span>};
+<span class="kw">use </span>glow::HasContext;
+<span class="kw">use </span>iced_graphics::{compositor, Antialiasing, Size};
 
-<span class="kw">use</span> <span class="ident">core::ffi::c_void</span>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+<span class="kw">use </span>core::ffi::c_void;
+<span class="kw">use </span>std::marker::PhantomData;
 
-<span class="doccomment">/// A window graphics backend for iced powered by `glow`.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Compositor</span><span class="op">&lt;</span><span class="ident">Theme</span><span class="op">&gt;</span> {
-    <span class="ident">gl</span>: <span class="ident">glow::Context</span>,
-    <span class="ident">theme</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Theme</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A window graphics backend for iced powered by `glow`.
+</span><span class="attribute">#[allow(missing_debug_implementations)]</span>
+<span class="kw">pub struct </span>Compositor&lt;Theme&gt; {
+    gl: glow::Context,
+    theme: PhantomData&lt;Theme&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Theme</span><span class="op">&gt;</span> <span class="ident">iced_graphics::window::GLCompositor</span> <span class="kw">for</span> <span class="ident">Compositor</span><span class="op">&lt;</span><span class="ident">Theme</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Settings</span> <span class="op">=</span> <span class="ident">Settings</span>;
-    <span class="kw">type</span> <span class="ident">Renderer</span> <span class="op">=</span> <span class="ident">Renderer</span><span class="op">&lt;</span><span class="ident">Theme</span><span class="op">&gt;</span>;
+<span class="kw">impl</span>&lt;Theme&gt; iced_graphics::window::GLCompositor <span class="kw">for </span>Compositor&lt;Theme&gt; {
+    <span class="kw">type </span>Settings = Settings;
+    <span class="kw">type </span>Renderer = Renderer&lt;Theme&gt;;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">settings</span>: <span class="ident"><span class="self">Self</span>::Settings</span>,
-        <span class="ident">loader_function</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">c_void</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Renderer</span>), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">gl</span> <span class="op">=</span> <span class="ident">glow::Context::from_loader_function</span>(<span class="ident">loader_function</span>);
+    <span class="kw">unsafe fn </span>new(
+        settings: <span class="self">Self</span>::Settings,
+        loader_function: <span class="kw">impl </span>FnMut(<span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">*const </span>c_void,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="self">Self</span>, <span class="self">Self</span>::Renderer), Error&gt; {
+        <span class="kw">let </span>gl = glow::Context::from_loader_function(loader_function);
 
-        <span class="macro">log::info!</span>(<span class="string">&quot;{:#?}&quot;</span>, <span class="ident">settings</span>);
+        <span class="macro">log::info!</span>(<span class="string">&quot;{:#?}&quot;</span>, settings);
 
-        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="ident">gl</span>.<span class="ident">version</span>();
-        <span class="macro">log::info!</span>(<span class="string">&quot;Version: {:?}&quot;</span>, <span class="ident">version</span>);
-        <span class="macro">log::info!</span>(<span class="string">&quot;Embedded: {}&quot;</span>, <span class="ident">version</span>.<span class="ident">is_embedded</span>);
+        <span class="kw">let </span>version = gl.version();
+        <span class="macro">log::info!</span>(<span class="string">&quot;Version: {:?}&quot;</span>, version);
+        <span class="macro">log::info!</span>(<span class="string">&quot;Embedded: {}&quot;</span>, version.is_embedded);
 
-        <span class="kw">let</span> <span class="ident">renderer</span> <span class="op">=</span> <span class="ident">gl</span>.<span class="ident">get_parameter_string</span>(<span class="ident">glow::RENDERER</span>);
-        <span class="macro">log::info!</span>(<span class="string">&quot;Renderer: {}&quot;</span>, <span class="ident">renderer</span>);
+        <span class="kw">let </span>renderer = gl.get_parameter_string(glow::RENDERER);
+        <span class="macro">log::info!</span>(<span class="string">&quot;Renderer: {}&quot;</span>, renderer);
 
-        <span class="comment">// Enable auto-conversion from/to sRGB</span>
-        <span class="ident">gl</span>.<span class="ident">enable</span>(<span class="ident">glow::FRAMEBUFFER_SRGB</span>);
+        <span class="comment">// Enable auto-conversion from/to sRGB
+        </span>gl.enable(glow::FRAMEBUFFER_SRGB);
 
-        <span class="comment">// Enable alpha blending</span>
-        <span class="ident">gl</span>.<span class="ident">enable</span>(<span class="ident">glow::BLEND</span>);
-        <span class="ident">gl</span>.<span class="ident">blend_func_separate</span>(
-            <span class="ident">glow::SRC_ALPHA</span>,
-            <span class="ident">glow::ONE_MINUS_SRC_ALPHA</span>,
-            <span class="ident">glow::ONE</span>,
-            <span class="ident">glow::ONE_MINUS_SRC_ALPHA</span>,
+        <span class="comment">// Enable alpha blending
+        </span>gl.enable(glow::BLEND);
+        gl.blend_func_separate(
+            glow::SRC_ALPHA,
+            glow::ONE_MINUS_SRC_ALPHA,
+            glow::ONE,
+            glow::ONE_MINUS_SRC_ALPHA,
         );
 
-        <span class="comment">// Disable multisampling by default</span>
-        <span class="ident">gl</span>.<span class="ident">disable</span>(<span class="ident">glow::MULTISAMPLE</span>);
+        <span class="comment">// Disable multisampling by default
+        </span>gl.disable(glow::MULTISAMPLE);
 
-        <span class="kw">let</span> <span class="ident">renderer</span> <span class="op">=</span> <span class="ident">Renderer::new</span>(<span class="ident">Backend::new</span>(<span class="kw-2">&amp;</span><span class="ident">gl</span>, <span class="ident">settings</span>));
+        <span class="kw">let </span>renderer = Renderer::new(Backend::new(<span class="kw-2">&amp;</span>gl, settings));
 
         <span class="prelude-val">Ok</span>((
-            <span class="self">Self</span> {
-                <span class="ident">gl</span>,
-                <span class="ident">theme</span>: <span class="ident">PhantomData</span>,
+            <span class="self">Self </span>{
+                gl,
+                theme: PhantomData,
             },
-            <span class="ident">renderer</span>,
+            renderer,
         ))
     }
 
-    <span class="kw">fn</span> <span class="ident">sample_count</span>(<span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">Settings</span>) -&gt; <span class="ident">u32</span> {
-        <span class="ident">settings</span>
-            .<span class="ident">antialiasing</span>
-            .<span class="ident">map</span>(<span class="ident">Antialiasing::sample_count</span>)
-            .<span class="ident">unwrap_or</span>(<span class="number">0</span>)
+    <span class="kw">fn </span>sample_count(settings: <span class="kw-2">&amp;</span>Settings) -&gt; u32 {
+        settings
+            .antialiasing
+            .map(Antialiasing::sample_count)
+            .unwrap_or(<span class="number">0</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">resize_viewport</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">physical_size</span>: <span class="ident">Size</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) {
-        <span class="kw">unsafe</span> {
-            <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">viewport</span>(
+    <span class="kw">fn </span>resize_viewport(<span class="kw-2">&amp;mut </span><span class="self">self</span>, physical_size: Size&lt;u32&gt;) {
+        <span class="kw">unsafe </span>{
+            <span class="self">self</span>.gl.viewport(
                 <span class="number">0</span>,
                 <span class="number">0</span>,
-                <span class="ident">physical_size</span>.<span class="ident">width</span> <span class="kw">as</span> <span class="ident">i32</span>,
-                <span class="ident">physical_size</span>.<span class="ident">height</span> <span class="kw">as</span> <span class="ident">i32</span>,
+                physical_size.width <span class="kw">as </span>i32,
+                physical_size.height <span class="kw">as </span>i32,
             );
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">fetch_information</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">compositor::Information</span> {
-        <span class="kw">let</span> <span class="ident">adapter</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">get_parameter_string</span>(<span class="ident">glow::RENDERER</span>) };
+    <span class="kw">fn </span>fetch_information(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; compositor::Information {
+        <span class="kw">let </span>adapter = <span class="kw">unsafe </span>{ <span class="self">self</span>.gl.get_parameter_string(glow::RENDERER) };
 
-        <span class="ident">compositor::Information</span> {
-            <span class="ident">backend</span>: <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">gl</span>.<span class="ident">version</span>()),
-            <span class="ident">adapter</span>,
+        compositor::Information {
+            backend: <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>.gl.version()),
+            adapter,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">present</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Renderer</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Viewport</span>,
-        <span class="ident">color</span>: <span class="ident">Color</span>,
-        <span class="ident">overlay</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>],
+    <span class="kw">fn </span>present&lt;T: AsRef&lt;str&gt;&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        renderer: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Renderer,
+        viewport: <span class="kw-2">&amp;</span>Viewport,
+        color: Color,
+        overlay: <span class="kw-2">&amp;</span>[T],
     ) {
-        <span class="kw">let</span> <span class="ident">gl</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">gl</span>;
+        <span class="kw">let </span>gl = <span class="kw-2">&amp;</span><span class="self">self</span>.gl;
 
-        <span class="kw">let</span> [<span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>, <span class="ident">a</span>] <span class="op">=</span> <span class="ident">color</span>.<span class="ident">into_linear</span>();
+        <span class="kw">let </span>[r, g, b, a] = color.into_linear();
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">gl</span>.<span class="ident">clear_color</span>(<span class="ident">r</span>, <span class="ident">g</span>, <span class="ident">b</span>, <span class="ident">a</span>);
-            <span class="ident">gl</span>.<span class="ident">clear</span>(<span class="ident">glow::COLOR_BUFFER_BIT</span>);
+        <span class="kw">unsafe </span>{
+            gl.clear_color(r, g, b, a);
+            gl.clear(glow::COLOR_BUFFER_BIT);
         }
 
-        <span class="ident">renderer</span>.<span class="ident">with_primitives</span>(<span class="op">|</span><span class="ident">backend</span>, <span class="ident">primitive</span><span class="op">|</span> {
-            <span class="ident">backend</span>.<span class="ident">present</span>(<span class="ident">gl</span>, <span class="ident">primitive</span>, <span class="ident">viewport</span>, <span class="ident">overlay</span>);
+        renderer.with_primitives(|backend, primitive| {
+            backend.present(gl, primitive, viewport, overlay);
         });
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_glow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_glow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

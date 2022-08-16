@@ -87,92 +87,92 @@
 <span id="85">85</span>
 <span id="86">86</span>
 <span id="87">87</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Display a horizontal or vertical rule for dividing content.</span>
-<span class="kw">use</span> <span class="ident">iced_core::Color</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Display a horizontal or vertical rule for dividing content.
+</span><span class="kw">use </span>iced_core::Color;
 
-<span class="doccomment">/// The appearance of a rule.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Appearance</span> {
-    <span class="doccomment">/// The color of the rule.</span>
-    <span class="kw">pub</span> <span class="ident">color</span>: <span class="ident">Color</span>,
-    <span class="doccomment">/// The width (thickness) of the rule line.</span>
-    <span class="kw">pub</span> <span class="ident">width</span>: <span class="ident">u16</span>,
-    <span class="doccomment">/// The radius of the line corners.</span>
-    <span class="kw">pub</span> <span class="ident">radius</span>: <span class="ident">f32</span>,
-    <span class="doccomment">/// The [`FillMode`] of the rule.</span>
-    <span class="kw">pub</span> <span class="ident">fill_mode</span>: <span class="ident">FillMode</span>,
+<span class="doccomment">/// The appearance of a rule.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub struct </span>Appearance {
+    <span class="doccomment">/// The color of the rule.
+    </span><span class="kw">pub </span>color: Color,
+    <span class="doccomment">/// The width (thickness) of the rule line.
+    </span><span class="kw">pub </span>width: u16,
+    <span class="doccomment">/// The radius of the line corners.
+    </span><span class="kw">pub </span>radius: f32,
+    <span class="doccomment">/// The [`FillMode`] of the rule.
+    </span><span class="kw">pub </span>fill_mode: FillMode,
 }
 
-<span class="doccomment">/// A set of rules that dictate the style of a rule.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StyleSheet</span> {
-    <span class="kw">type</span> <span class="ident">Style</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Copy</span>;
+<span class="doccomment">/// A set of rules that dictate the style of a rule.
+</span><span class="kw">pub trait </span>StyleSheet {
+    <span class="kw">type </span>Style: Default + Copy;
 
-    <span class="doccomment">/// Produces the style of a rule.</span>
-    <span class="kw">fn</span> <span class="ident">style</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">style</span>: <span class="ident"><span class="self">Self</span>::Style</span>) -&gt; <span class="ident">Appearance</span>;
+    <span class="doccomment">/// Produces the style of a rule.
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, style: <span class="self">Self</span>::Style) -&gt; Appearance;
 }
 
-<span class="doccomment">/// The fill mode of a rule.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FillMode</span> {
-    <span class="doccomment">/// Fill the whole length of the container.</span>
-    <span class="ident">Full</span>,
-    <span class="doccomment">/// Fill a percent of the length of the container. The rule</span>
-    <span class="doccomment">/// will be centered in that container.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The range is `[0.0, 100.0]`.</span>
-    <span class="ident">Percent</span>(<span class="ident">f32</span>),
-    <span class="doccomment">/// Uniform offset from each end, length units.</span>
-    <span class="ident">Padded</span>(<span class="ident">u16</span>),
-    <span class="doccomment">/// Different offset on each end of the rule, length units.</span>
-    <span class="doccomment">/// First = top or left.</span>
-    <span class="ident">AsymmetricPadding</span>(<span class="ident">u16</span>, <span class="ident">u16</span>),
+<span class="doccomment">/// The fill mode of a rule.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub enum </span>FillMode {
+    <span class="doccomment">/// Fill the whole length of the container.
+    </span>Full,
+    <span class="doccomment">/// Fill a percent of the length of the container. The rule
+    /// will be centered in that container.
+    ///
+    /// The range is `[0.0, 100.0]`.
+    </span>Percent(f32),
+    <span class="doccomment">/// Uniform offset from each end, length units.
+    </span>Padded(u16),
+    <span class="doccomment">/// Different offset on each end of the rule, length units.
+    /// First = top or left.
+    </span>AsymmetricPadding(u16, u16),
 }
 
-<span class="kw">impl</span> <span class="ident">FillMode</span> {
-    <span class="doccomment">/// Return the starting offset and length of the rule.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * `space` - The space to fill.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Returns</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// * (starting_offset, length)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">space</span>: <span class="ident">f32</span>) -&gt; (<span class="ident">f32</span>, <span class="ident">f32</span>) {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">FillMode::Full</span> =&gt; (<span class="number">0.0</span>, <span class="ident">space</span>),
-            <span class="ident">FillMode::Percent</span>(<span class="ident">percent</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">percent</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">100.0</span> {
-                    (<span class="number">0.0</span>, <span class="ident">space</span>)
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">percent_width</span> <span class="op">=</span> (<span class="ident">space</span> <span class="op">*</span> <span class="ident">percent</span> <span class="op">/</span> <span class="number">100.0</span>).<span class="ident">round</span>();
+<span class="kw">impl </span>FillMode {
+    <span class="doccomment">/// Return the starting offset and length of the rule.
+    ///
+    /// * `space` - The space to fill.
+    ///
+    /// # Returns
+    ///
+    /// * (starting_offset, length)
+    </span><span class="kw">pub fn </span>fill(<span class="kw-2">&amp;</span><span class="self">self</span>, space: f32) -&gt; (f32, f32) {
+        <span class="kw">match </span><span class="kw-2">*</span><span class="self">self </span>{
+            FillMode::Full =&gt; (<span class="number">0.0</span>, space),
+            FillMode::Percent(percent) =&gt; {
+                <span class="kw">if </span>percent &gt;= <span class="number">100.0 </span>{
+                    (<span class="number">0.0</span>, space)
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>percent_width = (space * percent / <span class="number">100.0</span>).round();
 
-                    (((<span class="ident">space</span> <span class="op">-</span> <span class="ident">percent_width</span>) <span class="op">/</span> <span class="number">2.0</span>).<span class="ident">round</span>(), <span class="ident">percent_width</span>)
+                    (((space - percent_width) / <span class="number">2.0</span>).round(), percent_width)
                 }
             }
-            <span class="ident">FillMode::Padded</span>(<span class="ident">padding</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">padding</span> <span class="op">==</span> <span class="number">0</span> {
-                    (<span class="number">0.0</span>, <span class="ident">space</span>)
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">padding</span> <span class="op">=</span> <span class="ident">padding</span> <span class="kw">as</span> <span class="ident">f32</span>;
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line_width</span> <span class="op">=</span> <span class="ident">space</span> <span class="op">-</span> (<span class="ident">padding</span> <span class="op">*</span> <span class="number">2.0</span>);
-                    <span class="kw">if</span> <span class="ident">line_width</span> <span class="op">&lt;</span> <span class="number">0.0</span> {
-                        <span class="ident">line_width</span> <span class="op">=</span> <span class="number">0.0</span>;
+            FillMode::Padded(padding) =&gt; {
+                <span class="kw">if </span>padding == <span class="number">0 </span>{
+                    (<span class="number">0.0</span>, space)
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>padding = padding <span class="kw">as </span>f32;
+                    <span class="kw">let </span><span class="kw-2">mut </span>line_width = space - (padding * <span class="number">2.0</span>);
+                    <span class="kw">if </span>line_width &lt; <span class="number">0.0 </span>{
+                        line_width = <span class="number">0.0</span>;
                     }
 
-                    (<span class="ident">padding</span>, <span class="ident">line_width</span>)
+                    (padding, line_width)
                 }
             }
-            <span class="ident">FillMode::AsymmetricPadding</span>(<span class="ident">first_pad</span>, <span class="ident">second_pad</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">first_pad</span> <span class="op">=</span> <span class="ident">first_pad</span> <span class="kw">as</span> <span class="ident">f32</span>;
-                <span class="kw">let</span> <span class="ident">second_pad</span> <span class="op">=</span> <span class="ident">second_pad</span> <span class="kw">as</span> <span class="ident">f32</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">line_width</span> <span class="op">=</span> <span class="ident">space</span> <span class="op">-</span> <span class="ident">first_pad</span> <span class="op">-</span> <span class="ident">second_pad</span>;
-                <span class="kw">if</span> <span class="ident">line_width</span> <span class="op">&lt;</span> <span class="number">0.0</span> {
-                    <span class="ident">line_width</span> <span class="op">=</span> <span class="number">0.0</span>;
+            FillMode::AsymmetricPadding(first_pad, second_pad) =&gt; {
+                <span class="kw">let </span>first_pad = first_pad <span class="kw">as </span>f32;
+                <span class="kw">let </span>second_pad = second_pad <span class="kw">as </span>f32;
+                <span class="kw">let </span><span class="kw-2">mut </span>line_width = space - first_pad - second_pad;
+                <span class="kw">if </span>line_width &lt; <span class="number">0.0 </span>{
+                    line_width = <span class="number">0.0</span>;
                 }
 
-                (<span class="ident">first_pad</span>, <span class="ident">line_width</span>)
+                (first_pad, line_width)
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_style" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_style" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

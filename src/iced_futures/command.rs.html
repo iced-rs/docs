@@ -69,74 +69,74 @@
 <span id="67">67</span>
 <span id="68">68</span>
 <span id="69">69</span>
-</pre><pre class="rust"><code><span class="doccomment">/// A set of asynchronous actions to be performed by some runtime.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">Internal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+</pre><pre class="rust"><code><span class="doccomment">/// A set of asynchronous actions to be performed by some runtime.
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Command&lt;T&gt;(Internal&lt;T&gt;);
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Internal</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">enum </span>Internal&lt;T&gt; {
     <span class="prelude-val">None</span>,
-    <span class="ident">Single</span>(<span class="ident">T</span>),
-    <span class="ident">Batch</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+    Single(T),
+    Batch(Vec&lt;T&gt;),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates an empty [`Command`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In other words, a [`Command`] that does nothing.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">Internal::None</span>)
+<span class="kw">impl</span>&lt;T&gt; Command&lt;T&gt; {
+    <span class="doccomment">/// Creates an empty [`Command`].
+    ///
+    /// In other words, a [`Command`] that does nothing.
+    </span><span class="kw">pub const fn </span>none() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(Internal::None)
     }
 
-    <span class="doccomment">/// Creates a [`Command`] that performs a single action.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">single</span>(<span class="ident">action</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">Internal::Single</span>(<span class="ident">action</span>))
+    <span class="doccomment">/// Creates a [`Command`] that performs a single action.
+    </span><span class="kw">pub const fn </span>single(action: T) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(Internal::Single(action))
     }
 
-    <span class="doccomment">/// Creates a [`Command`] that performs the actions of all the given</span>
-    <span class="doccomment">/// commands.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Once this command is run, all the commands will be executed at once.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">batch</span>(<span class="ident">commands</span>: <span class="kw">impl</span> <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">batch</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="doccomment">/// Creates a [`Command`] that performs the actions of all the given
+    /// commands.
+    ///
+    /// Once this command is run, all the commands will be executed at once.
+    </span><span class="kw">pub fn </span>batch(commands: <span class="kw">impl </span>IntoIterator&lt;Item = Command&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>batch = Vec::new();
 
-        <span class="kw">for</span> <span class="ident">Command</span>(<span class="ident">command</span>) <span class="kw">in</span> <span class="ident">commands</span> {
-            <span class="kw">match</span> <span class="ident">command</span> {
-                <span class="ident">Internal::None</span> =&gt; {}
-                <span class="ident">Internal::Single</span>(<span class="ident">command</span>) =&gt; <span class="ident">batch</span>.<span class="ident">push</span>(<span class="ident">command</span>),
-                <span class="ident">Internal::Batch</span>(<span class="ident">commands</span>) =&gt; <span class="ident">batch</span>.<span class="ident">extend</span>(<span class="ident">commands</span>),
+        <span class="kw">for </span>Command(command) <span class="kw">in </span>commands {
+            <span class="kw">match </span>command {
+                Internal::None =&gt; {}
+                Internal::Single(command) =&gt; batch.push(command),
+                Internal::Batch(commands) =&gt; batch.extend(commands),
             }
         }
 
-        <span class="self">Self</span>(<span class="ident">Internal::Batch</span>(<span class="ident">batch</span>))
+        <span class="self">Self</span>(Internal::Batch(batch))
     }
 
-    <span class="doccomment">/// Applies a transformation to the result of a [`Command`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">T</span>) -&gt; <span class="ident">A</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="lifetime">&#39;static</span>,
+    <span class="doccomment">/// Applies a transformation to the result of a [`Command`].
+    </span><span class="kw">pub fn </span>map&lt;A&gt;(<span class="self">self</span>, f: <span class="kw">impl </span>Fn(T) -&gt; A) -&gt; Command&lt;A&gt;
+    <span class="kw">where
+        </span>T: <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> <span class="ident">Command</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="self">self</span>;
+        <span class="kw">let </span>Command(command) = <span class="self">self</span>;
 
-        <span class="kw">match</span> <span class="ident">command</span> {
-            <span class="ident">Internal::None</span> =&gt; <span class="ident">Command::none</span>(),
-            <span class="ident">Internal::Single</span>(<span class="ident">action</span>) =&gt; <span class="ident">Command::single</span>(<span class="ident">f</span>(<span class="ident">action</span>)),
-            <span class="ident">Internal::Batch</span>(<span class="ident">batch</span>) =&gt; {
-                <span class="ident">Command</span>(<span class="ident">Internal::Batch</span>(<span class="ident">batch</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">f</span>).<span class="ident">collect</span>()))
+        <span class="kw">match </span>command {
+            Internal::None =&gt; Command::none(),
+            Internal::Single(action) =&gt; Command::single(f(action)),
+            Internal::Batch(batch) =&gt; {
+                Command(Internal::Batch(batch.into_iter().map(f).collect()))
             }
         }
     }
 
-    <span class="doccomment">/// Returns all of the actions of the [`Command`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">actions</span>(<span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">Command</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="self">self</span>;
+    <span class="doccomment">/// Returns all of the actions of the [`Command`].
+    </span><span class="kw">pub fn </span>actions(<span class="self">self</span>) -&gt; Vec&lt;T&gt; {
+        <span class="kw">let </span>Command(command) = <span class="self">self</span>;
 
-        <span class="kw">match</span> <span class="ident">command</span> {
-            <span class="ident">Internal::None</span> =&gt; <span class="ident">Vec::new</span>(),
-            <span class="ident">Internal::Single</span>(<span class="ident">action</span>) =&gt; <span class="macro">vec!</span>[<span class="ident">action</span>],
-            <span class="ident">Internal::Batch</span>(<span class="ident">batch</span>) =&gt; <span class="ident">batch</span>,
+        <span class="kw">match </span>command {
+            Internal::None =&gt; Vec::new(),
+            Internal::Single(action) =&gt; <span class="macro">vec!</span>[action],
+            Internal::Batch(batch) =&gt; batch,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_futures" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_futures" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

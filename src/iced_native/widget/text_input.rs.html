@@ -1100,1105 +1100,1105 @@
 <span id="1098">1098</span>
 <span id="1099">1099</span>
 <span id="1100">1100</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! A [`TextInput`] has some local [`State`].</span>
-<span class="kw">mod</span> <span class="ident">editor</span>;
-<span class="kw">mod</span> <span class="ident">value</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
+//!
+//! A [`TextInput`] has some local [`State`].
+</span><span class="kw">mod </span>editor;
+<span class="kw">mod </span>value;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">cursor</span>;
+<span class="kw">pub mod </span>cursor;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cursor::Cursor</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">value::Value</span>;
+<span class="kw">pub use </span>cursor::Cursor;
+<span class="kw">pub use </span>value::Value;
 
-<span class="kw">use</span> <span class="ident">editor::Editor</span>;
+<span class="kw">use </span>editor::Editor;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alignment</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>::{<span class="self">self</span>, <span class="ident">Event</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::keyboard</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>::{<span class="self">self</span>, <span class="ident">click</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::text</span>::{<span class="self">self</span>, <span class="ident">Text</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::touch</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::operation</span>::{<span class="self">self</span>, <span class="ident">Operation</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::tree</span>::{<span class="self">self</span>, <span class="ident">Tree</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">Clipboard</span>, <span class="ident">Color</span>, <span class="ident">Command</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Padding</span>, <span class="ident">Point</span>,
-    <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>, <span class="ident">Widget</span>,
+<span class="kw">use </span><span class="kw">crate</span>::alignment;
+<span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
+<span class="kw">use </span><span class="kw">crate</span>::keyboard;
+<span class="kw">use </span><span class="kw">crate</span>::layout;
+<span class="kw">use </span><span class="kw">crate</span>::mouse::{<span class="self">self</span>, click};
+<span class="kw">use </span><span class="kw">crate</span>::renderer;
+<span class="kw">use </span><span class="kw">crate</span>::text::{<span class="self">self</span>, Text};
+<span class="kw">use </span><span class="kw">crate</span>::touch;
+<span class="kw">use </span><span class="kw">crate</span>::widget;
+<span class="kw">use </span><span class="kw">crate</span>::widget::operation::{<span class="self">self</span>, Operation};
+<span class="kw">use </span><span class="kw">crate</span>::widget::tree::{<span class="self">self</span>, Tree};
+<span class="kw">use crate</span>::{
+    Clipboard, Color, Command, Element, Layout, Length, Padding, Point,
+    Rectangle, Shell, Size, Vector, Widget,
 };
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_style::text_input</span>::{<span class="ident">Appearance</span>, <span class="ident">StyleSheet</span>};
+<span class="kw">pub use </span>iced_style::text_input::{Appearance, StyleSheet};
 
-<span class="doccomment">/// A field that can be filled with text.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # pub type TextInput&lt;&#39;a, Message&gt; = iced_native::widget::TextInput&lt;&#39;a, Message, iced_native::renderer::Null&gt;;</span>
-<span class="doccomment">/// #[derive(Debug, Clone)]</span>
-<span class="doccomment">/// enum Message {</span>
-<span class="doccomment">///     TextInputChanged(String),</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let value = &quot;Some text&quot;;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let input = TextInput::new(</span>
-<span class="doccomment">///     &quot;This is the placeholder...&quot;,</span>
-<span class="doccomment">///     value,</span>
-<span class="doccomment">///     Message::TextInputChanged,</span>
-<span class="doccomment">/// )</span>
-<span class="doccomment">/// .padding(10);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// ![Text input drawn by `iced_wgpu`](https://github.com/iced-rs/iced/blob/7760618fb112074bc40b148944521f312152012a/docs/images/text_input.png?raw=true)</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TextInput</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="doccomment">/// A field that can be filled with text.
+///
+/// # Example
+/// ```
+/// # pub type TextInput&lt;&#39;a, Message&gt; = iced_native::widget::TextInput&lt;&#39;a, Message, iced_native::renderer::Null&gt;;
+/// #[derive(Debug, Clone)]
+/// enum Message {
+///     TextInputChanged(String),
+/// }
+///
+/// let value = &quot;Some text&quot;;
+///
+/// let input = TextInput::new(
+///     &quot;This is the placeholder...&quot;,
+///     value,
+///     Message::TextInputChanged,
+/// )
+/// .padding(10);
+/// ```
+/// ![Text input drawn by `iced_wgpu`](https://github.com/iced-rs/iced/blob/7760618fb112074bc40b148944521f312152012a/docs/images/text_input.png?raw=true)
+</span><span class="attribute">#[allow(missing_debug_implementations)]</span>
+<span class="kw">pub struct </span>TextInput&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: text::Renderer,
+    Renderer::Theme: StyleSheet,
 {
-    <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Id</span><span class="op">&gt;</span>,
-    <span class="ident">placeholder</span>: <span class="ident">String</span>,
-    <span class="ident">value</span>: <span class="ident">Value</span>,
-    <span class="ident">is_secure</span>: <span class="ident">bool</span>,
-    <span class="ident">font</span>: <span class="ident">Renderer::Font</span>,
-    <span class="ident">width</span>: <span class="ident">Length</span>,
-    <span class="ident">padding</span>: <span class="ident">Padding</span>,
-    <span class="ident">size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-    <span class="ident">on_change</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">String</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">on_paste</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">String</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">on_submit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
-    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
+    id: <span class="prelude-ty">Option</span>&lt;Id&gt;,
+    placeholder: String,
+    value: Value,
+    is_secure: bool,
+    font: Renderer::Font,
+    width: Length,
+    padding: Padding,
+    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    on_change: Box&lt;<span class="kw">dyn </span>Fn(String) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;,
+    on_paste: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(String) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
+    on_submit: <span class="prelude-ty">Option</span>&lt;Message&gt;,
+    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">TextInput</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="ident">Clone</span>,
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; TextInput&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Message: Clone,
+    Renderer: text::Renderer,
+    Renderer::Theme: StyleSheet,
 {
-    <span class="doccomment">/// Creates a new [`TextInput`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It expects:</span>
-    <span class="doccomment">/// - a placeholder,</span>
-    <span class="doccomment">/// - the current value, and</span>
-    <span class="doccomment">/// - a function that produces a message when the [`TextInput`] changes.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">placeholder</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">on_change</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">String</span>) -&gt; <span class="ident">Message</span>,
+    <span class="doccomment">/// Creates a new [`TextInput`].
+    ///
+    /// It expects:
+    /// - a placeholder,
+    /// - the current value, and
+    /// - a function that produces a message when the [`TextInput`] changes.
+    </span><span class="kw">pub fn </span>new&lt;F&gt;(placeholder: <span class="kw-2">&amp;</span>str, value: <span class="kw-2">&amp;</span>str, on_change: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: <span class="lifetime">&#39;a </span>+ Fn(String) -&gt; Message,
     {
-        <span class="ident">TextInput</span> {
-            <span class="ident">id</span>: <span class="prelude-val">None</span>,
-            <span class="ident">placeholder</span>: <span class="ident">String::from</span>(<span class="ident">placeholder</span>),
-            <span class="ident">value</span>: <span class="ident">Value::new</span>(<span class="ident">value</span>),
-            <span class="ident">is_secure</span>: <span class="bool-val">false</span>,
-            <span class="ident">font</span>: <span class="ident">Default::default</span>(),
-            <span class="ident">width</span>: <span class="ident">Length::Fill</span>,
-            <span class="ident">padding</span>: <span class="ident">Padding::ZERO</span>,
-            <span class="ident">size</span>: <span class="prelude-val">None</span>,
-            <span class="ident">on_change</span>: <span class="ident">Box::new</span>(<span class="ident">on_change</span>),
-            <span class="ident">on_paste</span>: <span class="prelude-val">None</span>,
-            <span class="ident">on_submit</span>: <span class="prelude-val">None</span>,
-            <span class="ident">style</span>: <span class="ident">Default::default</span>(),
+        TextInput {
+            id: <span class="prelude-val">None</span>,
+            placeholder: String::from(placeholder),
+            value: Value::new(value),
+            is_secure: <span class="bool-val">false</span>,
+            font: Default::default(),
+            width: Length::Fill,
+            padding: Padding::ZERO,
+            size: <span class="prelude-val">None</span>,
+            on_change: Box::new(on_change),
+            on_paste: <span class="prelude-val">None</span>,
+            on_submit: <span class="prelude-val">None</span>,
+            style: Default::default(),
         }
     }
 
-    <span class="doccomment">/// Sets the [`Id`] of the [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">Id</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">id</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the [`Id`] of the [`TextInput`].
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">mut </span><span class="self">self</span>, id: Id) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.id = <span class="prelude-val">Some</span>(id);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Converts the [`TextInput`] into a secure password input.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">password</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">is_secure</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Converts the [`TextInput`] into a secure password input.
+    </span><span class="kw">pub fn </span>password(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.is_secure = <span class="bool-val">true</span>;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the message that should be produced when some text is pasted into</span>
-    <span class="doccomment">/// the [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on_paste</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">on_paste</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">String</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">on_paste</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">on_paste</span>));
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the message that should be produced when some text is pasted into
+    /// the [`TextInput`].
+    </span><span class="kw">pub fn </span>on_paste(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        on_paste: <span class="kw">impl </span>Fn(String) -&gt; Message + <span class="lifetime">&#39;a</span>,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.on_paste = <span class="prelude-val">Some</span>(Box::new(on_paste));
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the [`Font`] of the [`TextInput`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Font`]: text::Renderer::Font</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">font</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">font</span>: <span class="ident">Renderer::Font</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">font</span> <span class="op">=</span> <span class="ident">font</span>;
-        <span class="self">self</span>
-    }
-    <span class="doccomment">/// Sets the width of the [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">width</span>: <span class="ident">Length</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">width</span> <span class="op">=</span> <span class="ident">width</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the [`Font`] of the [`TextInput`].
+    ///
+    /// [`Font`]: text::Renderer::Font
+    </span><span class="kw">pub fn </span>font(<span class="kw-2">mut </span><span class="self">self</span>, font: Renderer::Font) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.font = font;
+        <span class="self">self
+    </span>}
+    <span class="doccomment">/// Sets the width of the [`TextInput`].
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the [`Padding`] of the [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">padding</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Padding</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">padding</span>: <span class="ident">P</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">padding</span> <span class="op">=</span> <span class="ident">padding</span>.<span class="ident">into</span>();
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the [`Padding`] of the [`TextInput`].
+    </span><span class="kw">pub fn </span>padding&lt;P: Into&lt;Padding&gt;&gt;(<span class="kw-2">mut </span><span class="self">self</span>, padding: P) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.padding = padding.into();
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the text size of the [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">size</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">size</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the text size of the [`TextInput`].
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: u16) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.size = <span class="prelude-val">Some</span>(size);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the message that should be produced when the [`TextInput`] is</span>
-    <span class="doccomment">/// focused and the enter key is pressed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on_submit</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">Message</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">on_submit</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">message</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the message that should be produced when the [`TextInput`] is
+    /// focused and the enter key is pressed.
+    </span><span class="kw">pub fn </span>on_submit(<span class="kw-2">mut </span><span class="self">self</span>, message: Message) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.on_submit = <span class="prelude-val">Some</span>(message);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the style of the [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">style</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>.<span class="ident">into</span>();
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the style of the [`TextInput`].
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = style.into();
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Draws the [`TextInput`] with the given [`Renderer`], overriding its</span>
-    <span class="doccomment">/// [`text_input::Value`] if provided.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Renderer`]: text::Renderer</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="doccomment">/// Draws the [`TextInput`] with the given [`Renderer`], overriding its
+    /// [`text_input::Value`] if provided.
+    ///
+    /// [`Renderer`]: text::Renderer
+    </span><span class="kw">pub fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Value</span><span class="op">&gt;</span>,
+        tree: <span class="kw-2">&amp;</span>Tree,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Value&gt;,
     ) {
-        <span class="ident">draw</span>(
-            <span class="ident">renderer</span>,
-            <span class="ident">theme</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>(),
-            <span class="ident">value</span>.<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">value</span>),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">placeholder</span>,
-            <span class="self">self</span>.<span class="ident">size</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">font</span>,
-            <span class="self">self</span>.<span class="ident">is_secure</span>,
-            <span class="self">self</span>.<span class="ident">style</span>,
+        draw(
+            renderer,
+            theme,
+            layout,
+            cursor_position,
+            tree.state.downcast_ref::&lt;State&gt;(),
+            value.unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.placeholder,
+            <span class="self">self</span>.size,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.font,
+            <span class="self">self</span>.is_secure,
+            <span class="self">self</span>.style,
         )
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">TextInput</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="ident">Clone</span>,
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Widget&lt;Message, Renderer&gt;
+    <span class="kw">for </span>TextInput&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Message: Clone,
+    Renderer: text::Renderer,
+    Renderer::Theme: StyleSheet,
 {
-    <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::Tag</span> {
-        <span class="ident">tree::Tag::of</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>()
+    <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
+        tree::Tag::of::&lt;State&gt;()
     }
 
-    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::State</span> {
-        <span class="ident">tree::State::new</span>(<span class="ident">State::new</span>())
+    <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
+        tree::State::new(State::new())
     }
 
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">width</span>
+    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.width
     }
 
-    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="ident">Length::Shrink</span>
+    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        Length::Shrink
     }
 
-    <span class="kw">fn</span> <span class="ident">layout</span>(
+    <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">limits</span>, <span class="self">self</span>.<span class="ident">width</span>, <span class="self">self</span>.<span class="ident">padding</span>, <span class="self">self</span>.<span class="ident">size</span>)
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        limits: <span class="kw-2">&amp;</span>layout::Limits,
+    ) -&gt; layout::Node {
+        layout(renderer, limits, <span class="self">self</span>.width, <span class="self">self</span>.padding, <span class="self">self</span>.size)
     }
 
-    <span class="kw">fn</span> <span class="ident">operate</span>(
+    <span class="kw">fn </span>operate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
-        <span class="ident">_layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">operation</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
+        _layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        operation: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Operation&lt;Message&gt;,
     ) {
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>();
+        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&gt;();
 
-        <span class="ident">operation</span>.<span class="ident">focusable</span>(<span class="ident">state</span>, <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">id</span>.<span class="number">0</span>));
+        operation.focusable(state, <span class="self">self</span>.id.as_ref().map(|id| <span class="kw-2">&amp;</span>id.<span class="number">0</span>));
     }
 
-    <span class="kw">fn</span> <span class="ident">on_event</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
-        <span class="ident">event</span>: <span class="ident">Event</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">event::Status</span> {
-        <span class="ident">update</span>(
-            <span class="ident">event</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">renderer</span>,
-            <span class="ident">clipboard</span>,
-            <span class="ident">shell</span>,
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">value</span>,
-            <span class="self">self</span>.<span class="ident">size</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">font</span>,
-            <span class="self">self</span>.<span class="ident">is_secure</span>,
-            <span class="self">self</span>.<span class="ident">on_change</span>.<span class="ident">as_ref</span>(),
-            <span class="self">self</span>.<span class="ident">on_paste</span>.<span class="ident">as_deref</span>(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">on_submit</span>,
-            <span class="op">|</span><span class="op">|</span> <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>(),
+    <span class="kw">fn </span>on_event(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
+        event: Event,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
+    ) -&gt; event::Status {
+        update(
+            event,
+            layout,
+            cursor_position,
+            renderer,
+            clipboard,
+            shell,
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.value,
+            <span class="self">self</span>.size,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.font,
+            <span class="self">self</span>.is_secure,
+            <span class="self">self</span>.on_change.as_ref(),
+            <span class="self">self</span>.on_paste.as_deref(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.on_submit,
+            || tree.state.downcast_mut::&lt;State&gt;(),
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        tree: <span class="kw-2">&amp;</span>Tree,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        _style: <span class="kw-2">&amp;</span>renderer::Style,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="ident">draw</span>(
-            <span class="ident">renderer</span>,
-            <span class="ident">theme</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">value</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">placeholder</span>,
-            <span class="self">self</span>.<span class="ident">size</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">font</span>,
-            <span class="self">self</span>.<span class="ident">is_secure</span>,
-            <span class="self">self</span>.<span class="ident">style</span>,
+        draw(
+            renderer,
+            theme,
+            layout,
+            cursor_position,
+            tree.state.downcast_ref::&lt;State&gt;(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.value,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.placeholder,
+            <span class="self">self</span>.size,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.font,
+            <span class="self">self</span>.is_secure,
+            <span class="self">self</span>.style,
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
+    <span class="kw">fn </span>mouse_interaction(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="ident">mouse_interaction</span>(<span class="ident">layout</span>, <span class="ident">cursor_position</span>)
+        _state: <span class="kw-2">&amp;</span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        _viewport: <span class="kw-2">&amp;</span>Rectangle,
+        _renderer: <span class="kw-2">&amp;</span>Renderer,
+    ) -&gt; mouse::Interaction {
+        mouse_interaction(layout, cursor_position)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TextInput</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Clone</span>,
-    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; From&lt;TextInput&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Message: <span class="lifetime">&#39;a </span>+ Clone,
+    Renderer: <span class="lifetime">&#39;a </span>+ text::Renderer,
+    Renderer::Theme: StyleSheet,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(
-        <span class="ident">text_input</span>: <span class="ident">TextInput</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="ident">Element::new</span>(<span class="ident">text_input</span>)
+    <span class="kw">fn </span>from(
+        text_input: TextInput&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
+    ) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
+        Element::new(text_input)
     }
 }
 
-<span class="doccomment">/// The identifier of a [`TextInput`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Id</span>(<span class="ident">widget::Id</span>);
+<span class="doccomment">/// The identifier of a [`TextInput`].
+</span><span class="attribute">#[derive(Debug, Clone, PartialEq, Eq, Hash)]</span>
+<span class="kw">pub struct </span>Id(widget::Id);
 
-<span class="kw">impl</span> <span class="ident">Id</span> {
-    <span class="doccomment">/// Creates a custom [`Id`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">std::borrow::Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">widget::Id::new</span>(<span class="ident">id</span>))
+<span class="kw">impl </span>Id {
+    <span class="doccomment">/// Creates a custom [`Id`].
+    </span><span class="kw">pub fn </span>new(id: <span class="kw">impl </span>Into&lt;std::borrow::Cow&lt;<span class="lifetime">&#39;static</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(widget::Id::new(id))
     }
 
-    <span class="doccomment">/// Creates a unique [`Id`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function produces a different [`Id`] every time it is called.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unique</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">widget::Id::unique</span>())
+    <span class="doccomment">/// Creates a unique [`Id`].
+    ///
+    /// This function produces a different [`Id`] every time it is called.
+    </span><span class="kw">pub fn </span>unique() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(widget::Id::unique())
     }
 }
 
-<span class="doccomment">/// Produces a [`Command`] that focuses the [`TextInput`] with the given [`Id`].</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">focus</span><span class="op">&lt;</span><span class="ident">Message</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">id</span>: <span class="ident">Id</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span> {
-    <span class="ident">Command::widget</span>(<span class="ident">operation::focusable::focus</span>(<span class="ident">id</span>.<span class="number">0</span>))
+<span class="doccomment">/// Produces a [`Command`] that focuses the [`TextInput`] with the given [`Id`].
+</span><span class="kw">pub fn </span>focus&lt;Message: <span class="lifetime">&#39;static</span>&gt;(id: Id) -&gt; Command&lt;Message&gt; {
+    Command::widget(operation::focusable::focus(id.<span class="number">0</span>))
 }
 
-<span class="doccomment">/// Computes the layout of a [`TextInput`].</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">layout</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>(
-    <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    <span class="ident">width</span>: <span class="ident">Length</span>,
-    <span class="ident">padding</span>: <span class="ident">Padding</span>,
-    <span class="ident">size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">layout::Node</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
+<span class="doccomment">/// Computes the layout of a [`TextInput`].
+</span><span class="kw">pub fn </span>layout&lt;Renderer&gt;(
+    renderer: <span class="kw-2">&amp;</span>Renderer,
+    limits: <span class="kw-2">&amp;</span>layout::Limits,
+    width: Length,
+    padding: Padding,
+    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+) -&gt; layout::Node
+<span class="kw">where
+    </span>Renderer: text::Renderer,
 {
-    <span class="kw">let</span> <span class="ident">text_size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">renderer</span>.<span class="ident">default_size</span>());
+    <span class="kw">let </span>text_size = size.unwrap_or_else(|| renderer.default_size());
 
-    <span class="kw">let</span> <span class="ident">limits</span> <span class="op">=</span> <span class="ident">limits</span>
-        .<span class="ident">pad</span>(<span class="ident">padding</span>)
-        .<span class="ident">width</span>(<span class="ident">width</span>)
-        .<span class="ident">height</span>(<span class="ident">Length::Units</span>(<span class="ident">text_size</span>));
+    <span class="kw">let </span>limits = limits
+        .pad(padding)
+        .width(width)
+        .height(Length::Units(text_size));
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">layout::Node::new</span>(<span class="ident">limits</span>.<span class="ident">resolve</span>(<span class="ident">Size::ZERO</span>));
-    <span class="ident">text</span>.<span class="ident">move_to</span>(<span class="ident">Point::new</span>(<span class="ident">padding</span>.<span class="ident">left</span>.<span class="ident">into</span>(), <span class="ident">padding</span>.<span class="ident">top</span>.<span class="ident">into</span>()));
+    <span class="kw">let </span><span class="kw-2">mut </span>text = layout::Node::new(limits.resolve(Size::ZERO));
+    text.move_to(Point::new(padding.left.into(), padding.top.into()));
 
-    <span class="ident">layout::Node::with_children</span>(<span class="ident">text</span>.<span class="ident">size</span>().<span class="ident">pad</span>(<span class="ident">padding</span>), <span class="macro">vec!</span>[<span class="ident">text</span>])
+    layout::Node::with_children(text.size().pad(padding), <span class="macro">vec!</span>[text])
 }
 
-<span class="doccomment">/// Processes an [`Event`] and updates the [`State`] of a [`TextInput`]</span>
-<span class="doccomment">/// accordingly.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>(
-    <span class="ident">event</span>: <span class="ident">Event</span>,
-    <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-    <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-    <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-    <span class="ident">value</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Value</span>,
-    <span class="ident">size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-    <span class="ident">font</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Font</span>,
-    <span class="ident">is_secure</span>: <span class="ident">bool</span>,
-    <span class="ident">on_change</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">String</span>) -&gt; <span class="ident">Message</span>,
-    <span class="ident">on_paste</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">String</span>) -&gt; <span class="ident">Message</span><span class="op">&gt;</span>,
-    <span class="ident">on_submit</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
-    <span class="ident">state</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">State</span>,
-) -&gt; <span class="ident">event::Status</span>
-<span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="ident">Clone</span>,
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
+<span class="doccomment">/// Processes an [`Event`] and updates the [`State`] of a [`TextInput`]
+/// accordingly.
+</span><span class="kw">pub fn </span>update&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;(
+    event: Event,
+    layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+    cursor_position: Point,
+    renderer: <span class="kw-2">&amp;</span>Renderer,
+    clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+    shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
+    value: <span class="kw-2">&amp;mut </span>Value,
+    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    font: <span class="kw-2">&amp;</span>Renderer::Font,
+    is_secure: bool,
+    on_change: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(String) -&gt; Message,
+    on_paste: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(String) -&gt; Message&gt;,
+    on_submit: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Message&gt;,
+    state: <span class="kw">impl </span>FnOnce() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>State,
+) -&gt; event::Status
+<span class="kw">where
+    </span>Message: Clone,
+    Renderer: text::Renderer,
 {
-    <span class="kw">match</span> <span class="ident">event</span> {
-        <span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::ButtonPressed</span>(<span class="ident">mouse::Button::Left</span>))
-        <span class="op">|</span> <span class="ident">Event::Touch</span>(<span class="ident">touch::Event::FingerPressed</span> { .. }) =&gt; {
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">state</span>();
-            <span class="kw">let</span> <span class="ident">is_clicked</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>().<span class="ident">contains</span>(<span class="ident">cursor_position</span>);
+    <span class="kw">match </span>event {
+        Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
+        | Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
+            <span class="kw">let </span>state = state();
+            <span class="kw">let </span>is_clicked = layout.bounds().contains(cursor_position);
 
-            <span class="ident">state</span>.<span class="ident">is_focused</span> <span class="op">=</span> <span class="ident">is_clicked</span>;
+            state.is_focused = is_clicked;
 
-            <span class="kw">if</span> <span class="ident">is_clicked</span> {
-                <span class="kw">let</span> <span class="ident">text_layout</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">cursor_position</span>.<span class="ident">x</span> <span class="op">-</span> <span class="ident">text_layout</span>.<span class="ident">bounds</span>().<span class="ident">x</span>;
+            <span class="kw">if </span>is_clicked {
+                <span class="kw">let </span>text_layout = layout.children().next().unwrap();
+                <span class="kw">let </span>target = cursor_position.x - text_layout.bounds().x;
 
-                <span class="kw">let</span> <span class="ident">click</span> <span class="op">=</span>
-                    <span class="ident">mouse::Click::new</span>(<span class="ident">cursor_position</span>, <span class="ident">state</span>.<span class="ident">last_click</span>);
+                <span class="kw">let </span>click =
+                    mouse::Click::new(cursor_position, state.last_click);
 
-                <span class="kw">match</span> <span class="ident">click</span>.<span class="ident">kind</span>() {
-                    <span class="ident">click::Kind::Single</span> =&gt; {
-                        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">target</span> <span class="op">&gt;</span> <span class="number">0.0</span> {
-                            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_secure</span> {
-                                <span class="ident">value</span>.<span class="ident">secure</span>()
-                            } <span class="kw">else</span> {
-                                <span class="ident">value</span>.<span class="ident">clone</span>()
+                <span class="kw">match </span>click.kind() {
+                    click::Kind::Single =&gt; {
+                        <span class="kw">let </span>position = <span class="kw">if </span>target &gt; <span class="number">0.0 </span>{
+                            <span class="kw">let </span>value = <span class="kw">if </span>is_secure {
+                                value.secure()
+                            } <span class="kw">else </span>{
+                                value.clone()
                             };
 
-                            <span class="ident">find_cursor_position</span>(
-                                <span class="ident">renderer</span>,
-                                <span class="ident">text_layout</span>.<span class="ident">bounds</span>(),
-                                <span class="ident">font</span>.<span class="ident">clone</span>(),
-                                <span class="ident">size</span>,
-                                <span class="kw-2">&amp;</span><span class="ident">value</span>,
-                                <span class="ident">state</span>,
-                                <span class="ident">target</span>,
+                            find_cursor_position(
+                                renderer,
+                                text_layout.bounds(),
+                                font.clone(),
+                                size,
+                                <span class="kw-2">&amp;</span>value,
+                                state,
+                                target,
                             )
-                        } <span class="kw">else</span> {
-                            <span class="prelude-val">None</span>
-                        };
+                        } <span class="kw">else </span>{
+                            <span class="prelude-val">None
+                        </span>};
 
-                        <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">move_to</span>(<span class="ident">position</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>));
-                        <span class="ident">state</span>.<span class="ident">is_dragging</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                        state.cursor.move_to(position.unwrap_or(<span class="number">0</span>));
+                        state.is_dragging = <span class="bool-val">true</span>;
                     }
-                    <span class="ident">click::Kind::Double</span> =&gt; {
-                        <span class="kw">if</span> <span class="ident">is_secure</span> {
-                            <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_all</span>(<span class="ident">value</span>);
-                        } <span class="kw">else</span> {
-                            <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">find_cursor_position</span>(
-                                <span class="ident">renderer</span>,
-                                <span class="ident">text_layout</span>.<span class="ident">bounds</span>(),
-                                <span class="ident">font</span>.<span class="ident">clone</span>(),
-                                <span class="ident">size</span>,
-                                <span class="ident">value</span>,
-                                <span class="ident">state</span>,
-                                <span class="ident">target</span>,
+                    click::Kind::Double =&gt; {
+                        <span class="kw">if </span>is_secure {
+                            state.cursor.select_all(value);
+                        } <span class="kw">else </span>{
+                            <span class="kw">let </span>position = find_cursor_position(
+                                renderer,
+                                text_layout.bounds(),
+                                font.clone(),
+                                size,
+                                value,
+                                state,
+                                target,
                             )
-                            .<span class="ident">unwrap_or</span>(<span class="number">0</span>);
+                            .unwrap_or(<span class="number">0</span>);
 
-                            <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_range</span>(
-                                <span class="ident">value</span>.<span class="ident">previous_start_of_word</span>(<span class="ident">position</span>),
-                                <span class="ident">value</span>.<span class="ident">next_end_of_word</span>(<span class="ident">position</span>),
+                            state.cursor.select_range(
+                                value.previous_start_of_word(position),
+                                value.next_end_of_word(position),
                             );
                         }
 
-                        <span class="ident">state</span>.<span class="ident">is_dragging</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                        state.is_dragging = <span class="bool-val">false</span>;
                     }
-                    <span class="ident">click::Kind::Triple</span> =&gt; {
-                        <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_all</span>(<span class="ident">value</span>);
-                        <span class="ident">state</span>.<span class="ident">is_dragging</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                    click::Kind::Triple =&gt; {
+                        state.cursor.select_all(value);
+                        state.is_dragging = <span class="bool-val">false</span>;
                     }
                 }
 
-                <span class="ident">state</span>.<span class="ident">last_click</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">click</span>);
+                state.last_click = <span class="prelude-val">Some</span>(click);
 
-                <span class="kw">return</span> <span class="ident">event::Status::Captured</span>;
+                <span class="kw">return </span>event::Status::Captured;
             }
         }
-        <span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::ButtonReleased</span>(<span class="ident">mouse::Button::Left</span>))
-        <span class="op">|</span> <span class="ident">Event::Touch</span>(<span class="ident">touch::Event::FingerLifted</span> { .. })
-        <span class="op">|</span> <span class="ident">Event::Touch</span>(<span class="ident">touch::Event::FingerLost</span> { .. }) =&gt; {
-            <span class="ident">state</span>().<span class="ident">is_dragging</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left))
+        | Event::Touch(touch::Event::FingerLifted { .. })
+        | Event::Touch(touch::Event::FingerLost { .. }) =&gt; {
+            state().is_dragging = <span class="bool-val">false</span>;
         }
-        <span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::CursorMoved</span> { <span class="ident">position</span> })
-        <span class="op">|</span> <span class="ident">Event::Touch</span>(<span class="ident">touch::Event::FingerMoved</span> { <span class="ident">position</span>, .. }) =&gt; {
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">state</span>();
+        Event::Mouse(mouse::Event::CursorMoved { position })
+        | Event::Touch(touch::Event::FingerMoved { position, .. }) =&gt; {
+            <span class="kw">let </span>state = state();
 
-            <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_dragging</span> {
-                <span class="kw">let</span> <span class="ident">text_layout</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
-                <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">position</span>.<span class="ident">x</span> <span class="op">-</span> <span class="ident">text_layout</span>.<span class="ident">bounds</span>().<span class="ident">x</span>;
+            <span class="kw">if </span>state.is_dragging {
+                <span class="kw">let </span>text_layout = layout.children().next().unwrap();
+                <span class="kw">let </span>target = position.x - text_layout.bounds().x;
 
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_secure</span> {
-                    <span class="ident">value</span>.<span class="ident">secure</span>()
-                } <span class="kw">else</span> {
-                    <span class="ident">value</span>.<span class="ident">clone</span>()
+                <span class="kw">let </span>value = <span class="kw">if </span>is_secure {
+                    value.secure()
+                } <span class="kw">else </span>{
+                    value.clone()
                 };
 
-                <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">find_cursor_position</span>(
-                    <span class="ident">renderer</span>,
-                    <span class="ident">text_layout</span>.<span class="ident">bounds</span>(),
-                    <span class="ident">font</span>.<span class="ident">clone</span>(),
-                    <span class="ident">size</span>,
-                    <span class="kw-2">&amp;</span><span class="ident">value</span>,
-                    <span class="ident">state</span>,
-                    <span class="ident">target</span>,
+                <span class="kw">let </span>position = find_cursor_position(
+                    renderer,
+                    text_layout.bounds(),
+                    font.clone(),
+                    size,
+                    <span class="kw-2">&amp;</span>value,
+                    state,
+                    target,
                 )
-                .<span class="ident">unwrap_or</span>(<span class="number">0</span>);
+                .unwrap_or(<span class="number">0</span>);
 
-                <span class="ident">state</span>
-                    .<span class="ident">cursor</span>
-                    .<span class="ident">select_range</span>(<span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>), <span class="ident">position</span>);
+                state
+                    .cursor
+                    .select_range(state.cursor.start(<span class="kw-2">&amp;</span>value), position);
 
-                <span class="kw">return</span> <span class="ident">event::Status::Captured</span>;
+                <span class="kw">return </span>event::Status::Captured;
             }
         }
-        <span class="ident">Event::Keyboard</span>(<span class="ident">keyboard::Event::CharacterReceived</span>(<span class="ident">c</span>)) =&gt; {
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">state</span>();
+        Event::Keyboard(keyboard::Event::CharacterReceived(c)) =&gt; {
+            <span class="kw">let </span>state = state();
 
-            <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_focused</span>
-                <span class="op">&amp;&amp;</span> <span class="ident">state</span>.<span class="ident">is_pasting</span>.<span class="ident">is_none</span>()
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">state</span>.<span class="ident">keyboard_modifiers</span>.<span class="ident">command</span>()
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_control</span>()
+            <span class="kw">if </span>state.is_focused
+                &amp;&amp; state.is_pasting.is_none()
+                &amp;&amp; !state.keyboard_modifiers.command()
+                &amp;&amp; !c.is_control()
             {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">editor</span> <span class="op">=</span> <span class="ident">Editor::new</span>(<span class="ident">value</span>, <span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">cursor</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
 
-                <span class="ident">editor</span>.<span class="ident">insert</span>(<span class="ident">c</span>);
+                editor.insert(c);
 
-                <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> (<span class="ident">on_change</span>)(<span class="ident">editor</span>.<span class="ident">contents</span>());
-                <span class="ident">shell</span>.<span class="ident">publish</span>(<span class="ident">message</span>);
+                <span class="kw">let </span>message = (on_change)(editor.contents());
+                shell.publish(message);
 
-                <span class="kw">return</span> <span class="ident">event::Status::Captured</span>;
+                <span class="kw">return </span>event::Status::Captured;
             }
         }
-        <span class="ident">Event::Keyboard</span>(<span class="ident">keyboard::Event::KeyPressed</span> { <span class="ident">key_code</span>, .. }) =&gt; {
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">state</span>();
+        Event::Keyboard(keyboard::Event::KeyPressed { key_code, .. }) =&gt; {
+            <span class="kw">let </span>state = state();
 
-            <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_focused</span> {
-                <span class="kw">let</span> <span class="ident">modifiers</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">keyboard_modifiers</span>;
+            <span class="kw">if </span>state.is_focused {
+                <span class="kw">let </span>modifiers = state.keyboard_modifiers;
 
-                <span class="kw">match</span> <span class="ident">key_code</span> {
-                    <span class="ident">keyboard::KeyCode::Enter</span>
-                    <span class="op">|</span> <span class="ident">keyboard::KeyCode::NumpadEnter</span> =&gt; {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">on_submit</span>) <span class="op">=</span> <span class="ident">on_submit</span>.<span class="ident">clone</span>() {
-                            <span class="ident">shell</span>.<span class="ident">publish</span>(<span class="ident">on_submit</span>);
+                <span class="kw">match </span>key_code {
+                    keyboard::KeyCode::Enter
+                    | keyboard::KeyCode::NumpadEnter =&gt; {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(on_submit) = on_submit.clone() {
+                            shell.publish(on_submit);
                         }
                     }
-                    <span class="ident">keyboard::KeyCode::Backspace</span> =&gt; {
-                        <span class="kw">if</span> <span class="ident">platform::is_jump_modifier_pressed</span>(<span class="ident">modifiers</span>)
-                            <span class="op">&amp;&amp;</span> <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">selection</span>(<span class="ident">value</span>).<span class="ident">is_none</span>()
+                    keyboard::KeyCode::Backspace =&gt; {
+                        <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
+                            &amp;&amp; state.cursor.selection(value).is_none()
                         {
-                            <span class="kw">if</span> <span class="ident">is_secure</span> {
-                                <span class="kw">let</span> <span class="ident">cursor_pos</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">end</span>(<span class="ident">value</span>);
-                                <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_range</span>(<span class="number">0</span>, <span class="ident">cursor_pos</span>);
-                            } <span class="kw">else</span> {
-                                <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_left_by_words</span>(<span class="ident">value</span>);
+                            <span class="kw">if </span>is_secure {
+                                <span class="kw">let </span>cursor_pos = state.cursor.end(value);
+                                state.cursor.select_range(<span class="number">0</span>, cursor_pos);
+                            } <span class="kw">else </span>{
+                                state.cursor.select_left_by_words(value);
                             }
                         }
 
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">editor</span> <span class="op">=</span> <span class="ident">Editor::new</span>(<span class="ident">value</span>, <span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">cursor</span>);
-                        <span class="ident">editor</span>.<span class="ident">backspace</span>();
+                        <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
+                        editor.backspace();
 
-                        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> (<span class="ident">on_change</span>)(<span class="ident">editor</span>.<span class="ident">contents</span>());
-                        <span class="ident">shell</span>.<span class="ident">publish</span>(<span class="ident">message</span>);
+                        <span class="kw">let </span>message = (on_change)(editor.contents());
+                        shell.publish(message);
                     }
-                    <span class="ident">keyboard::KeyCode::Delete</span> =&gt; {
-                        <span class="kw">if</span> <span class="ident">platform::is_jump_modifier_pressed</span>(<span class="ident">modifiers</span>)
-                            <span class="op">&amp;&amp;</span> <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">selection</span>(<span class="ident">value</span>).<span class="ident">is_none</span>()
+                    keyboard::KeyCode::Delete =&gt; {
+                        <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
+                            &amp;&amp; state.cursor.selection(value).is_none()
                         {
-                            <span class="kw">if</span> <span class="ident">is_secure</span> {
-                                <span class="kw">let</span> <span class="ident">cursor_pos</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">end</span>(<span class="ident">value</span>);
-                                <span class="ident">state</span>
-                                    .<span class="ident">cursor</span>
-                                    .<span class="ident">select_range</span>(<span class="ident">cursor_pos</span>, <span class="ident">value</span>.<span class="ident">len</span>());
-                            } <span class="kw">else</span> {
-                                <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_right_by_words</span>(<span class="ident">value</span>);
+                            <span class="kw">if </span>is_secure {
+                                <span class="kw">let </span>cursor_pos = state.cursor.end(value);
+                                state
+                                    .cursor
+                                    .select_range(cursor_pos, value.len());
+                            } <span class="kw">else </span>{
+                                state.cursor.select_right_by_words(value);
                             }
                         }
 
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">editor</span> <span class="op">=</span> <span class="ident">Editor::new</span>(<span class="ident">value</span>, <span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">cursor</span>);
-                        <span class="ident">editor</span>.<span class="ident">delete</span>();
+                        <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
+                        editor.delete();
 
-                        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> (<span class="ident">on_change</span>)(<span class="ident">editor</span>.<span class="ident">contents</span>());
-                        <span class="ident">shell</span>.<span class="ident">publish</span>(<span class="ident">message</span>);
+                        <span class="kw">let </span>message = (on_change)(editor.contents());
+                        shell.publish(message);
                     }
-                    <span class="ident">keyboard::KeyCode::Left</span> =&gt; {
-                        <span class="kw">if</span> <span class="ident">platform::is_jump_modifier_pressed</span>(<span class="ident">modifiers</span>)
-                            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_secure</span>
+                    keyboard::KeyCode::Left =&gt; {
+                        <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
+                            &amp;&amp; !is_secure
                         {
-                            <span class="kw">if</span> <span class="ident">modifiers</span>.<span class="ident">shift</span>() {
-                                <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_left_by_words</span>(<span class="ident">value</span>);
-                            } <span class="kw">else</span> {
-                                <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">move_left_by_words</span>(<span class="ident">value</span>);
+                            <span class="kw">if </span>modifiers.shift() {
+                                state.cursor.select_left_by_words(value);
+                            } <span class="kw">else </span>{
+                                state.cursor.move_left_by_words(value);
                             }
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">modifiers</span>.<span class="ident">shift</span>() {
-                            <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_left</span>(<span class="ident">value</span>)
-                        } <span class="kw">else</span> {
-                            <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">move_left</span>(<span class="ident">value</span>);
+                        } <span class="kw">else if </span>modifiers.shift() {
+                            state.cursor.select_left(value)
+                        } <span class="kw">else </span>{
+                            state.cursor.move_left(value);
                         }
                     }
-                    <span class="ident">keyboard::KeyCode::Right</span> =&gt; {
-                        <span class="kw">if</span> <span class="ident">platform::is_jump_modifier_pressed</span>(<span class="ident">modifiers</span>)
-                            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_secure</span>
+                    keyboard::KeyCode::Right =&gt; {
+                        <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
+                            &amp;&amp; !is_secure
                         {
-                            <span class="kw">if</span> <span class="ident">modifiers</span>.<span class="ident">shift</span>() {
-                                <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_right_by_words</span>(<span class="ident">value</span>);
-                            } <span class="kw">else</span> {
-                                <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">move_right_by_words</span>(<span class="ident">value</span>);
+                            <span class="kw">if </span>modifiers.shift() {
+                                state.cursor.select_right_by_words(value);
+                            } <span class="kw">else </span>{
+                                state.cursor.move_right_by_words(value);
                             }
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">modifiers</span>.<span class="ident">shift</span>() {
-                            <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_right</span>(<span class="ident">value</span>)
-                        } <span class="kw">else</span> {
-                            <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">move_right</span>(<span class="ident">value</span>);
+                        } <span class="kw">else if </span>modifiers.shift() {
+                            state.cursor.select_right(value)
+                        } <span class="kw">else </span>{
+                            state.cursor.move_right(value);
                         }
                     }
-                    <span class="ident">keyboard::KeyCode::Home</span> =&gt; {
-                        <span class="kw">if</span> <span class="ident">modifiers</span>.<span class="ident">shift</span>() {
-                            <span class="ident">state</span>
-                                .<span class="ident">cursor</span>
-                                .<span class="ident">select_range</span>(<span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">start</span>(<span class="ident">value</span>), <span class="number">0</span>);
-                        } <span class="kw">else</span> {
-                            <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">move_to</span>(<span class="number">0</span>);
+                    keyboard::KeyCode::Home =&gt; {
+                        <span class="kw">if </span>modifiers.shift() {
+                            state
+                                .cursor
+                                .select_range(state.cursor.start(value), <span class="number">0</span>);
+                        } <span class="kw">else </span>{
+                            state.cursor.move_to(<span class="number">0</span>);
                         }
                     }
-                    <span class="ident">keyboard::KeyCode::End</span> =&gt; {
-                        <span class="kw">if</span> <span class="ident">modifiers</span>.<span class="ident">shift</span>() {
-                            <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_range</span>(
-                                <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">start</span>(<span class="ident">value</span>),
-                                <span class="ident">value</span>.<span class="ident">len</span>(),
+                    keyboard::KeyCode::End =&gt; {
+                        <span class="kw">if </span>modifiers.shift() {
+                            state.cursor.select_range(
+                                state.cursor.start(value),
+                                value.len(),
                             );
-                        } <span class="kw">else</span> {
-                            <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">move_to</span>(<span class="ident">value</span>.<span class="ident">len</span>());
+                        } <span class="kw">else </span>{
+                            state.cursor.move_to(value.len());
                         }
                     }
-                    <span class="ident">keyboard::KeyCode::C</span>
-                        <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">keyboard_modifiers</span>.<span class="ident">command</span>() =&gt;
+                    keyboard::KeyCode::C
+                        <span class="kw">if </span>state.keyboard_modifiers.command() =&gt;
                     {
-                        <span class="kw">match</span> <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">selection</span>(<span class="ident">value</span>) {
-                            <span class="prelude-val">Some</span>((<span class="ident">start</span>, <span class="ident">end</span>)) =&gt; {
-                                <span class="ident">clipboard</span>.<span class="ident">write</span>(
-                                    <span class="ident">value</span>.<span class="ident">select</span>(<span class="ident">start</span>, <span class="ident">end</span>).<span class="ident">to_string</span>(),
+                        <span class="kw">match </span>state.cursor.selection(value) {
+                            <span class="prelude-val">Some</span>((start, end)) =&gt; {
+                                clipboard.write(
+                                    value.select(start, end).to_string(),
                                 );
                             }
-                            <span class="prelude-val">None</span> =&gt; {}
+                            <span class="prelude-val">None </span>=&gt; {}
                         }
                     }
-                    <span class="ident">keyboard::KeyCode::X</span>
-                        <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">keyboard_modifiers</span>.<span class="ident">command</span>() =&gt;
+                    keyboard::KeyCode::X
+                        <span class="kw">if </span>state.keyboard_modifiers.command() =&gt;
                     {
-                        <span class="kw">match</span> <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">selection</span>(<span class="ident">value</span>) {
-                            <span class="prelude-val">Some</span>((<span class="ident">start</span>, <span class="ident">end</span>)) =&gt; {
-                                <span class="ident">clipboard</span>.<span class="ident">write</span>(
-                                    <span class="ident">value</span>.<span class="ident">select</span>(<span class="ident">start</span>, <span class="ident">end</span>).<span class="ident">to_string</span>(),
+                        <span class="kw">match </span>state.cursor.selection(value) {
+                            <span class="prelude-val">Some</span>((start, end)) =&gt; {
+                                clipboard.write(
+                                    value.select(start, end).to_string(),
                                 );
                             }
-                            <span class="prelude-val">None</span> =&gt; {}
+                            <span class="prelude-val">None </span>=&gt; {}
                         }
 
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">editor</span> <span class="op">=</span> <span class="ident">Editor::new</span>(<span class="ident">value</span>, <span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">cursor</span>);
-                        <span class="ident">editor</span>.<span class="ident">delete</span>();
+                        <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
+                        editor.delete();
 
-                        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> (<span class="ident">on_change</span>)(<span class="ident">editor</span>.<span class="ident">contents</span>());
-                        <span class="ident">shell</span>.<span class="ident">publish</span>(<span class="ident">message</span>);
+                        <span class="kw">let </span>message = (on_change)(editor.contents());
+                        shell.publish(message);
                     }
-                    <span class="ident">keyboard::KeyCode::V</span> =&gt; {
-                        <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">keyboard_modifiers</span>.<span class="ident">command</span>() {
-                            <span class="kw">let</span> <span class="ident">content</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">state</span>.<span class="ident">is_pasting</span>.<span class="ident">take</span>() {
-                                <span class="prelude-val">Some</span>(<span class="ident">content</span>) =&gt; <span class="ident">content</span>,
-                                <span class="prelude-val">None</span> =&gt; {
-                                    <span class="kw">let</span> <span class="ident">content</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">clipboard</span>
-                                        .<span class="ident">read</span>()
-                                        .<span class="ident">unwrap_or_default</span>()
-                                        .<span class="ident">chars</span>()
-                                        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_control</span>())
-                                        .<span class="ident">collect</span>();
+                    keyboard::KeyCode::V =&gt; {
+                        <span class="kw">if </span>state.keyboard_modifiers.command() {
+                            <span class="kw">let </span>content = <span class="kw">match </span>state.is_pasting.take() {
+                                <span class="prelude-val">Some</span>(content) =&gt; content,
+                                <span class="prelude-val">None </span>=&gt; {
+                                    <span class="kw">let </span>content: String = clipboard
+                                        .read()
+                                        .unwrap_or_default()
+                                        .chars()
+                                        .filter(|c| !c.is_control())
+                                        .collect();
 
-                                    <span class="ident">Value::new</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>)
+                                    Value::new(<span class="kw-2">&amp;</span>content)
                                 }
                             };
 
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">editor</span> <span class="op">=</span>
-                                <span class="ident">Editor::new</span>(<span class="ident">value</span>, <span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">cursor</span>);
+                            <span class="kw">let </span><span class="kw-2">mut </span>editor =
+                                Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
 
-                            <span class="ident">editor</span>.<span class="ident">paste</span>(<span class="ident">content</span>.<span class="ident">clone</span>());
+                            editor.paste(content.clone());
 
-                            <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">paste</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">on_paste</span> {
-                                (<span class="ident">paste</span>)(<span class="ident">editor</span>.<span class="ident">contents</span>())
-                            } <span class="kw">else</span> {
-                                (<span class="ident">on_change</span>)(<span class="ident">editor</span>.<span class="ident">contents</span>())
+                            <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(paste) = <span class="kw-2">&amp;</span>on_paste {
+                                (paste)(editor.contents())
+                            } <span class="kw">else </span>{
+                                (on_change)(editor.contents())
                             };
-                            <span class="ident">shell</span>.<span class="ident">publish</span>(<span class="ident">message</span>);
+                            shell.publish(message);
 
-                            <span class="ident">state</span>.<span class="ident">is_pasting</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">content</span>);
-                        } <span class="kw">else</span> {
-                            <span class="ident">state</span>.<span class="ident">is_pasting</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                            state.is_pasting = <span class="prelude-val">Some</span>(content);
+                        } <span class="kw">else </span>{
+                            state.is_pasting = <span class="prelude-val">None</span>;
                         }
                     }
-                    <span class="ident">keyboard::KeyCode::A</span>
-                        <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">keyboard_modifiers</span>.<span class="ident">command</span>() =&gt;
+                    keyboard::KeyCode::A
+                        <span class="kw">if </span>state.keyboard_modifiers.command() =&gt;
                     {
-                        <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">select_all</span>(<span class="ident">value</span>);
+                        state.cursor.select_all(value);
                     }
-                    <span class="ident">keyboard::KeyCode::Escape</span> =&gt; {
-                        <span class="ident">state</span>.<span class="ident">is_focused</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                        <span class="ident">state</span>.<span class="ident">is_dragging</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                        <span class="ident">state</span>.<span class="ident">is_pasting</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                    keyboard::KeyCode::Escape =&gt; {
+                        state.is_focused = <span class="bool-val">false</span>;
+                        state.is_dragging = <span class="bool-val">false</span>;
+                        state.is_pasting = <span class="prelude-val">None</span>;
 
-                        <span class="ident">state</span>.<span class="ident">keyboard_modifiers</span> <span class="op">=</span>
-                            <span class="ident">keyboard::Modifiers::default</span>();
+                        state.keyboard_modifiers =
+                            keyboard::Modifiers::default();
                     }
-                    <span class="ident">keyboard::KeyCode::Tab</span>
-                    <span class="op">|</span> <span class="ident">keyboard::KeyCode::Up</span>
-                    <span class="op">|</span> <span class="ident">keyboard::KeyCode::Down</span> =&gt; {
-                        <span class="kw">return</span> <span class="ident">event::Status::Ignored</span>;
+                    keyboard::KeyCode::Tab
+                    | keyboard::KeyCode::Up
+                    | keyboard::KeyCode::Down =&gt; {
+                        <span class="kw">return </span>event::Status::Ignored;
                     }
-                    <span class="kw">_</span> =&gt; {}
+                    <span class="kw">_ </span>=&gt; {}
                 }
 
-                <span class="kw">return</span> <span class="ident">event::Status::Captured</span>;
+                <span class="kw">return </span>event::Status::Captured;
             }
         }
-        <span class="ident">Event::Keyboard</span>(<span class="ident">keyboard::Event::KeyReleased</span> { <span class="ident">key_code</span>, .. }) =&gt; {
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">state</span>();
+        Event::Keyboard(keyboard::Event::KeyReleased { key_code, .. }) =&gt; {
+            <span class="kw">let </span>state = state();
 
-            <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_focused</span> {
-                <span class="kw">match</span> <span class="ident">key_code</span> {
-                    <span class="ident">keyboard::KeyCode::V</span> =&gt; {
-                        <span class="ident">state</span>.<span class="ident">is_pasting</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+            <span class="kw">if </span>state.is_focused {
+                <span class="kw">match </span>key_code {
+                    keyboard::KeyCode::V =&gt; {
+                        state.is_pasting = <span class="prelude-val">None</span>;
                     }
-                    <span class="ident">keyboard::KeyCode::Tab</span>
-                    <span class="op">|</span> <span class="ident">keyboard::KeyCode::Up</span>
-                    <span class="op">|</span> <span class="ident">keyboard::KeyCode::Down</span> =&gt; {
-                        <span class="kw">return</span> <span class="ident">event::Status::Ignored</span>;
+                    keyboard::KeyCode::Tab
+                    | keyboard::KeyCode::Up
+                    | keyboard::KeyCode::Down =&gt; {
+                        <span class="kw">return </span>event::Status::Ignored;
                     }
-                    <span class="kw">_</span> =&gt; {}
+                    <span class="kw">_ </span>=&gt; {}
                 }
 
-                <span class="kw">return</span> <span class="ident">event::Status::Captured</span>;
+                <span class="kw">return </span>event::Status::Captured;
             }
         }
-        <span class="ident">Event::Keyboard</span>(<span class="ident">keyboard::Event::ModifiersChanged</span>(<span class="ident">modifiers</span>)) =&gt; {
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">state</span>();
+        Event::Keyboard(keyboard::Event::ModifiersChanged(modifiers)) =&gt; {
+            <span class="kw">let </span>state = state();
 
-            <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_focused</span> {
-                <span class="ident">state</span>.<span class="ident">keyboard_modifiers</span> <span class="op">=</span> <span class="ident">modifiers</span>;
+            <span class="kw">if </span>state.is_focused {
+                state.keyboard_modifiers = modifiers;
             }
         }
-        <span class="kw">_</span> =&gt; {}
+        <span class="kw">_ </span>=&gt; {}
     }
 
-    <span class="ident">event::Status::Ignored</span>
+    event::Status::Ignored
 }
 
-<span class="doccomment">/// Draws the [`TextInput`] with the given [`Renderer`], overriding its</span>
-<span class="doccomment">/// [`Value`] if provided.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Renderer`]: text::Renderer</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>(
-    <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-    <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-    <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-    <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">State</span>,
-    <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-    <span class="ident">placeholder</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-    <span class="ident">font</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Font</span>,
-    <span class="ident">is_secure</span>: <span class="ident">bool</span>,
-    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
-) <span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="doccomment">/// Draws the [`TextInput`] with the given [`Renderer`], overriding its
+/// [`Value`] if provided.
+///
+/// [`Renderer`]: text::Renderer
+</span><span class="kw">pub fn </span>draw&lt;Renderer&gt;(
+    renderer: <span class="kw-2">&amp;mut </span>Renderer,
+    theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+    layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+    cursor_position: Point,
+    state: <span class="kw-2">&amp;</span>State,
+    value: <span class="kw-2">&amp;</span>Value,
+    placeholder: <span class="kw-2">&amp;</span>str,
+    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    font: <span class="kw-2">&amp;</span>Renderer::Font,
+    is_secure: bool,
+    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+) <span class="kw">where
+    </span>Renderer: text::Renderer,
+    Renderer::Theme: StyleSheet,
 {
-    <span class="kw">let</span> <span class="ident">secure_value</span> <span class="op">=</span> <span class="ident">is_secure</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">secure</span>());
-    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">secure_value</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="ident">value</span>);
+    <span class="kw">let </span>secure_value = is_secure.then(|| value.secure());
+    <span class="kw">let </span>value = secure_value.as_ref().unwrap_or(value);
 
-    <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
-    <span class="kw">let</span> <span class="ident">text_bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>().<span class="ident">bounds</span>();
+    <span class="kw">let </span>bounds = layout.bounds();
+    <span class="kw">let </span>text_bounds = layout.children().next().unwrap().bounds();
 
-    <span class="kw">let</span> <span class="ident">is_mouse_over</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">contains</span>(<span class="ident">cursor_position</span>);
+    <span class="kw">let </span>is_mouse_over = bounds.contains(cursor_position);
 
-    <span class="kw">let</span> <span class="ident">appearance</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_focused</span>() {
-        <span class="ident">theme</span>.<span class="ident">focused</span>(<span class="ident">style</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_mouse_over</span> {
-        <span class="ident">theme</span>.<span class="ident">hovered</span>(<span class="ident">style</span>)
-    } <span class="kw">else</span> {
-        <span class="ident">theme</span>.<span class="ident">active</span>(<span class="ident">style</span>)
+    <span class="kw">let </span>appearance = <span class="kw">if </span>state.is_focused() {
+        theme.focused(style)
+    } <span class="kw">else if </span>is_mouse_over {
+        theme.hovered(style)
+    } <span class="kw">else </span>{
+        theme.active(style)
     };
 
-    <span class="ident">renderer</span>.<span class="ident">fill_quad</span>(
-        <span class="ident">renderer::Quad</span> {
-            <span class="ident">bounds</span>,
-            <span class="ident">border_radius</span>: <span class="ident">appearance</span>.<span class="ident">border_radius</span>,
-            <span class="ident">border_width</span>: <span class="ident">appearance</span>.<span class="ident">border_width</span>,
-            <span class="ident">border_color</span>: <span class="ident">appearance</span>.<span class="ident">border_color</span>,
+    renderer.fill_quad(
+        renderer::Quad {
+            bounds,
+            border_radius: appearance.border_radius,
+            border_width: appearance.border_width,
+            border_color: appearance.border_color,
         },
-        <span class="ident">appearance</span>.<span class="ident">background</span>,
+        appearance.background,
     );
 
-    <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_string</span>();
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">renderer</span>.<span class="ident">default_size</span>());
+    <span class="kw">let </span>text = value.to_string();
+    <span class="kw">let </span>size = size.unwrap_or_else(|| renderer.default_size());
 
-    <span class="kw">let</span> (<span class="ident">cursor</span>, <span class="ident">offset</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_focused</span>() {
-        <span class="kw">match</span> <span class="ident">state</span>.<span class="ident">cursor</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
-            <span class="ident">cursor::State::Index</span>(<span class="ident">position</span>) =&gt; {
-                <span class="kw">let</span> (<span class="ident">text_value_width</span>, <span class="ident">offset</span>) <span class="op">=</span>
-                    <span class="ident">measure_cursor_and_scroll_offset</span>(
-                        <span class="ident">renderer</span>,
-                        <span class="ident">text_bounds</span>,
-                        <span class="ident">value</span>,
-                        <span class="ident">size</span>,
-                        <span class="ident">position</span>,
-                        <span class="ident">font</span>.<span class="ident">clone</span>(),
+    <span class="kw">let </span>(cursor, offset) = <span class="kw">if </span>state.is_focused() {
+        <span class="kw">match </span>state.cursor.state(value) {
+            cursor::State::Index(position) =&gt; {
+                <span class="kw">let </span>(text_value_width, offset) =
+                    measure_cursor_and_scroll_offset(
+                        renderer,
+                        text_bounds,
+                        value,
+                        size,
+                        position,
+                        font.clone(),
                     );
 
                 (
                     <span class="prelude-val">Some</span>((
-                        <span class="ident">renderer::Quad</span> {
-                            <span class="ident">bounds</span>: <span class="ident">Rectangle</span> {
-                                <span class="ident">x</span>: <span class="ident">text_bounds</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">text_value_width</span>,
-                                <span class="ident">y</span>: <span class="ident">text_bounds</span>.<span class="ident">y</span>,
-                                <span class="ident">width</span>: <span class="number">1.0</span>,
-                                <span class="ident">height</span>: <span class="ident">text_bounds</span>.<span class="ident">height</span>,
+                        renderer::Quad {
+                            bounds: Rectangle {
+                                x: text_bounds.x + text_value_width,
+                                y: text_bounds.y,
+                                width: <span class="number">1.0</span>,
+                                height: text_bounds.height,
                             },
-                            <span class="ident">border_radius</span>: <span class="number">0.0</span>,
-                            <span class="ident">border_width</span>: <span class="number">0.0</span>,
-                            <span class="ident">border_color</span>: <span class="ident">Color::TRANSPARENT</span>,
+                            border_radius: <span class="number">0.0</span>,
+                            border_width: <span class="number">0.0</span>,
+                            border_color: Color::TRANSPARENT,
                         },
-                        <span class="ident">theme</span>.<span class="ident">value_color</span>(<span class="ident">style</span>),
+                        theme.value_color(style),
                     )),
-                    <span class="ident">offset</span>,
+                    offset,
                 )
             }
-            <span class="ident">cursor::State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="ident">start</span>.<span class="ident">min</span>(<span class="ident">end</span>);
-                <span class="kw">let</span> <span class="ident">right</span> <span class="op">=</span> <span class="ident">end</span>.<span class="ident">max</span>(<span class="ident">start</span>);
+            cursor::State::Selection { start, end } =&gt; {
+                <span class="kw">let </span>left = start.min(end);
+                <span class="kw">let </span>right = end.max(start);
 
-                <span class="kw">let</span> (<span class="ident">left_position</span>, <span class="ident">left_offset</span>) <span class="op">=</span>
-                    <span class="ident">measure_cursor_and_scroll_offset</span>(
-                        <span class="ident">renderer</span>,
-                        <span class="ident">text_bounds</span>,
-                        <span class="ident">value</span>,
-                        <span class="ident">size</span>,
-                        <span class="ident">left</span>,
-                        <span class="ident">font</span>.<span class="ident">clone</span>(),
+                <span class="kw">let </span>(left_position, left_offset) =
+                    measure_cursor_and_scroll_offset(
+                        renderer,
+                        text_bounds,
+                        value,
+                        size,
+                        left,
+                        font.clone(),
                     );
 
-                <span class="kw">let</span> (<span class="ident">right_position</span>, <span class="ident">right_offset</span>) <span class="op">=</span>
-                    <span class="ident">measure_cursor_and_scroll_offset</span>(
-                        <span class="ident">renderer</span>,
-                        <span class="ident">text_bounds</span>,
-                        <span class="ident">value</span>,
-                        <span class="ident">size</span>,
-                        <span class="ident">right</span>,
-                        <span class="ident">font</span>.<span class="ident">clone</span>(),
+                <span class="kw">let </span>(right_position, right_offset) =
+                    measure_cursor_and_scroll_offset(
+                        renderer,
+                        text_bounds,
+                        value,
+                        size,
+                        right,
+                        font.clone(),
                     );
 
-                <span class="kw">let</span> <span class="ident">width</span> <span class="op">=</span> <span class="ident">right_position</span> <span class="op">-</span> <span class="ident">left_position</span>;
+                <span class="kw">let </span>width = right_position - left_position;
 
                 (
                     <span class="prelude-val">Some</span>((
-                        <span class="ident">renderer::Quad</span> {
-                            <span class="ident">bounds</span>: <span class="ident">Rectangle</span> {
-                                <span class="ident">x</span>: <span class="ident">text_bounds</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">left_position</span>,
-                                <span class="ident">y</span>: <span class="ident">text_bounds</span>.<span class="ident">y</span>,
-                                <span class="ident">width</span>,
-                                <span class="ident">height</span>: <span class="ident">text_bounds</span>.<span class="ident">height</span>,
+                        renderer::Quad {
+                            bounds: Rectangle {
+                                x: text_bounds.x + left_position,
+                                y: text_bounds.y,
+                                width,
+                                height: text_bounds.height,
                             },
-                            <span class="ident">border_radius</span>: <span class="number">0.0</span>,
-                            <span class="ident">border_width</span>: <span class="number">0.0</span>,
-                            <span class="ident">border_color</span>: <span class="ident">Color::TRANSPARENT</span>,
+                            border_radius: <span class="number">0.0</span>,
+                            border_width: <span class="number">0.0</span>,
+                            border_color: Color::TRANSPARENT,
                         },
-                        <span class="ident">theme</span>.<span class="ident">selection_color</span>(<span class="ident">style</span>),
+                        theme.selection_color(style),
                     )),
-                    <span class="kw">if</span> <span class="ident">end</span> <span class="op">==</span> <span class="ident">right</span> {
-                        <span class="ident">right_offset</span>
-                    } <span class="kw">else</span> {
-                        <span class="ident">left_offset</span>
+                    <span class="kw">if </span>end == right {
+                        right_offset
+                    } <span class="kw">else </span>{
+                        left_offset
                     },
                 )
             }
         }
-    } <span class="kw">else</span> {
+    } <span class="kw">else </span>{
         (<span class="prelude-val">None</span>, <span class="number">0.0</span>)
     };
 
-    <span class="kw">let</span> <span class="ident">text_width</span> <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">measure_width</span>(
-        <span class="kw">if</span> <span class="ident">text</span>.<span class="ident">is_empty</span>() { <span class="ident">placeholder</span> } <span class="kw">else</span> { <span class="kw-2">&amp;</span><span class="ident">text</span> },
-        <span class="ident">size</span>,
-        <span class="ident">font</span>.<span class="ident">clone</span>(),
+    <span class="kw">let </span>text_width = renderer.measure_width(
+        <span class="kw">if </span>text.is_empty() { placeholder } <span class="kw">else </span>{ <span class="kw-2">&amp;</span>text },
+        size,
+        font.clone(),
     );
 
-    <span class="kw">let</span> <span class="ident">render</span> <span class="op">=</span> <span class="op">|</span><span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span><span class="op">|</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">cursor</span>, <span class="ident">color</span>)) <span class="op">=</span> <span class="ident">cursor</span> {
-            <span class="ident">renderer</span>.<span class="ident">fill_quad</span>(<span class="ident">cursor</span>, <span class="ident">color</span>);
+    <span class="kw">let </span>render = |renderer: <span class="kw-2">&amp;mut </span>Renderer| {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((cursor, color)) = cursor {
+            renderer.fill_quad(cursor, color);
         }
 
-        <span class="ident">renderer</span>.<span class="ident">fill_text</span>(<span class="ident">Text</span> {
-            <span class="ident">content</span>: <span class="kw">if</span> <span class="ident">text</span>.<span class="ident">is_empty</span>() { <span class="ident">placeholder</span> } <span class="kw">else</span> { <span class="kw-2">&amp;</span><span class="ident">text</span> },
-            <span class="ident">color</span>: <span class="kw">if</span> <span class="ident">text</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">theme</span>.<span class="ident">placeholder_color</span>(<span class="ident">style</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">theme</span>.<span class="ident">value_color</span>(<span class="ident">style</span>)
+        renderer.fill_text(Text {
+            content: <span class="kw">if </span>text.is_empty() { placeholder } <span class="kw">else </span>{ <span class="kw-2">&amp;</span>text },
+            color: <span class="kw">if </span>text.is_empty() {
+                theme.placeholder_color(style)
+            } <span class="kw">else </span>{
+                theme.value_color(style)
             },
-            <span class="ident">font</span>: <span class="ident">font</span>.<span class="ident">clone</span>(),
-            <span class="ident">bounds</span>: <span class="ident">Rectangle</span> {
-                <span class="ident">y</span>: <span class="ident">text_bounds</span>.<span class="ident">center_y</span>(),
-                <span class="ident">width</span>: <span class="ident">f32::INFINITY</span>,
-                ..<span class="ident">text_bounds</span>
+            font: font.clone(),
+            bounds: Rectangle {
+                y: text_bounds.center_y(),
+                width: f32::INFINITY,
+                ..text_bounds
             },
-            <span class="ident">size</span>: <span class="ident">f32::from</span>(<span class="ident">size</span>),
-            <span class="ident">horizontal_alignment</span>: <span class="ident">alignment::Horizontal::Left</span>,
-            <span class="ident">vertical_alignment</span>: <span class="ident">alignment::Vertical::Center</span>,
+            size: f32::from(size),
+            horizontal_alignment: alignment::Horizontal::Left,
+            vertical_alignment: alignment::Vertical::Center,
         });
     };
 
-    <span class="kw">if</span> <span class="ident">text_width</span> <span class="op">&gt;</span> <span class="ident">text_bounds</span>.<span class="ident">width</span> {
-        <span class="ident">renderer</span>.<span class="ident">with_layer</span>(<span class="ident">text_bounds</span>, <span class="op">|</span><span class="ident">renderer</span><span class="op">|</span> {
-            <span class="ident">renderer</span>.<span class="ident">with_translation</span>(<span class="ident">Vector::new</span>(<span class="op">-</span><span class="ident">offset</span>, <span class="number">0.0</span>), <span class="ident">render</span>)
+    <span class="kw">if </span>text_width &gt; text_bounds.width {
+        renderer.with_layer(text_bounds, |renderer| {
+            renderer.with_translation(Vector::new(-offset, <span class="number">0.0</span>), render)
         });
-    } <span class="kw">else</span> {
-        <span class="ident">render</span>(<span class="ident">renderer</span>);
+    } <span class="kw">else </span>{
+        render(renderer);
     }
 }
 
-<span class="doccomment">/// Computes the current [`mouse::Interaction`] of the [`TextInput`].</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
-    <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-) -&gt; <span class="ident">mouse::Interaction</span> {
-    <span class="kw">if</span> <span class="ident">layout</span>.<span class="ident">bounds</span>().<span class="ident">contains</span>(<span class="ident">cursor_position</span>) {
-        <span class="ident">mouse::Interaction::Text</span>
-    } <span class="kw">else</span> {
-        <span class="ident">mouse::Interaction::default</span>()
+<span class="doccomment">/// Computes the current [`mouse::Interaction`] of the [`TextInput`].
+</span><span class="kw">pub fn </span>mouse_interaction(
+    layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+    cursor_position: Point,
+) -&gt; mouse::Interaction {
+    <span class="kw">if </span>layout.bounds().contains(cursor_position) {
+        mouse::Interaction::Text
+    } <span class="kw">else </span>{
+        mouse::Interaction::default()
     }
 }
 
-<span class="doccomment">/// The state of a [`TextInput`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">State</span> {
-    <span class="ident">is_focused</span>: <span class="ident">bool</span>,
-    <span class="ident">is_dragging</span>: <span class="ident">bool</span>,
-    <span class="ident">is_pasting</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
-    <span class="ident">last_click</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">mouse::Click</span><span class="op">&gt;</span>,
-    <span class="ident">cursor</span>: <span class="ident">Cursor</span>,
-    <span class="ident">keyboard_modifiers</span>: <span class="ident">keyboard::Modifiers</span>,
-    <span class="comment">// TODO: Add stateful horizontal scrolling offset</span>
-}
+<span class="doccomment">/// The state of a [`TextInput`].
+</span><span class="attribute">#[derive(Debug, Default, Clone)]</span>
+<span class="kw">pub struct </span>State {
+    is_focused: bool,
+    is_dragging: bool,
+    is_pasting: <span class="prelude-ty">Option</span>&lt;Value&gt;,
+    last_click: <span class="prelude-ty">Option</span>&lt;mouse::Click&gt;,
+    cursor: Cursor,
+    keyboard_modifiers: keyboard::Modifiers,
+    <span class="comment">// TODO: Add stateful horizontal scrolling offset
+</span>}
 
-<span class="kw">impl</span> <span class="ident">State</span> {
-    <span class="doccomment">/// Creates a new [`State`], representing an unfocused [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::default</span>()
+<span class="kw">impl </span>State {
+    <span class="doccomment">/// Creates a new [`State`], representing an unfocused [`TextInput`].
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::default()
     }
 
-    <span class="doccomment">/// Creates a new [`State`], representing a focused [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">focused</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">is_focused</span>: <span class="bool-val">true</span>,
-            <span class="ident">is_dragging</span>: <span class="bool-val">false</span>,
-            <span class="ident">is_pasting</span>: <span class="prelude-val">None</span>,
-            <span class="ident">last_click</span>: <span class="prelude-val">None</span>,
-            <span class="ident">cursor</span>: <span class="ident">Cursor::default</span>(),
-            <span class="ident">keyboard_modifiers</span>: <span class="ident">keyboard::Modifiers::default</span>(),
+    <span class="doccomment">/// Creates a new [`State`], representing a focused [`TextInput`].
+    </span><span class="kw">pub fn </span>focused() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            is_focused: <span class="bool-val">true</span>,
+            is_dragging: <span class="bool-val">false</span>,
+            is_pasting: <span class="prelude-val">None</span>,
+            last_click: <span class="prelude-val">None</span>,
+            cursor: Cursor::default(),
+            keyboard_modifiers: keyboard::Modifiers::default(),
         }
     }
 
-    <span class="doccomment">/// Returns whether the [`TextInput`] is currently focused or not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_focused</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">is_focused</span>
+    <span class="doccomment">/// Returns whether the [`TextInput`] is currently focused or not.
+    </span><span class="kw">pub fn </span>is_focused(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_focused
     }
 
-    <span class="doccomment">/// Returns the [`Cursor`] of the [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Cursor</span> {
-        <span class="self">self</span>.<span class="ident">cursor</span>
+    <span class="doccomment">/// Returns the [`Cursor`] of the [`TextInput`].
+    </span><span class="kw">pub fn </span>cursor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Cursor {
+        <span class="self">self</span>.cursor
     }
 
-    <span class="doccomment">/// Focuses the [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">focus</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">is_focused</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="self">self</span>.<span class="ident">move_cursor_to_end</span>();
+    <span class="doccomment">/// Focuses the [`TextInput`].
+    </span><span class="kw">pub fn </span>focus(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.is_focused = <span class="bool-val">true</span>;
+        <span class="self">self</span>.move_cursor_to_end();
     }
 
-    <span class="doccomment">/// Unfocuses the [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unfocus</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">is_focused</span> <span class="op">=</span> <span class="bool-val">false</span>;
+    <span class="doccomment">/// Unfocuses the [`TextInput`].
+    </span><span class="kw">pub fn </span>unfocus(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.is_focused = <span class="bool-val">false</span>;
     }
 
-    <span class="doccomment">/// Moves the [`Cursor`] of the [`TextInput`] to the front of the input text.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">move_cursor_to_front</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">move_to</span>(<span class="number">0</span>);
+    <span class="doccomment">/// Moves the [`Cursor`] of the [`TextInput`] to the front of the input text.
+    </span><span class="kw">pub fn </span>move_cursor_to_front(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.cursor.move_to(<span class="number">0</span>);
     }
 
-    <span class="doccomment">/// Moves the [`Cursor`] of the [`TextInput`] to the end of the input text.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">move_cursor_to_end</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">move_to</span>(<span class="ident">usize::MAX</span>);
+    <span class="doccomment">/// Moves the [`Cursor`] of the [`TextInput`] to the end of the input text.
+    </span><span class="kw">pub fn </span>move_cursor_to_end(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.cursor.move_to(usize::MAX);
     }
 
-    <span class="doccomment">/// Moves the [`Cursor`] of the [`TextInput`] to an arbitrary location.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">move_cursor_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">position</span>: <span class="ident">usize</span>) {
-        <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">move_to</span>(<span class="ident">position</span>);
+    <span class="doccomment">/// Moves the [`Cursor`] of the [`TextInput`] to an arbitrary location.
+    </span><span class="kw">pub fn </span>move_cursor_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, position: usize) {
+        <span class="self">self</span>.cursor.move_to(position);
     }
 
-    <span class="doccomment">/// Selects all the content of the [`TextInput`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">select_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">select_range</span>(<span class="number">0</span>, <span class="ident">usize::MAX</span>);
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">operation::Focusable</span> <span class="kw">for</span> <span class="ident">State</span> {
-    <span class="kw">fn</span> <span class="ident">is_focused</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">State::is_focused</span>(<span class="self">self</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">focus</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="ident">State::focus</span>(<span class="self">self</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">unfocus</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="ident">State::unfocus</span>(<span class="self">self</span>)
+    <span class="doccomment">/// Selects all the content of the [`TextInput`].
+    </span><span class="kw">pub fn </span>select_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.cursor.select_range(<span class="number">0</span>, usize::MAX);
     }
 }
 
-<span class="kw">mod</span> <span class="ident">platform</span> {
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::keyboard</span>;
+<span class="kw">impl </span>operation::Focusable <span class="kw">for </span>State {
+    <span class="kw">fn </span>is_focused(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        State::is_focused(<span class="self">self</span>)
+    }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_jump_modifier_pressed</span>(<span class="ident">modifiers</span>: <span class="ident">keyboard::Modifiers</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>) {
-            <span class="ident">modifiers</span>.<span class="ident">alt</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">modifiers</span>.<span class="ident">control</span>()
+    <span class="kw">fn </span>focus(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        State::focus(<span class="self">self</span>)
+    }
+
+    <span class="kw">fn </span>unfocus(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        State::unfocus(<span class="self">self</span>)
+    }
+}
+
+<span class="kw">mod </span>platform {
+    <span class="kw">use </span><span class="kw">crate</span>::keyboard;
+
+    <span class="kw">pub fn </span>is_jump_modifier_pressed(modifiers: keyboard::Modifiers) -&gt; bool {
+        <span class="kw">if </span><span class="macro">cfg!</span>(target_os = <span class="string">&quot;macos&quot;</span>) {
+            modifiers.alt()
+        } <span class="kw">else </span>{
+            modifiers.control()
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">offset</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>(
-    <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    <span class="ident">text_bounds</span>: <span class="ident">Rectangle</span>,
-    <span class="ident">font</span>: <span class="ident">Renderer::Font</span>,
-    <span class="ident">size</span>: <span class="ident">u16</span>,
-    <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-    <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">State</span>,
-) -&gt; <span class="ident">f32</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
+<span class="kw">fn </span>offset&lt;Renderer&gt;(
+    renderer: <span class="kw-2">&amp;</span>Renderer,
+    text_bounds: Rectangle,
+    font: Renderer::Font,
+    size: u16,
+    value: <span class="kw-2">&amp;</span>Value,
+    state: <span class="kw-2">&amp;</span>State,
+) -&gt; f32
+<span class="kw">where
+    </span>Renderer: text::Renderer,
 {
-    <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_focused</span>() {
-        <span class="kw">let</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">cursor</span>();
+    <span class="kw">if </span>state.is_focused() {
+        <span class="kw">let </span>cursor = state.cursor();
 
-        <span class="kw">let</span> <span class="ident">focus_position</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
-            <span class="ident">cursor::State::Index</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
-            <span class="ident">cursor::State::Selection</span> { <span class="ident">end</span>, .. } =&gt; <span class="ident">end</span>,
+        <span class="kw">let </span>focus_position = <span class="kw">match </span>cursor.state(value) {
+            cursor::State::Index(i) =&gt; i,
+            cursor::State::Selection { end, .. } =&gt; end,
         };
 
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">offset</span>) <span class="op">=</span> <span class="ident">measure_cursor_and_scroll_offset</span>(
-            <span class="ident">renderer</span>,
-            <span class="ident">text_bounds</span>,
-            <span class="ident">value</span>,
-            <span class="ident">size</span>,
-            <span class="ident">focus_position</span>,
-            <span class="ident">font</span>,
+        <span class="kw">let </span>(<span class="kw">_</span>, offset) = measure_cursor_and_scroll_offset(
+            renderer,
+            text_bounds,
+            value,
+            size,
+            focus_position,
+            font,
         );
 
-        <span class="ident">offset</span>
-    } <span class="kw">else</span> {
-        <span class="number">0.0</span>
-    }
+        offset
+    } <span class="kw">else </span>{
+        <span class="number">0.0
+    </span>}
 }
 
-<span class="kw">fn</span> <span class="ident">measure_cursor_and_scroll_offset</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>(
-    <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    <span class="ident">text_bounds</span>: <span class="ident">Rectangle</span>,
-    <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-    <span class="ident">size</span>: <span class="ident">u16</span>,
-    <span class="ident">cursor_index</span>: <span class="ident">usize</span>,
-    <span class="ident">font</span>: <span class="ident">Renderer::Font</span>,
-) -&gt; (<span class="ident">f32</span>, <span class="ident">f32</span>)
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
+<span class="kw">fn </span>measure_cursor_and_scroll_offset&lt;Renderer&gt;(
+    renderer: <span class="kw-2">&amp;</span>Renderer,
+    text_bounds: Rectangle,
+    value: <span class="kw-2">&amp;</span>Value,
+    size: u16,
+    cursor_index: usize,
+    font: Renderer::Font,
+) -&gt; (f32, f32)
+<span class="kw">where
+    </span>Renderer: text::Renderer,
 {
-    <span class="kw">let</span> <span class="ident">text_before_cursor</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">until</span>(<span class="ident">cursor_index</span>).<span class="ident">to_string</span>();
+    <span class="kw">let </span>text_before_cursor = value.until(cursor_index).to_string();
 
-    <span class="kw">let</span> <span class="ident">text_value_width</span> <span class="op">=</span>
-        <span class="ident">renderer</span>.<span class="ident">measure_width</span>(<span class="kw-2">&amp;</span><span class="ident">text_before_cursor</span>, <span class="ident">size</span>, <span class="ident">font</span>);
+    <span class="kw">let </span>text_value_width =
+        renderer.measure_width(<span class="kw-2">&amp;</span>text_before_cursor, size, font);
 
-    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> ((<span class="ident">text_value_width</span> <span class="op">+</span> <span class="number">5.0</span>) <span class="op">-</span> <span class="ident">text_bounds</span>.<span class="ident">width</span>).<span class="ident">max</span>(<span class="number">0.0</span>);
+    <span class="kw">let </span>offset = ((text_value_width + <span class="number">5.0</span>) - text_bounds.width).max(<span class="number">0.0</span>);
 
-    (<span class="ident">text_value_width</span>, <span class="ident">offset</span>)
+    (text_value_width, offset)
 }
 
-<span class="doccomment">/// Computes the position of the text cursor at the given X coordinate of</span>
-<span class="doccomment">/// a [`TextInput`].</span>
-<span class="kw">fn</span> <span class="ident">find_cursor_position</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>(
-    <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    <span class="ident">text_bounds</span>: <span class="ident">Rectangle</span>,
-    <span class="ident">font</span>: <span class="ident">Renderer::Font</span>,
-    <span class="ident">size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-    <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-    <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">State</span>,
-    <span class="ident">x</span>: <span class="ident">f32</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
+<span class="doccomment">/// Computes the position of the text cursor at the given X coordinate of
+/// a [`TextInput`].
+</span><span class="kw">fn </span>find_cursor_position&lt;Renderer&gt;(
+    renderer: <span class="kw-2">&amp;</span>Renderer,
+    text_bounds: Rectangle,
+    font: Renderer::Font,
+    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    value: <span class="kw-2">&amp;</span>Value,
+    state: <span class="kw-2">&amp;</span>State,
+    x: f32,
+) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;
+<span class="kw">where
+    </span>Renderer: text::Renderer,
 {
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">renderer</span>.<span class="ident">default_size</span>());
+    <span class="kw">let </span>size = size.unwrap_or_else(|| renderer.default_size());
 
-    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span>
-        <span class="ident">offset</span>(<span class="ident">renderer</span>, <span class="ident">text_bounds</span>, <span class="ident">font</span>.<span class="ident">clone</span>(), <span class="ident">size</span>, <span class="ident">value</span>, <span class="ident">state</span>);
+    <span class="kw">let </span>offset =
+        offset(renderer, text_bounds, font.clone(), size, value, state);
 
-    <span class="ident">renderer</span>
-        .<span class="ident">hit_test</span>(
-            <span class="kw-2">&amp;</span><span class="ident">value</span>.<span class="ident">to_string</span>(),
-            <span class="ident">size</span>.<span class="ident">into</span>(),
-            <span class="ident">font</span>,
-            <span class="ident">Size::INFINITY</span>,
-            <span class="ident">Point::new</span>(<span class="ident">x</span> <span class="op">+</span> <span class="ident">offset</span>, <span class="ident">text_bounds</span>.<span class="ident">height</span> <span class="op">/</span> <span class="number">2.0</span>),
+    renderer
+        .hit_test(
+            <span class="kw-2">&amp;</span>value.to_string(),
+            size.into(),
+            font,
+            Size::INFINITY,
+            Point::new(x + offset, text_bounds.height / <span class="number">2.0</span>),
             <span class="bool-val">true</span>,
         )
-        .<span class="ident">map</span>(<span class="ident">text::Hit::cursor</span>)
+        .map(text::Hit::cursor)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

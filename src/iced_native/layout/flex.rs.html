@@ -232,237 +232,237 @@
 <span id="230">230</span>
 <span id="231">231</span>
 <span id="232">232</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Distribute elements using a flex-based layout.</span>
-<span class="comment">// This code is heavily inspired by the [`druid`] codebase.</span>
-<span class="comment">//</span>
-<span class="comment">// [`druid`]: https://github.com/xi-editor/druid</span>
-<span class="comment">//</span>
-<span class="comment">// Copyright 2018 The xi-editor Authors, Héctor Ramón</span>
-<span class="comment">//</span>
-<span class="comment">// Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
-<span class="comment">// you may not use this file except in compliance with the License.</span>
-<span class="comment">// You may obtain a copy of the License at</span>
-<span class="comment">//</span>
-<span class="comment">//     http://www.apache.org/licenses/LICENSE-2.0</span>
-<span class="comment">//</span>
-<span class="comment">// Unless required by applicable law or agreed to in writing, software</span>
-<span class="comment">// distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
-<span class="comment">// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
-<span class="comment">// See the License for the specific language governing permissions and</span>
-<span class="comment">// limitations under the License.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Element</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Distribute elements using a flex-based layout.
+</span><span class="comment">// This code is heavily inspired by the [`druid`] codebase.
+//
+// [`druid`]: https://github.com/xi-editor/druid
+//
+// Copyright 2018 The xi-editor Authors, Héctor Ramón
+//
+// Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+</span><span class="kw">use </span><span class="kw">crate</span>::Element;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>::{<span class="ident">Limits</span>, <span class="ident">Node</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Alignment</span>, <span class="ident">Padding</span>, <span class="ident">Point</span>, <span class="ident">Size</span>};
+<span class="kw">use </span><span class="kw">crate</span>::layout::{Limits, Node};
+<span class="kw">use crate</span>::{Alignment, Padding, Point, Size};
 
-<span class="doccomment">/// The main axis of a flex layout.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Axis</span> {
-    <span class="doccomment">/// The horizontal axis</span>
-    <span class="ident">Horizontal</span>,
+<span class="doccomment">/// The main axis of a flex layout.
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub enum </span>Axis {
+    <span class="doccomment">/// The horizontal axis
+    </span>Horizontal,
 
-    <span class="doccomment">/// The vertical axis</span>
-    <span class="ident">Vertical</span>,
+    <span class="doccomment">/// The vertical axis
+    </span>Vertical,
 }
 
-<span class="kw">impl</span> <span class="ident">Axis</span> {
-    <span class="kw">fn</span> <span class="ident">main</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">size</span>: <span class="ident">Size</span>) -&gt; <span class="ident">f32</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Axis::Horizontal</span> =&gt; <span class="ident">size</span>.<span class="ident">width</span>,
-            <span class="ident">Axis::Vertical</span> =&gt; <span class="ident">size</span>.<span class="ident">height</span>,
+<span class="kw">impl </span>Axis {
+    <span class="kw">fn </span>main(<span class="kw-2">&amp;</span><span class="self">self</span>, size: Size) -&gt; f32 {
+        <span class="kw">match </span><span class="self">self </span>{
+            Axis::Horizontal =&gt; size.width,
+            Axis::Vertical =&gt; size.height,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">cross</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">size</span>: <span class="ident">Size</span>) -&gt; <span class="ident">f32</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Axis::Horizontal</span> =&gt; <span class="ident">size</span>.<span class="ident">height</span>,
-            <span class="ident">Axis::Vertical</span> =&gt; <span class="ident">size</span>.<span class="ident">width</span>,
+    <span class="kw">fn </span>cross(<span class="kw-2">&amp;</span><span class="self">self</span>, size: Size) -&gt; f32 {
+        <span class="kw">match </span><span class="self">self </span>{
+            Axis::Horizontal =&gt; size.height,
+            Axis::Vertical =&gt; size.width,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">pack</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">main</span>: <span class="ident">f32</span>, <span class="ident">cross</span>: <span class="ident">f32</span>) -&gt; (<span class="ident">f32</span>, <span class="ident">f32</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Axis::Horizontal</span> =&gt; (<span class="ident">main</span>, <span class="ident">cross</span>),
-            <span class="ident">Axis::Vertical</span> =&gt; (<span class="ident">cross</span>, <span class="ident">main</span>),
+    <span class="kw">fn </span>pack(<span class="kw-2">&amp;</span><span class="self">self</span>, main: f32, cross: f32) -&gt; (f32, f32) {
+        <span class="kw">match </span><span class="self">self </span>{
+            Axis::Horizontal =&gt; (main, cross),
+            Axis::Vertical =&gt; (cross, main),
         }
     }
 }
 
-<span class="doccomment">/// Computes the flex layout with the given axis and limits, applying spacing,</span>
-<span class="doccomment">/// padding and alignment to the items as needed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It returns a new layout [`Node`].</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>(
-    <span class="ident">axis</span>: <span class="ident">Axis</span>,
-    <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">Limits</span>,
-    <span class="ident">padding</span>: <span class="ident">Padding</span>,
-    <span class="ident">spacing</span>: <span class="ident">f32</span>,
-    <span class="ident">align_items</span>: <span class="ident">Alignment</span>,
-    <span class="ident">items</span>: <span class="kw-2">&amp;</span>[<span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>],
-) -&gt; <span class="ident">Node</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
+<span class="doccomment">/// Computes the flex layout with the given axis and limits, applying spacing,
+/// padding and alignment to the items as needed.
+///
+/// It returns a new layout [`Node`].
+</span><span class="kw">pub fn </span>resolve&lt;Message, Renderer&gt;(
+    axis: Axis,
+    renderer: <span class="kw-2">&amp;</span>Renderer,
+    limits: <span class="kw-2">&amp;</span>Limits,
+    padding: Padding,
+    spacing: f32,
+    align_items: Alignment,
+    items: <span class="kw-2">&amp;</span>[Element&lt;<span class="lifetime">&#39;_</span>, Message, Renderer&gt;],
+) -&gt; Node
+<span class="kw">where
+    </span>Renderer: <span class="kw">crate</span>::Renderer,
 {
-    <span class="kw">let</span> <span class="ident">limits</span> <span class="op">=</span> <span class="ident">limits</span>.<span class="ident">pad</span>(<span class="ident">padding</span>);
-    <span class="kw">let</span> <span class="ident">total_spacing</span> <span class="op">=</span> <span class="ident">spacing</span> <span class="op">*</span> <span class="ident">items</span>.<span class="ident">len</span>().<span class="ident">saturating_sub</span>(<span class="number">1</span>) <span class="kw">as</span> <span class="ident">f32</span>;
-    <span class="kw">let</span> <span class="ident">max_cross</span> <span class="op">=</span> <span class="ident">axis</span>.<span class="ident">cross</span>(<span class="ident">limits</span>.<span class="ident">max</span>());
+    <span class="kw">let </span>limits = limits.pad(padding);
+    <span class="kw">let </span>total_spacing = spacing * items.len().saturating_sub(<span class="number">1</span>) <span class="kw">as </span>f32;
+    <span class="kw">let </span>max_cross = axis.cross(limits.max());
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fill_sum</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cross</span> <span class="op">=</span> <span class="ident">axis</span>.<span class="ident">cross</span>(<span class="ident">limits</span>.<span class="ident">min</span>()).<span class="ident">max</span>(<span class="ident">axis</span>.<span class="ident">cross</span>(<span class="ident">limits</span>.<span class="ident">fill</span>()));
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">available</span> <span class="op">=</span> <span class="ident">axis</span>.<span class="ident">main</span>(<span class="ident">limits</span>.<span class="ident">max</span>()) <span class="op">-</span> <span class="ident">total_spacing</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>fill_sum = <span class="number">0</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>cross = axis.cross(limits.min()).max(axis.cross(limits.fill()));
+    <span class="kw">let </span><span class="kw-2">mut </span>available = axis.main(limits.max()) - total_spacing;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nodes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">items</span>.<span class="ident">len</span>());
-    <span class="ident">nodes</span>.<span class="ident">resize</span>(<span class="ident">items</span>.<span class="ident">len</span>(), <span class="ident">Node::default</span>());
+    <span class="kw">let </span><span class="kw-2">mut </span>nodes: Vec&lt;Node&gt; = Vec::with_capacity(items.len());
+    nodes.resize(items.len(), Node::default());
 
-    <span class="kw">if</span> <span class="ident">align_items</span> <span class="op">==</span> <span class="ident">Alignment::Fill</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fill_cross</span> <span class="op">=</span> <span class="ident">axis</span>.<span class="ident">cross</span>(<span class="ident">limits</span>.<span class="ident">min</span>());
+    <span class="kw">if </span>align_items == Alignment::Fill {
+        <span class="kw">let </span><span class="kw-2">mut </span>fill_cross = axis.cross(limits.min());
 
-        <span class="ident">items</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">child</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">cross_fill_factor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">axis</span> {
-                <span class="ident">Axis::Horizontal</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">height</span>(),
-                <span class="ident">Axis::Vertical</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">width</span>(),
+        items.iter().for_each(|child| {
+            <span class="kw">let </span>cross_fill_factor = <span class="kw">match </span>axis {
+                Axis::Horizontal =&gt; child.as_widget().height(),
+                Axis::Vertical =&gt; child.as_widget().width(),
             }
-            .<span class="ident">fill_factor</span>();
+            .fill_factor();
 
-            <span class="kw">if</span> <span class="ident">cross_fill_factor</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="kw">let</span> (<span class="ident">max_width</span>, <span class="ident">max_height</span>) <span class="op">=</span> <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="ident">available</span>, <span class="ident">max_cross</span>);
+            <span class="kw">if </span>cross_fill_factor == <span class="number">0 </span>{
+                <span class="kw">let </span>(max_width, max_height) = axis.pack(available, max_cross);
 
-                <span class="kw">let</span> <span class="ident">child_limits</span> <span class="op">=</span>
-                    <span class="ident">Limits::new</span>(<span class="ident">Size::ZERO</span>, <span class="ident">Size::new</span>(<span class="ident">max_width</span>, <span class="ident">max_height</span>));
+                <span class="kw">let </span>child_limits =
+                    Limits::new(Size::ZERO, Size::new(max_width, max_height));
 
-                <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">child_limits</span>);
-                <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
+                <span class="kw">let </span>layout = child.as_widget().layout(renderer, <span class="kw-2">&amp;</span>child_limits);
+                <span class="kw">let </span>size = layout.size();
 
-                <span class="ident">fill_cross</span> <span class="op">=</span> <span class="ident">fill_cross</span>.<span class="ident">max</span>(<span class="ident">axis</span>.<span class="ident">cross</span>(<span class="ident">size</span>));
+                fill_cross = fill_cross.max(axis.cross(size));
             }
         });
 
-        <span class="ident">cross</span> <span class="op">=</span> <span class="ident">fill_cross</span>;
+        cross = fill_cross;
     }
 
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">child</span>) <span class="kw">in</span> <span class="ident">items</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">let</span> <span class="ident">fill_factor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">axis</span> {
-            <span class="ident">Axis::Horizontal</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">width</span>(),
-            <span class="ident">Axis::Vertical</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">height</span>(),
+    <span class="kw">for </span>(i, child) <span class="kw">in </span>items.iter().enumerate() {
+        <span class="kw">let </span>fill_factor = <span class="kw">match </span>axis {
+            Axis::Horizontal =&gt; child.as_widget().width(),
+            Axis::Vertical =&gt; child.as_widget().height(),
         }
-        .<span class="ident">fill_factor</span>();
+        .fill_factor();
 
-        <span class="kw">if</span> <span class="ident">fill_factor</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">let</span> (<span class="ident">min_width</span>, <span class="ident">min_height</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">align_items</span> <span class="op">==</span> <span class="ident">Alignment::Fill</span> {
-                <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="number">0.0</span>, <span class="ident">cross</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="number">0.0</span>, <span class="number">0.0</span>)
+        <span class="kw">if </span>fill_factor == <span class="number">0 </span>{
+            <span class="kw">let </span>(min_width, min_height) = <span class="kw">if </span>align_items == Alignment::Fill {
+                axis.pack(<span class="number">0.0</span>, cross)
+            } <span class="kw">else </span>{
+                axis.pack(<span class="number">0.0</span>, <span class="number">0.0</span>)
             };
 
-            <span class="kw">let</span> (<span class="ident">max_width</span>, <span class="ident">max_height</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">align_items</span> <span class="op">==</span> <span class="ident">Alignment::Fill</span> {
-                <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="ident">available</span>, <span class="ident">cross</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="ident">available</span>, <span class="ident">max_cross</span>)
+            <span class="kw">let </span>(max_width, max_height) = <span class="kw">if </span>align_items == Alignment::Fill {
+                axis.pack(available, cross)
+            } <span class="kw">else </span>{
+                axis.pack(available, max_cross)
             };
 
-            <span class="kw">let</span> <span class="ident">child_limits</span> <span class="op">=</span> <span class="ident">Limits::new</span>(
-                <span class="ident">Size::new</span>(<span class="ident">min_width</span>, <span class="ident">min_height</span>),
-                <span class="ident">Size::new</span>(<span class="ident">max_width</span>, <span class="ident">max_height</span>),
+            <span class="kw">let </span>child_limits = Limits::new(
+                Size::new(min_width, min_height),
+                Size::new(max_width, max_height),
             );
 
-            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">child_limits</span>);
-            <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
+            <span class="kw">let </span>layout = child.as_widget().layout(renderer, <span class="kw-2">&amp;</span>child_limits);
+            <span class="kw">let </span>size = layout.size();
 
-            <span class="ident">available</span> <span class="op">-</span><span class="op">=</span> <span class="ident">axis</span>.<span class="ident">main</span>(<span class="ident">size</span>);
+            available -= axis.main(size);
 
-            <span class="kw">if</span> <span class="ident">align_items</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Alignment::Fill</span> {
-                <span class="ident">cross</span> <span class="op">=</span> <span class="ident">cross</span>.<span class="ident">max</span>(<span class="ident">axis</span>.<span class="ident">cross</span>(<span class="ident">size</span>));
+            <span class="kw">if </span>align_items != Alignment::Fill {
+                cross = cross.max(axis.cross(size));
             }
 
-            <span class="ident">nodes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">layout</span>;
-        } <span class="kw">else</span> {
-            <span class="ident">fill_sum</span> <span class="op">+</span><span class="op">=</span> <span class="ident">fill_factor</span>;
+            nodes[i] = layout;
+        } <span class="kw">else </span>{
+            fill_sum += fill_factor;
         }
     }
 
-    <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">available</span>.<span class="ident">max</span>(<span class="number">0.0</span>);
+    <span class="kw">let </span>remaining = available.max(<span class="number">0.0</span>);
 
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">child</span>) <span class="kw">in</span> <span class="ident">items</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">let</span> <span class="ident">fill_factor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">axis</span> {
-            <span class="ident">Axis::Horizontal</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">width</span>(),
-            <span class="ident">Axis::Vertical</span> =&gt; <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">height</span>(),
+    <span class="kw">for </span>(i, child) <span class="kw">in </span>items.iter().enumerate() {
+        <span class="kw">let </span>fill_factor = <span class="kw">match </span>axis {
+            Axis::Horizontal =&gt; child.as_widget().width(),
+            Axis::Vertical =&gt; child.as_widget().height(),
         }
-        .<span class="ident">fill_factor</span>();
+        .fill_factor();
 
-        <span class="kw">if</span> <span class="ident">fill_factor</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">max_main</span> <span class="op">=</span> <span class="ident">remaining</span> <span class="op">*</span> <span class="ident">fill_factor</span> <span class="kw">as</span> <span class="ident">f32</span> <span class="op">/</span> <span class="ident">fill_sum</span> <span class="kw">as</span> <span class="ident">f32</span>;
-            <span class="kw">let</span> <span class="ident">min_main</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">max_main</span>.<span class="ident">is_infinite</span>() {
-                <span class="number">0.0</span>
-            } <span class="kw">else</span> {
-                <span class="ident">max_main</span>
+        <span class="kw">if </span>fill_factor != <span class="number">0 </span>{
+            <span class="kw">let </span>max_main = remaining * fill_factor <span class="kw">as </span>f32 / fill_sum <span class="kw">as </span>f32;
+            <span class="kw">let </span>min_main = <span class="kw">if </span>max_main.is_infinite() {
+                <span class="number">0.0
+            </span>} <span class="kw">else </span>{
+                max_main
             };
 
-            <span class="kw">let</span> (<span class="ident">min_width</span>, <span class="ident">min_height</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">align_items</span> <span class="op">==</span> <span class="ident">Alignment::Fill</span> {
-                <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="ident">min_main</span>, <span class="ident">cross</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="ident">min_main</span>, <span class="ident">axis</span>.<span class="ident">cross</span>(<span class="ident">limits</span>.<span class="ident">min</span>()))
+            <span class="kw">let </span>(min_width, min_height) = <span class="kw">if </span>align_items == Alignment::Fill {
+                axis.pack(min_main, cross)
+            } <span class="kw">else </span>{
+                axis.pack(min_main, axis.cross(limits.min()))
             };
 
-            <span class="kw">let</span> (<span class="ident">max_width</span>, <span class="ident">max_height</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">align_items</span> <span class="op">==</span> <span class="ident">Alignment::Fill</span> {
-                <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="ident">max_main</span>, <span class="ident">cross</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="ident">max_main</span>, <span class="ident">max_cross</span>)
+            <span class="kw">let </span>(max_width, max_height) = <span class="kw">if </span>align_items == Alignment::Fill {
+                axis.pack(max_main, cross)
+            } <span class="kw">else </span>{
+                axis.pack(max_main, max_cross)
             };
 
-            <span class="kw">let</span> <span class="ident">child_limits</span> <span class="op">=</span> <span class="ident">Limits::new</span>(
-                <span class="ident">Size::new</span>(<span class="ident">min_width</span>, <span class="ident">min_height</span>),
-                <span class="ident">Size::new</span>(<span class="ident">max_width</span>, <span class="ident">max_height</span>),
+            <span class="kw">let </span>child_limits = Limits::new(
+                Size::new(min_width, min_height),
+                Size::new(max_width, max_height),
             );
 
-            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">as_widget</span>().<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">child_limits</span>);
+            <span class="kw">let </span>layout = child.as_widget().layout(renderer, <span class="kw-2">&amp;</span>child_limits);
 
-            <span class="kw">if</span> <span class="ident">align_items</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Alignment::Fill</span> {
-                <span class="ident">cross</span> <span class="op">=</span> <span class="ident">cross</span>.<span class="ident">max</span>(<span class="ident">axis</span>.<span class="ident">cross</span>(<span class="ident">layout</span>.<span class="ident">size</span>()));
+            <span class="kw">if </span>align_items != Alignment::Fill {
+                cross = cross.max(axis.cross(layout.size()));
             }
 
-            <span class="ident">nodes</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">layout</span>;
+            nodes[i] = layout;
         }
     }
 
-    <span class="kw">let</span> <span class="ident">pad</span> <span class="op">=</span> <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="ident">padding</span>.<span class="ident">left</span> <span class="kw">as</span> <span class="ident">f32</span>, <span class="ident">padding</span>.<span class="ident">top</span> <span class="kw">as</span> <span class="ident">f32</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">main</span> <span class="op">=</span> <span class="ident">pad</span>.<span class="number">0</span>;
+    <span class="kw">let </span>pad = axis.pack(padding.left <span class="kw">as </span>f32, padding.top <span class="kw">as </span>f32);
+    <span class="kw">let </span><span class="kw-2">mut </span>main = pad.<span class="number">0</span>;
 
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">nodes</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
-        <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="ident">main</span> <span class="op">+</span><span class="op">=</span> <span class="ident">spacing</span>;
+    <span class="kw">for </span>(i, node) <span class="kw">in </span>nodes.iter_mut().enumerate() {
+        <span class="kw">if </span>i &gt; <span class="number">0 </span>{
+            main += spacing;
         }
 
-        <span class="kw">let</span> (<span class="ident">x</span>, <span class="ident">y</span>) <span class="op">=</span> <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="ident">main</span>, <span class="ident">pad</span>.<span class="number">1</span>);
+        <span class="kw">let </span>(x, y) = axis.pack(main, pad.<span class="number">1</span>);
 
-        <span class="ident">node</span>.<span class="ident">move_to</span>(<span class="ident">Point::new</span>(<span class="ident">x</span>, <span class="ident">y</span>));
+        node.move_to(Point::new(x, y));
 
-        <span class="kw">match</span> <span class="ident">axis</span> {
-            <span class="ident">Axis::Horizontal</span> =&gt; {
-                <span class="ident">node</span>.<span class="ident">align</span>(
-                    <span class="ident">Alignment::Start</span>,
-                    <span class="ident">align_items</span>,
-                    <span class="ident">Size::new</span>(<span class="number">0.0</span>, <span class="ident">cross</span>),
+        <span class="kw">match </span>axis {
+            Axis::Horizontal =&gt; {
+                node.align(
+                    Alignment::Start,
+                    align_items,
+                    Size::new(<span class="number">0.0</span>, cross),
                 );
             }
-            <span class="ident">Axis::Vertical</span> =&gt; {
-                <span class="ident">node</span>.<span class="ident">align</span>(
-                    <span class="ident">align_items</span>,
-                    <span class="ident">Alignment::Start</span>,
-                    <span class="ident">Size::new</span>(<span class="ident">cross</span>, <span class="number">0.0</span>),
+            Axis::Vertical =&gt; {
+                node.align(
+                    align_items,
+                    Alignment::Start,
+                    Size::new(cross, <span class="number">0.0</span>),
                 );
             }
         }
 
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">node</span>.<span class="ident">size</span>();
+        <span class="kw">let </span>size = node.size();
 
-        <span class="ident">main</span> <span class="op">+</span><span class="op">=</span> <span class="ident">axis</span>.<span class="ident">main</span>(<span class="ident">size</span>);
+        main += axis.main(size);
     }
 
-    <span class="kw">let</span> (<span class="ident">width</span>, <span class="ident">height</span>) <span class="op">=</span> <span class="ident">axis</span>.<span class="ident">pack</span>(<span class="ident">main</span> <span class="op">-</span> <span class="ident">pad</span>.<span class="number">0</span>, <span class="ident">cross</span>);
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">limits</span>.<span class="ident">resolve</span>(<span class="ident">Size::new</span>(<span class="ident">width</span>, <span class="ident">height</span>));
+    <span class="kw">let </span>(width, height) = axis.pack(main - pad.<span class="number">0</span>, cross);
+    <span class="kw">let </span>size = limits.resolve(Size::new(width, height));
 
-    <span class="ident">Node::with_children</span>(<span class="ident">size</span>.<span class="ident">pad</span>(<span class="ident">padding</span>), <span class="ident">nodes</span>)
+    Node::with_children(size.pad(padding), nodes)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

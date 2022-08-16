@@ -342,347 +342,347 @@
 <span id="340">340</span>
 <span id="341">341</span>
 <span id="342">342</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>::{<span class="self">self</span>, <span class="ident">Event</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::overlay</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::container</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::pane_grid</span>::{<span class="ident">Draggable</span>, <span class="ident">TitleBar</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::Tree</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
+<span class="kw">use </span><span class="kw">crate</span>::layout;
+<span class="kw">use </span><span class="kw">crate</span>::mouse;
+<span class="kw">use </span><span class="kw">crate</span>::overlay;
+<span class="kw">use </span><span class="kw">crate</span>::renderer;
+<span class="kw">use </span><span class="kw">crate</span>::widget::container;
+<span class="kw">use </span><span class="kw">crate</span>::widget::pane_grid::{Draggable, TitleBar};
+<span class="kw">use </span><span class="kw">crate</span>::widget::Tree;
+<span class="kw">use crate</span>::{Clipboard, Element, Layout, Point, Rectangle, Shell, Size};
 
-<span class="doccomment">/// The content of a [`Pane`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Pane`]: crate::widget::pane_grid::Pane</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Content</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">container::StyleSheet</span>,
+<span class="doccomment">/// The content of a [`Pane`].
+///
+/// [`Pane`]: crate::widget::pane_grid::Pane
+</span><span class="attribute">#[allow(missing_debug_implementations)]</span>
+<span class="kw">pub struct </span>Content&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: <span class="kw">crate</span>::Renderer,
+    Renderer::Theme: container::StyleSheet,
 {
-    <span class="ident">title_bar</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TitleBar</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">body</span>: <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
-    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">container::StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
+    title_bar: <span class="prelude-ty">Option</span>&lt;TitleBar&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;,
+    body: Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
+    style: &lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Content</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">container::StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Content&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: <span class="kw">crate</span>::Renderer,
+    Renderer::Theme: container::StyleSheet,
 {
-    <span class="doccomment">/// Creates a new [`Content`] with the provided body.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">body</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">title_bar</span>: <span class="prelude-val">None</span>,
-            <span class="ident">body</span>: <span class="ident">body</span>.<span class="ident">into</span>(),
-            <span class="ident">style</span>: <span class="ident">Default::default</span>(),
+    <span class="doccomment">/// Creates a new [`Content`] with the provided body.
+    </span><span class="kw">pub fn </span>new(body: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            title_bar: <span class="prelude-val">None</span>,
+            body: body.into(),
+            style: Default::default(),
         }
     }
 
-    <span class="doccomment">/// Sets the [`TitleBar`] of this [`Content`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">title_bar</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">title_bar</span>: <span class="ident">TitleBar</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">title_bar</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">title_bar</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the [`TitleBar`] of this [`Content`].
+    </span><span class="kw">pub fn </span>title_bar(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        title_bar: TitleBar&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.title_bar = <span class="prelude-val">Some</span>(title_bar);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the style of the [`Content`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">style</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">container::StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>.<span class="ident">into</span>();
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the style of the [`Content`].
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = style.into();
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Content</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">container::StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Content&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: <span class="kw">crate</span>::Renderer,
+    Renderer::Theme: container::StyleSheet,
 {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Tree</span> {
-        <span class="kw">let</span> <span class="ident">children</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">title_bar</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">title_bar</span>.<span class="ident">as_ref</span>() {
-            <span class="macro">vec!</span>[<span class="ident">Tree::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>), <span class="ident">title_bar</span>.<span class="ident">state</span>()]
-        } <span class="kw">else</span> {
-            <span class="macro">vec!</span>[<span class="ident">Tree::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>), <span class="ident">Tree::empty</span>()]
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Tree {
+        <span class="kw">let </span>children = <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="self">self</span>.title_bar.as_ref() {
+            <span class="macro">vec!</span>[Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.body), title_bar.state()]
+        } <span class="kw">else </span>{
+            <span class="macro">vec!</span>[Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.body), Tree::empty()]
         };
 
-        <span class="ident">Tree</span> {
-            <span class="ident">children</span>,
-            ..<span class="ident">Tree::empty</span>()
+        Tree {
+            children,
+            ..Tree::empty()
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>) {
-        <span class="kw">if</span> <span class="ident">tree</span>.<span class="ident">children</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">title_bar</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">title_bar</span>.<span class="ident">as_ref</span>() {
-                <span class="ident">title_bar</span>.<span class="ident">diff</span>(<span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">1</span>]);
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>diff(<span class="kw-2">&amp;</span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree) {
+        <span class="kw">if </span>tree.children.len() == <span class="number">2 </span>{
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="self">self</span>.title_bar.as_ref() {
+                title_bar.diff(<span class="kw-2">&amp;mut </span>tree.children[<span class="number">1</span>]);
             }
 
-            <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>].<span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>);
-        } <span class="kw">else</span> {
-            <span class="kw-2">*</span><span class="ident">tree</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>();
+            tree.children[<span class="number">0</span>].diff(<span class="kw-2">&amp;</span><span class="self">self</span>.body);
+        } <span class="kw">else </span>{
+            <span class="kw-2">*</span>tree = <span class="self">self</span>.state();
         }
     }
 
-    <span class="doccomment">/// Draws the [`Content`] with the provided [`Renderer`] and [`Layout`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Renderer`]: iced_native::Renderer</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="doccomment">/// Draws the [`Content`] with the provided [`Renderer`] and [`Layout`].
+    ///
+    /// [`Renderer`]: iced_native::Renderer
+    </span><span class="kw">pub fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        tree: <span class="kw-2">&amp;</span>Tree,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        style: <span class="kw-2">&amp;</span>renderer::Style,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="kw">use</span> <span class="ident">container::StyleSheet</span>;
+        <span class="kw">use </span>container::StyleSheet;
 
-        <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
+        <span class="kw">let </span>bounds = layout.bounds();
 
         {
-            <span class="kw">let</span> <span class="ident">style</span> <span class="op">=</span> <span class="ident">theme</span>.<span class="ident">appearance</span>(<span class="self">self</span>.<span class="ident">style</span>);
+            <span class="kw">let </span>style = theme.appearance(<span class="self">self</span>.style);
 
-            <span class="ident">container::draw_background</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">style</span>, <span class="ident">bounds</span>);
+            container::draw_background(renderer, <span class="kw-2">&amp;</span>style, bounds);
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">title_bar</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">title_bar</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>();
-            <span class="kw">let</span> <span class="ident">title_bar_layout</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">body_layout</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="kw-2">&amp;</span><span class="self">self</span>.title_bar {
+            <span class="kw">let </span><span class="kw-2">mut </span>children = layout.children();
+            <span class="kw">let </span>title_bar_layout = children.next().unwrap();
+            <span class="kw">let </span>body_layout = children.next().unwrap();
 
-            <span class="kw">let</span> <span class="ident">show_controls</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">contains</span>(<span class="ident">cursor_position</span>);
+            <span class="kw">let </span>show_controls = bounds.contains(cursor_position);
 
-            <span class="ident">title_bar</span>.<span class="ident">draw</span>(
-                <span class="kw-2">&amp;</span><span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">1</span>],
-                <span class="ident">renderer</span>,
-                <span class="ident">theme</span>,
-                <span class="ident">style</span>,
-                <span class="ident">title_bar_layout</span>,
-                <span class="ident">cursor_position</span>,
-                <span class="ident">viewport</span>,
-                <span class="ident">show_controls</span>,
+            title_bar.draw(
+                <span class="kw-2">&amp;</span>tree.children[<span class="number">1</span>],
+                renderer,
+                theme,
+                style,
+                title_bar_layout,
+                cursor_position,
+                viewport,
+                show_controls,
             );
 
-            <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">as_widget</span>().<span class="ident">draw</span>(
-                <span class="kw-2">&amp;</span><span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-                <span class="ident">renderer</span>,
-                <span class="ident">theme</span>,
-                <span class="ident">style</span>,
-                <span class="ident">body_layout</span>,
-                <span class="ident">cursor_position</span>,
-                <span class="ident">viewport</span>,
+            <span class="self">self</span>.body.as_widget().draw(
+                <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+                renderer,
+                theme,
+                style,
+                body_layout,
+                cursor_position,
+                viewport,
             );
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">as_widget</span>().<span class="ident">draw</span>(
-                <span class="kw-2">&amp;</span><span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-                <span class="ident">renderer</span>,
-                <span class="ident">theme</span>,
-                <span class="ident">style</span>,
-                <span class="ident">layout</span>,
-                <span class="ident">cursor_position</span>,
-                <span class="ident">viewport</span>,
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.body.as_widget().draw(
+                <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+                renderer,
+                theme,
+                style,
+                layout,
+                cursor_position,
+                viewport,
             );
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">layout</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">title_bar</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">title_bar</span> {
-            <span class="kw">let</span> <span class="ident">max_size</span> <span class="op">=</span> <span class="ident">limits</span>.<span class="ident">max</span>();
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        limits: <span class="kw-2">&amp;</span>layout::Limits,
+    ) -&gt; layout::Node {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="kw-2">&amp;</span><span class="self">self</span>.title_bar {
+            <span class="kw">let </span>max_size = limits.max();
 
-            <span class="kw">let</span> <span class="ident">title_bar_layout</span> <span class="op">=</span> <span class="ident">title_bar</span>
-                .<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">layout::Limits::new</span>(<span class="ident">Size::ZERO</span>, <span class="ident">max_size</span>));
+            <span class="kw">let </span>title_bar_layout = title_bar
+                .layout(renderer, <span class="kw-2">&amp;</span>layout::Limits::new(Size::ZERO, max_size));
 
-            <span class="kw">let</span> <span class="ident">title_bar_size</span> <span class="op">=</span> <span class="ident">title_bar_layout</span>.<span class="ident">size</span>();
+            <span class="kw">let </span>title_bar_size = title_bar_layout.size();
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body_layout</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">as_widget</span>().<span class="ident">layout</span>(
-                <span class="ident">renderer</span>,
-                <span class="kw-2">&amp;</span><span class="ident">layout::Limits::new</span>(
-                    <span class="ident">Size::ZERO</span>,
-                    <span class="ident">Size::new</span>(
-                        <span class="ident">max_size</span>.<span class="ident">width</span>,
-                        <span class="ident">max_size</span>.<span class="ident">height</span> <span class="op">-</span> <span class="ident">title_bar_size</span>.<span class="ident">height</span>,
+            <span class="kw">let </span><span class="kw-2">mut </span>body_layout = <span class="self">self</span>.body.as_widget().layout(
+                renderer,
+                <span class="kw-2">&amp;</span>layout::Limits::new(
+                    Size::ZERO,
+                    Size::new(
+                        max_size.width,
+                        max_size.height - title_bar_size.height,
                     ),
                 ),
             );
 
-            <span class="ident">body_layout</span>.<span class="ident">move_to</span>(<span class="ident">Point::new</span>(<span class="number">0.0</span>, <span class="ident">title_bar_size</span>.<span class="ident">height</span>));
+            body_layout.move_to(Point::new(<span class="number">0.0</span>, title_bar_size.height));
 
-            <span class="ident">layout::Node::with_children</span>(
-                <span class="ident">max_size</span>,
-                <span class="macro">vec!</span>[<span class="ident">title_bar_layout</span>, <span class="ident">body_layout</span>],
+            layout::Node::with_children(
+                max_size,
+                <span class="macro">vec!</span>[title_bar_layout, body_layout],
             )
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">as_widget</span>().<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">limits</span>)
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.body.as_widget().layout(renderer, limits)
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">on_event</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
-        <span class="ident">event</span>: <span class="ident">Event</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-        <span class="ident">is_picked</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="ident">event::Status</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event_status</span> <span class="op">=</span> <span class="ident">event::Status::Ignored</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>on_event(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
+        event: Event,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
+        is_picked: bool,
+    ) -&gt; event::Status {
+        <span class="kw">let </span><span class="kw-2">mut </span>event_status = event::Status::Ignored;
 
-        <span class="kw">let</span> <span class="ident">body_layout</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">title_bar</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">title_bar</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>();
+        <span class="kw">let </span>body_layout = <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.title_bar {
+            <span class="kw">let </span><span class="kw-2">mut </span>children = layout.children();
 
-            <span class="ident">event_status</span> <span class="op">=</span> <span class="ident">title_bar</span>.<span class="ident">on_event</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">1</span>],
-                <span class="ident">event</span>.<span class="ident">clone</span>(),
-                <span class="ident">children</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>(),
-                <span class="ident">cursor_position</span>,
-                <span class="ident">renderer</span>,
-                <span class="ident">clipboard</span>,
-                <span class="ident">shell</span>,
+            event_status = title_bar.on_event(
+                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">1</span>],
+                event.clone(),
+                children.next().unwrap(),
+                cursor_position,
+                renderer,
+                clipboard,
+                shell,
             );
 
-            <span class="ident">children</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>()
-        } <span class="kw">else</span> {
-            <span class="ident">layout</span>
+            children.next().unwrap()
+        } <span class="kw">else </span>{
+            layout
         };
 
-        <span class="kw">let</span> <span class="ident">body_status</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_picked</span> {
-            <span class="ident">event::Status::Ignored</span>
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">as_widget_mut</span>().<span class="ident">on_event</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-                <span class="ident">event</span>,
-                <span class="ident">body_layout</span>,
-                <span class="ident">cursor_position</span>,
-                <span class="ident">renderer</span>,
-                <span class="ident">clipboard</span>,
-                <span class="ident">shell</span>,
+        <span class="kw">let </span>body_status = <span class="kw">if </span>is_picked {
+            event::Status::Ignored
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.body.as_widget_mut().on_event(
+                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+                event,
+                body_layout,
+                cursor_position,
+                renderer,
+                clipboard,
+                shell,
             )
         };
 
-        <span class="ident">event_status</span>.<span class="ident">merge</span>(<span class="ident">body_status</span>)
+        event_status.merge(body_status)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>mouse_interaction(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="kw">let</span> (<span class="ident">body_layout</span>, <span class="ident">title_bar_interaction</span>) <span class="op">=</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">title_bar</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">title_bar</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>();
-                <span class="kw">let</span> <span class="ident">title_bar_layout</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+        tree: <span class="kw-2">&amp;</span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        viewport: <span class="kw-2">&amp;</span>Rectangle,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+    ) -&gt; mouse::Interaction {
+        <span class="kw">let </span>(body_layout, title_bar_interaction) =
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="kw-2">&amp;</span><span class="self">self</span>.title_bar {
+                <span class="kw">let </span><span class="kw-2">mut </span>children = layout.children();
+                <span class="kw">let </span>title_bar_layout = children.next().unwrap();
 
-                <span class="kw">let</span> <span class="ident">is_over_pick_area</span> <span class="op">=</span> <span class="ident">title_bar</span>
-                    .<span class="ident">is_over_pick_area</span>(<span class="ident">title_bar_layout</span>, <span class="ident">cursor_position</span>);
+                <span class="kw">let </span>is_over_pick_area = title_bar
+                    .is_over_pick_area(title_bar_layout, cursor_position);
 
-                <span class="kw">if</span> <span class="ident">is_over_pick_area</span> {
-                    <span class="kw">return</span> <span class="ident">mouse::Interaction::Grab</span>;
+                <span class="kw">if </span>is_over_pick_area {
+                    <span class="kw">return </span>mouse::Interaction::Grab;
                 }
 
-                <span class="kw">let</span> <span class="ident">mouse_interaction</span> <span class="op">=</span> <span class="ident">title_bar</span>.<span class="ident">mouse_interaction</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">1</span>],
-                    <span class="ident">title_bar_layout</span>,
-                    <span class="ident">cursor_position</span>,
-                    <span class="ident">viewport</span>,
-                    <span class="ident">renderer</span>,
+                <span class="kw">let </span>mouse_interaction = title_bar.mouse_interaction(
+                    <span class="kw-2">&amp;</span>tree.children[<span class="number">1</span>],
+                    title_bar_layout,
+                    cursor_position,
+                    viewport,
+                    renderer,
                 );
 
-                (<span class="ident">children</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>(), <span class="ident">mouse_interaction</span>)
-            } <span class="kw">else</span> {
-                (<span class="ident">layout</span>, <span class="ident">mouse::Interaction::default</span>())
+                (children.next().unwrap(), mouse_interaction)
+            } <span class="kw">else </span>{
+                (layout, mouse::Interaction::default())
             };
 
-        <span class="self">self</span>.<span class="ident">body</span>
-            .<span class="ident">as_widget</span>()
-            .<span class="ident">mouse_interaction</span>(
-                <span class="kw-2">&amp;</span><span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-                <span class="ident">body_layout</span>,
-                <span class="ident">cursor_position</span>,
-                <span class="ident">viewport</span>,
-                <span class="ident">renderer</span>,
+        <span class="self">self</span>.body
+            .as_widget()
+            .mouse_interaction(
+                <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+                body_layout,
+                cursor_position,
+                viewport,
+                renderer,
             )
-            .<span class="ident">max</span>(<span class="ident">title_bar_interaction</span>)
+            .max(title_bar_interaction)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">overlay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">overlay::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">title_bar</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">title_bar</span>.<span class="ident">as_ref</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>();
-            <span class="kw">let</span> <span class="ident">title_bar_layout</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>overlay&lt;<span class="lifetime">&#39;b</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;b</span>, Message, Renderer&gt;&gt; {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="self">self</span>.title_bar.as_ref() {
+            <span class="kw">let </span><span class="kw-2">mut </span>children = layout.children();
+            <span class="kw">let </span>title_bar_layout = children.next()<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">states</span> <span class="op">=</span> <span class="ident">tree</span>.<span class="ident">children</span>.<span class="ident">iter_mut</span>();
-            <span class="kw">let</span> <span class="ident">body_state</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">title_bar_state</span> <span class="op">=</span> <span class="ident">states</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>states = tree.children.iter_mut();
+            <span class="kw">let </span>body_state = states.next().unwrap();
+            <span class="kw">let </span>title_bar_state = states.next().unwrap();
 
-            <span class="kw">match</span> <span class="ident">title_bar</span>.<span class="ident">overlay</span>(<span class="ident">title_bar_state</span>, <span class="ident">title_bar_layout</span>, <span class="ident">renderer</span>)
+            <span class="kw">match </span>title_bar.overlay(title_bar_state, title_bar_layout, renderer)
             {
-                <span class="prelude-val">Some</span>(<span class="ident">overlay</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">overlay</span>),
-                <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
-                    <span class="ident">body_state</span>,
-                    <span class="ident">children</span>.<span class="ident">next</span>()<span class="question-mark">?</span>,
-                    <span class="ident">renderer</span>,
+                <span class="prelude-val">Some</span>(overlay) =&gt; <span class="prelude-val">Some</span>(overlay),
+                <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.body.as_widget().overlay(
+                    body_state,
+                    children.next()<span class="question-mark">?</span>,
+                    renderer,
                 ),
             }
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-                <span class="ident">layout</span>,
-                <span class="ident">renderer</span>,
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.body.as_widget().overlay(
+                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+                layout,
+                renderer,
             )
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Draggable</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">Content</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">container::StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Draggable <span class="kw">for </span><span class="kw-2">&amp;</span>Content&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: <span class="kw">crate</span>::Renderer,
+    Renderer::Theme: container::StyleSheet,
 {
-    <span class="kw">fn</span> <span class="ident">can_be_dragged_at</span>(
+    <span class="kw">fn </span>can_be_dragged_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-    ) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">title_bar</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">title_bar</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>();
-            <span class="kw">let</span> <span class="ident">title_bar_layout</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+    ) -&gt; bool {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="kw-2">&amp;</span><span class="self">self</span>.title_bar {
+            <span class="kw">let </span><span class="kw-2">mut </span>children = layout.children();
+            <span class="kw">let </span>title_bar_layout = children.next().unwrap();
 
-            <span class="ident">title_bar</span>.<span class="ident">is_over_pick_area</span>(<span class="ident">title_bar_layout</span>, <span class="ident">cursor_position</span>)
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        }
+            title_bar.is_over_pick_area(title_bar_layout, cursor_position)
+        } <span class="kw">else </span>{
+            <span class="bool-val">false
+        </span>}
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Content</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">container::StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, Message, Renderer&gt; From&lt;T&gt; <span class="kw">for </span>Content&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>T: Into&lt;Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;,
+    Renderer: <span class="kw">crate</span>::Renderer,
+    Renderer::Theme: container::StyleSheet,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">element</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">element</span>)
+    <span class="kw">fn </span>from(element: T) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(element)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

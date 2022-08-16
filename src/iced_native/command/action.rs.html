@@ -68,73 +68,73 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::clipboard</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::system</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::window</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::clipboard;
+<span class="kw">use </span><span class="kw">crate</span>::system;
+<span class="kw">use </span><span class="kw">crate</span>::widget;
+<span class="kw">use </span><span class="kw">crate</span>::window;
 
-<span class="kw">use</span> <span class="ident">iced_futures::MaybeSend</span>;
+<span class="kw">use </span>iced_futures::MaybeSend;
 
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use </span>std::fmt;
 
-<span class="doccomment">/// An action that a [`Command`] can perform.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Command`]: crate::Command</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Run a [`Future`] to completion.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Future`]: iced_futures::BoxFuture</span>
-    <span class="ident">Future</span>(<span class="ident">iced_futures::BoxFuture</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+<span class="doccomment">/// An action that a [`Command`] can perform.
+///
+/// [`Command`]: crate::Command
+</span><span class="kw">pub enum </span>Action&lt;T&gt; {
+    <span class="doccomment">/// Run a [`Future`] to completion.
+    ///
+    /// [`Future`]: iced_futures::BoxFuture
+    </span>Future(iced_futures::BoxFuture&lt;T&gt;),
 
-    <span class="doccomment">/// Run a clipboard action.</span>
-    <span class="ident">Clipboard</span>(<span class="ident">clipboard::Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// Run a clipboard action.
+    </span>Clipboard(clipboard::Action&lt;T&gt;),
 
-    <span class="doccomment">/// Run a window action.</span>
-    <span class="ident">Window</span>(<span class="ident">window::Action</span>),
+    <span class="doccomment">/// Run a window action.
+    </span>Window(window::Action),
 
-    <span class="doccomment">/// Run a system action.</span>
-    <span class="ident">System</span>(<span class="ident">system::Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// Run a system action.
+    </span>System(system::Action&lt;T&gt;),
 
-    <span class="doccomment">/// Run a widget action.</span>
-    <span class="ident">Widget</span>(<span class="ident">widget::Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// Run a widget action.
+    </span>Widget(widget::Action&lt;T&gt;),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Applies a transformation to the result of a [`Command`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Command`]: crate::Command</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
+<span class="kw">impl</span>&lt;T&gt; Action&lt;T&gt; {
+    <span class="doccomment">/// Applies a transformation to the result of a [`Command`].
+    ///
+    /// [`Command`]: crate::Command
+    </span><span class="kw">pub fn </span>map&lt;A&gt;(
         <span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">T</span>) -&gt; <span class="ident">A</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">MaybeSend</span> <span class="op">+</span> <span class="ident">Sync</span>,
-    ) -&gt; <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">A</span>: <span class="lifetime">&#39;static</span>,
-        <span class="ident">T</span>: <span class="lifetime">&#39;static</span>,
+        f: <span class="kw">impl </span>Fn(T) -&gt; A + <span class="lifetime">&#39;static </span>+ MaybeSend + Sync,
+    ) -&gt; Action&lt;A&gt;
+    <span class="kw">where
+        </span>A: <span class="lifetime">&#39;static</span>,
+        T: <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">use</span> <span class="ident">iced_futures::futures::FutureExt</span>;
+        <span class="kw">use </span>iced_futures::futures::FutureExt;
 
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Future</span>(<span class="ident">future</span>) =&gt; <span class="ident">Action::Future</span>(<span class="ident">Box::pin</span>(<span class="ident">future</span>.<span class="ident">map</span>(<span class="ident">f</span>))),
-            <span class="ident"><span class="self">Self</span>::Clipboard</span>(<span class="ident">action</span>) =&gt; <span class="ident">Action::Clipboard</span>(<span class="ident">action</span>.<span class="ident">map</span>(<span class="ident">f</span>)),
-            <span class="ident"><span class="self">Self</span>::Window</span>(<span class="ident">window</span>) =&gt; <span class="ident">Action::Window</span>(<span class="ident">window</span>),
-            <span class="ident"><span class="self">Self</span>::System</span>(<span class="ident">system</span>) =&gt; <span class="ident">Action::System</span>(<span class="ident">system</span>.<span class="ident">map</span>(<span class="ident">f</span>)),
-            <span class="ident"><span class="self">Self</span>::Widget</span>(<span class="ident">widget</span>) =&gt; <span class="ident">Action::Widget</span>(<span class="ident">widget</span>.<span class="ident">map</span>(<span class="ident">f</span>)),
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Future(future) =&gt; Action::Future(Box::pin(future.map(f))),
+            <span class="self">Self</span>::Clipboard(action) =&gt; Action::Clipboard(action.map(f)),
+            <span class="self">Self</span>::Window(window) =&gt; Action::Window(window),
+            <span class="self">Self</span>::System(system) =&gt; Action::System(system.map(f)),
+            <span class="self">Self</span>::Widget(widget) =&gt; Action::Widget(widget.map(f)),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Future</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Action::Future&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Clipboard</span>(<span class="ident">action</span>) =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Action::Clipboard({:?})&quot;</span>, <span class="ident">action</span>)
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Action&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Future(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::Future&quot;</span>),
+            <span class="self">Self</span>::Clipboard(action) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Action::Clipboard({:?})&quot;</span>, action)
             }
-            <span class="ident"><span class="self">Self</span>::Window</span>(<span class="ident">action</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Action::Window({:?})&quot;</span>, <span class="ident">action</span>),
-            <span class="ident"><span class="self">Self</span>::System</span>(<span class="ident">action</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Action::System({:?})&quot;</span>, <span class="ident">action</span>),
-            <span class="ident"><span class="self">Self</span>::Widget</span>(<span class="ident">_action</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Action::Widget&quot;</span>),
+            <span class="self">Self</span>::Window(action) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::Window({:?})&quot;</span>, action),
+            <span class="self">Self</span>::System(action) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::System({:?})&quot;</span>, action),
+            <span class="self">Self</span>::Widget(_action) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::Widget&quot;</span>),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

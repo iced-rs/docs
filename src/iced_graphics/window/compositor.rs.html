@@ -88,93 +88,93 @@
 <span id="86">86</span>
 <span id="87">87</span>
 <span id="88">88</span>
-</pre><pre class="rust"><code><span class="doccomment">//! A compositor is responsible for initializing a renderer and managing window</span>
-<span class="doccomment">//! surfaces.</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Color</span>, <span class="ident">Error</span>, <span class="ident">Viewport</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! A compositor is responsible for initializing a renderer and managing window
+//! surfaces.
+</span><span class="kw">use crate</span>::{Color, Error, Viewport};
 
-<span class="kw">use</span> <span class="ident">raw_window_handle::HasRawWindowHandle</span>;
-<span class="kw">use</span> <span class="ident">thiserror::Error</span>;
+<span class="kw">use </span>raw_window_handle::HasRawWindowHandle;
+<span class="kw">use </span>thiserror::Error;
 
-<span class="doccomment">/// A graphics compositor that can draw to windows.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Compositor</span>: <span class="ident">Sized</span> {
-    <span class="doccomment">/// The settings of the backend.</span>
-    <span class="kw">type</span> <span class="ident">Settings</span>: <span class="ident">Default</span>;
+<span class="doccomment">/// A graphics compositor that can draw to windows.
+</span><span class="kw">pub trait </span>Compositor: Sized {
+    <span class="doccomment">/// The settings of the backend.
+    </span><span class="kw">type </span>Settings: Default;
 
-    <span class="doccomment">/// The iced renderer of the backend.</span>
-    <span class="kw">type</span> <span class="ident">Renderer</span>: <span class="ident">iced_native::Renderer</span>;
+    <span class="doccomment">/// The iced renderer of the backend.
+    </span><span class="kw">type </span>Renderer: iced_native::Renderer;
 
-    <span class="doccomment">/// The surface of the backend.</span>
-    <span class="kw">type</span> <span class="ident">Surface</span>;
+    <span class="doccomment">/// The surface of the backend.
+    </span><span class="kw">type </span>Surface;
 
-    <span class="doccomment">/// Creates a new [`Compositor`].</span>
-    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">HasRawWindowHandle</span><span class="op">&gt;</span>(
-        <span class="ident">settings</span>: <span class="ident"><span class="self">Self</span>::Settings</span>,
-        <span class="ident">compatible_window</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">W</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Renderer</span>), <span class="ident">Error</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Creates a new [`Compositor`].
+    </span><span class="kw">fn </span>new&lt;W: HasRawWindowHandle&gt;(
+        settings: <span class="self">Self</span>::Settings,
+        compatible_window: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>W&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(<span class="self">Self</span>, <span class="self">Self</span>::Renderer), Error&gt;;
 
-    <span class="doccomment">/// Crates a new [`Surface`] for the given window.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Surface`]: Self::Surface</span>
-    <span class="kw">fn</span> <span class="ident">create_surface</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">HasRawWindowHandle</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="ident">W</span>,
-    ) -&gt; <span class="ident"><span class="self">Self</span>::Surface</span>;
+    <span class="doccomment">/// Crates a new [`Surface`] for the given window.
+    ///
+    /// [`Surface`]: Self::Surface
+    </span><span class="kw">fn </span>create_surface&lt;W: HasRawWindowHandle&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        window: <span class="kw-2">&amp;</span>W,
+    ) -&gt; <span class="self">Self</span>::Surface;
 
-    <span class="doccomment">/// Configures a new [`Surface`] with the given dimensions.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Surface`]: Self::Surface</span>
-    <span class="kw">fn</span> <span class="ident">configure_surface</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">surface</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Surface</span>,
-        <span class="ident">width</span>: <span class="ident">u32</span>,
-        <span class="ident">height</span>: <span class="ident">u32</span>,
+    <span class="doccomment">/// Configures a new [`Surface`] with the given dimensions.
+    ///
+    /// [`Surface`]: Self::Surface
+    </span><span class="kw">fn </span>configure_surface(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        surface: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Surface,
+        width: u32,
+        height: u32,
     );
 
-    <span class="doccomment">/// Returns [`GraphicsInformation`] used by this [`Compositor`].</span>
-    <span class="kw">fn</span> <span class="ident">fetch_information</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Information</span>;
+    <span class="doccomment">/// Returns [`GraphicsInformation`] used by this [`Compositor`].
+    </span><span class="kw">fn </span>fetch_information(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Information;
 
-    <span class="doccomment">/// Presents the [`Renderer`] primitives to the next frame of the given [`Surface`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Renderer`]: Self::Renderer</span>
-    <span class="doccomment">/// [`Surface`]: Self::Surface</span>
-    <span class="kw">fn</span> <span class="ident">present</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Renderer</span>,
-        <span class="ident">surface</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Surface</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Viewport</span>,
-        <span class="ident">background_color</span>: <span class="ident">Color</span>,
-        <span class="ident">overlay</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>],
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SurfaceError</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Presents the [`Renderer`] primitives to the next frame of the given [`Surface`].
+    ///
+    /// [`Renderer`]: Self::Renderer
+    /// [`Surface`]: Self::Surface
+    </span><span class="kw">fn </span>present&lt;T: AsRef&lt;str&gt;&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        renderer: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Renderer,
+        surface: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Surface,
+        viewport: <span class="kw-2">&amp;</span>Viewport,
+        background_color: Color,
+        overlay: <span class="kw-2">&amp;</span>[T],
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), SurfaceError&gt;;
 }
 
-<span class="doccomment">/// Result of an unsuccessful call to [`Compositor::present`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">Error</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SurfaceError</span> {
-    <span class="doccomment">/// A timeout was encountered while trying to acquire the next frame.</span>
-    <span class="attribute">#[<span class="ident">error</span>(
-        <span class="string">&quot;A timeout was encountered while trying to acquire the next frame&quot;</span>
-    )]</span>
-    <span class="ident">Timeout</span>,
-    <span class="doccomment">/// The underlying surface has changed, and therefore the surface must be updated.</span>
-    <span class="attribute">#[<span class="ident">error</span>(
-        <span class="string">&quot;The underlying surface has changed, and therefore the surface must be updated.&quot;</span>
-    )]</span>
-    <span class="ident">Outdated</span>,
-    <span class="doccomment">/// The swap chain has been lost and needs to be recreated.</span>
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;The surface has been lost and needs to be recreated&quot;</span>)]</span>
-    <span class="ident">Lost</span>,
-    <span class="doccomment">/// There is no more memory left to allocate a new frame.</span>
-    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;There is no more memory left to allocate a new frame&quot;</span>)]</span>
-    <span class="ident">OutOfMemory</span>,
+<span class="doccomment">/// Result of an unsuccessful call to [`Compositor::present`].
+</span><span class="attribute">#[derive(Clone, PartialEq, Eq, Debug, Error)]</span>
+<span class="kw">pub enum </span>SurfaceError {
+    <span class="doccomment">/// A timeout was encountered while trying to acquire the next frame.
+    </span><span class="attribute">#[error(
+        <span class="string">&quot;A timeout was encountered while trying to acquire the next frame&quot;
+    </span>)]</span>
+    Timeout,
+    <span class="doccomment">/// The underlying surface has changed, and therefore the surface must be updated.
+    </span><span class="attribute">#[error(
+        <span class="string">&quot;The underlying surface has changed, and therefore the surface must be updated.&quot;
+    </span>)]</span>
+    Outdated,
+    <span class="doccomment">/// The swap chain has been lost and needs to be recreated.
+    </span><span class="attribute">#[error(<span class="string">&quot;The surface has been lost and needs to be recreated&quot;</span>)]</span>
+    Lost,
+    <span class="doccomment">/// There is no more memory left to allocate a new frame.
+    </span><span class="attribute">#[error(<span class="string">&quot;There is no more memory left to allocate a new frame&quot;</span>)]</span>
+    OutOfMemory,
 }
 
-<span class="doccomment">/// Contains informations about the graphics (e.g. graphics adapter, graphics backend).</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Information</span> {
-    <span class="doccomment">/// Contains the graphics adapter.</span>
-    <span class="kw">pub</span> <span class="ident">adapter</span>: <span class="ident">String</span>,
-    <span class="doccomment">/// Contains the graphics backend.</span>
-    <span class="kw">pub</span> <span class="ident">backend</span>: <span class="ident">String</span>,
+<span class="doccomment">/// Contains informations about the graphics (e.g. graphics adapter, graphics backend).
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Information {
+    <span class="doccomment">/// Contains the graphics adapter.
+    </span><span class="kw">pub </span>adapter: String,
+    <span class="doccomment">/// Contains the graphics backend.
+    </span><span class="kw">pub </span>backend: String,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

@@ -429,253 +429,253 @@
 <span id="427">427</span>
 <span id="428">428</span>
 <span id="429">429</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Draw meshes of triangles.</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">settings</span>, <span class="ident">Transformation</span>};
-<span class="kw">use</span> <span class="ident">iced_graphics::layer</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Draw meshes of triangles.
+</span><span class="kw">use crate</span>::{settings, Transformation};
+<span class="kw">use </span>iced_graphics::layer;
 
-<span class="kw">use</span> <span class="ident">bytemuck</span>::{<span class="ident">Pod</span>, <span class="ident">Zeroable</span>};
-<span class="kw">use</span> <span class="ident">std::mem</span>;
+<span class="kw">use </span>bytemuck::{Pod, Zeroable};
+<span class="kw">use </span>std::mem;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_graphics::triangle</span>::{<span class="ident">Mesh2D</span>, <span class="ident">Vertex2D</span>};
+<span class="kw">pub use </span>iced_graphics::triangle::{Mesh2D, Vertex2D};
 
-<span class="kw">mod</span> <span class="ident">msaa</span>;
+<span class="kw">mod </span>msaa;
 
-<span class="kw">const</span> <span class="ident">UNIFORM_BUFFER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">50</span>;
-<span class="kw">const</span> <span class="ident">VERTEX_BUFFER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">10_000</span>;
-<span class="kw">const</span> <span class="ident">INDEX_BUFFER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">10_000</span>;
+<span class="kw">const </span>UNIFORM_BUFFER_SIZE: usize = <span class="number">50</span>;
+<span class="kw">const </span>VERTEX_BUFFER_SIZE: usize = <span class="number">10_000</span>;
+<span class="kw">const </span>INDEX_BUFFER_SIZE: usize = <span class="number">10_000</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Pipeline</span> {
-    <span class="ident">pipeline</span>: <span class="ident">wgpu::RenderPipeline</span>,
-    <span class="ident">blit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">msaa::Blit</span><span class="op">&gt;</span>,
-    <span class="ident">constants_layout</span>: <span class="ident">wgpu::BindGroupLayout</span>,
-    <span class="ident">constants</span>: <span class="ident">wgpu::BindGroup</span>,
-    <span class="ident">uniforms_buffer</span>: <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Uniforms</span><span class="op">&gt;</span>,
-    <span class="ident">vertex_buffer</span>: <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Vertex2D</span><span class="op">&gt;</span>,
-    <span class="ident">index_buffer</span>: <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Pipeline {
+    pipeline: wgpu::RenderPipeline,
+    blit: <span class="prelude-ty">Option</span>&lt;msaa::Blit&gt;,
+    constants_layout: wgpu::BindGroupLayout,
+    constants: wgpu::BindGroup,
+    uniforms_buffer: Buffer&lt;Uniforms&gt;,
+    vertex_buffer: Buffer&lt;Vertex2D&gt;,
+    index_buffer: Buffer&lt;u32&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    <span class="ident">raw</span>: <span class="ident">wgpu::Buffer</span>,
-    <span class="ident">size</span>: <span class="ident">usize</span>,
-    <span class="ident">usage</span>: <span class="ident">wgpu::BufferUsages</span>,
-    <span class="ident">_type</span>: <span class="ident">std::marker::PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">struct </span>Buffer&lt;T&gt; {
+    label: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+    raw: wgpu::Buffer,
+    size: usize,
+    usage: wgpu::BufferUsages,
+    _type: std::marker::PhantomData&lt;T&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">label</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>,
-        <span class="ident">size</span>: <span class="ident">usize</span>,
-        <span class="ident">usage</span>: <span class="ident">wgpu::BufferUsages</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">device</span>.<span class="ident">create_buffer</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::BufferDescriptor</span> {
-            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="ident">label</span>),
-            <span class="ident">size</span>: (<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">size</span>) <span class="kw">as</span> <span class="ident">u64</span>,
-            <span class="ident">usage</span>,
-            <span class="ident">mapped_at_creation</span>: <span class="bool-val">false</span>,
+<span class="kw">impl</span>&lt;T&gt; Buffer&lt;T&gt; {
+    <span class="kw">pub fn </span>new(
+        label: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        size: usize,
+        usage: wgpu::BufferUsages,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>raw = device.create_buffer(<span class="kw-2">&amp;</span>wgpu::BufferDescriptor {
+            label: <span class="prelude-val">Some</span>(label),
+            size: (std::mem::size_of::&lt;T&gt;() * size) <span class="kw">as </span>u64,
+            usage,
+            mapped_at_creation: <span class="bool-val">false</span>,
         });
 
-        <span class="ident">Buffer</span> {
-            <span class="ident">label</span>,
-            <span class="ident">raw</span>,
-            <span class="ident">size</span>,
-            <span class="ident">usage</span>,
-            <span class="ident">_type</span>: <span class="ident">std::marker::PhantomData</span>,
+        Buffer {
+            label,
+            raw,
+            size,
+            usage,
+            _type: std::marker::PhantomData,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>, <span class="ident">size</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">needs_resize</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">size</span> <span class="op">&lt;</span> <span class="ident">size</span>;
+    <span class="kw">pub fn </span>expand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, device: <span class="kw-2">&amp;</span>wgpu::Device, size: usize) -&gt; bool {
+        <span class="kw">let </span>needs_resize = <span class="self">self</span>.size &lt; size;
 
-        <span class="kw">if</span> <span class="ident">needs_resize</span> {
-            <span class="self">self</span>.<span class="ident">raw</span> <span class="op">=</span> <span class="ident">device</span>.<span class="ident">create_buffer</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::BufferDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">label</span>),
-                <span class="ident">size</span>: (<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">size</span>) <span class="kw">as</span> <span class="ident">u64</span>,
-                <span class="ident">usage</span>: <span class="self">self</span>.<span class="ident">usage</span>,
-                <span class="ident">mapped_at_creation</span>: <span class="bool-val">false</span>,
+        <span class="kw">if </span>needs_resize {
+            <span class="self">self</span>.raw = device.create_buffer(<span class="kw-2">&amp;</span>wgpu::BufferDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="self">self</span>.label),
+                size: (std::mem::size_of::&lt;T&gt;() * size) <span class="kw">as </span>u64,
+                usage: <span class="self">self</span>.usage,
+                mapped_at_creation: <span class="bool-val">false</span>,
             });
 
-            <span class="self">self</span>.<span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>;
+            <span class="self">self</span>.size = size;
         }
 
-        <span class="ident">needs_resize</span>
+        needs_resize
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Pipeline</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>,
-        <span class="ident">format</span>: <span class="ident">wgpu::TextureFormat</span>,
-        <span class="ident">antialiasing</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">settings::Antialiasing</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Pipeline</span> {
-        <span class="kw">let</span> <span class="ident">constants_layout</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_bind_group_layout</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::BindGroupLayoutDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle uniforms layout&quot;</span>),
-                <span class="ident">entries</span>: <span class="kw-2">&amp;</span>[<span class="ident">wgpu::BindGroupLayoutEntry</span> {
-                    <span class="ident">binding</span>: <span class="number">0</span>,
-                    <span class="ident">visibility</span>: <span class="ident">wgpu::ShaderStages::VERTEX</span>,
-                    <span class="ident">ty</span>: <span class="ident">wgpu::BindingType::Buffer</span> {
-                        <span class="ident">ty</span>: <span class="ident">wgpu::BufferBindingType::Uniform</span>,
-                        <span class="ident">has_dynamic_offset</span>: <span class="bool-val">true</span>,
-                        <span class="ident">min_binding_size</span>: <span class="ident">wgpu::BufferSize::new</span>(
-                            <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Uniforms</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u64</span>,
+<span class="kw">impl </span>Pipeline {
+    <span class="kw">pub fn </span>new(
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        format: wgpu::TextureFormat,
+        antialiasing: <span class="prelude-ty">Option</span>&lt;settings::Antialiasing&gt;,
+    ) -&gt; Pipeline {
+        <span class="kw">let </span>constants_layout =
+            device.create_bind_group_layout(<span class="kw-2">&amp;</span>wgpu::BindGroupLayoutDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle uniforms layout&quot;</span>),
+                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupLayoutEntry {
+                    binding: <span class="number">0</span>,
+                    visibility: wgpu::ShaderStages::VERTEX,
+                    ty: wgpu::BindingType::Buffer {
+                        ty: wgpu::BufferBindingType::Uniform,
+                        has_dynamic_offset: <span class="bool-val">true</span>,
+                        min_binding_size: wgpu::BufferSize::new(
+                            mem::size_of::&lt;Uniforms&gt;() <span class="kw">as </span>u64,
                         ),
                     },
-                    <span class="ident">count</span>: <span class="prelude-val">None</span>,
+                    count: <span class="prelude-val">None</span>,
                 }],
             });
 
-        <span class="kw">let</span> <span class="ident">constants_buffer</span> <span class="op">=</span> <span class="ident">Buffer::new</span>(
+        <span class="kw">let </span>constants_buffer = Buffer::new(
             <span class="string">&quot;iced_wgpu::triangle uniforms buffer&quot;</span>,
-            <span class="ident">device</span>,
-            <span class="ident">UNIFORM_BUFFER_SIZE</span>,
-            <span class="ident">wgpu::BufferUsages::UNIFORM</span> <span class="op">|</span> <span class="ident">wgpu::BufferUsages::COPY_DST</span>,
+            device,
+            UNIFORM_BUFFER_SIZE,
+            wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         );
 
-        <span class="kw">let</span> <span class="ident">constant_bind_group</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_bind_group</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::BindGroupDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle uniforms bind group&quot;</span>),
-                <span class="ident">layout</span>: <span class="kw-2">&amp;</span><span class="ident">constants_layout</span>,
-                <span class="ident">entries</span>: <span class="kw-2">&amp;</span>[<span class="ident">wgpu::BindGroupEntry</span> {
-                    <span class="ident">binding</span>: <span class="number">0</span>,
-                    <span class="ident">resource</span>: <span class="ident">wgpu::BindingResource::Buffer</span>(
-                        <span class="ident">wgpu::BufferBinding</span> {
-                            <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="ident">constants_buffer</span>.<span class="ident">raw</span>,
-                            <span class="ident">offset</span>: <span class="number">0</span>,
-                            <span class="ident">size</span>: <span class="ident">wgpu::BufferSize::new</span>(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span>
-                                <span class="ident">Uniforms</span>,
-                            <span class="op">&gt;</span>(
+        <span class="kw">let </span>constant_bind_group =
+            device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle uniforms bind group&quot;</span>),
+                layout: <span class="kw-2">&amp;</span>constants_layout,
+                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
+                    binding: <span class="number">0</span>,
+                    resource: wgpu::BindingResource::Buffer(
+                        wgpu::BufferBinding {
+                            buffer: <span class="kw-2">&amp;</span>constants_buffer.raw,
+                            offset: <span class="number">0</span>,
+                            size: wgpu::BufferSize::new(std::mem::size_of::&lt;
+                                Uniforms,
+                            &gt;(
                             )
-                                <span class="kw">as</span> <span class="ident">u64</span>),
+                                <span class="kw">as </span>u64),
                         },
                     ),
                 }],
             });
 
-        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_pipeline_layout</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::PipelineLayoutDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle pipeline layout&quot;</span>),
-                <span class="ident">push_constant_ranges</span>: <span class="kw-2">&amp;</span>[],
-                <span class="ident">bind_group_layouts</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">constants_layout</span>],
+        <span class="kw">let </span>layout =
+            device.create_pipeline_layout(<span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle pipeline layout&quot;</span>),
+                push_constant_ranges: <span class="kw-2">&amp;</span>[],
+                bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>constants_layout],
             });
 
-        <span class="kw">let</span> <span class="ident">shader</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_shader_module</span>(<span class="ident">wgpu::ShaderModuleDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::shader&quot;</span>),
-                <span class="ident">source</span>: <span class="ident">wgpu::ShaderSource::Wgsl</span>(<span class="ident">std::borrow::Cow::Borrowed</span>(
+        <span class="kw">let </span>shader =
+            device.create_shader_module(wgpu::ShaderModuleDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::shader&quot;</span>),
+                source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(
                     <span class="macro">include_str!</span>(<span class="string">&quot;shader/triangle.wgsl&quot;</span>),
                 )),
             });
 
-        <span class="kw">let</span> <span class="ident">pipeline</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_render_pipeline</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::RenderPipelineDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle pipeline&quot;</span>),
-                <span class="ident">layout</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">layout</span>),
-                <span class="ident">vertex</span>: <span class="ident">wgpu::VertexState</span> {
-                    <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">shader</span>,
-                    <span class="ident">entry_point</span>: <span class="string">&quot;vs_main&quot;</span>,
-                    <span class="ident">buffers</span>: <span class="kw-2">&amp;</span>[<span class="ident">wgpu::VertexBufferLayout</span> {
-                        <span class="ident">array_stride</span>: <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Vertex2D</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u64</span>,
-                        <span class="ident">step_mode</span>: <span class="ident">wgpu::VertexStepMode::Vertex</span>,
-                        <span class="ident">attributes</span>: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
-                            <span class="comment">// Position</span>
-                            <span class="number">0</span> =&gt; <span class="ident">Float32x2</span>,
-                            <span class="comment">// Color</span>
-                            <span class="number">1</span> =&gt; <span class="ident">Float32x4</span>,
+        <span class="kw">let </span>pipeline =
+            device.create_render_pipeline(<span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle pipeline&quot;</span>),
+                layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
+                vertex: wgpu::VertexState {
+                    module: <span class="kw-2">&amp;</span>shader,
+                    entry_point: <span class="string">&quot;vs_main&quot;</span>,
+                    buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
+                        array_stride: mem::size_of::&lt;Vertex2D&gt;() <span class="kw">as </span>u64,
+                        step_mode: wgpu::VertexStepMode::Vertex,
+                        attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
+                            <span class="comment">// Position
+                            </span><span class="number">0 </span>=&gt; Float32x2,
+                            <span class="comment">// Color
+                            </span><span class="number">1 </span>=&gt; Float32x4,
                         ),
                     }],
                 },
-                <span class="ident">fragment</span>: <span class="prelude-val">Some</span>(<span class="ident">wgpu::FragmentState</span> {
-                    <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">shader</span>,
-                    <span class="ident">entry_point</span>: <span class="string">&quot;fs_main&quot;</span>,
-                    <span class="ident">targets</span>: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(<span class="ident">wgpu::ColorTargetState</span> {
-                        <span class="ident">format</span>,
-                        <span class="ident">blend</span>: <span class="prelude-val">Some</span>(<span class="ident">wgpu::BlendState::ALPHA_BLENDING</span>),
-                        <span class="ident">write_mask</span>: <span class="ident">wgpu::ColorWrites::ALL</span>,
+                fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
+                    module: <span class="kw-2">&amp;</span>shader,
+                    entry_point: <span class="string">&quot;fs_main&quot;</span>,
+                    targets: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(wgpu::ColorTargetState {
+                        format,
+                        blend: <span class="prelude-val">Some</span>(wgpu::BlendState::ALPHA_BLENDING),
+                        write_mask: wgpu::ColorWrites::ALL,
                     })],
                 }),
-                <span class="ident">primitive</span>: <span class="ident">wgpu::PrimitiveState</span> {
-                    <span class="ident">topology</span>: <span class="ident">wgpu::PrimitiveTopology::TriangleList</span>,
-                    <span class="ident">front_face</span>: <span class="ident">wgpu::FrontFace::Cw</span>,
-                    ..<span class="ident">Default::default</span>()
+                primitive: wgpu::PrimitiveState {
+                    topology: wgpu::PrimitiveTopology::TriangleList,
+                    front_face: wgpu::FrontFace::Cw,
+                    ..Default::default()
                 },
-                <span class="ident">depth_stencil</span>: <span class="prelude-val">None</span>,
-                <span class="ident">multisample</span>: <span class="ident">wgpu::MultisampleState</span> {
-                    <span class="ident">count</span>: <span class="ident">antialiasing</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">sample_count</span>()).<span class="ident">unwrap_or</span>(<span class="number">1</span>),
-                    <span class="ident">mask</span>: <span class="op">!</span><span class="number">0</span>,
-                    <span class="ident">alpha_to_coverage_enabled</span>: <span class="bool-val">false</span>,
+                depth_stencil: <span class="prelude-val">None</span>,
+                multisample: wgpu::MultisampleState {
+                    count: antialiasing.map(|a| a.sample_count()).unwrap_or(<span class="number">1</span>),
+                    mask: !<span class="number">0</span>,
+                    alpha_to_coverage_enabled: <span class="bool-val">false</span>,
                 },
-                <span class="ident">multiview</span>: <span class="prelude-val">None</span>,
+                multiview: <span class="prelude-val">None</span>,
             });
 
-        <span class="ident">Pipeline</span> {
-            <span class="ident">pipeline</span>,
-            <span class="ident">blit</span>: <span class="ident">antialiasing</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">msaa::Blit::new</span>(<span class="ident">device</span>, <span class="ident">format</span>, <span class="ident">a</span>)),
-            <span class="ident">constants_layout</span>,
-            <span class="ident">constants</span>: <span class="ident">constant_bind_group</span>,
-            <span class="ident">uniforms_buffer</span>: <span class="ident">constants_buffer</span>,
-            <span class="ident">vertex_buffer</span>: <span class="ident">Buffer::new</span>(
+        Pipeline {
+            pipeline,
+            blit: antialiasing.map(|a| msaa::Blit::new(device, format, a)),
+            constants_layout,
+            constants: constant_bind_group,
+            uniforms_buffer: constants_buffer,
+            vertex_buffer: Buffer::new(
                 <span class="string">&quot;iced_wgpu::triangle vertex buffer&quot;</span>,
-                <span class="ident">device</span>,
-                <span class="ident">VERTEX_BUFFER_SIZE</span>,
-                <span class="ident">wgpu::BufferUsages::VERTEX</span> <span class="op">|</span> <span class="ident">wgpu::BufferUsages::COPY_DST</span>,
+                device,
+                VERTEX_BUFFER_SIZE,
+                wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             ),
-            <span class="ident">index_buffer</span>: <span class="ident">Buffer::new</span>(
+            index_buffer: Buffer::new(
                 <span class="string">&quot;iced_wgpu::triangle index buffer&quot;</span>,
-                <span class="ident">device</span>,
-                <span class="ident">INDEX_BUFFER_SIZE</span>,
-                <span class="ident">wgpu::BufferUsages::INDEX</span> <span class="op">|</span> <span class="ident">wgpu::BufferUsages::COPY_DST</span>,
+                device,
+                INDEX_BUFFER_SIZE,
+                wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
             ),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>,
-        <span class="ident">staging_belt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">wgpu::util::StagingBelt</span>,
-        <span class="ident">encoder</span>: <span class="kw-2">&amp;mut</span> <span class="ident">wgpu::CommandEncoder</span>,
-        <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::TextureView</span>,
-        <span class="ident">target_width</span>: <span class="ident">u32</span>,
-        <span class="ident">target_height</span>: <span class="ident">u32</span>,
-        <span class="ident">transformation</span>: <span class="ident">Transformation</span>,
-        <span class="ident">scale_factor</span>: <span class="ident">f32</span>,
-        <span class="ident">meshes</span>: <span class="kw-2">&amp;</span>[<span class="ident">layer::Mesh</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
+    <span class="kw">pub fn </span>draw(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        staging_belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        target: <span class="kw-2">&amp;</span>wgpu::TextureView,
+        target_width: u32,
+        target_height: u32,
+        transformation: Transformation,
+        scale_factor: f32,
+        meshes: <span class="kw-2">&amp;</span>[layer::Mesh&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) {
-        <span class="comment">// This looks a bit crazy, but we are just counting how many vertices</span>
-        <span class="comment">// and indices we will need to handle.</span>
-        <span class="comment">// TODO: Improve readability</span>
-        <span class="kw">let</span> (<span class="ident">total_vertices</span>, <span class="ident">total_indices</span>) <span class="op">=</span> <span class="ident">meshes</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">layer::Mesh</span> { <span class="ident">buffers</span>, .. }<span class="op">|</span> {
-                (<span class="ident">buffers</span>.<span class="ident">vertices</span>.<span class="ident">len</span>(), <span class="ident">buffers</span>.<span class="ident">indices</span>.<span class="ident">len</span>())
+        <span class="comment">// This looks a bit crazy, but we are just counting how many vertices
+        // and indices we will need to handle.
+        // TODO: Improve readability
+        </span><span class="kw">let </span>(total_vertices, total_indices) = meshes
+            .iter()
+            .map(|layer::Mesh { buffers, .. }| {
+                (buffers.vertices.len(), buffers.indices.len())
             })
-            .<span class="ident">fold</span>((<span class="number">0</span>, <span class="number">0</span>), <span class="op">|</span>(<span class="ident">total_v</span>, <span class="ident">total_i</span>), (<span class="ident">v</span>, <span class="ident">i</span>)<span class="op">|</span> {
-                (<span class="ident">total_v</span> <span class="op">+</span> <span class="ident">v</span>, <span class="ident">total_i</span> <span class="op">+</span> <span class="ident">i</span>)
+            .fold((<span class="number">0</span>, <span class="number">0</span>), |(total_v, total_i), (v, i)| {
+                (total_v + v, total_i + i)
             });
 
-        <span class="comment">// Then we ensure the current buffers are big enough, resizing if</span>
-        <span class="comment">// necessary</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vertex_buffer</span>.<span class="ident">expand</span>(<span class="ident">device</span>, <span class="ident">total_vertices</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index_buffer</span>.<span class="ident">expand</span>(<span class="ident">device</span>, <span class="ident">total_indices</span>);
+        <span class="comment">// Then we ensure the current buffers are big enough, resizing if
+        // necessary
+        </span><span class="kw">let _ </span>= <span class="self">self</span>.vertex_buffer.expand(device, total_vertices);
+        <span class="kw">let _ </span>= <span class="self">self</span>.index_buffer.expand(device, total_indices);
 
-        <span class="comment">// If the uniforms buffer is resized, then we need to recreate its</span>
-        <span class="comment">// bind group.</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">uniforms_buffer</span>.<span class="ident">expand</span>(<span class="ident">device</span>, <span class="ident">meshes</span>.<span class="ident">len</span>()) {
-            <span class="self">self</span>.<span class="ident">constants</span> <span class="op">=</span>
-                <span class="ident">device</span>.<span class="ident">create_bind_group</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::BindGroupDescriptor</span> {
-                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle uniforms buffer&quot;</span>),
-                    <span class="ident">layout</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">constants_layout</span>,
-                    <span class="ident">entries</span>: <span class="kw-2">&amp;</span>[<span class="ident">wgpu::BindGroupEntry</span> {
-                        <span class="ident">binding</span>: <span class="number">0</span>,
-                        <span class="ident">resource</span>: <span class="ident">wgpu::BindingResource::Buffer</span>(
-                            <span class="ident">wgpu::BufferBinding</span> {
-                                <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">uniforms_buffer</span>.<span class="ident">raw</span>,
-                                <span class="ident">offset</span>: <span class="number">0</span>,
-                                <span class="ident">size</span>: <span class="ident">wgpu::BufferSize::new</span>(
-                                    <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Uniforms</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u64</span>,
+        <span class="comment">// If the uniforms buffer is resized, then we need to recreate its
+        // bind group.
+        </span><span class="kw">if </span><span class="self">self</span>.uniforms_buffer.expand(device, meshes.len()) {
+            <span class="self">self</span>.constants =
+                device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
+                    label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle uniforms buffer&quot;</span>),
+                    layout: <span class="kw-2">&amp;</span><span class="self">self</span>.constants_layout,
+                    entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
+                        binding: <span class="number">0</span>,
+                        resource: wgpu::BindingResource::Buffer(
+                            wgpu::BufferBinding {
+                                buffer: <span class="kw-2">&amp;</span><span class="self">self</span>.uniforms_buffer.raw,
+                                offset: <span class="number">0</span>,
+                                size: wgpu::BufferSize::new(
+                                    std::mem::size_of::&lt;Uniforms&gt;() <span class="kw">as </span>u64,
                                 ),
                             },
                         ),
@@ -683,180 +683,180 @@
                 });
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">uniforms</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Uniforms</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">meshes</span>.<span class="ident">len</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offsets</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(
-            <span class="ident">wgpu::BufferAddress</span>,
-            <span class="ident">wgpu::BufferAddress</span>,
-            <span class="ident">usize</span>,
-        )<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">meshes</span>.<span class="ident">len</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_vertex</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_index</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>uniforms: Vec&lt;Uniforms&gt; = Vec::with_capacity(meshes.len());
+        <span class="kw">let </span><span class="kw-2">mut </span>offsets: Vec&lt;(
+            wgpu::BufferAddress,
+            wgpu::BufferAddress,
+            usize,
+        )&gt; = Vec::with_capacity(meshes.len());
+        <span class="kw">let </span><span class="kw-2">mut </span>last_vertex = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_index = <span class="number">0</span>;
 
-        <span class="comment">// We upload everything upfront</span>
-        <span class="kw">for</span> <span class="ident">mesh</span> <span class="kw">in</span> <span class="ident">meshes</span> {
-            <span class="kw">let</span> <span class="ident">transform</span> <span class="op">=</span> (<span class="ident">transformation</span>
-                <span class="op">*</span> <span class="ident">Transformation::translate</span>(<span class="ident">mesh</span>.<span class="ident">origin</span>.<span class="ident">x</span>, <span class="ident">mesh</span>.<span class="ident">origin</span>.<span class="ident">y</span>))
-            .<span class="ident">into</span>();
+        <span class="comment">// We upload everything upfront
+        </span><span class="kw">for </span>mesh <span class="kw">in </span>meshes {
+            <span class="kw">let </span>transform = (transformation
+                * Transformation::translate(mesh.origin.x, mesh.origin.y))
+            .into();
 
-            <span class="kw">let</span> <span class="ident">vertices</span> <span class="op">=</span> <span class="ident">bytemuck::cast_slice</span>(<span class="kw-2">&amp;</span><span class="ident">mesh</span>.<span class="ident">buffers</span>.<span class="ident">vertices</span>);
-            <span class="kw">let</span> <span class="ident">indices</span> <span class="op">=</span> <span class="ident">bytemuck::cast_slice</span>(<span class="kw-2">&amp;</span><span class="ident">mesh</span>.<span class="ident">buffers</span>.<span class="ident">indices</span>);
+            <span class="kw">let </span>vertices = bytemuck::cast_slice(<span class="kw-2">&amp;</span>mesh.buffers.vertices);
+            <span class="kw">let </span>indices = bytemuck::cast_slice(<span class="kw-2">&amp;</span>mesh.buffers.indices);
 
-            <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">vertices_size</span>), <span class="prelude-val">Some</span>(<span class="ident">indices_size</span>)) <span class="op">=</span> (
-                <span class="ident">wgpu::BufferSize::new</span>(<span class="ident">vertices</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>),
-                <span class="ident">wgpu::BufferSize::new</span>(<span class="ident">indices</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>),
+            <span class="kw">if let </span>(<span class="prelude-val">Some</span>(vertices_size), <span class="prelude-val">Some</span>(indices_size)) = (
+                wgpu::BufferSize::new(vertices.len() <span class="kw">as </span>u64),
+                wgpu::BufferSize::new(indices.len() <span class="kw">as </span>u64),
             ) {
                 {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vertex_buffer</span> <span class="op">=</span> <span class="ident">staging_belt</span>.<span class="ident">write_buffer</span>(
-                        <span class="ident">encoder</span>,
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">vertex_buffer</span>.<span class="ident">raw</span>,
-                        (<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Vertex2D</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">last_vertex</span>) <span class="kw">as</span> <span class="ident">u64</span>,
-                        <span class="ident">vertices_size</span>,
-                        <span class="ident">device</span>,
+                    <span class="kw">let </span><span class="kw-2">mut </span>vertex_buffer = staging_belt.write_buffer(
+                        encoder,
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.vertex_buffer.raw,
+                        (std::mem::size_of::&lt;Vertex2D&gt;() * last_vertex) <span class="kw">as </span>u64,
+                        vertices_size,
+                        device,
                     );
 
-                    <span class="ident">vertex_buffer</span>.<span class="ident">copy_from_slice</span>(<span class="ident">vertices</span>);
+                    vertex_buffer.copy_from_slice(vertices);
                 }
 
                 {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index_buffer</span> <span class="op">=</span> <span class="ident">staging_belt</span>.<span class="ident">write_buffer</span>(
-                        <span class="ident">encoder</span>,
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">index_buffer</span>.<span class="ident">raw</span>,
-                        (<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">last_index</span>) <span class="kw">as</span> <span class="ident">u64</span>,
-                        <span class="ident">indices_size</span>,
-                        <span class="ident">device</span>,
+                    <span class="kw">let </span><span class="kw-2">mut </span>index_buffer = staging_belt.write_buffer(
+                        encoder,
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.index_buffer.raw,
+                        (std::mem::size_of::&lt;u32&gt;() * last_index) <span class="kw">as </span>u64,
+                        indices_size,
+                        device,
                     );
 
-                    <span class="ident">index_buffer</span>.<span class="ident">copy_from_slice</span>(<span class="ident">indices</span>);
+                    index_buffer.copy_from_slice(indices);
                 }
 
-                <span class="ident">uniforms</span>.<span class="ident">push</span>(<span class="ident">transform</span>);
-                <span class="ident">offsets</span>.<span class="ident">push</span>((
-                    <span class="ident">last_vertex</span> <span class="kw">as</span> <span class="ident">u64</span>,
-                    <span class="ident">last_index</span> <span class="kw">as</span> <span class="ident">u64</span>,
-                    <span class="ident">mesh</span>.<span class="ident">buffers</span>.<span class="ident">indices</span>.<span class="ident">len</span>(),
+                uniforms.push(transform);
+                offsets.push((
+                    last_vertex <span class="kw">as </span>u64,
+                    last_index <span class="kw">as </span>u64,
+                    mesh.buffers.indices.len(),
                 ));
 
-                <span class="ident">last_vertex</span> <span class="op">+</span><span class="op">=</span> <span class="ident">mesh</span>.<span class="ident">buffers</span>.<span class="ident">vertices</span>.<span class="ident">len</span>();
-                <span class="ident">last_index</span> <span class="op">+</span><span class="op">=</span> <span class="ident">mesh</span>.<span class="ident">buffers</span>.<span class="ident">indices</span>.<span class="ident">len</span>();
+                last_vertex += mesh.buffers.vertices.len();
+                last_index += mesh.buffers.indices.len();
             }
         }
 
-        <span class="kw">let</span> <span class="ident">uniforms</span> <span class="op">=</span> <span class="ident">bytemuck::cast_slice</span>(<span class="kw-2">&amp;</span><span class="ident">uniforms</span>);
+        <span class="kw">let </span>uniforms = bytemuck::cast_slice(<span class="kw-2">&amp;</span>uniforms);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">uniforms_size</span>) <span class="op">=</span>
-            <span class="ident">wgpu::BufferSize::new</span>(<span class="ident">uniforms</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(uniforms_size) =
+            wgpu::BufferSize::new(uniforms.len() <span class="kw">as </span>u64)
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">uniforms_buffer</span> <span class="op">=</span> <span class="ident">staging_belt</span>.<span class="ident">write_buffer</span>(
-                <span class="ident">encoder</span>,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">uniforms_buffer</span>.<span class="ident">raw</span>,
+            <span class="kw">let </span><span class="kw-2">mut </span>uniforms_buffer = staging_belt.write_buffer(
+                encoder,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.uniforms_buffer.raw,
                 <span class="number">0</span>,
-                <span class="ident">uniforms_size</span>,
-                <span class="ident">device</span>,
+                uniforms_size,
+                device,
             );
 
-            <span class="ident">uniforms_buffer</span>.<span class="ident">copy_from_slice</span>(<span class="ident">uniforms</span>);
+            uniforms_buffer.copy_from_slice(uniforms);
         }
 
         {
-            <span class="kw">let</span> (<span class="ident">attachment</span>, <span class="ident">resolve_target</span>, <span class="ident">load</span>) <span class="op">=</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">blit</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">blit</span> {
-                    <span class="kw">let</span> (<span class="ident">attachment</span>, <span class="ident">resolve_target</span>) <span class="op">=</span>
-                        <span class="ident">blit</span>.<span class="ident">targets</span>(<span class="ident">device</span>, <span class="ident">target_width</span>, <span class="ident">target_height</span>);
+            <span class="kw">let </span>(attachment, resolve_target, load) =
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(blit) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.blit {
+                    <span class="kw">let </span>(attachment, resolve_target) =
+                        blit.targets(device, target_width, target_height);
 
                     (
-                        <span class="ident">attachment</span>,
-                        <span class="prelude-val">Some</span>(<span class="ident">resolve_target</span>),
-                        <span class="ident">wgpu::LoadOp::Clear</span>(<span class="ident">wgpu::Color::TRANSPARENT</span>),
+                        attachment,
+                        <span class="prelude-val">Some</span>(resolve_target),
+                        wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
                     )
-                } <span class="kw">else</span> {
-                    (<span class="ident">target</span>, <span class="prelude-val">None</span>, <span class="ident">wgpu::LoadOp::Load</span>)
+                } <span class="kw">else </span>{
+                    (target, <span class="prelude-val">None</span>, wgpu::LoadOp::Load)
                 };
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">render_pass</span> <span class="op">=</span>
-                <span class="ident">encoder</span>.<span class="ident">begin_render_pass</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::RenderPassDescriptor</span> {
-                    <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle render pass&quot;</span>),
-                    <span class="ident">color_attachments</span>: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(
-                        <span class="ident">wgpu::RenderPassColorAttachment</span> {
-                            <span class="ident">view</span>: <span class="ident">attachment</span>,
-                            <span class="ident">resolve_target</span>,
-                            <span class="ident">ops</span>: <span class="ident">wgpu::Operations</span> { <span class="ident">load</span>, <span class="ident">store</span>: <span class="bool-val">true</span> },
+            <span class="kw">let </span><span class="kw-2">mut </span>render_pass =
+                encoder.begin_render_pass(<span class="kw-2">&amp;</span>wgpu::RenderPassDescriptor {
+                    label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle render pass&quot;</span>),
+                    color_attachments: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(
+                        wgpu::RenderPassColorAttachment {
+                            view: attachment,
+                            resolve_target,
+                            ops: wgpu::Operations { load, store: <span class="bool-val">true </span>},
                         },
                     )],
-                    <span class="ident">depth_stencil_attachment</span>: <span class="prelude-val">None</span>,
+                    depth_stencil_attachment: <span class="prelude-val">None</span>,
                 });
 
-            <span class="ident">render_pass</span>.<span class="ident">set_pipeline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">pipeline</span>);
+            render_pass.set_pipeline(<span class="kw-2">&amp;</span><span class="self">self</span>.pipeline);
 
-            <span class="kw">for</span> (<span class="ident">i</span>, (<span class="ident">vertex_offset</span>, <span class="ident">index_offset</span>, <span class="ident">indices</span>)) <span class="kw">in</span>
-                <span class="ident">offsets</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>()
+            <span class="kw">for </span>(i, (vertex_offset, index_offset, indices)) <span class="kw">in
+                </span>offsets.into_iter().enumerate()
             {
-                <span class="kw">let</span> <span class="ident">clip_bounds</span> <span class="op">=</span> (<span class="ident">meshes</span>[<span class="ident">i</span>].<span class="ident">clip_bounds</span> <span class="op">*</span> <span class="ident">scale_factor</span>).<span class="ident">snap</span>();
+                <span class="kw">let </span>clip_bounds = (meshes[i].clip_bounds * scale_factor).snap();
 
-                <span class="ident">render_pass</span>.<span class="ident">set_scissor_rect</span>(
-                    <span class="ident">clip_bounds</span>.<span class="ident">x</span>,
-                    <span class="ident">clip_bounds</span>.<span class="ident">y</span>,
-                    <span class="ident">clip_bounds</span>.<span class="ident">width</span>,
-                    <span class="ident">clip_bounds</span>.<span class="ident">height</span>,
+                render_pass.set_scissor_rect(
+                    clip_bounds.x,
+                    clip_bounds.y,
+                    clip_bounds.width,
+                    clip_bounds.height,
                 );
 
-                <span class="ident">render_pass</span>.<span class="ident">set_bind_group</span>(
+                render_pass.set_bind_group(
                     <span class="number">0</span>,
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">constants</span>,
-                    <span class="kw-2">&amp;</span>[(<span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Uniforms</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">i</span>) <span class="kw">as</span> <span class="ident">u32</span>],
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.constants,
+                    <span class="kw-2">&amp;</span>[(std::mem::size_of::&lt;Uniforms&gt;() * i) <span class="kw">as </span>u32],
                 );
 
-                <span class="ident">render_pass</span>.<span class="ident">set_index_buffer</span>(
-                    <span class="self">self</span>.<span class="ident">index_buffer</span>
-                        .<span class="ident">raw</span>
-                        .<span class="ident">slice</span>(<span class="ident">index_offset</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u64</span>..),
-                    <span class="ident">wgpu::IndexFormat::Uint32</span>,
+                render_pass.set_index_buffer(
+                    <span class="self">self</span>.index_buffer
+                        .raw
+                        .slice(index_offset * mem::size_of::&lt;u32&gt;() <span class="kw">as </span>u64..),
+                    wgpu::IndexFormat::Uint32,
                 );
 
-                <span class="ident">render_pass</span>.<span class="ident">set_vertex_buffer</span>(
+                render_pass.set_vertex_buffer(
                     <span class="number">0</span>,
-                    <span class="self">self</span>.<span class="ident">vertex_buffer</span>.<span class="ident">raw</span>.<span class="ident">slice</span>(
-                        <span class="ident">vertex_offset</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Vertex2D</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">u64</span>..,
+                    <span class="self">self</span>.vertex_buffer.raw.slice(
+                        vertex_offset * mem::size_of::&lt;Vertex2D&gt;() <span class="kw">as </span>u64..,
                     ),
                 );
 
-                <span class="ident">render_pass</span>.<span class="ident">draw_indexed</span>(<span class="number">0</span>..<span class="ident">indices</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="number">0</span>, <span class="number">0</span>..<span class="number">1</span>);
+                render_pass.draw_indexed(<span class="number">0</span>..indices <span class="kw">as </span>u32, <span class="number">0</span>, <span class="number">0</span>..<span class="number">1</span>);
             }
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">blit</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">blit</span> {
-            <span class="ident">blit</span>.<span class="ident">draw</span>(<span class="ident">encoder</span>, <span class="ident">target</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(blit) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.blit {
+            blit.draw(encoder, target);
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Zeroable</span>, <span class="ident">Pod</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Uniforms</span> {
-    <span class="ident">transform</span>: [<span class="ident">f32</span>; <span class="number">16</span>],
-    <span class="comment">// We need to align this to 256 bytes to please `wgpu`...</span>
-    <span class="comment">// TODO: Be smarter and stop wasting memory!</span>
-    <span class="ident">_padding_a</span>: [<span class="ident">f32</span>; <span class="number">32</span>],
-    <span class="ident">_padding_b</span>: [<span class="ident">f32</span>; <span class="number">16</span>],
+<span class="attribute">#[repr(C)]</span>
+<span class="attribute">#[derive(Debug, Clone, Copy, Zeroable, Pod)]</span>
+<span class="kw">struct </span>Uniforms {
+    transform: [f32; <span class="number">16</span>],
+    <span class="comment">// We need to align this to 256 bytes to please `wgpu`...
+    // TODO: Be smarter and stop wasting memory!
+    </span>_padding_a: [f32; <span class="number">32</span>],
+    _padding_b: [f32; <span class="number">16</span>],
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Uniforms</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">transform</span>: <span class="kw-2">*</span><span class="ident">Transformation::identity</span>().<span class="ident">as_ref</span>(),
-            <span class="ident">_padding_a</span>: [<span class="number">0.0</span>; <span class="number">32</span>],
-            <span class="ident">_padding_b</span>: [<span class="number">0.0</span>; <span class="number">16</span>],
+<span class="kw">impl </span>Default <span class="kw">for </span>Uniforms {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            transform: <span class="kw-2">*</span>Transformation::identity().as_ref(),
+            _padding_a: [<span class="number">0.0</span>; <span class="number">32</span>],
+            _padding_b: [<span class="number">0.0</span>; <span class="number">16</span>],
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Transformation</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniforms</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">transformation</span>: <span class="ident">Transformation</span>) -&gt; <span class="ident">Uniforms</span> {
-        <span class="self">Self</span> {
-            <span class="ident">transform</span>: <span class="ident">transformation</span>.<span class="ident">into</span>(),
-            <span class="ident">_padding_a</span>: [<span class="number">0.0</span>; <span class="number">32</span>],
-            <span class="ident">_padding_b</span>: [<span class="number">0.0</span>; <span class="number">16</span>],
+<span class="kw">impl </span>From&lt;Transformation&gt; <span class="kw">for </span>Uniforms {
+    <span class="kw">fn </span>from(transformation: Transformation) -&gt; Uniforms {
+        <span class="self">Self </span>{
+            transform: transformation.into(),
+            _padding_a: [<span class="number">0.0</span>; <span class="number">32</span>],
+            _padding_b: [<span class="number">0.0</span>; <span class="number">16</span>],
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_wgpu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_wgpu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

@@ -522,527 +522,527 @@
 <span id="520">520</span>
 <span id="521">521</span>
 <span id="522">522</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Build and reuse custom widgets using The Elm Architecture.</span>
-<span class="kw">use</span> <span class="ident">iced_native::event</span>;
-<span class="kw">use</span> <span class="ident">iced_native::layout</span>::{<span class="self">self</span>, <span class="ident">Layout</span>};
-<span class="kw">use</span> <span class="ident">iced_native::mouse</span>;
-<span class="kw">use</span> <span class="ident">iced_native::overlay</span>;
-<span class="kw">use</span> <span class="ident">iced_native::renderer</span>;
-<span class="kw">use</span> <span class="ident">iced_native::widget</span>;
-<span class="kw">use</span> <span class="ident">iced_native::widget::tree</span>::{<span class="self">self</span>, <span class="ident">Tree</span>};
-<span class="kw">use</span> <span class="ident">iced_native</span>::{
-    <span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Widget</span>,
+</pre><pre class="rust"><code><span class="doccomment">//! Build and reuse custom widgets using The Elm Architecture.
+</span><span class="kw">use </span>iced_native::event;
+<span class="kw">use </span>iced_native::layout::{<span class="self">self</span>, Layout};
+<span class="kw">use </span>iced_native::mouse;
+<span class="kw">use </span>iced_native::overlay;
+<span class="kw">use </span>iced_native::renderer;
+<span class="kw">use </span>iced_native::widget;
+<span class="kw">use </span>iced_native::widget::tree::{<span class="self">self</span>, Tree};
+<span class="kw">use </span>iced_native::{
+    Clipboard, Element, Length, Point, Rectangle, Shell, Size, Widget,
 };
 
-<span class="kw">use</span> <span class="ident">ouroboros::self_referencing</span>;
-<span class="kw">use</span> <span class="ident">std::cell</span>::{<span class="ident">Ref</span>, <span class="ident">RefCell</span>};
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+<span class="kw">use </span>ouroboros::self_referencing;
+<span class="kw">use </span>std::cell::{Ref, RefCell};
+<span class="kw">use </span>std::marker::PhantomData;
 
-<span class="doccomment">/// A reusable, custom widget that uses The Elm Architecture.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A [`Component`] allows you to implement custom widgets as if they were</span>
-<span class="doccomment">/// `iced` applications with encapsulated state.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// In other words, a [`Component`] allows you to turn `iced` applications into</span>
-<span class="doccomment">/// custom widgets and embed them without cumbersome wiring.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A [`Component`] produces widgets that may fire an [`Event`](Component::Event)</span>
-<span class="doccomment">/// and update the internal state of the [`Component`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Additionally, a [`Component`] is capable of producing a `Message` to notify</span>
-<span class="doccomment">/// the parent application of any relevant interactions.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Component</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The internal state of this [`Component`].</span>
-    <span class="kw">type</span> <span class="ident">State</span>: <span class="ident">Default</span>;
+<span class="doccomment">/// A reusable, custom widget that uses The Elm Architecture.
+///
+/// A [`Component`] allows you to implement custom widgets as if they were
+/// `iced` applications with encapsulated state.
+///
+/// In other words, a [`Component`] allows you to turn `iced` applications into
+/// custom widgets and embed them without cumbersome wiring.
+///
+/// A [`Component`] produces widgets that may fire an [`Event`](Component::Event)
+/// and update the internal state of the [`Component`].
+///
+/// Additionally, a [`Component`] is capable of producing a `Message` to notify
+/// the parent application of any relevant interactions.
+</span><span class="kw">pub trait </span>Component&lt;Message, Renderer&gt; {
+    <span class="doccomment">/// The internal state of this [`Component`].
+    </span><span class="kw">type </span>State: Default;
 
-    <span class="doccomment">/// The type of event this [`Component`] handles internally.</span>
-    <span class="kw">type</span> <span class="ident">Event</span>;
+    <span class="doccomment">/// The type of event this [`Component`] handles internally.
+    </span><span class="kw">type </span>Event;
 
-    <span class="doccomment">/// Processes an [`Event`](Component::Event) and updates the [`Component`] state accordingly.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It can produce a `Message` for the parent application.</span>
-    <span class="kw">fn</span> <span class="ident">update</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::State</span>,
-        <span class="ident">event</span>: <span class="ident"><span class="self">Self</span>::Event</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Processes an [`Event`](Component::Event) and updates the [`Component`] state accordingly.
+    ///
+    /// It can produce a `Message` for the parent application.
+    </span><span class="kw">fn </span>update(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::State,
+        event: <span class="self">Self</span>::Event,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Message&gt;;
 
-    <span class="doccomment">/// Produces the widgets of the [`Component`], which may trigger an [`Event`](Component::Event)</span>
-    <span class="doccomment">/// on user interaction.</span>
-    <span class="kw">fn</span> <span class="ident">view</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::State</span>) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident"><span class="self">Self</span>::Event</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>;
+    <span class="doccomment">/// Produces the widgets of the [`Component`], which may trigger an [`Event`](Component::Event)
+    /// on user interaction.
+    </span><span class="kw">fn </span>view(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;</span><span class="self">Self</span>::State) -&gt; Element&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>::Event, Renderer&gt;;
 }
 
-<span class="doccomment">/// Turns an implementor of [`Component`] into an [`Element`] that can be</span>
-<span class="doccomment">/// embedded in any application.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">view</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">C</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>(
-    <span class="ident">component</span>: <span class="ident">C</span>,
-) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">C</span>: <span class="ident">Component</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
-    <span class="ident">C::State</span>: <span class="lifetime">&#39;static</span>,
-    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
-    <span class="ident">Renderer</span>: <span class="ident">iced_native::Renderer</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+<span class="doccomment">/// Turns an implementor of [`Component`] into an [`Element`] that can be
+/// embedded in any application.
+</span><span class="kw">pub fn </span>view&lt;<span class="lifetime">&#39;a</span>, C, Message, Renderer&gt;(
+    component: C,
+) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>C: Component&lt;Message, Renderer&gt; + <span class="lifetime">&#39;a</span>,
+    C::State: <span class="lifetime">&#39;static</span>,
+    Message: <span class="lifetime">&#39;a</span>,
+    Renderer: iced_native::Renderer + <span class="lifetime">&#39;a</span>,
 {
-    <span class="ident">Element::new</span>(<span class="ident">Instance</span> {
-        <span class="ident">state</span>: <span class="ident">RefCell::new</span>(<span class="prelude-val">Some</span>(
-            <span class="ident">StateBuilder</span> {
-                <span class="ident">component</span>: <span class="ident">Box::new</span>(<span class="ident">component</span>),
-                <span class="ident">message</span>: <span class="ident">PhantomData</span>,
-                <span class="ident">state</span>: <span class="ident">PhantomData</span>,
-                <span class="ident">element_builder</span>: <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">None</span>,
+    Element::new(Instance {
+        state: RefCell::new(<span class="prelude-val">Some</span>(
+            StateBuilder {
+                component: Box::new(component),
+                message: PhantomData,
+                state: PhantomData,
+                element_builder: |<span class="kw">_</span>| <span class="prelude-val">None</span>,
             }
-            .<span class="ident">build</span>(),
+            .build(),
         )),
     })
 }
 
-<span class="kw">struct</span> <span class="ident">Instance</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">state</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>Instance&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt; {
+    state: RefCell&lt;<span class="prelude-ty">Option</span>&lt;State&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt;&gt;&gt;,
 }
 
-<span class="attribute">#[<span class="ident">self_referencing</span>]</span>
-<span class="kw">struct</span> <span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>, <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span>, <span class="ident">Event</span>: <span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">component</span>:
-        <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Component</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>, <span class="ident">State</span> <span class="op">=</span> <span class="ident">S</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">message</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
-    <span class="ident">state</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
+<span class="attribute">#[self_referencing]</span>
+<span class="kw">struct </span>State&lt;<span class="lifetime">&#39;a</span>, Message: <span class="lifetime">&#39;a</span>, Renderer: <span class="lifetime">&#39;a</span>, Event: <span class="lifetime">&#39;a</span>, S: <span class="lifetime">&#39;a</span>&gt; {
+    component:
+        Box&lt;<span class="kw">dyn </span>Component&lt;Message, Renderer, Event = Event, State = S&gt; + <span class="lifetime">&#39;a</span>&gt;,
+    message: PhantomData&lt;Message&gt;,
+    state: PhantomData&lt;S&gt;,
 
-    <span class="attribute">#[<span class="ident">borrows</span>(<span class="ident">component</span>)]</span>
-    <span class="attribute">#[<span class="ident">covariant</span>]</span>
-    <span class="ident">element</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;this</span>, <span class="ident">Event</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[borrows(component)]</span>
+    <span class="attribute">#[covariant]</span>
+    element: <span class="prelude-ty">Option</span>&lt;Element&lt;<span class="lifetime">&#39;this</span>, Event, Renderer&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Instance</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="ident">Default</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt; Instance&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt;
+<span class="kw">where
+    </span>S: Default,
 {
-    <span class="kw">fn</span> <span class="ident">rebuild_element</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="ident">S</span>) {
-        <span class="kw">let</span> <span class="ident">heads</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">borrow_mut</span>().<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">into_heads</span>();
+    <span class="kw">fn </span>rebuild_element(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;</span>S) {
+        <span class="kw">let </span>heads = <span class="self">self</span>.state.borrow_mut().take().unwrap().into_heads();
 
-        <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">state</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(
-            <span class="ident">StateBuilder</span> {
-                <span class="ident">component</span>: <span class="ident">heads</span>.<span class="ident">component</span>,
-                <span class="ident">message</span>: <span class="ident">PhantomData</span>,
-                <span class="ident">state</span>: <span class="ident">PhantomData</span>,
-                <span class="ident">element_builder</span>: <span class="op">|</span><span class="ident">component</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">component</span>.<span class="ident">view</span>(<span class="ident">state</span>)),
+        <span class="kw-2">*</span><span class="self">self</span>.state.borrow_mut() = <span class="prelude-val">Some</span>(
+            StateBuilder {
+                component: heads.component,
+                message: PhantomData,
+                state: PhantomData,
+                element_builder: |component| <span class="prelude-val">Some</span>(component.view(state)),
             }
-            .<span class="ident">build</span>(),
+            .build(),
         );
     }
 
-    <span class="kw">fn</span> <span class="ident">with_element</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>with_element&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Event</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>) -&gt; <span class="ident">T</span>,
-    ) -&gt; <span class="ident">T</span> {
-        <span class="self">self</span>.<span class="ident">with_element_mut</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">element</span>))
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>Element&lt;<span class="lifetime">&#39;_</span>, Event, Renderer&gt;) -&gt; T,
+    ) -&gt; T {
+        <span class="self">self</span>.with_element_mut(|element| f(element))
     }
 
-    <span class="kw">fn</span> <span class="ident">with_element_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>with_element_mut&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Event</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>) -&gt; <span class="ident">T</span>,
-    ) -&gt; <span class="ident">T</span> {
-        <span class="self">self</span>.<span class="ident">state</span>
-            .<span class="ident">borrow_mut</span>()
-            .<span class="ident">as_mut</span>()
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">with_element_mut</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">element</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>()))
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Element&lt;<span class="lifetime">&#39;_</span>, Event, Renderer&gt;) -&gt; T,
+    ) -&gt; T {
+        <span class="self">self</span>.state
+            .borrow_mut()
+            .as_mut()
+            .unwrap()
+            .with_element_mut(|element| f(element.as_mut().unwrap()))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Instance</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">S</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Default</span>,
-    <span class="ident">Renderer</span>: <span class="ident">iced_native::Renderer</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt; Widget&lt;Message, Renderer&gt;
+    <span class="kw">for </span>Instance&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt;
+<span class="kw">where
+    </span>S: <span class="lifetime">&#39;static </span>+ Default,
+    Renderer: iced_native::Renderer,
 {
-    <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::Tag</span> {
-        <span class="kw">struct</span> <span class="ident">Tag</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">T</span>);
-        <span class="ident">tree::Tag::of</span>::<span class="op">&lt;</span><span class="ident">Tag</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+    <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
+        <span class="kw">struct </span>Tag&lt;T&gt;(T);
+        tree::Tag::of::&lt;Tag&lt;S&gt;&gt;()
     }
 
-    <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">tree::State</span> {
-        <span class="ident">tree::State::new</span>(<span class="ident">S::default</span>())
+    <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
+        tree::State::new(S::default())
     }
 
-    <span class="kw">fn</span> <span class="ident">children</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Tree</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">rebuild_element</span>(<span class="kw-2">&amp;</span><span class="ident">S::default</span>());
-        <span class="self">self</span>.<span class="ident">with_element</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> <span class="macro">vec!</span>[<span class="ident">Tree::new</span>(<span class="ident">element</span>)])
+    <span class="kw">fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Tree&gt; {
+        <span class="self">self</span>.rebuild_element(<span class="kw-2">&amp;</span>S::default());
+        <span class="self">self</span>.with_element(|element| <span class="macro">vec!</span>[Tree::new(element)])
     }
 
-    <span class="kw">fn</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>) {
-        <span class="self">self</span>.<span class="ident">rebuild_element</span>(<span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>());
-        <span class="self">self</span>.<span class="ident">with_element</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> {
-            <span class="ident">tree</span>.<span class="ident">diff_children</span>(<span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><span class="ident">element</span>))
+    <span class="kw">fn </span>diff(<span class="kw-2">&amp;</span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree) {
+        <span class="self">self</span>.rebuild_element(tree.state.downcast_ref());
+        <span class="self">self</span>.with_element(|element| {
+            tree.diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span>element))
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">with_element</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> <span class="ident">element</span>.<span class="ident">as_widget</span>().<span class="ident">width</span>())
+    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.with_element(|element| element.as_widget().width())
     }
 
-    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">with_element</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> <span class="ident">element</span>.<span class="ident">as_widget</span>().<span class="ident">height</span>())
+    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.with_element(|element| element.as_widget().height())
     }
 
-    <span class="kw">fn</span> <span class="ident">layout</span>(
+    <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="self">self</span>.<span class="ident">with_element</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> {
-            <span class="ident">element</span>.<span class="ident">as_widget</span>().<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">limits</span>)
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        limits: <span class="kw-2">&amp;</span>layout::Limits,
+    ) -&gt; layout::Node {
+        <span class="self">self</span>.with_element(|element| {
+            element.as_widget().layout(renderer, limits)
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">on_event</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
-        <span class="ident">event</span>: <span class="ident">iced_native::Event</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">event::Status</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_messages</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_shell</span> <span class="op">=</span> <span class="ident">Shell::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">local_messages</span>);
+    <span class="kw">fn </span>on_event(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
+        event: iced_native::Event,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
+    ) -&gt; event::Status {
+        <span class="kw">let </span><span class="kw-2">mut </span>local_messages = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>local_shell = Shell::new(<span class="kw-2">&amp;mut </span>local_messages);
 
-        <span class="kw">let</span> <span class="ident">event_status</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">with_element_mut</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> {
-            <span class="ident">element</span>.<span class="ident">as_widget_mut</span>().<span class="ident">on_event</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-                <span class="ident">event</span>,
-                <span class="ident">layout</span>,
-                <span class="ident">cursor_position</span>,
-                <span class="ident">renderer</span>,
-                <span class="ident">clipboard</span>,
-                <span class="kw-2">&amp;mut</span> <span class="ident">local_shell</span>,
+        <span class="kw">let </span>event_status = <span class="self">self</span>.with_element_mut(|element| {
+            element.as_widget_mut().on_event(
+                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+                event,
+                layout,
+                cursor_position,
+                renderer,
+                clipboard,
+                <span class="kw-2">&amp;mut </span>local_shell,
             )
         });
 
-        <span class="ident">local_shell</span>.<span class="ident">revalidate_layout</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">shell</span>.<span class="ident">invalidate_layout</span>());
+        local_shell.revalidate_layout(|| shell.invalidate_layout());
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">local_messages</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">heads</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">into_heads</span>();
+        <span class="kw">if </span>!local_messages.is_empty() {
+            <span class="kw">let </span><span class="kw-2">mut </span>heads = <span class="self">self</span>.state.take().unwrap().into_heads();
 
-            <span class="kw">for</span> <span class="ident">message</span> <span class="kw">in</span> <span class="ident">local_messages</span>.<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">message</span><span class="op">|</span> {
-                <span class="ident">heads</span>
-                    .<span class="ident">component</span>
-                    .<span class="ident">update</span>(<span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(), <span class="ident">message</span>)
+            <span class="kw">for </span>message <span class="kw">in </span>local_messages.into_iter().filter_map(|message| {
+                heads
+                    .component
+                    .update(tree.state.downcast_mut::&lt;S&gt;(), message)
             }) {
-                <span class="ident">shell</span>.<span class="ident">publish</span>(<span class="ident">message</span>);
+                shell.publish(message);
             }
 
-            <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="prelude-val">Some</span>(
-                <span class="ident">StateBuilder</span> {
-                    <span class="ident">component</span>: <span class="ident">heads</span>.<span class="ident">component</span>,
-                    <span class="ident">message</span>: <span class="ident">PhantomData</span>,
-                    <span class="ident">state</span>: <span class="ident">PhantomData</span>,
-                    <span class="ident">element_builder</span>: <span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
-                        <span class="prelude-val">Some</span>(<span class="ident">state</span>.<span class="ident">view</span>(<span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>()))
+            <span class="self">self</span>.state = RefCell::new(<span class="prelude-val">Some</span>(
+                StateBuilder {
+                    component: heads.component,
+                    message: PhantomData,
+                    state: PhantomData,
+                    element_builder: |state| {
+                        <span class="prelude-val">Some</span>(state.view(tree.state.downcast_ref::&lt;S&gt;()))
                     },
                 }
-                .<span class="ident">build</span>(),
+                .build(),
             ));
 
-            <span class="self">self</span>.<span class="ident">with_element</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> {
-                <span class="ident">tree</span>.<span class="ident">diff_children</span>(<span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><span class="ident">element</span>))
+            <span class="self">self</span>.with_element(|element| {
+                tree.diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span>element))
             });
 
-            <span class="ident">shell</span>.<span class="ident">invalidate_layout</span>();
+            shell.invalidate_layout();
         }
 
-        <span class="ident">event_status</span>
+        event_status
     }
 
-    <span class="kw">fn</span> <span class="ident">operate</span>(
+    <span class="kw">fn </span>operate(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">operation</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">widget::Operation</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        operation: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::Operation&lt;Message&gt;,
     ) {
-        <span class="kw">struct</span> <span class="ident">MapOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-            <span class="ident">operation</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="kw">dyn</span> <span class="ident">widget::Operation</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
+        <span class="kw">struct </span>MapOperation&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+            operation: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>widget::Operation&lt;B&gt;,
         }
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">widget::Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MapOperation</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-            <span class="kw">fn</span> <span class="ident">container</span>(
-                <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-                <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">widget::Id</span><span class="op">&gt;</span>,
-                <span class="ident">operate_on_children</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(
-                    <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">widget::Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T, B&gt; widget::Operation&lt;T&gt; <span class="kw">for </span>MapOperation&lt;<span class="lifetime">&#39;a</span>, B&gt; {
+            <span class="kw">fn </span>container(
+                <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+                id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>widget::Id&gt;,
+                operate_on_children: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(
+                    <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::Operation&lt;T&gt;,
                 ),
             ) {
-                <span class="self">self</span>.<span class="ident">operation</span>.<span class="ident">container</span>(<span class="ident">id</span>, <span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">operation</span><span class="op">|</span> {
-                    <span class="ident">operate_on_children</span>(<span class="kw-2">&amp;mut</span> <span class="ident">MapOperation</span> { <span class="ident">operation</span> });
+                <span class="self">self</span>.operation.container(id, <span class="kw-2">&amp;mut </span>|operation| {
+                    operate_on_children(<span class="kw-2">&amp;mut </span>MapOperation { operation });
                 });
             }
 
-            <span class="kw">fn</span> <span class="ident">focusable</span>(
-                <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-                <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">widget::operation::Focusable</span>,
-                <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">widget::Id</span><span class="op">&gt;</span>,
+            <span class="kw">fn </span>focusable(
+                <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+                state: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::operation::Focusable,
+                id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>widget::Id&gt;,
             ) {
-                <span class="self">self</span>.<span class="ident">operation</span>.<span class="ident">focusable</span>(<span class="ident">state</span>, <span class="ident">id</span>);
+                <span class="self">self</span>.operation.focusable(state, id);
             }
         }
 
-        <span class="self">self</span>.<span class="ident">with_element</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> {
-            <span class="ident">element</span>.<span class="ident">as_widget</span>().<span class="ident">operate</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-                <span class="ident">layout</span>,
-                <span class="kw-2">&amp;mut</span> <span class="ident">MapOperation</span> { <span class="ident">operation</span> },
+        <span class="self">self</span>.with_element(|element| {
+            element.as_widget().operate(
+                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+                layout,
+                <span class="kw-2">&amp;mut </span>MapOperation { operation },
             );
         });
     }
 
-    <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        tree: <span class="kw-2">&amp;</span>Tree,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        style: <span class="kw-2">&amp;</span>renderer::Style,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="self">self</span>.<span class="ident">with_element</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> {
-            <span class="ident">element</span>.<span class="ident">as_widget</span>().<span class="ident">draw</span>(
-                <span class="kw-2">&amp;</span><span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-                <span class="ident">renderer</span>,
-                <span class="ident">theme</span>,
-                <span class="ident">style</span>,
-                <span class="ident">layout</span>,
-                <span class="ident">cursor_position</span>,
-                <span class="ident">viewport</span>,
+        <span class="self">self</span>.with_element(|element| {
+            element.as_widget().draw(
+                <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+                renderer,
+                theme,
+                style,
+                layout,
+                cursor_position,
+                viewport,
             );
         });
     }
 
-    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
+    <span class="kw">fn </span>mouse_interaction(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="self">self</span>.<span class="ident">with_element</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> {
-            <span class="ident">element</span>.<span class="ident">as_widget</span>().<span class="ident">mouse_interaction</span>(
-                <span class="kw-2">&amp;</span><span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-                <span class="ident">layout</span>,
-                <span class="ident">cursor_position</span>,
-                <span class="ident">viewport</span>,
-                <span class="ident">renderer</span>,
+        tree: <span class="kw-2">&amp;</span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        viewport: <span class="kw-2">&amp;</span>Rectangle,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+    ) -&gt; mouse::Interaction {
+        <span class="self">self</span>.with_element(|element| {
+            element.as_widget().mouse_interaction(
+                <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+                layout,
+                cursor_position,
+                viewport,
+                renderer,
             )
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">overlay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">overlay::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">overlay</span> <span class="op">=</span> <span class="ident">OverlayBuilder</span> {
-            <span class="ident">instance</span>: <span class="self">self</span>,
-            <span class="ident">instance_ref_builder</span>: <span class="op">|</span><span class="ident">instance</span><span class="op">|</span> <span class="ident">instance</span>.<span class="ident">state</span>.<span class="ident">borrow</span>(),
-            <span class="ident">tree</span>,
-            <span class="ident">types</span>: <span class="ident">PhantomData</span>,
-            <span class="ident">overlay_builder</span>: <span class="op">|</span><span class="ident">instance</span>, <span class="ident">tree</span><span class="op">|</span> {
-                <span class="ident">instance</span>
-                    .<span class="ident">as_ref</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">borrow_element</span>()
-                    .<span class="ident">as_ref</span>()
-                    .<span class="ident">unwrap</span>()
-                    .<span class="ident">as_widget</span>()
-                    .<span class="ident">overlay</span>(<span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>], <span class="ident">layout</span>, <span class="ident">renderer</span>)
+    <span class="kw">fn </span>overlay&lt;<span class="lifetime">&#39;b</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;b</span>, Message, Renderer&gt;&gt; {
+        <span class="kw">let </span>overlay = OverlayBuilder {
+            instance: <span class="self">self</span>,
+            instance_ref_builder: |instance| instance.state.borrow(),
+            tree,
+            types: PhantomData,
+            overlay_builder: |instance, tree| {
+                instance
+                    .as_ref()
+                    .unwrap()
+                    .borrow_element()
+                    .as_ref()
+                    .unwrap()
+                    .as_widget()
+                    .overlay(<span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>], layout, renderer)
             },
         }
-        .<span class="ident">build</span>();
+        .build();
 
-        <span class="kw">let</span> <span class="ident">has_overlay</span> <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">with_overlay</span>(<span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> {
-            <span class="ident">overlay</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="ident">overlay::Element::position</span>)
+        <span class="kw">let </span>has_overlay = overlay.with_overlay(|overlay| {
+            overlay.as_ref().map(overlay::Element::position)
         });
 
-        <span class="ident">has_overlay</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">position</span><span class="op">|</span> {
-            <span class="ident">overlay::Element::new</span>(
-                <span class="ident">position</span>,
-                <span class="ident">Box::new</span>(<span class="ident">OverlayInstance</span> {
-                    <span class="ident">overlay</span>: <span class="prelude-val">Some</span>(<span class="ident">overlay</span>),
+        has_overlay.map(|position| {
+            overlay::Element::new(
+                position,
+                Box::new(OverlayInstance {
+                    overlay: <span class="prelude-val">Some</span>(overlay),
                 }),
             )
         })
     }
 }
 
-<span class="attribute">#[<span class="ident">self_referencing</span>]</span>
-<span class="kw">struct</span> <span class="ident">Overlay</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">instance</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Instance</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span>,
-    <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Tree</span>,
-    <span class="ident">types</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Message</span>, <span class="ident">Event</span>, <span class="ident">S</span>)<span class="op">&gt;</span>,
+<span class="attribute">#[self_referencing]</span>
+<span class="kw">struct </span>Overlay&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt; {
+    instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Instance&lt;<span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt;,
+    tree: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Tree,
+    types: PhantomData&lt;(Message, Event, S)&gt;,
 
-    <span class="attribute">#[<span class="ident">borrows</span>(<span class="ident">instance</span>)]</span>
-    <span class="attribute">#[<span class="ident">covariant</span>]</span>
-    <span class="ident">instance_ref</span>: <span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;this</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">State</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[borrows(instance)]</span>
+    <span class="attribute">#[covariant]</span>
+    instance_ref: Ref&lt;<span class="lifetime">&#39;this</span>, <span class="prelude-ty">Option</span>&lt;State&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt;&gt;&gt;,
 
-    <span class="attribute">#[<span class="ident">borrows</span>(<span class="ident">instance_ref</span>, <span class="kw-2">mut</span> <span class="ident">tree</span>)]</span>
-    <span class="attribute">#[<span class="ident">covariant</span>]</span>
-    <span class="ident">overlay</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">overlay::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;this</span>, <span class="ident">Event</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[borrows(instance_ref, <span class="kw-2">mut </span>tree)]</span>
+    <span class="attribute">#[covariant]</span>
+    overlay: <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;this</span>, Event, Renderer&gt;&gt;,
 }
 
-<span class="kw">struct</span> <span class="ident">OverlayInstance</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">overlay</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Overlay</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">struct </span>OverlayInstance&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt; {
+    overlay: <span class="prelude-ty">Option</span>&lt;Overlay&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span>
-    <span class="ident">OverlayInstance</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt;
+    OverlayInstance&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt;
 {
-    <span class="kw">fn</span> <span class="ident">with_overlay_maybe</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+    <span class="kw">fn </span>with_overlay_maybe&lt;T&gt;(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">overlay::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Event</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>) -&gt; <span class="ident">T</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">overlay</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">borrow_overlay</span>()
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">map</span>(<span class="ident">f</span>)
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>overlay::Element&lt;<span class="lifetime">&#39;_</span>, Event, Renderer&gt;) -&gt; T,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+        <span class="self">self</span>.overlay
+            .as_ref()
+            .unwrap()
+            .borrow_overlay()
+            .as_ref()
+            .map(f)
     }
 
-    <span class="kw">fn</span> <span class="ident">with_overlay_mut_maybe</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">overlay::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Event</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>) -&gt; <span class="ident">T</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">overlay</span>
-            .<span class="ident">as_mut</span>()
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">with_overlay_mut</span>(<span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> <span class="ident">overlay</span>.<span class="ident">as_mut</span>().<span class="ident">map</span>(<span class="ident">f</span>))
+    <span class="kw">fn </span>with_overlay_mut_maybe&lt;T&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>overlay::Element&lt;<span class="lifetime">&#39;_</span>, Event, Renderer&gt;) -&gt; T,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+        <span class="self">self</span>.overlay
+            .as_mut()
+            .unwrap()
+            .with_overlay_mut(|overlay| overlay.as_mut().map(f))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">overlay::Overlay</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">OverlayInstance</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Event</span>, <span class="ident">S</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">iced_native::Renderer</span>,
-    <span class="ident">S</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Default</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt; overlay::Overlay&lt;Message, Renderer&gt;
+    <span class="kw">for </span>OverlayInstance&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt;
+<span class="kw">where
+    </span>Renderer: iced_native::Renderer,
+    S: <span class="lifetime">&#39;static </span>+ Default,
 {
-    <span class="kw">fn</span> <span class="ident">layout</span>(
+    <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">bounds</span>: <span class="ident">Size</span>,
-        <span class="ident">position</span>: <span class="ident">Point</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="self">self</span>.<span class="ident">with_overlay_maybe</span>(<span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">vector</span> <span class="op">=</span> <span class="ident">position</span> <span class="op">-</span> <span class="ident">overlay</span>.<span class="ident">position</span>();
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        bounds: Size,
+        position: Point,
+    ) -&gt; layout::Node {
+        <span class="self">self</span>.with_overlay_maybe(|overlay| {
+            <span class="kw">let </span>vector = position - overlay.position();
 
-            <span class="ident">overlay</span>.<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">bounds</span>).<span class="ident">translate</span>(<span class="ident">vector</span>)
+            overlay.layout(renderer, bounds).translate(vector)
         })
-        .<span class="ident">unwrap_or_default</span>()
+        .unwrap_or_default()
     }
 
-    <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        style: <span class="kw-2">&amp;</span>renderer::Style,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
     ) {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">with_overlay_maybe</span>(<span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> {
-            <span class="ident">overlay</span>.<span class="ident">draw</span>(<span class="ident">renderer</span>, <span class="ident">theme</span>, <span class="ident">style</span>, <span class="ident">layout</span>, <span class="ident">cursor_position</span>);
+        <span class="kw">let _ </span>= <span class="self">self</span>.with_overlay_maybe(|overlay| {
+            overlay.draw(renderer, theme, style, layout, cursor_position);
         });
     }
 
-    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
+    <span class="kw">fn </span>mouse_interaction(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="self">self</span>.<span class="ident">with_overlay_maybe</span>(<span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> {
-            <span class="ident">overlay</span>.<span class="ident">mouse_interaction</span>(
-                <span class="ident">layout</span>,
-                <span class="ident">cursor_position</span>,
-                <span class="ident">viewport</span>,
-                <span class="ident">renderer</span>,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        viewport: <span class="kw-2">&amp;</span>Rectangle,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+    ) -&gt; mouse::Interaction {
+        <span class="self">self</span>.with_overlay_maybe(|overlay| {
+            overlay.mouse_interaction(
+                layout,
+                cursor_position,
+                viewport,
+                renderer,
             )
         })
-        .<span class="ident">unwrap_or_default</span>()
+        .unwrap_or_default()
     }
 
-    <span class="kw">fn</span> <span class="ident">on_event</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">event</span>: <span class="ident">iced_native::Event</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">iced_native::event::Status</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_messages</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_shell</span> <span class="op">=</span> <span class="ident">Shell::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">local_messages</span>);
+    <span class="kw">fn </span>on_event(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        event: iced_native::Event,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
+    ) -&gt; iced_native::event::Status {
+        <span class="kw">let </span><span class="kw-2">mut </span>local_messages = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>local_shell = Shell::new(<span class="kw-2">&amp;mut </span>local_messages);
 
-        <span class="kw">let</span> <span class="ident">event_status</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">with_overlay_mut_maybe</span>(<span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> {
-                <span class="ident">overlay</span>.<span class="ident">on_event</span>(
-                    <span class="ident">event</span>,
-                    <span class="ident">layout</span>,
-                    <span class="ident">cursor_position</span>,
-                    <span class="ident">renderer</span>,
-                    <span class="ident">clipboard</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">local_shell</span>,
+        <span class="kw">let </span>event_status = <span class="self">self
+            </span>.with_overlay_mut_maybe(|overlay| {
+                overlay.on_event(
+                    event,
+                    layout,
+                    cursor_position,
+                    renderer,
+                    clipboard,
+                    <span class="kw-2">&amp;mut </span>local_shell,
                 )
             })
-            .<span class="ident">unwrap_or</span>(<span class="ident">iced_native::event::Status::Ignored</span>);
+            .unwrap_or(iced_native::event::Status::Ignored);
 
-        <span class="ident">local_shell</span>.<span class="ident">revalidate_layout</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">shell</span>.<span class="ident">invalidate_layout</span>());
+        local_shell.revalidate_layout(|| shell.invalidate_layout());
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">local_messages</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="ident">overlay</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">overlay</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">into_heads</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">heads</span> <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">instance</span>.<span class="ident">state</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">into_heads</span>();
+        <span class="kw">if </span>!local_messages.is_empty() {
+            <span class="kw">let </span>overlay = <span class="self">self</span>.overlay.take().unwrap().into_heads();
+            <span class="kw">let </span><span class="kw-2">mut </span>heads = overlay.instance.state.take().unwrap().into_heads();
 
-            <span class="kw">for</span> <span class="ident">message</span> <span class="kw">in</span> <span class="ident">local_messages</span>.<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">message</span><span class="op">|</span> {
-                <span class="ident">heads</span>
-                    .<span class="ident">component</span>
-                    .<span class="ident">update</span>(<span class="ident">overlay</span>.<span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(), <span class="ident">message</span>)
+            <span class="kw">for </span>message <span class="kw">in </span>local_messages.into_iter().filter_map(|message| {
+                heads
+                    .component
+                    .update(overlay.tree.state.downcast_mut::&lt;S&gt;(), message)
             }) {
-                <span class="ident">shell</span>.<span class="ident">publish</span>(<span class="ident">message</span>);
+                shell.publish(message);
             }
 
-            <span class="kw-2">*</span><span class="ident">overlay</span>.<span class="ident">instance</span>.<span class="ident">state</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(
-                <span class="ident">StateBuilder</span> {
-                    <span class="ident">component</span>: <span class="ident">heads</span>.<span class="ident">component</span>,
-                    <span class="ident">message</span>: <span class="ident">PhantomData</span>,
-                    <span class="ident">state</span>: <span class="ident">PhantomData</span>,
-                    <span class="ident">element_builder</span>: <span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
-                        <span class="prelude-val">Some</span>(<span class="ident">state</span>.<span class="ident">view</span>(<span class="ident">overlay</span>.<span class="ident">tree</span>.<span class="ident">state</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>()))
+            <span class="kw-2">*</span>overlay.instance.state.borrow_mut() = <span class="prelude-val">Some</span>(
+                StateBuilder {
+                    component: heads.component,
+                    message: PhantomData,
+                    state: PhantomData,
+                    element_builder: |state| {
+                        <span class="prelude-val">Some</span>(state.view(overlay.tree.state.downcast_ref::&lt;S&gt;()))
                     },
                 }
-                .<span class="ident">build</span>(),
+                .build(),
             );
 
-            <span class="ident">overlay</span>.<span class="ident">instance</span>.<span class="ident">with_element</span>(<span class="op">|</span><span class="ident">element</span><span class="op">|</span> {
-                <span class="ident">overlay</span>.<span class="ident">tree</span>.<span class="ident">diff_children</span>(<span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><span class="ident">element</span>))
+            overlay.instance.with_element(|element| {
+                overlay.tree.diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span>element))
             });
 
-            <span class="self">self</span>.<span class="ident">overlay</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
-                <span class="ident">OverlayBuilder</span> {
-                    <span class="ident">instance</span>: <span class="ident">overlay</span>.<span class="ident">instance</span>,
-                    <span class="ident">instance_ref_builder</span>: <span class="op">|</span><span class="ident">instance</span><span class="op">|</span> <span class="ident">instance</span>.<span class="ident">state</span>.<span class="ident">borrow</span>(),
-                    <span class="ident">tree</span>: <span class="ident">overlay</span>.<span class="ident">tree</span>,
-                    <span class="ident">types</span>: <span class="ident">PhantomData</span>,
-                    <span class="ident">overlay_builder</span>: <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">None</span>,
+            <span class="self">self</span>.overlay = <span class="prelude-val">Some</span>(
+                OverlayBuilder {
+                    instance: overlay.instance,
+                    instance_ref_builder: |instance| instance.state.borrow(),
+                    tree: overlay.tree,
+                    types: PhantomData,
+                    overlay_builder: |<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">None</span>,
                 }
-                .<span class="ident">build</span>(),
+                .build(),
             );
 
-            <span class="ident">shell</span>.<span class="ident">invalidate_layout</span>();
+            shell.invalidate_layout();
         }
 
-        <span class="ident">event_status</span>
+        event_status
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_lazy" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_lazy" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

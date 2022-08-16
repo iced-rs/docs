@@ -551,556 +551,556 @@
 <span id="549">549</span>
 <span id="550">550</span>
 <span id="551">551</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Implement your own event loop to drive a user interface.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::application</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>::{<span class="self">self</span>, <span class="ident">Event</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Shell</span>, <span class="ident">Size</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! Implement your own event loop to drive a user interface.
+</span><span class="kw">use </span><span class="kw">crate</span>::application;
+<span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
+<span class="kw">use </span><span class="kw">crate</span>::layout;
+<span class="kw">use </span><span class="kw">crate</span>::mouse;
+<span class="kw">use </span><span class="kw">crate</span>::renderer;
+<span class="kw">use </span><span class="kw">crate</span>::widget;
+<span class="kw">use crate</span>::{Clipboard, Element, Layout, Point, Rectangle, Shell, Size};
 
-<span class="doccomment">/// A set of interactive graphical elements with a specific [`Layout`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It can be updated and drawn.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Iced tries to avoid dictating how to write your event loop. You are in</span>
-<span class="doccomment">/// charge of using this type in your system in any way you want.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">/// The [`integration` example] uses a [`UserInterface`] to integrate Iced in</span>
-<span class="doccomment">/// an existing graphical application.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`integration` example]: https://github.com/iced-rs/iced/tree/0.4/examples/integration</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UserInterface</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-    <span class="ident">root</span>: <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
-    <span class="ident">base</span>: <span class="ident">layout::Node</span>,
-    <span class="ident">state</span>: <span class="ident">widget::Tree</span>,
-    <span class="ident">overlay</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">layout::Node</span><span class="op">&gt;</span>,
-    <span class="ident">bounds</span>: <span class="ident">Size</span>,
+<span class="doccomment">/// A set of interactive graphical elements with a specific [`Layout`].
+///
+/// It can be updated and drawn.
+///
+/// Iced tries to avoid dictating how to write your event loop. You are in
+/// charge of using this type in your system in any way you want.
+///
+/// # Example
+/// The [`integration` example] uses a [`UserInterface`] to integrate Iced in
+/// an existing graphical application.
+///
+/// [`integration` example]: https://github.com/iced-rs/iced/tree/0.4/examples/integration
+</span><span class="attribute">#[allow(missing_debug_implementations)]</span>
+<span class="kw">pub struct </span>UserInterface&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
+    root: Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
+    base: layout::Node,
+    state: widget::Tree,
+    overlay: <span class="prelude-ty">Option</span>&lt;layout::Node&gt;,
+    bounds: Size,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">UserInterface</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">application::StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; UserInterface&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: <span class="kw">crate</span>::Renderer,
+    Renderer::Theme: application::StyleSheet,
 {
-    <span class="doccomment">/// Builds a user interface for an [`Element`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It is able to avoid expensive computations when using a [`Cache`]</span>
-    <span class="doccomment">/// obtained from a previous instance of a [`UserInterface`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">/// Imagine we want to build a [`UserInterface`] for</span>
-    <span class="doccomment">/// [the counter example that we previously wrote](index.html#usage). Here</span>
-    <span class="doccomment">/// is naive way to set up our application loop:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use iced_native::Size;</span>
-    <span class="doccomment">/// use iced_native::user_interface::{self, UserInterface};</span>
-    <span class="doccomment">/// use iced_wgpu::Renderer;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # mod iced_wgpu {</span>
-    <span class="doccomment">/// #     pub use iced_native::renderer::Null as Renderer;</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # use iced_native::widget::Column;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # pub struct Counter;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # impl Counter {</span>
-    <span class="doccomment">/// #     pub fn new() -&gt; Self { Counter }</span>
-    <span class="doccomment">/// #     pub fn view(&amp;self) -&gt; Column&lt;(), Renderer&gt; {</span>
-    <span class="doccomment">/// #         Column::new()</span>
-    <span class="doccomment">/// #     }</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// // Initialization</span>
-    <span class="doccomment">/// let mut counter = Counter::new();</span>
-    <span class="doccomment">/// let mut cache = user_interface::Cache::new();</span>
-    <span class="doccomment">/// let mut renderer = Renderer::new();</span>
-    <span class="doccomment">/// let mut window_size = Size::new(1024.0, 768.0);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Application loop</span>
-    <span class="doccomment">/// loop {</span>
-    <span class="doccomment">///     // Process system events here...</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Build the user interface</span>
-    <span class="doccomment">///     let user_interface = UserInterface::build(</span>
-    <span class="doccomment">///         counter.view(),</span>
-    <span class="doccomment">///         window_size,</span>
-    <span class="doccomment">///         cache,</span>
-    <span class="doccomment">///         &amp;mut renderer,</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Update and draw the user interface here...</span>
-    <span class="doccomment">///     // ...</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Obtain the cache for the next iteration</span>
-    <span class="doccomment">///     cache = user_interface.into_cache();</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-        <span class="ident">root</span>: <span class="ident">E</span>,
-        <span class="ident">bounds</span>: <span class="ident">Size</span>,
-        <span class="ident">cache</span>: <span class="ident">Cache</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">root</span> <span class="op">=</span> <span class="ident">root</span>.<span class="ident">into</span>();
+    <span class="doccomment">/// Builds a user interface for an [`Element`].
+    ///
+    /// It is able to avoid expensive computations when using a [`Cache`]
+    /// obtained from a previous instance of a [`UserInterface`].
+    ///
+    /// # Example
+    /// Imagine we want to build a [`UserInterface`] for
+    /// [the counter example that we previously wrote](index.html#usage). Here
+    /// is naive way to set up our application loop:
+    ///
+    /// ```no_run
+    /// use iced_native::Size;
+    /// use iced_native::user_interface::{self, UserInterface};
+    /// use iced_wgpu::Renderer;
+    ///
+    /// # mod iced_wgpu {
+    /// #     pub use iced_native::renderer::Null as Renderer;
+    /// # }
+    /// #
+    /// # use iced_native::widget::Column;
+    /// #
+    /// # pub struct Counter;
+    /// #
+    /// # impl Counter {
+    /// #     pub fn new() -&gt; Self { Counter }
+    /// #     pub fn view(&amp;self) -&gt; Column&lt;(), Renderer&gt; {
+    /// #         Column::new()
+    /// #     }
+    /// # }
+    /// // Initialization
+    /// let mut counter = Counter::new();
+    /// let mut cache = user_interface::Cache::new();
+    /// let mut renderer = Renderer::new();
+    /// let mut window_size = Size::new(1024.0, 768.0);
+    ///
+    /// // Application loop
+    /// loop {
+    ///     // Process system events here...
+    ///
+    ///     // Build the user interface
+    ///     let user_interface = UserInterface::build(
+    ///         counter.view(),
+    ///         window_size,
+    ///         cache,
+    ///         &amp;mut renderer,
+    ///     );
+    ///
+    ///     // Update and draw the user interface here...
+    ///     // ...
+    ///
+    ///     // Obtain the cache for the next iteration
+    ///     cache = user_interface.into_cache();
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>build&lt;E: Into&lt;Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;&gt;(
+        root: E,
+        bounds: Size,
+        cache: Cache,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>root = root.into();
 
-        <span class="kw">let</span> <span class="ident">Cache</span> { <span class="kw-2">mut</span> <span class="ident">state</span> } <span class="op">=</span> <span class="ident">cache</span>;
-        <span class="ident">state</span>.<span class="ident">diff</span>(<span class="ident">root</span>.<span class="ident">as_widget</span>());
+        <span class="kw">let </span>Cache { <span class="kw-2">mut </span>state } = cache;
+        state.diff(root.as_widget());
 
-        <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span>
-            <span class="ident">renderer</span>.<span class="ident">layout</span>(<span class="kw-2">&amp;</span><span class="ident">root</span>, <span class="kw-2">&amp;</span><span class="ident">layout::Limits::new</span>(<span class="ident">Size::ZERO</span>, <span class="ident">bounds</span>));
+        <span class="kw">let </span>base =
+            renderer.layout(<span class="kw-2">&amp;</span>root, <span class="kw-2">&amp;</span>layout::Limits::new(Size::ZERO, bounds));
 
-        <span class="ident">UserInterface</span> {
-            <span class="ident">root</span>,
-            <span class="ident">base</span>,
-            <span class="ident">state</span>,
-            <span class="ident">overlay</span>: <span class="prelude-val">None</span>,
-            <span class="ident">bounds</span>,
+        UserInterface {
+            root,
+            base,
+            state,
+            overlay: <span class="prelude-val">None</span>,
+            bounds,
         }
     }
 
-    <span class="doccomment">/// Updates the [`UserInterface`] by processing each provided [`Event`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It returns __messages__ that may have been produced as a result of user</span>
-    <span class="doccomment">/// interactions. You should feed these to your __update logic__.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">/// Let&#39;s allow our [counter](index.html#usage) to change state by</span>
-    <span class="doccomment">/// completing [the previous example](#example):</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use iced_native::{clipboard, Size, Point};</span>
-    <span class="doccomment">/// use iced_native::user_interface::{self, UserInterface};</span>
-    <span class="doccomment">/// use iced_wgpu::Renderer;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # mod iced_wgpu {</span>
-    <span class="doccomment">/// #     pub use iced_native::renderer::Null as Renderer;</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # use iced_native::widget::Column;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # pub struct Counter;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # impl Counter {</span>
-    <span class="doccomment">/// #     pub fn new() -&gt; Self { Counter }</span>
-    <span class="doccomment">/// #     pub fn view(&amp;self) -&gt; Column&lt;(), Renderer&gt; {</span>
-    <span class="doccomment">/// #         Column::new()</span>
-    <span class="doccomment">/// #     }</span>
-    <span class="doccomment">/// #     pub fn update(&amp;mut self, message: ()) {}</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// let mut counter = Counter::new();</span>
-    <span class="doccomment">/// let mut cache = user_interface::Cache::new();</span>
-    <span class="doccomment">/// let mut renderer = Renderer::new();</span>
-    <span class="doccomment">/// let mut window_size = Size::new(1024.0, 768.0);</span>
-    <span class="doccomment">/// let mut cursor_position = Point::default();</span>
-    <span class="doccomment">/// let mut clipboard = clipboard::Null;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Initialize our event storage</span>
-    <span class="doccomment">/// let mut events = Vec::new();</span>
-    <span class="doccomment">/// let mut messages = Vec::new();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// loop {</span>
-    <span class="doccomment">///     // Obtain system events...</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let mut user_interface = UserInterface::build(</span>
-    <span class="doccomment">///         counter.view(),</span>
-    <span class="doccomment">///         window_size,</span>
-    <span class="doccomment">///         cache,</span>
-    <span class="doccomment">///         &amp;mut renderer,</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Update the user interface</span>
-    <span class="doccomment">///     let (state, event_statuses) = user_interface.update(</span>
-    <span class="doccomment">///         &amp;events,</span>
-    <span class="doccomment">///         cursor_position,</span>
-    <span class="doccomment">///         &amp;mut renderer,</span>
-    <span class="doccomment">///         &amp;mut clipboard,</span>
-    <span class="doccomment">///         &amp;mut messages</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     cache = user_interface.into_cache();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Process the produced messages</span>
-    <span class="doccomment">///     for message in messages.drain(..) {</span>
-    <span class="doccomment">///         counter.update(message);</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">events</span>: <span class="kw-2">&amp;</span>[<span class="ident">Event</span>],
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">messages</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
-    ) -&gt; (<span class="ident">State</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">event::Status</span><span class="op">&gt;</span>) {
-        <span class="kw">use</span> <span class="ident">std::mem::ManuallyDrop</span>;
+    <span class="doccomment">/// Updates the [`UserInterface`] by processing each provided [`Event`].
+    ///
+    /// It returns __messages__ that may have been produced as a result of user
+    /// interactions. You should feed these to your __update logic__.
+    ///
+    /// # Example
+    /// Let&#39;s allow our [counter](index.html#usage) to change state by
+    /// completing [the previous example](#example):
+    ///
+    /// ```no_run
+    /// use iced_native::{clipboard, Size, Point};
+    /// use iced_native::user_interface::{self, UserInterface};
+    /// use iced_wgpu::Renderer;
+    ///
+    /// # mod iced_wgpu {
+    /// #     pub use iced_native::renderer::Null as Renderer;
+    /// # }
+    /// #
+    /// # use iced_native::widget::Column;
+    /// #
+    /// # pub struct Counter;
+    /// #
+    /// # impl Counter {
+    /// #     pub fn new() -&gt; Self { Counter }
+    /// #     pub fn view(&amp;self) -&gt; Column&lt;(), Renderer&gt; {
+    /// #         Column::new()
+    /// #     }
+    /// #     pub fn update(&amp;mut self, message: ()) {}
+    /// # }
+    /// let mut counter = Counter::new();
+    /// let mut cache = user_interface::Cache::new();
+    /// let mut renderer = Renderer::new();
+    /// let mut window_size = Size::new(1024.0, 768.0);
+    /// let mut cursor_position = Point::default();
+    /// let mut clipboard = clipboard::Null;
+    ///
+    /// // Initialize our event storage
+    /// let mut events = Vec::new();
+    /// let mut messages = Vec::new();
+    ///
+    /// loop {
+    ///     // Obtain system events...
+    ///
+    ///     let mut user_interface = UserInterface::build(
+    ///         counter.view(),
+    ///         window_size,
+    ///         cache,
+    ///         &amp;mut renderer,
+    ///     );
+    ///
+    ///     // Update the user interface
+    ///     let (state, event_statuses) = user_interface.update(
+    ///         &amp;events,
+    ///         cursor_position,
+    ///         &amp;mut renderer,
+    ///         &amp;mut clipboard,
+    ///         &amp;mut messages
+    ///     );
+    ///
+    ///     cache = user_interface.into_cache();
+    ///
+    ///     // Process the produced messages
+    ///     for message in messages.drain(..) {
+    ///         counter.update(message);
+    ///     }
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>update(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        events: <span class="kw-2">&amp;</span>[Event],
+        cursor_position: Point,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+        messages: <span class="kw-2">&amp;mut </span>Vec&lt;Message&gt;,
+    ) -&gt; (State, Vec&lt;event::Status&gt;) {
+        <span class="kw">use </span>std::mem::ManuallyDrop;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Updated</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">manual_overlay</span> <span class="op">=</span>
-            <span class="ident">ManuallyDrop::new</span>(<span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
-                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
-                <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
-                <span class="ident">renderer</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>state = State::Updated;
+        <span class="kw">let </span><span class="kw-2">mut </span>manual_overlay =
+            ManuallyDrop::new(<span class="self">self</span>.root.as_widget().overlay(
+                <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
+                Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
+                renderer,
             ));
 
-        <span class="kw">let</span> (<span class="ident">base_cursor</span>, <span class="ident">overlay_statuses</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">manual_overlay</span>.<span class="ident">is_some</span>() {
-            <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bounds</span>;
+        <span class="kw">let </span>(base_cursor, overlay_statuses) = <span class="kw">if </span>manual_overlay.is_some() {
+            <span class="kw">let </span>bounds = <span class="self">self</span>.bounds;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overlay</span> <span class="op">=</span> <span class="ident">manual_overlay</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">bounds</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event_statuses</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+            <span class="kw">let </span><span class="kw-2">mut </span>overlay = manual_overlay.as_mut().unwrap();
+            <span class="kw">let </span><span class="kw-2">mut </span>layout = overlay.layout(renderer, bounds);
+            <span class="kw">let </span><span class="kw-2">mut </span>event_statuses = Vec::new();
 
-            <span class="kw">for</span> <span class="ident">event</span> <span class="kw">in</span> <span class="ident">events</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>() {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shell</span> <span class="op">=</span> <span class="ident">Shell::new</span>(<span class="ident">messages</span>);
+            <span class="kw">for </span>event <span class="kw">in </span>events.iter().cloned() {
+                <span class="kw">let </span><span class="kw-2">mut </span>shell = Shell::new(messages);
 
-                <span class="kw">let</span> <span class="ident">event_status</span> <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">on_event</span>(
-                    <span class="ident">event</span>,
-                    <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="ident">layout</span>),
-                    <span class="ident">cursor_position</span>,
-                    <span class="ident">renderer</span>,
-                    <span class="ident">clipboard</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">shell</span>,
+                <span class="kw">let </span>event_status = overlay.on_event(
+                    event,
+                    Layout::new(<span class="kw-2">&amp;</span>layout),
+                    cursor_position,
+                    renderer,
+                    clipboard,
+                    <span class="kw-2">&amp;mut </span>shell,
                 );
 
-                <span class="ident">event_statuses</span>.<span class="ident">push</span>(<span class="ident">event_status</span>);
+                event_statuses.push(event_status);
 
-                <span class="kw">if</span> <span class="ident">shell</span>.<span class="ident">is_layout_invalid</span>() {
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ManuallyDrop::into_inner</span>(<span class="ident">manual_overlay</span>);
+                <span class="kw">if </span>shell.is_layout_invalid() {
+                    <span class="kw">let _ </span>= ManuallyDrop::into_inner(manual_overlay);
 
-                    <span class="self">self</span>.<span class="ident">base</span> <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">layout</span>(
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">root</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">layout::Limits::new</span>(<span class="ident">Size::ZERO</span>, <span class="self">self</span>.<span class="ident">bounds</span>),
+                    <span class="self">self</span>.base = renderer.layout(
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.root,
+                        <span class="kw-2">&amp;</span>layout::Limits::new(Size::ZERO, <span class="self">self</span>.bounds),
                     );
 
-                    <span class="ident">manual_overlay</span> <span class="op">=</span>
-                        <span class="ident">ManuallyDrop::new</span>(<span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
-                            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
-                            <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
-                            <span class="ident">renderer</span>,
+                    manual_overlay =
+                        ManuallyDrop::new(<span class="self">self</span>.root.as_widget().overlay(
+                            <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
+                            Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
+                            renderer,
                         ));
 
-                    <span class="kw">if</span> <span class="ident">manual_overlay</span>.<span class="ident">is_none</span>() {
+                    <span class="kw">if </span>manual_overlay.is_none() {
                         <span class="kw">break</span>;
                     }
 
-                    <span class="ident">overlay</span> <span class="op">=</span> <span class="ident">manual_overlay</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>();
+                    overlay = manual_overlay.as_mut().unwrap();
 
-                    <span class="ident">shell</span>.<span class="ident">revalidate_layout</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">layout</span> <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">bounds</span>);
+                    shell.revalidate_layout(|| {
+                        layout = overlay.layout(renderer, bounds);
                     });
                 }
 
-                <span class="kw">if</span> <span class="ident">shell</span>.<span class="ident">are_widgets_invalid</span>() {
-                    <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Outdated</span>;
+                <span class="kw">if </span>shell.are_widgets_invalid() {
+                    state = State::Outdated;
                 }
             }
 
-            <span class="kw">let</span> <span class="ident">base_cursor</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">layout</span>.<span class="ident">bounds</span>().<span class="ident">contains</span>(<span class="ident">cursor_position</span>) {
-                <span class="comment">// TODO: Type-safe cursor availability</span>
-                <span class="ident">Point::new</span>(<span class="op">-</span><span class="number">1.0</span>, <span class="op">-</span><span class="number">1.0</span>)
-            } <span class="kw">else</span> {
-                <span class="ident">cursor_position</span>
+            <span class="kw">let </span>base_cursor = <span class="kw">if </span>layout.bounds().contains(cursor_position) {
+                <span class="comment">// TODO: Type-safe cursor availability
+                </span>Point::new(-<span class="number">1.0</span>, -<span class="number">1.0</span>)
+            } <span class="kw">else </span>{
+                cursor_position
             };
 
-            <span class="self">self</span>.<span class="ident">overlay</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">layout</span>);
+            <span class="self">self</span>.overlay = <span class="prelude-val">Some</span>(layout);
 
-            (<span class="ident">base_cursor</span>, <span class="ident">event_statuses</span>)
-        } <span class="kw">else</span> {
-            (<span class="ident">cursor_position</span>, <span class="macro">vec!</span>[<span class="ident">event::Status::Ignored</span>; <span class="ident">events</span>.<span class="ident">len</span>()])
+            (base_cursor, event_statuses)
+        } <span class="kw">else </span>{
+            (cursor_position, <span class="macro">vec!</span>[event::Status::Ignored; events.len()])
         };
 
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ManuallyDrop::into_inner</span>(<span class="ident">manual_overlay</span>);
+        <span class="kw">let _ </span>= ManuallyDrop::into_inner(manual_overlay);
 
-        <span class="kw">let</span> <span class="ident">event_statuses</span> <span class="op">=</span> <span class="ident">events</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">cloned</span>()
-            .<span class="ident">zip</span>(<span class="ident">overlay_statuses</span>.<span class="ident">into_iter</span>())
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">event</span>, <span class="ident">overlay_status</span>)<span class="op">|</span> {
-                <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">overlay_status</span>, <span class="ident">event::Status::Captured</span>) {
-                    <span class="kw">return</span> <span class="ident">overlay_status</span>;
+        <span class="kw">let </span>event_statuses = events
+            .iter()
+            .cloned()
+            .zip(overlay_statuses.into_iter())
+            .map(|(event, overlay_status)| {
+                <span class="kw">if </span><span class="macro">matches!</span>(overlay_status, event::Status::Captured) {
+                    <span class="kw">return </span>overlay_status;
                 }
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shell</span> <span class="op">=</span> <span class="ident">Shell::new</span>(<span class="ident">messages</span>);
+                <span class="kw">let </span><span class="kw-2">mut </span>shell = Shell::new(messages);
 
-                <span class="kw">let</span> <span class="ident">event_status</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget_mut</span>().<span class="ident">on_event</span>(
-                    <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
-                    <span class="ident">event</span>,
-                    <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
-                    <span class="ident">base_cursor</span>,
-                    <span class="ident">renderer</span>,
-                    <span class="ident">clipboard</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">shell</span>,
+                <span class="kw">let </span>event_status = <span class="self">self</span>.root.as_widget_mut().on_event(
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
+                    event,
+                    Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
+                    base_cursor,
+                    renderer,
+                    clipboard,
+                    <span class="kw-2">&amp;mut </span>shell,
                 );
 
-                <span class="ident">shell</span>.<span class="ident">revalidate_layout</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">base</span> <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">layout</span>(
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">root</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">layout::Limits::new</span>(<span class="ident">Size::ZERO</span>, <span class="self">self</span>.<span class="ident">bounds</span>),
+                shell.revalidate_layout(|| {
+                    <span class="self">self</span>.base = renderer.layout(
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.root,
+                        <span class="kw-2">&amp;</span>layout::Limits::new(Size::ZERO, <span class="self">self</span>.bounds),
                     );
 
-                    <span class="self">self</span>.<span class="ident">overlay</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                    <span class="self">self</span>.overlay = <span class="prelude-val">None</span>;
                 });
 
-                <span class="kw">if</span> <span class="ident">shell</span>.<span class="ident">are_widgets_invalid</span>() {
-                    <span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Outdated</span>;
+                <span class="kw">if </span>shell.are_widgets_invalid() {
+                    state = State::Outdated;
                 }
 
-                <span class="ident">event_status</span>.<span class="ident">merge</span>(<span class="ident">overlay_status</span>)
+                event_status.merge(overlay_status)
             })
-            .<span class="ident">collect</span>();
+            .collect();
 
-        (<span class="ident">state</span>, <span class="ident">event_statuses</span>)
+        (state, event_statuses)
     }
 
-    <span class="doccomment">/// Draws the [`UserInterface`] with the provided [`Renderer`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It returns the current [`mouse::Interaction`]. You should update the</span>
-    <span class="doccomment">/// icon of the mouse cursor accordingly in your system.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Renderer`]: crate::Renderer</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">/// We can finally draw our [counter](index.html#usage) by</span>
-    <span class="doccomment">/// [completing the last example](#example-1):</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```no_run</span>
-    <span class="doccomment">/// use iced_native::clipboard;</span>
-    <span class="doccomment">/// use iced_native::renderer;</span>
-    <span class="doccomment">/// use iced_native::user_interface::{self, UserInterface};</span>
-    <span class="doccomment">/// use iced_native::{Size, Point, Theme};</span>
-    <span class="doccomment">/// use iced_wgpu::Renderer;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # mod iced_wgpu {</span>
-    <span class="doccomment">/// #     pub use iced_native::renderer::Null as Renderer;</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # use iced_native::widget::Column;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # pub struct Counter;</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # impl Counter {</span>
-    <span class="doccomment">/// #     pub fn new() -&gt; Self { Counter }</span>
-    <span class="doccomment">/// #     pub fn view(&amp;self) -&gt; Column&lt;(), Renderer&gt; {</span>
-    <span class="doccomment">/// #         Column::new()</span>
-    <span class="doccomment">/// #     }</span>
-    <span class="doccomment">/// #     pub fn update(&amp;mut self, message: ()) {}</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">/// let mut counter = Counter::new();</span>
-    <span class="doccomment">/// let mut cache = user_interface::Cache::new();</span>
-    <span class="doccomment">/// let mut renderer = Renderer::new();</span>
-    <span class="doccomment">/// let mut window_size = Size::new(1024.0, 768.0);</span>
-    <span class="doccomment">/// let mut cursor_position = Point::default();</span>
-    <span class="doccomment">/// let mut clipboard = clipboard::Null;</span>
-    <span class="doccomment">/// let mut events = Vec::new();</span>
-    <span class="doccomment">/// let mut messages = Vec::new();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// loop {</span>
-    <span class="doccomment">///     // Obtain system events...</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     let mut user_interface = UserInterface::build(</span>
-    <span class="doccomment">///         counter.view(),</span>
-    <span class="doccomment">///         window_size,</span>
-    <span class="doccomment">///         cache,</span>
-    <span class="doccomment">///         &amp;mut renderer,</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Update the user interface</span>
-    <span class="doccomment">///     let event_statuses = user_interface.update(</span>
-    <span class="doccomment">///         &amp;events,</span>
-    <span class="doccomment">///         cursor_position,</span>
-    <span class="doccomment">///         &amp;mut renderer,</span>
-    <span class="doccomment">///         &amp;mut clipboard,</span>
-    <span class="doccomment">///         &amp;mut messages</span>
-    <span class="doccomment">///     );</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Draw the user interface</span>
-    <span class="doccomment">///     let mouse_cursor = user_interface.draw(&amp;mut renderer, &amp;Theme::default(), &amp;renderer::Style::default(), cursor_position);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     cache = user_interface.into_cache();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     for message in messages.drain(..) {</span>
-    <span class="doccomment">///         counter.update(message);</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">///     // Update mouse cursor icon...</span>
-    <span class="doccomment">///     // Flush rendering operations...</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="comment">// TODO: Move to shell level (?)</span>
-        <span class="ident">renderer</span>.<span class="ident">clear</span>();
+    <span class="doccomment">/// Draws the [`UserInterface`] with the provided [`Renderer`].
+    ///
+    /// It returns the current [`mouse::Interaction`]. You should update the
+    /// icon of the mouse cursor accordingly in your system.
+    ///
+    /// [`Renderer`]: crate::Renderer
+    ///
+    /// # Example
+    /// We can finally draw our [counter](index.html#usage) by
+    /// [completing the last example](#example-1):
+    ///
+    /// ```no_run
+    /// use iced_native::clipboard;
+    /// use iced_native::renderer;
+    /// use iced_native::user_interface::{self, UserInterface};
+    /// use iced_native::{Size, Point, Theme};
+    /// use iced_wgpu::Renderer;
+    ///
+    /// # mod iced_wgpu {
+    /// #     pub use iced_native::renderer::Null as Renderer;
+    /// # }
+    /// #
+    /// # use iced_native::widget::Column;
+    /// #
+    /// # pub struct Counter;
+    /// #
+    /// # impl Counter {
+    /// #     pub fn new() -&gt; Self { Counter }
+    /// #     pub fn view(&amp;self) -&gt; Column&lt;(), Renderer&gt; {
+    /// #         Column::new()
+    /// #     }
+    /// #     pub fn update(&amp;mut self, message: ()) {}
+    /// # }
+    /// let mut counter = Counter::new();
+    /// let mut cache = user_interface::Cache::new();
+    /// let mut renderer = Renderer::new();
+    /// let mut window_size = Size::new(1024.0, 768.0);
+    /// let mut cursor_position = Point::default();
+    /// let mut clipboard = clipboard::Null;
+    /// let mut events = Vec::new();
+    /// let mut messages = Vec::new();
+    ///
+    /// loop {
+    ///     // Obtain system events...
+    ///
+    ///     let mut user_interface = UserInterface::build(
+    ///         counter.view(),
+    ///         window_size,
+    ///         cache,
+    ///         &amp;mut renderer,
+    ///     );
+    ///
+    ///     // Update the user interface
+    ///     let event_statuses = user_interface.update(
+    ///         &amp;events,
+    ///         cursor_position,
+    ///         &amp;mut renderer,
+    ///         &amp;mut clipboard,
+    ///         &amp;mut messages
+    ///     );
+    ///
+    ///     // Draw the user interface
+    ///     let mouse_cursor = user_interface.draw(&amp;mut renderer, &amp;Theme::default(), &amp;renderer::Style::default(), cursor_position);
+    ///
+    ///     cache = user_interface.into_cache();
+    ///
+    ///     for message in messages.drain(..) {
+    ///         counter.update(message);
+    ///     }
+    ///
+    ///     // Update mouse cursor icon...
+    ///     // Flush rendering operations...
+    /// }
+    /// ```
+    </span><span class="kw">pub fn </span>draw(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        style: <span class="kw-2">&amp;</span>renderer::Style,
+        cursor_position: Point,
+    ) -&gt; mouse::Interaction {
+        <span class="comment">// TODO: Move to shell level (?)
+        </span>renderer.clear();
 
-        <span class="kw">let</span> <span class="ident">viewport</span> <span class="op">=</span> <span class="ident">Rectangle::with_size</span>(<span class="self">self</span>.<span class="ident">bounds</span>);
+        <span class="kw">let </span>viewport = Rectangle::with_size(<span class="self">self</span>.bounds);
 
-        <span class="kw">let</span> <span class="ident">base_cursor</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">overlay</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
-            <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
-            <span class="ident">renderer</span>,
+        <span class="kw">let </span>base_cursor = <span class="kw">if let </span><span class="prelude-val">Some</span>(overlay) = <span class="self">self</span>.root.as_widget().overlay(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
+            Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
+            renderer,
         ) {
-            <span class="kw">let</span> <span class="ident">overlay_layout</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">overlay</span>
-                .<span class="ident">take</span>()
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">overlay</span>.<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="self">self</span>.<span class="ident">bounds</span>));
+            <span class="kw">let </span>overlay_layout = <span class="self">self
+                </span>.overlay
+                .take()
+                .unwrap_or_else(|| overlay.layout(renderer, <span class="self">self</span>.bounds));
 
-            <span class="kw">let</span> <span class="ident">new_cursor_position</span> <span class="op">=</span>
-                <span class="kw">if</span> <span class="ident">overlay_layout</span>.<span class="ident">bounds</span>().<span class="ident">contains</span>(<span class="ident">cursor_position</span>) {
-                    <span class="ident">Point::new</span>(<span class="op">-</span><span class="number">1.0</span>, <span class="op">-</span><span class="number">1.0</span>)
-                } <span class="kw">else</span> {
-                    <span class="ident">cursor_position</span>
+            <span class="kw">let </span>new_cursor_position =
+                <span class="kw">if </span>overlay_layout.bounds().contains(cursor_position) {
+                    Point::new(-<span class="number">1.0</span>, -<span class="number">1.0</span>)
+                } <span class="kw">else </span>{
+                    cursor_position
                 };
 
-            <span class="self">self</span>.<span class="ident">overlay</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">overlay_layout</span>);
+            <span class="self">self</span>.overlay = <span class="prelude-val">Some</span>(overlay_layout);
 
-            <span class="ident">new_cursor_position</span>
-        } <span class="kw">else</span> {
-            <span class="ident">cursor_position</span>
+            new_cursor_position
+        } <span class="kw">else </span>{
+            cursor_position
         };
 
-        <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">draw</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>,
-            <span class="ident">renderer</span>,
-            <span class="ident">theme</span>,
-            <span class="ident">style</span>,
-            <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
-            <span class="ident">base_cursor</span>,
-            <span class="kw-2">&amp;</span><span class="ident">viewport</span>,
+        <span class="self">self</span>.root.as_widget().draw(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.state,
+            renderer,
+            theme,
+            style,
+            Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
+            base_cursor,
+            <span class="kw-2">&amp;</span>viewport,
         );
 
-        <span class="kw">let</span> <span class="ident">base_interaction</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">mouse_interaction</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>,
-            <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
-            <span class="ident">cursor_position</span>,
-            <span class="kw-2">&amp;</span><span class="ident">viewport</span>,
-            <span class="ident">renderer</span>,
+        <span class="kw">let </span>base_interaction = <span class="self">self</span>.root.as_widget().mouse_interaction(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.state,
+            Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
+            cursor_position,
+            <span class="kw-2">&amp;</span>viewport,
+            renderer,
         );
 
-        <span class="kw">let</span> <span class="self">Self</span> {
-            <span class="ident">overlay</span>,
-            <span class="ident">root</span>,
-            <span class="ident">base</span>,
+        <span class="kw">let </span><span class="self">Self </span>{
+            overlay,
+            root,
+            base,
             ..
-        } <span class="op">=</span> <span class="self">self</span>;
+        } = <span class="self">self</span>;
 
-        <span class="comment">// TODO: Currently, we need to call Widget::overlay twice to</span>
-        <span class="comment">// implement the painter&#39;s algorithm properly.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Once we have a proper persistent widget tree, we should be able to</span>
-        <span class="comment">// avoid this additional call.</span>
-        <span class="ident">overlay</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">layout</span><span class="op">|</span> {
-                <span class="ident">root</span>.<span class="ident">as_widget</span>()
-                    .<span class="ident">overlay</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>, <span class="ident">Layout::new</span>(<span class="ident">base</span>), <span class="ident">renderer</span>)
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">overlay</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">overlay_interaction</span> <span class="op">=</span> <span class="ident">overlay</span>.<span class="ident">mouse_interaction</span>(
-                            <span class="ident">Layout::new</span>(<span class="ident">layout</span>),
-                            <span class="ident">cursor_position</span>,
-                            <span class="kw-2">&amp;</span><span class="ident">viewport</span>,
-                            <span class="ident">renderer</span>,
+        <span class="comment">// TODO: Currently, we need to call Widget::overlay twice to
+        // implement the painter&#39;s algorithm properly.
+        //
+        // Once we have a proper persistent widget tree, we should be able to
+        // avoid this additional call.
+        </span>overlay
+            .as_ref()
+            .and_then(|layout| {
+                root.as_widget()
+                    .overlay(<span class="kw-2">&amp;mut </span><span class="self">self</span>.state, Layout::new(base), renderer)
+                    .map(|overlay| {
+                        <span class="kw">let </span>overlay_interaction = overlay.mouse_interaction(
+                            Layout::new(layout),
+                            cursor_position,
+                            <span class="kw-2">&amp;</span>viewport,
+                            renderer,
                         );
 
-                        <span class="kw">let</span> <span class="ident">overlay_bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
+                        <span class="kw">let </span>overlay_bounds = layout.bounds();
 
-                        <span class="ident">renderer</span>.<span class="ident">with_layer</span>(<span class="ident">overlay_bounds</span>, <span class="op">|</span><span class="ident">renderer</span><span class="op">|</span> {
-                            <span class="ident">overlay</span>.<span class="ident">draw</span>(
-                                <span class="ident">renderer</span>,
-                                <span class="ident">theme</span>,
-                                <span class="ident">style</span>,
-                                <span class="ident">Layout::new</span>(<span class="ident">layout</span>),
-                                <span class="ident">cursor_position</span>,
+                        renderer.with_layer(overlay_bounds, |renderer| {
+                            overlay.draw(
+                                renderer,
+                                theme,
+                                style,
+                                Layout::new(layout),
+                                cursor_position,
                             );
                         });
 
-                        <span class="kw">if</span> <span class="ident">overlay_bounds</span>.<span class="ident">contains</span>(<span class="ident">cursor_position</span>) {
-                            <span class="ident">overlay_interaction</span>
-                        } <span class="kw">else</span> {
-                            <span class="ident">base_interaction</span>
+                        <span class="kw">if </span>overlay_bounds.contains(cursor_position) {
+                            overlay_interaction
+                        } <span class="kw">else </span>{
+                            base_interaction
                         }
                     })
             })
-            .<span class="ident">unwrap_or</span>(<span class="ident">base_interaction</span>)
+            .unwrap_or(base_interaction)
     }
 
-    <span class="doccomment">/// Applies a [`widget::Operation`] to the [`UserInterface`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">operate</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">operation</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">widget::Operation</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Applies a [`widget::Operation`] to the [`UserInterface`].
+    </span><span class="kw">pub fn </span>operate(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        operation: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::Operation&lt;Message&gt;,
     ) {
-        <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">operate</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
-            <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
-            <span class="ident">operation</span>,
+        <span class="self">self</span>.root.as_widget().operate(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
+            Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
+            operation,
         );
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">layout</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">overlay</span>.<span class="ident">as_ref</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">overlay</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
-                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>,
-                <span class="ident">Layout::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>),
-                <span class="ident">renderer</span>,
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(layout) = <span class="self">self</span>.overlay.as_ref() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(overlay) = <span class="self">self</span>.root.as_widget().overlay(
+                <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
+                Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
+                renderer,
             ) {
-                <span class="ident">overlay</span>.<span class="ident">operate</span>(<span class="ident">Layout::new</span>(<span class="ident">layout</span>), <span class="ident">operation</span>);
+                overlay.operate(Layout::new(layout), operation);
             }
         }
     }
 
-    <span class="doccomment">/// Relayouts and returns a new  [`UserInterface`] using the provided</span>
-    <span class="doccomment">/// bounds.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">relayout</span>(<span class="self">self</span>, <span class="ident">bounds</span>: <span class="ident">Size</span>, <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::build</span>(<span class="self">self</span>.<span class="ident">root</span>, <span class="ident">bounds</span>, <span class="ident">Cache</span> { <span class="ident">state</span>: <span class="self">self</span>.<span class="ident">state</span> }, <span class="ident">renderer</span>)
+    <span class="doccomment">/// Relayouts and returns a new  [`UserInterface`] using the provided
+    /// bounds.
+    </span><span class="kw">pub fn </span>relayout(<span class="self">self</span>, bounds: Size, renderer: <span class="kw-2">&amp;mut </span>Renderer) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::build(<span class="self">self</span>.root, bounds, Cache { state: <span class="self">self</span>.state }, renderer)
     }
 
-    <span class="doccomment">/// Extract the [`Cache`] of the [`UserInterface`], consuming it in the</span>
-    <span class="doccomment">/// process.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_cache</span>(<span class="self">self</span>) -&gt; <span class="ident">Cache</span> {
-        <span class="ident">Cache</span> { <span class="ident">state</span>: <span class="self">self</span>.<span class="ident">state</span> }
+    <span class="doccomment">/// Extract the [`Cache`] of the [`UserInterface`], consuming it in the
+    /// process.
+    </span><span class="kw">pub fn </span>into_cache(<span class="self">self</span>) -&gt; Cache {
+        Cache { state: <span class="self">self</span>.state }
     }
 }
 
-<span class="doccomment">/// Reusable data of a specific [`UserInterface`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cache</span> {
-    <span class="ident">state</span>: <span class="ident">widget::Tree</span>,
+<span class="doccomment">/// Reusable data of a specific [`UserInterface`].
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Cache {
+    state: widget::Tree,
 }
 
-<span class="kw">impl</span> <span class="ident">Cache</span> {
-    <span class="doccomment">/// Creates an empty [`Cache`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// You should use this to initialize a [`Cache`] before building your first</span>
-    <span class="doccomment">/// [`UserInterface`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Cache</span> {
-        <span class="ident">Cache</span> {
-            <span class="ident">state</span>: <span class="ident">widget::Tree::empty</span>(),
+<span class="kw">impl </span>Cache {
+    <span class="doccomment">/// Creates an empty [`Cache`].
+    ///
+    /// You should use this to initialize a [`Cache`] before building your first
+    /// [`UserInterface`].
+    </span><span class="kw">pub fn </span>new() -&gt; Cache {
+        Cache {
+            state: widget::Tree::empty(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Cache</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Cache</span> {
-        <span class="ident">Cache::new</span>()
+<span class="kw">impl </span>Default <span class="kw">for </span>Cache {
+    <span class="kw">fn </span>default() -&gt; Cache {
+        Cache::new()
     }
 }
 
-<span class="doccomment">/// The resulting state after updating a [`UserInterface`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">State</span> {
-    <span class="doccomment">/// The [`UserInterface`] is outdated and needs to be rebuilt.</span>
-    <span class="ident">Outdated</span>,
+<span class="doccomment">/// The resulting state after updating a [`UserInterface`].
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub enum </span>State {
+    <span class="doccomment">/// The [`UserInterface`] is outdated and needs to be rebuilt.
+    </span>Outdated,
 
-    <span class="doccomment">/// The [`UserInterface`] is up-to-date and can be reused without</span>
-    <span class="doccomment">/// rebuilding.</span>
-    <span class="ident">Updated</span>,
+    <span class="doccomment">/// The [`UserInterface`] is up-to-date and can be reused without
+    /// rebuilding.
+    </span>Updated,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

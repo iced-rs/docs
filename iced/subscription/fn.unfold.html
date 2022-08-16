@@ -10,49 +10,49 @@ communication with an <code>iced</code> application.</p>
 <p>You can achieve this by creating an <code>mpsc</code> channel inside the closure
 and returning the <code>Sender</code> as a <code>Message</code> for the <code>Application</code>:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">iced_native::subscription</span>::{<span class="self">self</span>, <span class="ident">Subscription</span>};
-<span class="kw">use</span> <span class="ident">iced_native::futures::channel::mpsc</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>iced_native::subscription::{<span class="self">self</span>, Subscription};
+<span class="kw">use </span>iced_native::futures::channel::mpsc;
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Event</span> {
-    <span class="ident">Ready</span>(<span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span>),
-    <span class="ident">WorkFinished</span>,
-    <span class="comment">// ...</span>
+<span class="kw">pub enum </span>Event {
+    Ready(mpsc::Sender&lt;Input&gt;),
+    WorkFinished,
+    <span class="comment">// ...
+</span>}
+
+<span class="kw">enum </span>Input {
+    DoSomeWork,
+    <span class="comment">// ...
+</span>}
+
+<span class="kw">enum </span>State {
+    Starting,
+    Ready(mpsc::Receiver&lt;Input&gt;),
 }
 
-<span class="kw">enum</span> <span class="ident">Input</span> {
-    <span class="ident">DoSomeWork</span>,
-    <span class="comment">// ...</span>
-}
+<span class="kw">fn </span>some_worker() -&gt; Subscription&lt;Event&gt; {
+    <span class="kw">struct </span>SomeWorker;
 
-<span class="kw">enum</span> <span class="ident">State</span> {
-    <span class="ident">Starting</span>,
-    <span class="ident">Ready</span>(<span class="ident">mpsc::Receiver</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span>),
-}
+    subscription::unfold(std::any::TypeId::of::&lt;SomeWorker&gt;(), State::Starting, |state| <span class="kw">async move </span>{
+        <span class="kw">match </span>state {
+            State::Starting =&gt; {
+                <span class="comment">// Create channel
+                </span><span class="kw">let </span>(sender, receiver) = mpsc::channel(<span class="number">100</span>);
 
-<span class="kw">fn</span> <span class="ident">some_worker</span>() -&gt; <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span> {
-    <span class="kw">struct</span> <span class="ident">SomeWorker</span>;
-
-    <span class="ident">subscription::unfold</span>(<span class="ident">std::any::TypeId::of</span>::<span class="op">&lt;</span><span class="ident">SomeWorker</span><span class="op">&gt;</span>(), <span class="ident">State::Starting</span>, <span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-        <span class="kw">match</span> <span class="ident">state</span> {
-            <span class="ident">State::Starting</span> =&gt; {
-                <span class="comment">// Create channel</span>
-                <span class="kw">let</span> (<span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">mpsc::channel</span>(<span class="number">100</span>);
-
-                (<span class="prelude-val">Some</span>(<span class="ident">Event::Ready</span>(<span class="ident">sender</span>)), <span class="ident">State::Ready</span>(<span class="ident">receiver</span>))
+                (<span class="prelude-val">Some</span>(Event::Ready(sender)), State::Ready(receiver))
             }
-            <span class="ident">State::Ready</span>(<span class="kw-2">mut</span> <span class="ident">receiver</span>) =&gt; {
-                <span class="kw">use</span> <span class="ident">iced_native::futures::StreamExt</span>;
+            State::Ready(<span class="kw-2">mut </span>receiver) =&gt; {
+                <span class="kw">use </span>iced_native::futures::StreamExt;
 
-                <span class="comment">// Read next input sent from `Application`</span>
-                <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">receiver</span>.<span class="ident">select_next_some</span>().<span class="kw">await</span>;
+                <span class="comment">// Read next input sent from `Application`
+                </span><span class="kw">let </span>input = receiver.select_next_some().<span class="kw">await</span>;
 
-                <span class="kw">match</span> <span class="ident">input</span> {
-                    <span class="ident">Input::DoSomeWork</span> =&gt; {
-                        <span class="comment">// Do some async work...</span>
+                <span class="kw">match </span>input {
+                    Input::DoSomeWork =&gt; {
+                        <span class="comment">// Do some async work...
 
-                        <span class="comment">// Finally, we can optionally return a message to tell the</span>
-                        <span class="comment">// `Application` the work is done</span>
-                        (<span class="prelude-val">Some</span>(<span class="ident">Event::WorkFinished</span>), <span class="ident">State::Ready</span>(<span class="ident">receiver</span>))
+                        // Finally, we can optionally return a message to tell the
+                        // `Application` the work is done
+                        </span>(<span class="prelude-val">Some</span>(Event::WorkFinished), State::Ready(receiver))
                     }
                 }
             }
@@ -61,4 +61,4 @@ and returning the <code>Sender</code> as a <code>Message</code> for the <code>Ap
 }</code></pre></div>
 <p>Check out the <a href="https://github.com/iced-rs/iced/tree/0.4/examples/websocket"><code>websocket</code></a> example, which showcases this pattern to maintain a WebSocket
 connection open.</p>
-</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

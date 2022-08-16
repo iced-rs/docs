@@ -301,306 +301,306 @@
 <span id="299">299</span>
 <span id="300">300</span>
 <span id="301">301</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Draw meshes of triangles.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::program</span>::{<span class="self">self</span>, <span class="ident">Shader</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Transformation</span>;
-<span class="kw">use</span> <span class="ident">glow::HasContext</span>;
-<span class="kw">use</span> <span class="ident">iced_graphics::layer</span>;
-<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Draw meshes of triangles.
+</span><span class="kw">use </span><span class="kw">crate</span>::program::{<span class="self">self</span>, Shader};
+<span class="kw">use </span><span class="kw">crate</span>::Transformation;
+<span class="kw">use </span>glow::HasContext;
+<span class="kw">use </span>iced_graphics::layer;
+<span class="kw">use </span>std::marker::PhantomData;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_graphics::triangle</span>::{<span class="ident">Mesh2D</span>, <span class="ident">Vertex2D</span>};
+<span class="kw">pub use </span>iced_graphics::triangle::{Mesh2D, Vertex2D};
 
-<span class="kw">const</span> <span class="ident">VERTEX_BUFFER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">10_000</span>;
-<span class="kw">const</span> <span class="ident">INDEX_BUFFER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">10_000</span>;
+<span class="kw">const </span>VERTEX_BUFFER_SIZE: usize = <span class="number">10_000</span>;
+<span class="kw">const </span>INDEX_BUFFER_SIZE: usize = <span class="number">10_000</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Pipeline</span> {
-    <span class="ident">program</span>: <span class="op">&lt;</span><span class="ident">glow::Context</span> <span class="kw">as</span> <span class="ident">HasContext</span><span class="op">&gt;</span><span class="ident">::Program</span>,
-    <span class="ident">vertex_array</span>: <span class="op">&lt;</span><span class="ident">glow::Context</span> <span class="kw">as</span> <span class="ident">HasContext</span><span class="op">&gt;</span><span class="ident">::VertexArray</span>,
-    <span class="ident">vertices</span>: <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">Vertex2D</span><span class="op">&gt;</span>,
-    <span class="ident">indices</span>: <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-    <span class="ident">transform_location</span>: <span class="op">&lt;</span><span class="ident">glow::Context</span> <span class="kw">as</span> <span class="ident">HasContext</span><span class="op">&gt;</span><span class="ident">::UniformLocation</span>,
-    <span class="ident">current_transform</span>: <span class="ident">Transformation</span>,
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Pipeline {
+    program: &lt;glow::Context <span class="kw">as </span>HasContext&gt;::Program,
+    vertex_array: &lt;glow::Context <span class="kw">as </span>HasContext&gt;::VertexArray,
+    vertices: Buffer&lt;Vertex2D&gt;,
+    indices: Buffer&lt;u32&gt;,
+    transform_location: &lt;glow::Context <span class="kw">as </span>HasContext&gt;::UniformLocation,
+    current_transform: Transformation,
 }
 
-<span class="kw">impl</span> <span class="ident">Pipeline</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>,
-        <span class="ident">shader_version</span>: <span class="kw-2">&amp;</span><span class="ident">program::Version</span>,
-    ) -&gt; <span class="ident">Pipeline</span> {
-        <span class="kw">let</span> <span class="ident">program</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">vertex_shader</span> <span class="op">=</span> <span class="ident">Shader::vertex</span>(
-                <span class="ident">gl</span>,
-                <span class="ident">shader_version</span>,
+<span class="kw">impl </span>Pipeline {
+    <span class="kw">pub fn </span>new(
+        gl: <span class="kw-2">&amp;</span>glow::Context,
+        shader_version: <span class="kw-2">&amp;</span>program::Version,
+    ) -&gt; Pipeline {
+        <span class="kw">let </span>program = <span class="kw">unsafe </span>{
+            <span class="kw">let </span>vertex_shader = Shader::vertex(
+                gl,
+                shader_version,
                 <span class="macro">include_str!</span>(<span class="string">&quot;shader/common/triangle.vert&quot;</span>),
             );
-            <span class="kw">let</span> <span class="ident">fragment_shader</span> <span class="op">=</span> <span class="ident">Shader::fragment</span>(
-                <span class="ident">gl</span>,
-                <span class="ident">shader_version</span>,
+            <span class="kw">let </span>fragment_shader = Shader::fragment(
+                gl,
+                shader_version,
                 <span class="macro">include_str!</span>(<span class="string">&quot;shader/common/triangle.frag&quot;</span>),
             );
 
-            <span class="ident">program::create</span>(
-                <span class="ident">gl</span>,
-                <span class="kw-2">&amp;</span>[<span class="ident">vertex_shader</span>, <span class="ident">fragment_shader</span>],
+            program::create(
+                gl,
+                <span class="kw-2">&amp;</span>[vertex_shader, fragment_shader],
                 <span class="kw-2">&amp;</span>[(<span class="number">0</span>, <span class="string">&quot;i_Position&quot;</span>), (<span class="number">1</span>, <span class="string">&quot;i_Color&quot;</span>)],
             )
         };
 
-        <span class="kw">let</span> <span class="ident">transform_location</span> <span class="op">=</span>
-            <span class="kw">unsafe</span> { <span class="ident">gl</span>.<span class="ident">get_uniform_location</span>(<span class="ident">program</span>, <span class="string">&quot;u_Transform&quot;</span>) }
-                .<span class="ident">expect</span>(<span class="string">&quot;Get transform location&quot;</span>);
+        <span class="kw">let </span>transform_location =
+            <span class="kw">unsafe </span>{ gl.get_uniform_location(program, <span class="string">&quot;u_Transform&quot;</span>) }
+                .expect(<span class="string">&quot;Get transform location&quot;</span>);
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">gl</span>.<span class="ident">use_program</span>(<span class="prelude-val">Some</span>(<span class="ident">program</span>));
+        <span class="kw">unsafe </span>{
+            gl.use_program(<span class="prelude-val">Some</span>(program));
 
-            <span class="kw">let</span> <span class="ident">transform</span>: [<span class="ident">f32</span>; <span class="number">16</span>] <span class="op">=</span> <span class="ident">Transformation::identity</span>().<span class="ident">into</span>();
-            <span class="ident">gl</span>.<span class="ident">uniform_matrix_4_f32_slice</span>(
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">transform_location</span>),
+            <span class="kw">let </span>transform: [f32; <span class="number">16</span>] = Transformation::identity().into();
+            gl.uniform_matrix_4_f32_slice(
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>transform_location),
                 <span class="bool-val">false</span>,
-                <span class="kw-2">&amp;</span><span class="ident">transform</span>,
+                <span class="kw-2">&amp;</span>transform,
             );
 
-            <span class="ident">gl</span>.<span class="ident">use_program</span>(<span class="prelude-val">None</span>);
+            gl.use_program(<span class="prelude-val">None</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">vertex_array</span> <span class="op">=</span>
-            <span class="kw">unsafe</span> { <span class="ident">gl</span>.<span class="ident">create_vertex_array</span>().<span class="ident">expect</span>(<span class="string">&quot;Create vertex array&quot;</span>) };
+        <span class="kw">let </span>vertex_array =
+            <span class="kw">unsafe </span>{ gl.create_vertex_array().expect(<span class="string">&quot;Create vertex array&quot;</span>) };
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">gl</span>.<span class="ident">bind_vertex_array</span>(<span class="prelude-val">Some</span>(<span class="ident">vertex_array</span>));
+        <span class="kw">unsafe </span>{
+            gl.bind_vertex_array(<span class="prelude-val">Some</span>(vertex_array));
         }
 
-        <span class="kw">let</span> <span class="ident">vertices</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">Buffer::new</span>(
-                <span class="ident">gl</span>,
-                <span class="ident">glow::ARRAY_BUFFER</span>,
-                <span class="ident">glow::DYNAMIC_DRAW</span>,
-                <span class="ident">VERTEX_BUFFER_SIZE</span>,
+        <span class="kw">let </span>vertices = <span class="kw">unsafe </span>{
+            Buffer::new(
+                gl,
+                glow::ARRAY_BUFFER,
+                glow::DYNAMIC_DRAW,
+                VERTEX_BUFFER_SIZE,
             )
         };
 
-        <span class="kw">let</span> <span class="ident">indices</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="ident">Buffer::new</span>(
-                <span class="ident">gl</span>,
-                <span class="ident">glow::ELEMENT_ARRAY_BUFFER</span>,
-                <span class="ident">glow::DYNAMIC_DRAW</span>,
-                <span class="ident">INDEX_BUFFER_SIZE</span>,
+        <span class="kw">let </span>indices = <span class="kw">unsafe </span>{
+            Buffer::new(
+                gl,
+                glow::ELEMENT_ARRAY_BUFFER,
+                glow::DYNAMIC_DRAW,
+                INDEX_BUFFER_SIZE,
             )
         };
 
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">stride</span> <span class="op">=</span> <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Vertex2D</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+        <span class="kw">unsafe </span>{
+            <span class="kw">let </span>stride = std::mem::size_of::&lt;Vertex2D&gt;() <span class="kw">as </span>i32;
 
-            <span class="ident">gl</span>.<span class="ident">enable_vertex_attrib_array</span>(<span class="number">0</span>);
-            <span class="ident">gl</span>.<span class="ident">vertex_attrib_pointer_f32</span>(<span class="number">0</span>, <span class="number">2</span>, <span class="ident">glow::FLOAT</span>, <span class="bool-val">false</span>, <span class="ident">stride</span>, <span class="number">0</span>);
+            gl.enable_vertex_attrib_array(<span class="number">0</span>);
+            gl.vertex_attrib_pointer_f32(<span class="number">0</span>, <span class="number">2</span>, glow::FLOAT, <span class="bool-val">false</span>, stride, <span class="number">0</span>);
 
-            <span class="ident">gl</span>.<span class="ident">enable_vertex_attrib_array</span>(<span class="number">1</span>);
-            <span class="ident">gl</span>.<span class="ident">vertex_attrib_pointer_f32</span>(
+            gl.enable_vertex_attrib_array(<span class="number">1</span>);
+            gl.vertex_attrib_pointer_f32(
                 <span class="number">1</span>,
                 <span class="number">4</span>,
-                <span class="ident">glow::FLOAT</span>,
+                glow::FLOAT,
                 <span class="bool-val">false</span>,
-                <span class="ident">stride</span>,
-                <span class="number">4</span> <span class="op">*</span> <span class="number">2</span>,
+                stride,
+                <span class="number">4 </span>* <span class="number">2</span>,
             );
 
-            <span class="ident">gl</span>.<span class="ident">bind_vertex_array</span>(<span class="prelude-val">None</span>);
+            gl.bind_vertex_array(<span class="prelude-val">None</span>);
         }
 
-        <span class="ident">Pipeline</span> {
-            <span class="ident">program</span>,
-            <span class="ident">vertex_array</span>,
-            <span class="ident">vertices</span>,
-            <span class="ident">indices</span>,
-            <span class="ident">transform_location</span>,
-            <span class="ident">current_transform</span>: <span class="ident">Transformation::identity</span>(),
+        Pipeline {
+            program,
+            vertex_array,
+            vertices,
+            indices,
+            transform_location,
+            current_transform: Transformation::identity(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>,
-        <span class="ident">target_height</span>: <span class="ident">u32</span>,
-        <span class="ident">transformation</span>: <span class="ident">Transformation</span>,
-        <span class="ident">scale_factor</span>: <span class="ident">f32</span>,
-        <span class="ident">meshes</span>: <span class="kw-2">&amp;</span>[<span class="ident">layer::Mesh</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>],
+    <span class="kw">pub fn </span>draw(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        gl: <span class="kw-2">&amp;</span>glow::Context,
+        target_height: u32,
+        transformation: Transformation,
+        scale_factor: f32,
+        meshes: <span class="kw-2">&amp;</span>[layer::Mesh&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) {
-        <span class="kw">unsafe</span> {
-            <span class="ident">gl</span>.<span class="ident">enable</span>(<span class="ident">glow::MULTISAMPLE</span>);
-            <span class="ident">gl</span>.<span class="ident">enable</span>(<span class="ident">glow::SCISSOR_TEST</span>);
-            <span class="ident">gl</span>.<span class="ident">use_program</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">program</span>));
-            <span class="ident">gl</span>.<span class="ident">bind_vertex_array</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">vertex_array</span>));
+        <span class="kw">unsafe </span>{
+            gl.enable(glow::MULTISAMPLE);
+            gl.enable(glow::SCISSOR_TEST);
+            gl.use_program(<span class="prelude-val">Some</span>(<span class="self">self</span>.program));
+            gl.bind_vertex_array(<span class="prelude-val">Some</span>(<span class="self">self</span>.vertex_array));
         }
 
-        <span class="comment">// This looks a bit crazy, but we are just counting how many vertices</span>
-        <span class="comment">// and indices we will need to handle.</span>
-        <span class="comment">// TODO: Improve readability</span>
-        <span class="kw">let</span> (<span class="ident">total_vertices</span>, <span class="ident">total_indices</span>) <span class="op">=</span> <span class="ident">meshes</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">layer::Mesh</span> { <span class="ident">buffers</span>, .. }<span class="op">|</span> {
-                (<span class="ident">buffers</span>.<span class="ident">vertices</span>.<span class="ident">len</span>(), <span class="ident">buffers</span>.<span class="ident">indices</span>.<span class="ident">len</span>())
+        <span class="comment">// This looks a bit crazy, but we are just counting how many vertices
+        // and indices we will need to handle.
+        // TODO: Improve readability
+        </span><span class="kw">let </span>(total_vertices, total_indices) = meshes
+            .iter()
+            .map(|layer::Mesh { buffers, .. }| {
+                (buffers.vertices.len(), buffers.indices.len())
             })
-            .<span class="ident">fold</span>((<span class="number">0</span>, <span class="number">0</span>), <span class="op">|</span>(<span class="ident">total_v</span>, <span class="ident">total_i</span>), (<span class="ident">v</span>, <span class="ident">i</span>)<span class="op">|</span> {
-                (<span class="ident">total_v</span> <span class="op">+</span> <span class="ident">v</span>, <span class="ident">total_i</span> <span class="op">+</span> <span class="ident">i</span>)
+            .fold((<span class="number">0</span>, <span class="number">0</span>), |(total_v, total_i), (v, i)| {
+                (total_v + v, total_i + i)
             });
 
-        <span class="comment">// Then we ensure the current buffers are big enough, resizing if</span>
-        <span class="comment">// necessary</span>
-        <span class="kw">unsafe</span> {
-            <span class="self">self</span>.<span class="ident">vertices</span>.<span class="ident">bind</span>(<span class="ident">gl</span>, <span class="ident">total_vertices</span>);
-            <span class="self">self</span>.<span class="ident">indices</span>.<span class="ident">bind</span>(<span class="ident">gl</span>, <span class="ident">total_indices</span>);
+        <span class="comment">// Then we ensure the current buffers are big enough, resizing if
+        // necessary
+        </span><span class="kw">unsafe </span>{
+            <span class="self">self</span>.vertices.bind(gl, total_vertices);
+            <span class="self">self</span>.indices.bind(gl, total_indices);
         }
 
-        <span class="comment">// We upload all the vertices and indices upfront</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_vertex</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_index</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="comment">// We upload all the vertices and indices upfront
+        </span><span class="kw">let </span><span class="kw-2">mut </span>last_vertex = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_index = <span class="number">0</span>;
 
-        <span class="kw">for</span> <span class="ident">layer::Mesh</span> { <span class="ident">buffers</span>, .. } <span class="kw">in</span> <span class="ident">meshes</span> {
-            <span class="kw">unsafe</span> {
-                <span class="ident">gl</span>.<span class="ident">buffer_sub_data_u8_slice</span>(
-                    <span class="ident">glow::ARRAY_BUFFER</span>,
-                    (<span class="ident">last_vertex</span> <span class="op">*</span> <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Vertex2D</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="ident">i32</span>,
-                    <span class="ident">bytemuck::cast_slice</span>(<span class="kw-2">&amp;</span><span class="ident">buffers</span>.<span class="ident">vertices</span>),
+        <span class="kw">for </span>layer::Mesh { buffers, .. } <span class="kw">in </span>meshes {
+            <span class="kw">unsafe </span>{
+                gl.buffer_sub_data_u8_slice(
+                    glow::ARRAY_BUFFER,
+                    (last_vertex * std::mem::size_of::&lt;Vertex2D&gt;()) <span class="kw">as </span>i32,
+                    bytemuck::cast_slice(<span class="kw-2">&amp;</span>buffers.vertices),
                 );
 
-                <span class="ident">gl</span>.<span class="ident">buffer_sub_data_u8_slice</span>(
-                    <span class="ident">glow::ELEMENT_ARRAY_BUFFER</span>,
-                    (<span class="ident">last_index</span> <span class="op">*</span> <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="ident">i32</span>,
-                    <span class="ident">bytemuck::cast_slice</span>(<span class="kw-2">&amp;</span><span class="ident">buffers</span>.<span class="ident">indices</span>),
+                gl.buffer_sub_data_u8_slice(
+                    glow::ELEMENT_ARRAY_BUFFER,
+                    (last_index * std::mem::size_of::&lt;u32&gt;()) <span class="kw">as </span>i32,
+                    bytemuck::cast_slice(<span class="kw-2">&amp;</span>buffers.indices),
                 );
 
-                <span class="ident">last_vertex</span> <span class="op">+</span><span class="op">=</span> <span class="ident">buffers</span>.<span class="ident">vertices</span>.<span class="ident">len</span>();
-                <span class="ident">last_index</span> <span class="op">+</span><span class="op">=</span> <span class="ident">buffers</span>.<span class="ident">indices</span>.<span class="ident">len</span>();
+                last_vertex += buffers.vertices.len();
+                last_index += buffers.indices.len();
             }
         }
 
-        <span class="comment">// Then we draw each mesh using offsets</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_vertex</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_index</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="comment">// Then we draw each mesh using offsets
+        </span><span class="kw">let </span><span class="kw-2">mut </span>last_vertex = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_index = <span class="number">0</span>;
 
-        <span class="kw">for</span> <span class="ident">layer::Mesh</span> {
-            <span class="ident">buffers</span>,
-            <span class="ident">origin</span>,
-            <span class="ident">clip_bounds</span>,
-        } <span class="kw">in</span> <span class="ident">meshes</span>
+        <span class="kw">for </span>layer::Mesh {
+            buffers,
+            origin,
+            clip_bounds,
+        } <span class="kw">in </span>meshes
         {
-            <span class="kw">let</span> <span class="ident">transform</span> <span class="op">=</span>
-                <span class="ident">transformation</span> <span class="op">*</span> <span class="ident">Transformation::translate</span>(<span class="ident">origin</span>.<span class="ident">x</span>, <span class="ident">origin</span>.<span class="ident">y</span>);
+            <span class="kw">let </span>transform =
+                transformation * Transformation::translate(origin.x, origin.y);
 
-            <span class="kw">let</span> <span class="ident">clip_bounds</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">clip_bounds</span> <span class="op">*</span> <span class="ident">scale_factor</span>).<span class="ident">snap</span>();
+            <span class="kw">let </span>clip_bounds = (<span class="kw-2">*</span>clip_bounds * scale_factor).snap();
 
-            <span class="kw">unsafe</span> {
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">current_transform</span> <span class="op">!</span><span class="op">=</span> <span class="ident">transform</span> {
-                    <span class="kw">let</span> <span class="ident">matrix</span>: [<span class="ident">f32</span>; <span class="number">16</span>] <span class="op">=</span> <span class="ident">transform</span>.<span class="ident">into</span>();
-                    <span class="ident">gl</span>.<span class="ident">uniform_matrix_4_f32_slice</span>(
-                        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">transform_location</span>),
+            <span class="kw">unsafe </span>{
+                <span class="kw">if </span><span class="self">self</span>.current_transform != transform {
+                    <span class="kw">let </span>matrix: [f32; <span class="number">16</span>] = transform.into();
+                    gl.uniform_matrix_4_f32_slice(
+                        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.transform_location),
                         <span class="bool-val">false</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">matrix</span>,
+                        <span class="kw-2">&amp;</span>matrix,
                     );
 
-                    <span class="self">self</span>.<span class="ident">current_transform</span> <span class="op">=</span> <span class="ident">transform</span>;
+                    <span class="self">self</span>.current_transform = transform;
                 }
 
-                <span class="ident">gl</span>.<span class="ident">scissor</span>(
-                    <span class="ident">clip_bounds</span>.<span class="ident">x</span> <span class="kw">as</span> <span class="ident">i32</span>,
-                    (<span class="ident">target_height</span> <span class="op">-</span> (<span class="ident">clip_bounds</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">clip_bounds</span>.<span class="ident">height</span>))
-                        <span class="kw">as</span> <span class="ident">i32</span>,
-                    <span class="ident">clip_bounds</span>.<span class="ident">width</span> <span class="kw">as</span> <span class="ident">i32</span>,
-                    <span class="ident">clip_bounds</span>.<span class="ident">height</span> <span class="kw">as</span> <span class="ident">i32</span>,
+                gl.scissor(
+                    clip_bounds.x <span class="kw">as </span>i32,
+                    (target_height - (clip_bounds.y + clip_bounds.height))
+                        <span class="kw">as </span>i32,
+                    clip_bounds.width <span class="kw">as </span>i32,
+                    clip_bounds.height <span class="kw">as </span>i32,
                 );
 
-                <span class="ident">gl</span>.<span class="ident">draw_elements_base_vertex</span>(
-                    <span class="ident">glow::TRIANGLES</span>,
-                    <span class="ident">buffers</span>.<span class="ident">indices</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span>,
-                    <span class="ident">glow::UNSIGNED_INT</span>,
-                    (<span class="ident">last_index</span> <span class="op">*</span> <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="ident">i32</span>,
-                    <span class="ident">last_vertex</span> <span class="kw">as</span> <span class="ident">i32</span>,
+                gl.draw_elements_base_vertex(
+                    glow::TRIANGLES,
+                    buffers.indices.len() <span class="kw">as </span>i32,
+                    glow::UNSIGNED_INT,
+                    (last_index * std::mem::size_of::&lt;u32&gt;()) <span class="kw">as </span>i32,
+                    last_vertex <span class="kw">as </span>i32,
                 );
 
-                <span class="ident">last_vertex</span> <span class="op">+</span><span class="op">=</span> <span class="ident">buffers</span>.<span class="ident">vertices</span>.<span class="ident">len</span>();
-                <span class="ident">last_index</span> <span class="op">+</span><span class="op">=</span> <span class="ident">buffers</span>.<span class="ident">indices</span>.<span class="ident">len</span>();
+                last_vertex += buffers.vertices.len();
+                last_index += buffers.indices.len();
             }
         }
 
-        <span class="kw">unsafe</span> {
-            <span class="ident">gl</span>.<span class="ident">bind_vertex_array</span>(<span class="prelude-val">None</span>);
-            <span class="ident">gl</span>.<span class="ident">use_program</span>(<span class="prelude-val">None</span>);
-            <span class="ident">gl</span>.<span class="ident">disable</span>(<span class="ident">glow::SCISSOR_TEST</span>);
-            <span class="ident">gl</span>.<span class="ident">disable</span>(<span class="ident">glow::MULTISAMPLE</span>);
+        <span class="kw">unsafe </span>{
+            gl.bind_vertex_array(<span class="prelude-val">None</span>);
+            gl.use_program(<span class="prelude-val">None</span>);
+            gl.disable(glow::SCISSOR_TEST);
+            gl.disable(glow::MULTISAMPLE);
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Uniforms</span> {
-    <span class="ident">transform</span>: [<span class="ident">f32</span>; <span class="number">16</span>],
+<span class="attribute">#[repr(C)]</span>
+<span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">struct </span>Uniforms {
+    transform: [f32; <span class="number">16</span>],
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">bytemuck::Zeroable</span> <span class="kw">for</span> <span class="ident">Uniforms</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">bytemuck::Pod</span> <span class="kw">for</span> <span class="ident">Uniforms</span> {}
+<span class="kw">unsafe impl </span>bytemuck::Zeroable <span class="kw">for </span>Uniforms {}
+<span class="kw">unsafe impl </span>bytemuck::Pod <span class="kw">for </span>Uniforms {}
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Uniforms</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">transform</span>: <span class="kw-2">*</span><span class="ident">Transformation::identity</span>().<span class="ident">as_ref</span>(),
+<span class="kw">impl </span>Default <span class="kw">for </span>Uniforms {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            transform: <span class="kw-2">*</span>Transformation::identity().as_ref(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Transformation</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Uniforms</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">transformation</span>: <span class="ident">Transformation</span>) -&gt; <span class="ident">Uniforms</span> {
-        <span class="self">Self</span> {
-            <span class="ident">transform</span>: <span class="ident">transformation</span>.<span class="ident">into</span>(),
+<span class="kw">impl </span>From&lt;Transformation&gt; <span class="kw">for </span>Uniforms {
+    <span class="kw">fn </span>from(transformation: Transformation) -&gt; Uniforms {
+        <span class="self">Self </span>{
+            transform: transformation.into(),
         }
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">raw</span>: <span class="op">&lt;</span><span class="ident">glow::Context</span> <span class="kw">as</span> <span class="ident">HasContext</span><span class="op">&gt;</span><span class="ident">::Buffer</span>,
-    <span class="ident">target</span>: <span class="ident">u32</span>,
-    <span class="ident">usage</span>: <span class="ident">u32</span>,
-    <span class="ident">size</span>: <span class="ident">usize</span>,
-    <span class="ident">phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">struct </span>Buffer&lt;T&gt; {
+    raw: &lt;glow::Context <span class="kw">as </span>HasContext&gt;::Buffer,
+    target: u32,
+    usage: u32,
+    size: usize,
+    phantom: PhantomData&lt;T&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>,
-        <span class="ident">target</span>: <span class="ident">u32</span>,
-        <span class="ident">usage</span>: <span class="ident">u32</span>,
-        <span class="ident">size</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">gl</span>.<span class="ident">create_buffer</span>().<span class="ident">expect</span>(<span class="string">&quot;Create buffer&quot;</span>);
+<span class="kw">impl</span>&lt;T&gt; Buffer&lt;T&gt; {
+    <span class="kw">pub unsafe fn </span>new(
+        gl: <span class="kw-2">&amp;</span>glow::Context,
+        target: u32,
+        usage: u32,
+        size: usize,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>raw = gl.create_buffer().expect(<span class="string">&quot;Create buffer&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">Buffer</span> {
-            <span class="ident">raw</span>,
-            <span class="ident">target</span>,
-            <span class="ident">usage</span>,
-            <span class="ident">size</span>: <span class="number">0</span>,
-            <span class="ident">phantom</span>: <span class="ident">PhantomData</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = Buffer {
+            raw,
+            target,
+            usage,
+            size: <span class="number">0</span>,
+            phantom: PhantomData,
         };
 
-        <span class="ident">buffer</span>.<span class="ident">bind</span>(<span class="ident">gl</span>, <span class="ident">size</span>);
+        buffer.bind(gl, size);
 
-        <span class="ident">buffer</span>
+        buffer
     }
 
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">bind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>, <span class="ident">size</span>: <span class="ident">usize</span>) {
-        <span class="ident">gl</span>.<span class="ident">bind_buffer</span>(<span class="self">self</span>.<span class="ident">target</span>, <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">raw</span>));
+    <span class="kw">pub unsafe fn </span>bind(<span class="kw-2">&amp;mut </span><span class="self">self</span>, gl: <span class="kw-2">&amp;</span>glow::Context, size: usize) {
+        gl.bind_buffer(<span class="self">self</span>.target, <span class="prelude-val">Some</span>(<span class="self">self</span>.raw));
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">size</span> <span class="op">&lt;</span> <span class="ident">size</span> {
-            <span class="ident">gl</span>.<span class="ident">buffer_data_size</span>(
-                <span class="self">self</span>.<span class="ident">target</span>,
-                (<span class="ident">size</span> <span class="op">*</span> <span class="ident">std::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()) <span class="kw">as</span> <span class="ident">i32</span>,
-                <span class="self">self</span>.<span class="ident">usage</span>,
+        <span class="kw">if </span><span class="self">self</span>.size &lt; size {
+            gl.buffer_data_size(
+                <span class="self">self</span>.target,
+                (size * std::mem::size_of::&lt;T&gt;()) <span class="kw">as </span>i32,
+                <span class="self">self</span>.usage,
             );
 
-            <span class="self">self</span>.<span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>;
+            <span class="self">self</span>.size = size;
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

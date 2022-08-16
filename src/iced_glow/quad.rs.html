@@ -68,73 +68,73 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
-</pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">compatibility</span>;
-<span class="kw">mod</span> <span class="ident">core</span>;
+</pre><pre class="rust"><code><span class="kw">mod </span>compatibility;
+<span class="kw">mod </span>core;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::program</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Transformation</span>;
-<span class="kw">use</span> <span class="ident">glow::HasContext</span>;
-<span class="kw">use</span> <span class="ident">iced_graphics::layer</span>;
-<span class="kw">use</span> <span class="ident">iced_native::Rectangle</span>;
+<span class="kw">use </span><span class="kw">crate</span>::program;
+<span class="kw">use </span><span class="kw">crate</span>::Transformation;
+<span class="kw">use </span>glow::HasContext;
+<span class="kw">use </span>iced_graphics::layer;
+<span class="kw">use </span>iced_native::Rectangle;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Pipeline</span> {
-    <span class="ident">Core</span>(<span class="ident">core::Pipeline</span>),
-    <span class="ident">Compatibility</span>(<span class="ident">compatibility::Pipeline</span>),
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub enum </span>Pipeline {
+    Core(core::Pipeline),
+    Compatibility(compatibility::Pipeline),
 }
 
-<span class="kw">impl</span> <span class="ident">Pipeline</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>,
-        <span class="ident">shader_version</span>: <span class="kw-2">&amp;</span><span class="ident">program::Version</span>,
-    ) -&gt; <span class="ident">Pipeline</span> {
-        <span class="kw">let</span> <span class="ident">gl_version</span> <span class="op">=</span> <span class="ident">gl</span>.<span class="ident">version</span>();
+<span class="kw">impl </span>Pipeline {
+    <span class="kw">pub fn </span>new(
+        gl: <span class="kw-2">&amp;</span>glow::Context,
+        shader_version: <span class="kw-2">&amp;</span>program::Version,
+    ) -&gt; Pipeline {
+        <span class="kw">let </span>gl_version = gl.version();
 
-        <span class="comment">// OpenGL 3.0+ and OpenGL ES 3.0+ have instancing (which is what separates `core` from `compatibility`)</span>
-        <span class="kw">if</span> <span class="ident">gl_version</span>.<span class="ident">major</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">3</span> {
+        <span class="comment">// OpenGL 3.0+ and OpenGL ES 3.0+ have instancing (which is what separates `core` from `compatibility`)
+        </span><span class="kw">if </span>gl_version.major &gt;= <span class="number">3 </span>{
             <span class="macro">log::info!</span>(<span class="string">&quot;Mode: core&quot;</span>);
-            <span class="ident">Pipeline::Core</span>(<span class="ident">core::Pipeline::new</span>(<span class="ident">gl</span>, <span class="ident">shader_version</span>))
-        } <span class="kw">else</span> {
+            Pipeline::Core(core::Pipeline::new(gl, shader_version))
+        } <span class="kw">else </span>{
             <span class="macro">log::info!</span>(<span class="string">&quot;Mode: compatibility&quot;</span>);
-            <span class="ident">Pipeline::Compatibility</span>(<span class="ident">compatibility::Pipeline::new</span>(
-                <span class="ident">gl</span>,
-                <span class="ident">shader_version</span>,
+            Pipeline::Compatibility(compatibility::Pipeline::new(
+                gl,
+                shader_version,
             ))
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">gl</span>: <span class="kw-2">&amp;</span><span class="ident">glow::Context</span>,
-        <span class="ident">target_height</span>: <span class="ident">u32</span>,
-        <span class="ident">instances</span>: <span class="kw-2">&amp;</span>[<span class="ident">layer::Quad</span>],
-        <span class="ident">transformation</span>: <span class="ident">Transformation</span>,
-        <span class="ident">scale</span>: <span class="ident">f32</span>,
-        <span class="ident">bounds</span>: <span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="kw">pub fn </span>draw(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        gl: <span class="kw-2">&amp;</span>glow::Context,
+        target_height: u32,
+        instances: <span class="kw-2">&amp;</span>[layer::Quad],
+        transformation: Transformation,
+        scale: f32,
+        bounds: Rectangle&lt;u32&gt;,
     ) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Pipeline::Core</span>(<span class="ident">pipeline</span>) =&gt; {
-                <span class="ident">pipeline</span>.<span class="ident">draw</span>(
-                    <span class="ident">gl</span>,
-                    <span class="ident">target_height</span>,
-                    <span class="ident">instances</span>,
-                    <span class="ident">transformation</span>,
-                    <span class="ident">scale</span>,
-                    <span class="ident">bounds</span>,
+        <span class="kw">match </span><span class="self">self </span>{
+            Pipeline::Core(pipeline) =&gt; {
+                pipeline.draw(
+                    gl,
+                    target_height,
+                    instances,
+                    transformation,
+                    scale,
+                    bounds,
                 );
             }
-            <span class="ident">Pipeline::Compatibility</span>(<span class="ident">pipeline</span>) =&gt; {
-                <span class="ident">pipeline</span>.<span class="ident">draw</span>(
-                    <span class="ident">gl</span>,
-                    <span class="ident">target_height</span>,
-                    <span class="ident">instances</span>,
-                    <span class="ident">transformation</span>,
-                    <span class="ident">scale</span>,
-                    <span class="ident">bounds</span>,
+            Pipeline::Compatibility(pipeline) =&gt; {
+                pipeline.draw(
+                    gl,
+                    target_height,
+                    instances,
+                    transformation,
+                    scale,
+                    bounds,
                 );
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glow" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

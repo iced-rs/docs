@@ -109,114 +109,114 @@
 <span id="107">107</span>
 <span id="108">108</span>
 <span id="109">109</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Build different kinds of 2D shapes.</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">arc</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Build different kinds of 2D shapes.
+</span><span class="kw">pub mod </span>arc;
 
-<span class="kw">mod</span> <span class="ident">builder</span>;
+<span class="kw">mod </span>builder;
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">no_inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">arc::Arc</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">builder::Builder</span>;
+<span class="attribute">#[doc(no_inline)]</span>
+<span class="kw">pub use </span>arc::Arc;
+<span class="kw">pub use </span>builder::Builder;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::canvas::LineDash</span>;
+<span class="kw">use </span><span class="kw">crate</span>::widget::canvas::LineDash;
 
-<span class="kw">use</span> <span class="ident">iced_native</span>::{<span class="ident">Point</span>, <span class="ident">Size</span>};
-<span class="kw">use</span> <span class="ident">lyon::algorithms::walk</span>::{<span class="ident">walk_along_path</span>, <span class="ident">RepeatedPattern</span>, <span class="ident">WalkerEvent</span>};
-<span class="kw">use</span> <span class="ident">lyon::path::iterator::PathIterator</span>;
+<span class="kw">use </span>iced_native::{Point, Size};
+<span class="kw">use </span>lyon::algorithms::walk::{walk_along_path, RepeatedPattern, WalkerEvent};
+<span class="kw">use </span>lyon::path::iterator::PathIterator;
 
-<span class="doccomment">/// An immutable set of points that may or may not be connected.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A single [`Path`] can represent different kinds of 2D shapes!</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Path</span> {
-    <span class="ident">raw</span>: <span class="ident">lyon::path::Path</span>,
+<span class="doccomment">/// An immutable set of points that may or may not be connected.
+///
+/// A single [`Path`] can represent different kinds of 2D shapes!
+</span><span class="attribute">#[derive(Debug, Clone)]</span>
+<span class="kw">pub struct </span>Path {
+    raw: lyon::path::Path,
 }
 
-<span class="kw">impl</span> <span class="ident">Path</span> {
-    <span class="doccomment">/// Creates a new [`Path`] with the provided closure.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Use the [`Builder`] to configure your [`Path`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Builder</span>)) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">Builder::new</span>();
+<span class="kw">impl </span>Path {
+    <span class="doccomment">/// Creates a new [`Path`] with the provided closure.
+    ///
+    /// Use the [`Builder`] to configure your [`Path`].
+    </span><span class="kw">pub fn </span>new(f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Builder)) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>builder = Builder::new();
 
-        <span class="comment">// TODO: Make it pure instead of side-effect-based (?)</span>
-        <span class="ident">f</span>(<span class="kw-2">&amp;mut</span> <span class="ident">builder</span>);
+        <span class="comment">// TODO: Make it pure instead of side-effect-based (?)
+        </span>f(<span class="kw-2">&amp;mut </span>builder);
 
-        <span class="ident">builder</span>.<span class="ident">build</span>()
+        builder.build()
     }
 
-    <span class="doccomment">/// Creates a new [`Path`] representing a line segment given its starting</span>
-    <span class="doccomment">/// and end points.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">line</span>(<span class="ident">from</span>: <span class="ident">Point</span>, <span class="ident">to</span>: <span class="ident">Point</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-            <span class="ident">p</span>.<span class="ident">move_to</span>(<span class="ident">from</span>);
-            <span class="ident">p</span>.<span class="ident">line_to</span>(<span class="ident">to</span>);
+    <span class="doccomment">/// Creates a new [`Path`] representing a line segment given its starting
+    /// and end points.
+    </span><span class="kw">pub fn </span>line(from: Point, to: Point) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(|p| {
+            p.move_to(from);
+            p.line_to(to);
         })
     }
 
-    <span class="doccomment">/// Creates a new [`Path`] representing a rectangle given its top-left</span>
-    <span class="doccomment">/// corner coordinate and its `Size`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rectangle</span>(<span class="ident">top_left</span>: <span class="ident">Point</span>, <span class="ident">size</span>: <span class="ident">Size</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">rectangle</span>(<span class="ident">top_left</span>, <span class="ident">size</span>))
+    <span class="doccomment">/// Creates a new [`Path`] representing a rectangle given its top-left
+    /// corner coordinate and its `Size`.
+    </span><span class="kw">pub fn </span>rectangle(top_left: Point, size: Size) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(|p| p.rectangle(top_left, size))
     }
 
-    <span class="doccomment">/// Creates a new [`Path`] representing a circle given its center</span>
-    <span class="doccomment">/// coordinate and its radius.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">circle</span>(<span class="ident">center</span>: <span class="ident">Point</span>, <span class="ident">radius</span>: <span class="ident">f32</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">circle</span>(<span class="ident">center</span>, <span class="ident">radius</span>))
+    <span class="doccomment">/// Creates a new [`Path`] representing a circle given its center
+    /// coordinate and its radius.
+    </span><span class="kw">pub fn </span>circle(center: Point, radius: f32) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new(|p| p.circle(center, radius))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">lyon::path::Path</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">raw</span>
+    <span class="attribute">#[inline]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>raw(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>lyon::path::Path {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.raw
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">transformed</span>(
+    <span class="attribute">#[inline]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>transformed(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">transform</span>: <span class="kw-2">&amp;</span><span class="ident">lyon::math::Transform</span>,
-    ) -&gt; <span class="ident">Path</span> {
-        <span class="ident">Path</span> {
-            <span class="ident">raw</span>: <span class="self">self</span>.<span class="ident">raw</span>.<span class="ident">clone</span>().<span class="ident">transformed</span>(<span class="ident">transform</span>),
+        transform: <span class="kw-2">&amp;</span>lyon::math::Transform,
+    ) -&gt; Path {
+        Path {
+            raw: <span class="self">self</span>.raw.clone().transformed(transform),
         }
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">dashed</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">line_dash</span>: <span class="ident">LineDash</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Path</span> {
-    <span class="ident">Path::new</span>(<span class="op">|</span><span class="ident">builder</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="ident">segments_odd</span> <span class="op">=</span> (<span class="ident">line_dash</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">1</span>)
-            .<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> [<span class="ident">line_dash</span>.<span class="ident">segments</span>, <span class="ident">line_dash</span>.<span class="ident">segments</span>].<span class="ident">concat</span>());
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>dashed(path: <span class="kw-2">&amp;</span>Path, line_dash: LineDash&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; Path {
+    Path::new(|builder| {
+        <span class="kw">let </span>segments_odd = (line_dash.segments.len() % <span class="number">2 </span>== <span class="number">1</span>)
+            .then(|| [line_dash.segments, line_dash.segments].concat());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">draw_line</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>draw_line = <span class="bool-val">false</span>;
 
-        <span class="ident">walk_along_path</span>(
-            <span class="ident">path</span>.<span class="ident">raw</span>().<span class="ident">iter</span>().<span class="ident">flattened</span>(<span class="number">0.01</span>),
+        walk_along_path(
+            path.raw().iter().flattened(<span class="number">0.01</span>),
             <span class="number">0.0</span>,
-            <span class="ident">lyon::tessellation::StrokeOptions::DEFAULT_TOLERANCE</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">RepeatedPattern</span> {
-                <span class="ident">callback</span>: <span class="op">|</span><span class="ident">event</span>: <span class="ident">WalkerEvent</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="ident">point</span> <span class="op">=</span> <span class="ident">Point</span> {
-                        <span class="ident">x</span>: <span class="ident">event</span>.<span class="ident">position</span>.<span class="ident">x</span>,
-                        <span class="ident">y</span>: <span class="ident">event</span>.<span class="ident">position</span>.<span class="ident">y</span>,
+            lyon::tessellation::StrokeOptions::DEFAULT_TOLERANCE,
+            <span class="kw-2">&amp;mut </span>RepeatedPattern {
+                callback: |event: WalkerEvent&lt;<span class="lifetime">&#39;_</span>&gt;| {
+                    <span class="kw">let </span>point = Point {
+                        x: event.position.x,
+                        y: event.position.y,
                     };
 
-                    <span class="kw">if</span> <span class="ident">draw_line</span> {
-                        <span class="ident">builder</span>.<span class="ident">line_to</span>(<span class="ident">point</span>);
-                    } <span class="kw">else</span> {
-                        <span class="ident">builder</span>.<span class="ident">move_to</span>(<span class="ident">point</span>);
+                    <span class="kw">if </span>draw_line {
+                        builder.line_to(point);
+                    } <span class="kw">else </span>{
+                        builder.move_to(point);
                     }
 
-                    <span class="ident">draw_line</span> <span class="op">=</span> <span class="op">!</span><span class="ident">draw_line</span>;
+                    draw_line = !draw_line;
 
-                    <span class="bool-val">true</span>
-                },
-                <span class="ident">index</span>: <span class="ident">line_dash</span>.<span class="ident">offset</span>,
-                <span class="ident">intervals</span>: <span class="ident">segments_odd</span>
-                    .<span class="ident">as_deref</span>()
-                    .<span class="ident">unwrap_or</span>(<span class="ident">line_dash</span>.<span class="ident">segments</span>),
+                    <span class="bool-val">true
+                </span>},
+                index: line_dash.offset,
+                intervals: segments_odd
+                    .as_deref()
+                    .unwrap_or(line_dash.segments),
             },
         );
     })
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

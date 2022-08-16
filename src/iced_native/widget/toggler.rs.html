@@ -328,333 +328,333 @@
 <span id="326">326</span>
 <span id="327">327</span>
 <span id="328">328</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Show toggle controls using togglers.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alignment</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::text</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget</span>::{<span class="self">self</span>, <span class="ident">Row</span>, <span class="ident">Text</span>, <span class="ident">Tree</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">Alignment</span>, <span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Event</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>,
-    <span class="ident">Shell</span>, <span class="ident">Widget</span>,
+</pre><pre class="rust"><code><span class="doccomment">//! Show toggle controls using togglers.
+</span><span class="kw">use </span><span class="kw">crate</span>::alignment;
+<span class="kw">use </span><span class="kw">crate</span>::event;
+<span class="kw">use </span><span class="kw">crate</span>::layout;
+<span class="kw">use </span><span class="kw">crate</span>::mouse;
+<span class="kw">use </span><span class="kw">crate</span>::renderer;
+<span class="kw">use </span><span class="kw">crate</span>::text;
+<span class="kw">use </span><span class="kw">crate</span>::widget::{<span class="self">self</span>, Row, Text, Tree};
+<span class="kw">use crate</span>::{
+    Alignment, Clipboard, Element, Event, Layout, Length, Point, Rectangle,
+    Shell, Widget,
 };
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_style::toggler</span>::{<span class="ident">Appearance</span>, <span class="ident">StyleSheet</span>};
+<span class="kw">pub use </span>iced_style::toggler::{Appearance, StyleSheet};
 
-<span class="doccomment">/// A toggler widget.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # type Toggler&lt;&#39;a, Message&gt; = iced_native::widget::Toggler&lt;&#39;a, Message, iced_native::renderer::Null&gt;;</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// pub enum Message {</span>
-<span class="doccomment">///     TogglerToggled(bool),</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// let is_active = true;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Toggler::new(is_active, String::from(&quot;Toggle me!&quot;), |b| Message::TogglerToggled(b));</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Toggler</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="doccomment">/// A toggler widget.
+///
+/// # Example
+///
+/// ```
+/// # type Toggler&lt;&#39;a, Message&gt; = iced_native::widget::Toggler&lt;&#39;a, Message, iced_native::renderer::Null&gt;;
+/// #
+/// pub enum Message {
+///     TogglerToggled(bool),
+/// }
+///
+/// let is_active = true;
+///
+/// Toggler::new(is_active, String::from(&quot;Toggle me!&quot;), |b| Message::TogglerToggled(b));
+/// ```
+</span><span class="attribute">#[allow(missing_debug_implementations)]</span>
+<span class="kw">pub struct </span>Toggler&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: text::Renderer,
+    Renderer::Theme: StyleSheet,
 {
-    <span class="ident">is_active</span>: <span class="ident">bool</span>,
-    <span class="ident">on_toggle</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="ident">bool</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-    <span class="ident">width</span>: <span class="ident">Length</span>,
-    <span class="ident">size</span>: <span class="ident">u16</span>,
-    <span class="ident">text_size</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-    <span class="ident">text_alignment</span>: <span class="ident">alignment::Horizontal</span>,
-    <span class="ident">spacing</span>: <span class="ident">u16</span>,
-    <span class="ident">font</span>: <span class="ident">Renderer::Font</span>,
-    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
+    is_active: bool,
+    on_toggle: Box&lt;<span class="kw">dyn </span>Fn(bool) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;,
+    label: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    width: Length,
+    size: u16,
+    text_size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    text_alignment: alignment::Horizontal,
+    spacing: u16,
+    font: Renderer::Font,
+    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Toggler</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Toggler&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: text::Renderer,
+    Renderer::Theme: StyleSheet,
 {
-    <span class="doccomment">/// The default size of a [`Toggler`].</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFAULT_SIZE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">20</span>;
+    <span class="doccomment">/// The default size of a [`Toggler`].
+    </span><span class="kw">pub const </span>DEFAULT_SIZE: u16 = <span class="number">20</span>;
 
-    <span class="doccomment">/// Creates a new [`Toggler`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It expects:</span>
-    <span class="doccomment">///   * a boolean describing whether the [`Toggler`] is checked or not</span>
-    <span class="doccomment">///   * An optional label for the [`Toggler`]</span>
-    <span class="doccomment">///   * a function that will be called when the [`Toggler`] is toggled. It</span>
-    <span class="doccomment">///     will receive the new state of the [`Toggler`] and must produce a</span>
-    <span class="doccomment">///     `Message`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
-        <span class="ident">is_active</span>: <span class="ident">bool</span>,
-        <span class="ident">label</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">f</span>: <span class="ident">F</span>,
-    ) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">Fn</span>(<span class="ident">bool</span>) -&gt; <span class="ident">Message</span>,
+    <span class="doccomment">/// Creates a new [`Toggler`].
+    ///
+    /// It expects:
+    ///   * a boolean describing whether the [`Toggler`] is checked or not
+    ///   * An optional label for the [`Toggler`]
+    ///   * a function that will be called when the [`Toggler`] is toggled. It
+    ///     will receive the new state of the [`Toggler`] and must produce a
+    ///     `Message`.
+    </span><span class="kw">pub fn </span>new&lt;F&gt;(
+        is_active: bool,
+        label: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;String&gt;&gt;,
+        f: F,
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: <span class="lifetime">&#39;a </span>+ Fn(bool) -&gt; Message,
     {
-        <span class="ident">Toggler</span> {
-            <span class="ident">is_active</span>,
-            <span class="ident">on_toggle</span>: <span class="ident">Box::new</span>(<span class="ident">f</span>),
-            <span class="ident">label</span>: <span class="ident">label</span>.<span class="ident">into</span>(),
-            <span class="ident">width</span>: <span class="ident">Length::Fill</span>,
-            <span class="ident">size</span>: <span class="ident"><span class="self">Self</span>::DEFAULT_SIZE</span>,
-            <span class="ident">text_size</span>: <span class="prelude-val">None</span>,
-            <span class="ident">text_alignment</span>: <span class="ident">alignment::Horizontal::Left</span>,
-            <span class="ident">spacing</span>: <span class="number">0</span>,
-            <span class="ident">font</span>: <span class="ident">Renderer::Font::default</span>(),
-            <span class="ident">style</span>: <span class="ident">Default::default</span>(),
+        Toggler {
+            is_active,
+            on_toggle: Box::new(f),
+            label: label.into(),
+            width: Length::Fill,
+            size: <span class="self">Self</span>::DEFAULT_SIZE,
+            text_size: <span class="prelude-val">None</span>,
+            text_alignment: alignment::Horizontal::Left,
+            spacing: <span class="number">0</span>,
+            font: Renderer::Font::default(),
+            style: Default::default(),
         }
     }
 
-    <span class="doccomment">/// Sets the size of the [`Toggler`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the size of the [`Toggler`].
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: u16) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.size = size;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the width of the [`Toggler`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">width</span>: <span class="ident">Length</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">width</span> <span class="op">=</span> <span class="ident">width</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the width of the [`Toggler`].
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the text size o the [`Toggler`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">text_size</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">text_size</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">text_size</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the text size o the [`Toggler`].
+    </span><span class="kw">pub fn </span>text_size(<span class="kw-2">mut </span><span class="self">self</span>, text_size: u16) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.text_size = <span class="prelude-val">Some</span>(text_size);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the horizontal alignment of the text of the [`Toggler`]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">text_alignment</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">alignment</span>: <span class="ident">alignment::Horizontal</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">text_alignment</span> <span class="op">=</span> <span class="ident">alignment</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the horizontal alignment of the text of the [`Toggler`]
+    </span><span class="kw">pub fn </span>text_alignment(<span class="kw-2">mut </span><span class="self">self</span>, alignment: alignment::Horizontal) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.text_alignment = alignment;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the spacing between the [`Toggler`] and the text.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spacing</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">spacing</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">spacing</span> <span class="op">=</span> <span class="ident">spacing</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the spacing between the [`Toggler`] and the text.
+    </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, spacing: u16) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.spacing = spacing;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the [`Font`] of the text of the [`Toggler`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Font`]: crate::text::Renderer::Font</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">font</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">font</span>: <span class="ident">Renderer::Font</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">font</span> <span class="op">=</span> <span class="ident">font</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the [`Font`] of the text of the [`Toggler`]
+    ///
+    /// [`Font`]: crate::text::Renderer::Font
+    </span><span class="kw">pub fn </span>font(<span class="kw-2">mut </span><span class="self">self</span>, font: Renderer::Font) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.font = font;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the style of the [`Toggler`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">style</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>.<span class="ident">into</span>();
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the style of the [`Toggler`].
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = style.into();
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Toggler</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="ident">widget::text::StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Widget&lt;Message, Renderer&gt;
+    <span class="kw">for </span>Toggler&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: text::Renderer,
+    Renderer::Theme: StyleSheet + widget::text::StyleSheet,
 {
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">width</span>
+    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.width
     }
 
-    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="ident">Length::Shrink</span>
+    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        Length::Shrink
     }
 
-    <span class="kw">fn</span> <span class="ident">layout</span>(
+    <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">row</span> <span class="op">=</span> <span class="ident">Row</span>::<span class="op">&lt;</span>(), <span class="ident">Renderer</span><span class="op">&gt;</span><span class="ident">::new</span>()
-            .<span class="ident">width</span>(<span class="self">self</span>.<span class="ident">width</span>)
-            .<span class="ident">spacing</span>(<span class="self">self</span>.<span class="ident">spacing</span>)
-            .<span class="ident">align_items</span>(<span class="ident">Alignment::Center</span>);
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        limits: <span class="kw-2">&amp;</span>layout::Limits,
+    ) -&gt; layout::Node {
+        <span class="kw">let </span><span class="kw-2">mut </span>row = Row::&lt;(), Renderer&gt;::new()
+            .width(<span class="self">self</span>.width)
+            .spacing(<span class="self">self</span>.spacing)
+            .align_items(Alignment::Center);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">label</span> {
-            <span class="ident">row</span> <span class="op">=</span> <span class="ident">row</span>.<span class="ident">push</span>(
-                <span class="ident">Text::new</span>(<span class="ident">label</span>)
-                    .<span class="ident">horizontal_alignment</span>(<span class="self">self</span>.<span class="ident">text_alignment</span>)
-                    .<span class="ident">font</span>(<span class="self">self</span>.<span class="ident">font</span>.<span class="ident">clone</span>())
-                    .<span class="ident">width</span>(<span class="self">self</span>.<span class="ident">width</span>)
-                    .<span class="ident">size</span>(
-                        <span class="self">self</span>.<span class="ident">text_size</span>
-                            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">renderer</span>.<span class="ident">default_size</span>()),
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = <span class="kw-2">&amp;</span><span class="self">self</span>.label {
+            row = row.push(
+                Text::new(label)
+                    .horizontal_alignment(<span class="self">self</span>.text_alignment)
+                    .font(<span class="self">self</span>.font.clone())
+                    .width(<span class="self">self</span>.width)
+                    .size(
+                        <span class="self">self</span>.text_size
+                            .unwrap_or_else(|| renderer.default_size()),
                     ),
             );
         }
 
-        <span class="ident">row</span> <span class="op">=</span> <span class="ident">row</span>.<span class="ident">push</span>(
-            <span class="ident">Row::new</span>()
-                .<span class="ident">width</span>(<span class="ident">Length::Units</span>(<span class="number">2</span> <span class="op">*</span> <span class="self">self</span>.<span class="ident">size</span>))
-                .<span class="ident">height</span>(<span class="ident">Length::Units</span>(<span class="self">self</span>.<span class="ident">size</span>)),
+        row = row.push(
+            Row::new()
+                .width(Length::Units(<span class="number">2 </span>* <span class="self">self</span>.size))
+                .height(Length::Units(<span class="self">self</span>.size)),
         );
 
-        <span class="ident">row</span>.<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">limits</span>)
+        row.layout(renderer, limits)
     }
 
-    <span class="kw">fn</span> <span class="ident">on_event</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
-        <span class="ident">event</span>: <span class="ident">Event</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">_clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">event::Status</span> {
-        <span class="kw">match</span> <span class="ident">event</span> {
-            <span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::ButtonPressed</span>(<span class="ident">mouse::Button::Left</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">mouse_over</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>().<span class="ident">contains</span>(<span class="ident">cursor_position</span>);
+    <span class="kw">fn </span>on_event(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _state: <span class="kw-2">&amp;mut </span>Tree,
+        event: Event,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        _renderer: <span class="kw-2">&amp;</span>Renderer,
+        _clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
+    ) -&gt; event::Status {
+        <span class="kw">match </span>event {
+            Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) =&gt; {
+                <span class="kw">let </span>mouse_over = layout.bounds().contains(cursor_position);
 
-                <span class="kw">if</span> <span class="ident">mouse_over</span> {
-                    <span class="ident">shell</span>.<span class="ident">publish</span>((<span class="self">self</span>.<span class="ident">on_toggle</span>)(<span class="op">!</span><span class="self">self</span>.<span class="ident">is_active</span>));
+                <span class="kw">if </span>mouse_over {
+                    shell.publish((<span class="self">self</span>.on_toggle)(!<span class="self">self</span>.is_active));
 
-                    <span class="ident">event::Status::Captured</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">event::Status::Ignored</span>
+                    event::Status::Captured
+                } <span class="kw">else </span>{
+                    event::Status::Ignored
                 }
             }
-            <span class="kw">_</span> =&gt; <span class="ident">event::Status::Ignored</span>,
+            <span class="kw">_ </span>=&gt; event::Status::Ignored,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
+    <span class="kw">fn </span>mouse_interaction(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">_renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="kw">if</span> <span class="ident">layout</span>.<span class="ident">bounds</span>().<span class="ident">contains</span>(<span class="ident">cursor_position</span>) {
-            <span class="ident">mouse::Interaction::Pointer</span>
-        } <span class="kw">else</span> {
-            <span class="ident">mouse::Interaction::default</span>()
+        _state: <span class="kw-2">&amp;</span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        _viewport: <span class="kw-2">&amp;</span>Rectangle,
+        _renderer: <span class="kw-2">&amp;</span>Renderer,
+    ) -&gt; mouse::Interaction {
+        <span class="kw">if </span>layout.bounds().contains(cursor_position) {
+            mouse::Interaction::Pointer
+        } <span class="kw">else </span>{
+            mouse::Interaction::default()
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        _state: <span class="kw-2">&amp;</span>Tree,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        style: <span class="kw-2">&amp;</span>renderer::Style,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="doccomment">/// Makes sure that the border radius of the toggler looks good at every size.</span>
-        <span class="kw">const</span> <span class="ident">BORDER_RADIUS_RATIO</span>: <span class="ident">f32</span> <span class="op">=</span> <span class="number">32.0</span> <span class="op">/</span> <span class="number">13.0</span>;
+        <span class="doccomment">/// Makes sure that the border radius of the toggler looks good at every size.
+        </span><span class="kw">const </span>BORDER_RADIUS_RATIO: f32 = <span class="number">32.0 </span>/ <span class="number">13.0</span>;
 
-        <span class="doccomment">/// The space ratio between the background Quad and the Toggler bounds, and</span>
-        <span class="doccomment">/// between the background Quad and foreground Quad.</span>
-        <span class="kw">const</span> <span class="ident">SPACE_RATIO</span>: <span class="ident">f32</span> <span class="op">=</span> <span class="number">0.05</span>;
+        <span class="doccomment">/// The space ratio between the background Quad and the Toggler bounds, and
+        /// between the background Quad and foreground Quad.
+        </span><span class="kw">const </span>SPACE_RATIO: f32 = <span class="number">0.05</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">children</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">children</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>children = layout.children();
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">label</span> {
-            <span class="kw">let</span> <span class="ident">label_layout</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = <span class="kw-2">&amp;</span><span class="self">self</span>.label {
+            <span class="kw">let </span>label_layout = children.next().unwrap();
 
-            <span class="ident"><span class="kw">crate</span>::widget::text::draw</span>(
-                <span class="ident">renderer</span>,
-                <span class="ident">style</span>,
-                <span class="ident">label_layout</span>,
-                <span class="ident">label</span>,
-                <span class="self">self</span>.<span class="ident">text_size</span>,
-                <span class="self">self</span>.<span class="ident">font</span>.<span class="ident">clone</span>(),
-                <span class="ident">Default::default</span>(),
-                <span class="self">self</span>.<span class="ident">text_alignment</span>,
-                <span class="ident">alignment::Vertical::Center</span>,
+            <span class="kw">crate</span>::widget::text::draw(
+                renderer,
+                style,
+                label_layout,
+                label,
+                <span class="self">self</span>.text_size,
+                <span class="self">self</span>.font.clone(),
+                Default::default(),
+                <span class="self">self</span>.text_alignment,
+                alignment::Vertical::Center,
             );
         }
 
-        <span class="kw">let</span> <span class="ident">toggler_layout</span> <span class="op">=</span> <span class="ident">children</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">toggler_layout</span>.<span class="ident">bounds</span>();
+        <span class="kw">let </span>toggler_layout = children.next().unwrap();
+        <span class="kw">let </span>bounds = toggler_layout.bounds();
 
-        <span class="kw">let</span> <span class="ident">is_mouse_over</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">contains</span>(<span class="ident">cursor_position</span>);
+        <span class="kw">let </span>is_mouse_over = bounds.contains(cursor_position);
 
-        <span class="kw">let</span> <span class="ident">style</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_mouse_over</span> {
-            <span class="ident">theme</span>.<span class="ident">hovered</span>(<span class="self">self</span>.<span class="ident">style</span>, <span class="self">self</span>.<span class="ident">is_active</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">theme</span>.<span class="ident">active</span>(<span class="self">self</span>.<span class="ident">style</span>, <span class="self">self</span>.<span class="ident">is_active</span>)
+        <span class="kw">let </span>style = <span class="kw">if </span>is_mouse_over {
+            theme.hovered(<span class="self">self</span>.style, <span class="self">self</span>.is_active)
+        } <span class="kw">else </span>{
+            theme.active(<span class="self">self</span>.style, <span class="self">self</span>.is_active)
         };
 
-        <span class="kw">let</span> <span class="ident">border_radius</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">height</span> <span class="kw">as</span> <span class="ident">f32</span> <span class="op">/</span> <span class="ident">BORDER_RADIUS_RATIO</span>;
-        <span class="kw">let</span> <span class="ident">space</span> <span class="op">=</span> <span class="ident">SPACE_RATIO</span> <span class="op">*</span> <span class="ident">bounds</span>.<span class="ident">height</span> <span class="kw">as</span> <span class="ident">f32</span>;
+        <span class="kw">let </span>border_radius = bounds.height <span class="kw">as </span>f32 / BORDER_RADIUS_RATIO;
+        <span class="kw">let </span>space = SPACE_RATIO * bounds.height <span class="kw">as </span>f32;
 
-        <span class="kw">let</span> <span class="ident">toggler_background_bounds</span> <span class="op">=</span> <span class="ident">Rectangle</span> {
-            <span class="ident">x</span>: <span class="ident">bounds</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">space</span>,
-            <span class="ident">y</span>: <span class="ident">bounds</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">space</span>,
-            <span class="ident">width</span>: <span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">-</span> (<span class="number">2.0</span> <span class="op">*</span> <span class="ident">space</span>),
-            <span class="ident">height</span>: <span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">-</span> (<span class="number">2.0</span> <span class="op">*</span> <span class="ident">space</span>),
+        <span class="kw">let </span>toggler_background_bounds = Rectangle {
+            x: bounds.x + space,
+            y: bounds.y + space,
+            width: bounds.width - (<span class="number">2.0 </span>* space),
+            height: bounds.height - (<span class="number">2.0 </span>* space),
         };
 
-        <span class="ident">renderer</span>.<span class="ident">fill_quad</span>(
-            <span class="ident">renderer::Quad</span> {
-                <span class="ident">bounds</span>: <span class="ident">toggler_background_bounds</span>,
-                <span class="ident">border_radius</span>,
-                <span class="ident">border_width</span>: <span class="number">1.0</span>,
-                <span class="ident">border_color</span>: <span class="ident">style</span>
-                    .<span class="ident">background_border</span>
-                    .<span class="ident">unwrap_or</span>(<span class="ident">style</span>.<span class="ident">background</span>),
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds: toggler_background_bounds,
+                border_radius,
+                border_width: <span class="number">1.0</span>,
+                border_color: style
+                    .background_border
+                    .unwrap_or(style.background),
             },
-            <span class="ident">style</span>.<span class="ident">background</span>,
+            style.background,
         );
 
-        <span class="kw">let</span> <span class="ident">toggler_foreground_bounds</span> <span class="op">=</span> <span class="ident">Rectangle</span> {
-            <span class="ident">x</span>: <span class="ident">bounds</span>.<span class="ident">x</span>
-                <span class="op">+</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_active</span> {
-                    <span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">-</span> <span class="number">2.0</span> <span class="op">*</span> <span class="ident">space</span> <span class="op">-</span> (<span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">-</span> (<span class="number">4.0</span> <span class="op">*</span> <span class="ident">space</span>))
-                } <span class="kw">else</span> {
-                    <span class="number">2.0</span> <span class="op">*</span> <span class="ident">space</span>
+        <span class="kw">let </span>toggler_foreground_bounds = Rectangle {
+            x: bounds.x
+                + <span class="kw">if </span><span class="self">self</span>.is_active {
+                    bounds.width - <span class="number">2.0 </span>* space - (bounds.height - (<span class="number">4.0 </span>* space))
+                } <span class="kw">else </span>{
+                    <span class="number">2.0 </span>* space
                 },
-            <span class="ident">y</span>: <span class="ident">bounds</span>.<span class="ident">y</span> <span class="op">+</span> (<span class="number">2.0</span> <span class="op">*</span> <span class="ident">space</span>),
-            <span class="ident">width</span>: <span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">-</span> (<span class="number">4.0</span> <span class="op">*</span> <span class="ident">space</span>),
-            <span class="ident">height</span>: <span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">-</span> (<span class="number">4.0</span> <span class="op">*</span> <span class="ident">space</span>),
+            y: bounds.y + (<span class="number">2.0 </span>* space),
+            width: bounds.height - (<span class="number">4.0 </span>* space),
+            height: bounds.height - (<span class="number">4.0 </span>* space),
         };
 
-        <span class="ident">renderer</span>.<span class="ident">fill_quad</span>(
-            <span class="ident">renderer::Quad</span> {
-                <span class="ident">bounds</span>: <span class="ident">toggler_foreground_bounds</span>,
-                <span class="ident">border_radius</span>,
-                <span class="ident">border_width</span>: <span class="number">1.0</span>,
-                <span class="ident">border_color</span>: <span class="ident">style</span>
-                    .<span class="ident">foreground_border</span>
-                    .<span class="ident">unwrap_or</span>(<span class="ident">style</span>.<span class="ident">foreground</span>),
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds: toggler_foreground_bounds,
+                border_radius,
+                border_width: <span class="number">1.0</span>,
+                border_color: style
+                    .foreground_border
+                    .unwrap_or(style.foreground),
             },
-            <span class="ident">style</span>.<span class="ident">foreground</span>,
+            style.foreground,
         );
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Toggler</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
-    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">StyleSheet</span> <span class="op">+</span> <span class="ident">widget::text::StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; From&lt;Toggler&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Message: <span class="lifetime">&#39;a</span>,
+    Renderer: <span class="lifetime">&#39;a </span>+ text::Renderer,
+    Renderer::Theme: StyleSheet + widget::text::StyleSheet,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(
-        <span class="ident">toggler</span>: <span class="ident">Toggler</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="ident">Element::new</span>(<span class="ident">toggler</span>)
+    <span class="kw">fn </span>from(
+        toggler: Toggler&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
+    ) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
+        Element::new(toggler)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

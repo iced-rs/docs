@@ -1,3 +1,3 @@
-(function() {var implementors = {};
-implementors["iced_wgpu"] = [{"text":"impl&lt;Theme&gt; <a class=\"trait\" href=\"iced_graphics/window/compositor/trait.Compositor.html\" title=\"trait iced_graphics::window::compositor::Compositor\">Compositor</a> for <a class=\"struct\" href=\"iced_wgpu/window/struct.Compositor.html\" title=\"struct iced_wgpu::window::Compositor\">Compositor</a>&lt;Theme&gt;","synthetic":false,"types":["iced_wgpu::window::compositor::Compositor"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"iced_wgpu":[["impl&lt;Theme&gt; <a class=\"trait\" href=\"iced_graphics/window/compositor/trait.Compositor.html\" title=\"trait iced_graphics::window::compositor::Compositor\">Compositor</a> for <a class=\"struct\" href=\"iced_wgpu/window/struct.Compositor.html\" title=\"struct iced_wgpu::window::Compositor\">Compositor</a>&lt;Theme&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

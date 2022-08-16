@@ -168,173 +168,173 @@
 <span id="166">166</span>
 <span id="167">167</span>
 <span id="168">168</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">BoxFuture</span>, <span class="ident">MaybeSend</span>, <span class="ident">Subscription</span>};
+</pre><pre class="rust"><code><span class="kw">use crate</span>::{BoxFuture, MaybeSend, Subscription};
 
-<span class="kw">use</span> <span class="ident">futures</span>::{
-    <span class="ident">channel::mpsc</span>,
-    <span class="ident">sink</span>::{<span class="ident">Sink</span>, <span class="ident">SinkExt</span>},
+<span class="kw">use </span>futures::{
+    channel::mpsc,
+    sink::{Sink, SinkExt},
 };
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashMap</span>, <span class="ident">marker::PhantomData</span>};
+<span class="kw">use </span>std::{collections::HashMap, marker::PhantomData};
 
-<span class="doccomment">/// A registry of subscription streams.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If you have an application that continuously returns a [`Subscription`],</span>
-<span class="doccomment">/// you can use a [`Tracker`] to keep track of the different recipes and keep</span>
-<span class="doccomment">/// its executions alive.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tracker</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span><span class="op">&gt;</span> {
-    <span class="ident">subscriptions</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Execution</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">_hasher</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Hasher</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A registry of subscription streams.
+///
+/// If you have an application that continuously returns a [`Subscription`],
+/// you can use a [`Tracker`] to keep track of the different recipes and keep
+/// its executions alive.
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Tracker&lt;Hasher, Event&gt; {
+    subscriptions: HashMap&lt;u64, Execution&lt;Event&gt;&gt;,
+    _hasher: PhantomData&lt;Hasher&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Execution</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span> {
-    <span class="ident">_cancel</span>: <span class="ident">futures::channel::oneshot::Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
-    <span class="ident">listener</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">futures::channel::mpsc::Sender</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Execution&lt;Event&gt; {
+    _cancel: futures::channel::oneshot::Sender&lt;()&gt;,
+    listener: <span class="prelude-ty">Option</span>&lt;futures::channel::mpsc::Sender&lt;Event&gt;&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span><span class="op">&gt;</span> <span class="ident">Tracker</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Hasher</span>: <span class="ident">std::hash::Hasher</span> <span class="op">+</span> <span class="ident">Default</span>,
-    <span class="ident">Event</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span>,
+<span class="kw">impl</span>&lt;Hasher, Event&gt; Tracker&lt;Hasher, Event&gt;
+<span class="kw">where
+    </span>Hasher: std::hash::Hasher + Default,
+    Event: <span class="lifetime">&#39;static </span>+ Send + Clone,
 {
-    <span class="doccomment">/// Creates a new empty [`Tracker`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">subscriptions</span>: <span class="ident">HashMap::new</span>(),
-            <span class="ident">_hasher</span>: <span class="ident">PhantomData</span>,
+    <span class="doccomment">/// Creates a new empty [`Tracker`].
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            subscriptions: HashMap::new(),
+            _hasher: PhantomData,
         }
     }
 
-    <span class="doccomment">/// Updates the [`Tracker`] with the given [`Subscription`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A [`Subscription`] can cause new streams to be spawned or old streams</span>
-    <span class="doccomment">/// to be closed.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The [`Tracker`] keeps track of these streams between calls to this</span>
-    <span class="doccomment">/// method:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// - If the provided [`Subscription`] contains a new [`Recipe`] that is</span>
-    <span class="doccomment">/// currently not being run, it will spawn a new stream and keep it alive.</span>
-    <span class="doccomment">/// - On the other hand, if a [`Recipe`] is currently in execution and the</span>
-    <span class="doccomment">/// provided [`Subscription`] does not contain it anymore, then the</span>
-    <span class="doccomment">/// [`Tracker`] will close and drop the relevant stream.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// It returns a list of futures that need to be spawned to materialize</span>
-    <span class="doccomment">/// the [`Tracker`] changes.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Recipe`]: crate::subscription::Recipe</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Receiver</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">subscription</span>: <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-        <span class="ident">receiver</span>: <span class="ident">Receiver</span>,
-    ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BoxFuture</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">Message</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">MaybeSend</span>,
-        <span class="ident">Receiver</span>: <span class="lifetime">&#39;static</span>
-            <span class="op">+</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">mpsc::SendError</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">Unpin</span>
-            <span class="op">+</span> <span class="ident">MaybeSend</span>
-            <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="doccomment">/// Updates the [`Tracker`] with the given [`Subscription`].
+    ///
+    /// A [`Subscription`] can cause new streams to be spawned or old streams
+    /// to be closed.
+    ///
+    /// The [`Tracker`] keeps track of these streams between calls to this
+    /// method:
+    ///
+    /// - If the provided [`Subscription`] contains a new [`Recipe`] that is
+    /// currently not being run, it will spawn a new stream and keep it alive.
+    /// - On the other hand, if a [`Recipe`] is currently in execution and the
+    /// provided [`Subscription`] does not contain it anymore, then the
+    /// [`Tracker`] will close and drop the relevant stream.
+    ///
+    /// It returns a list of futures that need to be spawned to materialize
+    /// the [`Tracker`] changes.
+    ///
+    /// [`Recipe`]: crate::subscription::Recipe
+    </span><span class="kw">pub fn </span>update&lt;Message, Receiver&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        subscription: Subscription&lt;Hasher, Event, Message&gt;,
+        receiver: Receiver,
+    ) -&gt; Vec&lt;BoxFuture&lt;()&gt;&gt;
+    <span class="kw">where
+        </span>Message: <span class="lifetime">&#39;static </span>+ MaybeSend,
+        Receiver: <span class="lifetime">&#39;static
+            </span>+ Sink&lt;Message, Error = mpsc::SendError&gt;
+            + Unpin
+            + MaybeSend
+            + Clone,
     {
-        <span class="kw">use</span> <span class="ident">futures::stream::StreamExt</span>;
+        <span class="kw">use </span>futures::stream::StreamExt;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">futures</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BoxFuture</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>futures: Vec&lt;BoxFuture&lt;()&gt;&gt; = Vec::new();
 
-        <span class="kw">let</span> <span class="ident">recipes</span> <span class="op">=</span> <span class="ident">subscription</span>.<span class="ident">recipes</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">alive</span> <span class="op">=</span> <span class="ident">std::collections::HashSet::new</span>();
+        <span class="kw">let </span>recipes = subscription.recipes();
+        <span class="kw">let </span><span class="kw-2">mut </span>alive = std::collections::HashSet::new();
 
-        <span class="kw">for</span> <span class="ident">recipe</span> <span class="kw">in</span> <span class="ident">recipes</span> {
-            <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">Hasher::default</span>();
-                <span class="ident">recipe</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;mut</span> <span class="ident">hasher</span>);
+        <span class="kw">for </span>recipe <span class="kw">in </span>recipes {
+            <span class="kw">let </span>id = {
+                <span class="kw">let </span><span class="kw-2">mut </span>hasher = Hasher::default();
+                recipe.hash(<span class="kw-2">&amp;mut </span>hasher);
 
-                <span class="ident">hasher</span>.<span class="ident">finish</span>()
+                hasher.finish()
             };
 
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">alive</span>.<span class="ident">insert</span>(<span class="ident">id</span>);
+            <span class="kw">let _ </span>= alive.insert(id);
 
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">subscriptions</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) {
+            <span class="kw">if </span><span class="self">self</span>.subscriptions.contains_key(<span class="kw-2">&amp;</span>id) {
                 <span class="kw">continue</span>;
             }
 
-            <span class="kw">let</span> (<span class="ident">cancel</span>, <span class="kw-2">mut</span> <span class="ident">canceled</span>) <span class="op">=</span> <span class="ident">futures::channel::oneshot::channel</span>();
+            <span class="kw">let </span>(cancel, <span class="kw-2">mut </span>canceled) = futures::channel::oneshot::channel();
 
-            <span class="comment">// TODO: Use bus if/when it supports async</span>
-            <span class="kw">let</span> (<span class="ident">event_sender</span>, <span class="ident">event_receiver</span>) <span class="op">=</span>
-                <span class="ident">futures::channel::mpsc::channel</span>(<span class="number">100</span>);
+            <span class="comment">// TODO: Use bus if/when it supports async
+            </span><span class="kw">let </span>(event_sender, event_receiver) =
+                futures::channel::mpsc::channel(<span class="number">100</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">receiver</span> <span class="op">=</span> <span class="ident">receiver</span>.<span class="ident">clone</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="ident">recipe</span>.<span class="ident">stream</span>(<span class="ident">event_receiver</span>.<span class="ident">boxed</span>());
+            <span class="kw">let </span><span class="kw-2">mut </span>receiver = receiver.clone();
+            <span class="kw">let </span><span class="kw-2">mut </span>stream = recipe.stream(event_receiver.boxed());
 
-            <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> {
-                <span class="kw">loop</span> {
-                    <span class="kw">let</span> <span class="ident">select</span> <span class="op">=</span>
-                        <span class="ident">futures::future::select</span>(<span class="kw-2">&amp;mut</span> <span class="ident">canceled</span>, <span class="ident">stream</span>.<span class="ident">next</span>());
+            <span class="kw">let </span>future = <span class="kw">async move </span>{
+                <span class="kw">loop </span>{
+                    <span class="kw">let </span>select =
+                        futures::future::select(<span class="kw-2">&amp;mut </span>canceled, stream.next());
 
-                    <span class="kw">match</span> <span class="ident">select</span>.<span class="kw">await</span> {
-                        <span class="ident">futures::future::Either::Left</span>(<span class="kw">_</span>)
-                        <span class="op">|</span> <span class="ident">futures::future::Either::Right</span>((<span class="prelude-val">None</span>, <span class="kw">_</span>)) =&gt; <span class="kw">break</span>,
-                        <span class="ident">futures::future::Either::Right</span>((<span class="prelude-val">Some</span>(<span class="ident">message</span>), <span class="kw">_</span>)) =&gt; {
-                            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">receiver</span>.<span class="ident">send</span>(<span class="ident">message</span>).<span class="kw">await</span>;
+                    <span class="kw">match </span>select.<span class="kw">await </span>{
+                        futures::future::Either::Left(<span class="kw">_</span>)
+                        | futures::future::Either::Right((<span class="prelude-val">None</span>, <span class="kw">_</span>)) =&gt; <span class="kw">break</span>,
+                        futures::future::Either::Right((<span class="prelude-val">Some</span>(message), <span class="kw">_</span>)) =&gt; {
+                            <span class="kw">let _ </span>= receiver.send(message).<span class="kw">await</span>;
                         }
                     }
                 }
             };
 
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">subscriptions</span>.<span class="ident">insert</span>(
-                <span class="ident">id</span>,
-                <span class="ident">Execution</span> {
-                    <span class="ident">_cancel</span>: <span class="ident">cancel</span>,
-                    <span class="ident">listener</span>: <span class="kw">if</span> <span class="ident">event_sender</span>.<span class="ident">is_closed</span>() {
-                        <span class="prelude-val">None</span>
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">Some</span>(<span class="ident">event_sender</span>)
+            <span class="kw">let _ </span>= <span class="self">self</span>.subscriptions.insert(
+                id,
+                Execution {
+                    _cancel: cancel,
+                    listener: <span class="kw">if </span>event_sender.is_closed() {
+                        <span class="prelude-val">None
+                    </span>} <span class="kw">else </span>{
+                        <span class="prelude-val">Some</span>(event_sender)
                     },
                 },
             );
 
-            <span class="ident">futures</span>.<span class="ident">push</span>(<span class="ident">Box::pin</span>(<span class="ident">future</span>));
+            futures.push(Box::pin(future));
         }
 
-        <span class="self">self</span>.<span class="ident">subscriptions</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">id</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">alive</span>.<span class="ident">contains</span>(<span class="ident">id</span>));
+        <span class="self">self</span>.subscriptions.retain(|id, <span class="kw">_</span>| alive.contains(id));
 
-        <span class="ident">futures</span>
+        futures
     }
 
-    <span class="doccomment">/// Broadcasts an event to the subscriptions currently alive.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// A subscription&#39;s [`Recipe::stream`] always receives a stream of events</span>
-    <span class="doccomment">/// as input. This stream can be used by some subscription to listen to</span>
-    <span class="doccomment">/// shell events.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method publishes the given event to all the subscription streams</span>
-    <span class="doccomment">/// currently open.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Recipe::stream`]: crate::subscription::Recipe::stream</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">broadcast</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>) {
-        <span class="self">self</span>.<span class="ident">subscriptions</span>
-            .<span class="ident">values_mut</span>()
-            .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">connection</span><span class="op">|</span> <span class="ident">connection</span>.<span class="ident">listener</span>.<span class="ident">as_mut</span>())
-            .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">listener</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="ident">listener</span>.<span class="ident">try_send</span>(<span class="ident">event</span>.<span class="ident">clone</span>()) {
+    <span class="doccomment">/// Broadcasts an event to the subscriptions currently alive.
+    ///
+    /// A subscription&#39;s [`Recipe::stream`] always receives a stream of events
+    /// as input. This stream can be used by some subscription to listen to
+    /// shell events.
+    ///
+    /// This method publishes the given event to all the subscription streams
+    /// currently open.
+    ///
+    /// [`Recipe::stream`]: crate::subscription::Recipe::stream
+    </span><span class="kw">pub fn </span>broadcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: Event) {
+        <span class="self">self</span>.subscriptions
+            .values_mut()
+            .filter_map(|connection| connection.listener.as_mut())
+            .for_each(|listener| {
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = listener.try_send(event.clone()) {
                     <span class="macro">log::warn!</span>(
                         <span class="string">&quot;Error sending event to subscription: {:?}&quot;</span>,
-                        <span class="ident">error</span>
+                        error
                     );
                 }
             });
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Tracker</span><span class="op">&lt;</span><span class="ident">Hasher</span>, <span class="ident">Event</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Hasher</span>: <span class="ident">std::hash::Hasher</span> <span class="op">+</span> <span class="ident">Default</span>,
-    <span class="ident">Event</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span>,
+<span class="kw">impl</span>&lt;Hasher, Event&gt; Default <span class="kw">for </span>Tracker&lt;Hasher, Event&gt;
+<span class="kw">where
+    </span>Hasher: std::hash::Hasher + Default,
+    Event: <span class="lifetime">&#39;static </span>+ Send + Clone,
 {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new</span>()
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_futures" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_futures" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

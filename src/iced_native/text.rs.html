@@ -114,119 +114,119 @@
 <span id="112">112</span>
 <span id="113">113</span>
 <span id="114">114</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Draw and interact with text.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alignment</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Color</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! Draw and interact with text.
+</span><span class="kw">use </span><span class="kw">crate</span>::alignment;
+<span class="kw">use crate</span>::{Color, Point, Rectangle, Size, Vector};
 
-<span class="doccomment">/// A paragraph.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Text</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Font</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The content of the paragraph.</span>
-    <span class="kw">pub</span> <span class="ident">content</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
+<span class="doccomment">/// A paragraph.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub struct </span>Text&lt;<span class="lifetime">&#39;a</span>, Font&gt; {
+    <span class="doccomment">/// The content of the paragraph.
+    </span><span class="kw">pub </span>content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
 
-    <span class="doccomment">/// The bounds of the paragraph.</span>
-    <span class="kw">pub</span> <span class="ident">bounds</span>: <span class="ident">Rectangle</span>,
+    <span class="doccomment">/// The bounds of the paragraph.
+    </span><span class="kw">pub </span>bounds: Rectangle,
 
-    <span class="doccomment">/// The size of the [`Text`].</span>
-    <span class="kw">pub</span> <span class="ident">size</span>: <span class="ident">f32</span>,
+    <span class="doccomment">/// The size of the [`Text`].
+    </span><span class="kw">pub </span>size: f32,
 
-    <span class="doccomment">/// The color of the [`Text`].</span>
-    <span class="kw">pub</span> <span class="ident">color</span>: <span class="ident">Color</span>,
+    <span class="doccomment">/// The color of the [`Text`].
+    </span><span class="kw">pub </span>color: Color,
 
-    <span class="doccomment">/// The font of the [`Text`].</span>
-    <span class="kw">pub</span> <span class="ident">font</span>: <span class="ident">Font</span>,
+    <span class="doccomment">/// The font of the [`Text`].
+    </span><span class="kw">pub </span>font: Font,
 
-    <span class="doccomment">/// The horizontal alignment of the [`Text`].</span>
-    <span class="kw">pub</span> <span class="ident">horizontal_alignment</span>: <span class="ident">alignment::Horizontal</span>,
+    <span class="doccomment">/// The horizontal alignment of the [`Text`].
+    </span><span class="kw">pub </span>horizontal_alignment: alignment::Horizontal,
 
-    <span class="doccomment">/// The vertical alignment of the [`Text`].</span>
-    <span class="kw">pub</span> <span class="ident">vertical_alignment</span>: <span class="ident">alignment::Vertical</span>,
+    <span class="doccomment">/// The vertical alignment of the [`Text`].
+    </span><span class="kw">pub </span>vertical_alignment: alignment::Vertical,
 }
 
-<span class="doccomment">/// The result of hit testing on text.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Hit</span> {
-    <span class="doccomment">/// The point was within the bounds of the returned character index.</span>
-    <span class="ident">CharOffset</span>(<span class="ident">usize</span>),
-    <span class="doccomment">/// The provided point was not within the bounds of a glyph. The index</span>
-    <span class="doccomment">/// of the character with the closest centeroid position is returned,</span>
-    <span class="doccomment">/// as well as its delta.</span>
-    <span class="ident">NearestCharOffset</span>(<span class="ident">usize</span>, <span class="ident">Vector</span>),
+<span class="doccomment">/// The result of hit testing on text.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq)]</span>
+<span class="kw">pub enum </span>Hit {
+    <span class="doccomment">/// The point was within the bounds of the returned character index.
+    </span>CharOffset(usize),
+    <span class="doccomment">/// The provided point was not within the bounds of a glyph. The index
+    /// of the character with the closest centeroid position is returned,
+    /// as well as its delta.
+    </span>NearestCharOffset(usize, Vector),
 }
 
-<span class="kw">impl</span> <span class="ident">Hit</span> {
-    <span class="doccomment">/// Computes the cursor position of the [`Hit`] .</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::CharOffset</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
-            <span class="ident"><span class="self">Self</span>::NearestCharOffset</span>(<span class="ident">i</span>, <span class="ident">delta</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">delta</span>.<span class="ident">x</span> <span class="op">&gt;</span> <span class="ident">f32::EPSILON</span> {
-                    <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">i</span>
+<span class="kw">impl </span>Hit {
+    <span class="doccomment">/// Computes the cursor position of the [`Hit`] .
+    </span><span class="kw">pub fn </span>cursor(<span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::CharOffset(i) =&gt; i,
+            <span class="self">Self</span>::NearestCharOffset(i, delta) =&gt; {
+                <span class="kw">if </span>delta.x &gt; f32::EPSILON {
+                    i + <span class="number">1
+                </span>} <span class="kw">else </span>{
+                    i
                 }
             }
         }
     }
 }
 
-<span class="doccomment">/// A renderer capable of measuring and drawing [`Text`].</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span> {
-    <span class="doccomment">/// The font type used.</span>
-    <span class="kw">type</span> <span class="ident">Font</span>: <span class="ident">Default</span> <span class="op">+</span> <span class="ident">Clone</span>;
+<span class="doccomment">/// A renderer capable of measuring and drawing [`Text`].
+</span><span class="kw">pub trait </span>Renderer: <span class="kw">crate</span>::Renderer {
+    <span class="doccomment">/// The font type used.
+    </span><span class="kw">type </span>Font: Default + Clone;
 
-    <span class="doccomment">/// The icon font of the backend.</span>
-    <span class="kw">const</span> <span class="ident">ICON_FONT</span>: <span class="ident"><span class="self">Self</span>::Font</span>;
+    <span class="doccomment">/// The icon font of the backend.
+    </span><span class="kw">const </span>ICON_FONT: <span class="self">Self</span>::Font;
 
-    <span class="doccomment">/// The `char` representing a ✔ icon in the [`ICON_FONT`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`ICON_FONT`]: Self::ICON_FONT</span>
-    <span class="kw">const</span> <span class="ident">CHECKMARK_ICON</span>: <span class="ident">char</span>;
+    <span class="doccomment">/// The `char` representing a ✔ icon in the [`ICON_FONT`].
+    ///
+    /// [`ICON_FONT`]: Self::ICON_FONT
+    </span><span class="kw">const </span>CHECKMARK_ICON: char;
 
-    <span class="doccomment">/// The `char` representing a ▼ icon in the built-in [`ICON_FONT`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`ICON_FONT`]: Self::ICON_FONT</span>
-    <span class="kw">const</span> <span class="ident">ARROW_DOWN_ICON</span>: <span class="ident">char</span>;
+    <span class="doccomment">/// The `char` representing a ▼ icon in the built-in [`ICON_FONT`].
+    ///
+    /// [`ICON_FONT`]: Self::ICON_FONT
+    </span><span class="kw">const </span>ARROW_DOWN_ICON: char;
 
-    <span class="doccomment">/// Returns the default size of [`Text`].</span>
-    <span class="kw">fn</span> <span class="ident">default_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u16</span>;
+    <span class="doccomment">/// Returns the default size of [`Text`].
+    </span><span class="kw">fn </span>default_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u16;
 
-    <span class="doccomment">/// Measures the text in the given bounds and returns the minimum boundaries</span>
-    <span class="doccomment">/// that can fit the contents.</span>
-    <span class="kw">fn</span> <span class="ident">measure</span>(
+    <span class="doccomment">/// Measures the text in the given bounds and returns the minimum boundaries
+    /// that can fit the contents.
+    </span><span class="kw">fn </span>measure(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">content</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">size</span>: <span class="ident">u16</span>,
-        <span class="ident">font</span>: <span class="ident"><span class="self">Self</span>::Font</span>,
-        <span class="ident">bounds</span>: <span class="ident">Size</span>,
-    ) -&gt; (<span class="ident">f32</span>, <span class="ident">f32</span>);
+        content: <span class="kw-2">&amp;</span>str,
+        size: u16,
+        font: <span class="self">Self</span>::Font,
+        bounds: Size,
+    ) -&gt; (f32, f32);
 
-    <span class="doccomment">/// Measures the width of the text as if it were laid out in a single line.</span>
-    <span class="kw">fn</span> <span class="ident">measure_width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">content</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">size</span>: <span class="ident">u16</span>, <span class="ident">font</span>: <span class="ident"><span class="self">Self</span>::Font</span>) -&gt; <span class="ident">f32</span> {
-        <span class="kw">let</span> (<span class="ident">width</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">measure</span>(<span class="ident">content</span>, <span class="ident">size</span>, <span class="ident">font</span>, <span class="ident">Size::INFINITY</span>);
+    <span class="doccomment">/// Measures the width of the text as if it were laid out in a single line.
+    </span><span class="kw">fn </span>measure_width(<span class="kw-2">&amp;</span><span class="self">self</span>, content: <span class="kw-2">&amp;</span>str, size: u16, font: <span class="self">Self</span>::Font) -&gt; f32 {
+        <span class="kw">let </span>(width, <span class="kw">_</span>) = <span class="self">self</span>.measure(content, size, font, Size::INFINITY);
 
-        <span class="ident">width</span>
+        width
     }
 
-    <span class="doccomment">/// Tests whether the provided point is within the boundaries of text</span>
-    <span class="doccomment">/// laid out with the given parameters, returning information about</span>
-    <span class="doccomment">/// the nearest character.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If `nearest_only` is true, the hit test does not consider whether the</span>
-    <span class="doccomment">/// the point is interior to any glyph bounds, returning only the character</span>
-    <span class="doccomment">/// with the nearest centeroid.</span>
-    <span class="kw">fn</span> <span class="ident">hit_test</span>(
+    <span class="doccomment">/// Tests whether the provided point is within the boundaries of text
+    /// laid out with the given parameters, returning information about
+    /// the nearest character.
+    ///
+    /// If `nearest_only` is true, the hit test does not consider whether the
+    /// the point is interior to any glyph bounds, returning only the character
+    /// with the nearest centeroid.
+    </span><span class="kw">fn </span>hit_test(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">contents</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">size</span>: <span class="ident">f32</span>,
-        <span class="ident">font</span>: <span class="ident"><span class="self">Self</span>::Font</span>,
-        <span class="ident">bounds</span>: <span class="ident">Size</span>,
-        <span class="ident">point</span>: <span class="ident">Point</span>,
-        <span class="ident">nearest_only</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Hit</span><span class="op">&gt;</span>;
+        contents: <span class="kw-2">&amp;</span>str,
+        size: f32,
+        font: <span class="self">Self</span>::Font,
+        bounds: Size,
+        point: Point,
+        nearest_only: bool,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Hit&gt;;
 
-    <span class="doccomment">/// Draws the given [`Text`].</span>
-    <span class="kw">fn</span> <span class="ident">fill_text</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">text</span>: <span class="ident">Text</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident"><span class="self">Self</span>::Font</span><span class="op">&gt;</span>);
+    <span class="doccomment">/// Draws the given [`Text`].
+    </span><span class="kw">fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: Text&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>::Font&gt;);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

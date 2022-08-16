@@ -325,330 +325,330 @@
 <span id="323">323</span>
 <span id="324">324</span>
 <span id="325">325</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Organize rendering primitives into a flattened list of layers.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alignment</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::triangle</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">Background</span>, <span class="ident">Font</span>, <span class="ident">Point</span>, <span class="ident">Primitive</span>, <span class="ident">Rectangle</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>, <span class="ident">Viewport</span>,
+</pre><pre class="rust"><code><span class="doccomment">//! Organize rendering primitives into a flattened list of layers.
+</span><span class="kw">use </span><span class="kw">crate</span>::alignment;
+<span class="kw">use </span><span class="kw">crate</span>::triangle;
+<span class="kw">use crate</span>::{
+    Background, Font, Point, Primitive, Rectangle, Size, Vector, Viewport,
 };
 
-<span class="kw">use</span> <span class="ident">iced_native::image</span>;
-<span class="kw">use</span> <span class="ident">iced_native::svg</span>;
+<span class="kw">use </span>iced_native::image;
+<span class="kw">use </span>iced_native::svg;
 
-<span class="doccomment">/// A group of primitives that should be clipped together.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Layer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The clipping bounds of the [`Layer`].</span>
-    <span class="kw">pub</span> <span class="ident">bounds</span>: <span class="ident">Rectangle</span>,
+<span class="doccomment">/// A group of primitives that should be clipped together.
+</span><span class="attribute">#[derive(Debug, Clone)]</span>
+<span class="kw">pub struct </span>Layer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// The clipping bounds of the [`Layer`].
+    </span><span class="kw">pub </span>bounds: Rectangle,
 
-    <span class="doccomment">/// The quads of the [`Layer`].</span>
-    <span class="kw">pub</span> <span class="ident">quads</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Quad</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The quads of the [`Layer`].
+    </span><span class="kw">pub </span>quads: Vec&lt;Quad&gt;,
 
-    <span class="doccomment">/// The triangle meshes of the [`Layer`].</span>
-    <span class="kw">pub</span> <span class="ident">meshes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Mesh</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The triangle meshes of the [`Layer`].
+    </span><span class="kw">pub </span>meshes: Vec&lt;Mesh&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
 
-    <span class="doccomment">/// The text of the [`Layer`].</span>
-    <span class="kw">pub</span> <span class="ident">text</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Text</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The text of the [`Layer`].
+    </span><span class="kw">pub </span>text: Vec&lt;Text&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
 
-    <span class="doccomment">/// The images of the [`Layer`].</span>
-    <span class="kw">pub</span> <span class="ident">images</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Image</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The images of the [`Layer`].
+    </span><span class="kw">pub </span>images: Vec&lt;Image&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Layer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new [`Layer`] with the given clipping bounds.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bounds</span>: <span class="ident">Rectangle</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">bounds</span>,
-            <span class="ident">quads</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">meshes</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">text</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">images</span>: <span class="ident">Vec::new</span>(),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Layer&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// Creates a new [`Layer`] with the given clipping bounds.
+    </span><span class="kw">pub fn </span>new(bounds: Rectangle) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            bounds,
+            quads: Vec::new(),
+            meshes: Vec::new(),
+            text: Vec::new(),
+            images: Vec::new(),
         }
     }
 
-    <span class="doccomment">/// Creates a new [`Layer`] for the provided overlay text.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can be useful for displaying debug information.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">overlay</span>(<span class="ident">lines</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>], <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Viewport</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">overlay</span> <span class="op">=</span>
-            <span class="ident">Layer::new</span>(<span class="ident">Rectangle::with_size</span>(<span class="ident">viewport</span>.<span class="ident">logical_size</span>()));
+    <span class="doccomment">/// Creates a new [`Layer`] for the provided overlay text.
+    ///
+    /// This can be useful for displaying debug information.
+    </span><span class="kw">pub fn </span>overlay(lines: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[<span class="kw">impl </span>AsRef&lt;str&gt;], viewport: <span class="kw-2">&amp;</span>Viewport) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>overlay =
+            Layer::new(Rectangle::with_size(viewport.logical_size()));
 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">line</span>) <span class="kw">in</span> <span class="ident">lines</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="ident">Text</span> {
-                <span class="ident">content</span>: <span class="ident">line</span>.<span class="ident">as_ref</span>(),
-                <span class="ident">bounds</span>: <span class="ident">Rectangle::new</span>(
-                    <span class="ident">Point::new</span>(<span class="number">11.0</span>, <span class="number">11.0</span> <span class="op">+</span> <span class="number">25.0</span> <span class="op">*</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">f32</span>),
-                    <span class="ident">Size::INFINITY</span>,
+        <span class="kw">for </span>(i, line) <span class="kw">in </span>lines.iter().enumerate() {
+            <span class="kw">let </span>text = Text {
+                content: line.as_ref(),
+                bounds: Rectangle::new(
+                    Point::new(<span class="number">11.0</span>, <span class="number">11.0 </span>+ <span class="number">25.0 </span>* i <span class="kw">as </span>f32),
+                    Size::INFINITY,
                 ),
-                <span class="ident">color</span>: [<span class="number">0.9</span>, <span class="number">0.9</span>, <span class="number">0.9</span>, <span class="number">1.0</span>],
-                <span class="ident">size</span>: <span class="number">20.0</span>,
-                <span class="ident">font</span>: <span class="ident">Font::Default</span>,
-                <span class="ident">horizontal_alignment</span>: <span class="ident">alignment::Horizontal::Left</span>,
-                <span class="ident">vertical_alignment</span>: <span class="ident">alignment::Vertical::Top</span>,
+                color: [<span class="number">0.9</span>, <span class="number">0.9</span>, <span class="number">0.9</span>, <span class="number">1.0</span>],
+                size: <span class="number">20.0</span>,
+                font: Font::Default,
+                horizontal_alignment: alignment::Horizontal::Left,
+                vertical_alignment: alignment::Vertical::Top,
             };
 
-            <span class="ident">overlay</span>.<span class="ident">text</span>.<span class="ident">push</span>(<span class="ident">text</span>);
+            overlay.text.push(text);
 
-            <span class="ident">overlay</span>.<span class="ident">text</span>.<span class="ident">push</span>(<span class="ident">Text</span> {
-                <span class="ident">bounds</span>: <span class="ident">text</span>.<span class="ident">bounds</span> <span class="op">+</span> <span class="ident">Vector::new</span>(<span class="op">-</span><span class="number">1.0</span>, <span class="op">-</span><span class="number">1.0</span>),
-                <span class="ident">color</span>: [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>],
-                ..<span class="ident">text</span>
+            overlay.text.push(Text {
+                bounds: text.bounds + Vector::new(-<span class="number">1.0</span>, -<span class="number">1.0</span>),
+                color: [<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>],
+                ..text
             });
         }
 
-        <span class="ident">overlay</span>
+        overlay
     }
 
-    <span class="doccomment">/// Distributes the given [`Primitive`] and generates a list of layers based</span>
-    <span class="doccomment">/// on its contents.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate</span>(
-        <span class="ident">primitives</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">Primitive</span>],
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Viewport</span>,
-    ) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">first_layer</span> <span class="op">=</span>
-            <span class="ident">Layer::new</span>(<span class="ident">Rectangle::with_size</span>(<span class="ident">viewport</span>.<span class="ident">logical_size</span>()));
+    <span class="doccomment">/// Distributes the given [`Primitive`] and generates a list of layers based
+    /// on its contents.
+    </span><span class="kw">pub fn </span>generate(
+        primitives: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[Primitive],
+        viewport: <span class="kw-2">&amp;</span>Viewport,
+    ) -&gt; Vec&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>first_layer =
+            Layer::new(Rectangle::with_size(viewport.logical_size()));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">layers</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">first_layer</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>layers = <span class="macro">vec!</span>[first_layer];
 
-        <span class="kw">for</span> <span class="ident">primitive</span> <span class="kw">in</span> <span class="ident">primitives</span> {
-            <span class="ident"><span class="self">Self</span>::process_primitive</span>(
-                <span class="kw-2">&amp;mut</span> <span class="ident">layers</span>,
-                <span class="ident">Vector::new</span>(<span class="number">0.0</span>, <span class="number">0.0</span>),
-                <span class="ident">primitive</span>,
+        <span class="kw">for </span>primitive <span class="kw">in </span>primitives {
+            <span class="self">Self</span>::process_primitive(
+                <span class="kw-2">&amp;mut </span>layers,
+                Vector::new(<span class="number">0.0</span>, <span class="number">0.0</span>),
+                primitive,
                 <span class="number">0</span>,
             );
         }
 
-        <span class="ident">layers</span>
+        layers
     }
 
-    <span class="kw">fn</span> <span class="ident">process_primitive</span>(
-        <span class="ident">layers</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
-        <span class="ident">translation</span>: <span class="ident">Vector</span>,
-        <span class="ident">primitive</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Primitive</span>,
-        <span class="ident">current_layer</span>: <span class="ident">usize</span>,
+    <span class="kw">fn </span>process_primitive(
+        layers: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;,
+        translation: Vector,
+        primitive: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Primitive,
+        current_layer: usize,
     ) {
-        <span class="kw">match</span> <span class="ident">primitive</span> {
-            <span class="ident">Primitive::None</span> =&gt; {}
-            <span class="ident">Primitive::Group</span> { <span class="ident">primitives</span> } =&gt; {
-                <span class="comment">// TODO: Inspect a bit and regroup (?)</span>
-                <span class="kw">for</span> <span class="ident">primitive</span> <span class="kw">in</span> <span class="ident">primitives</span> {
-                    <span class="ident"><span class="self">Self</span>::process_primitive</span>(
-                        <span class="ident">layers</span>,
-                        <span class="ident">translation</span>,
-                        <span class="ident">primitive</span>,
-                        <span class="ident">current_layer</span>,
+        <span class="kw">match </span>primitive {
+            Primitive::None =&gt; {}
+            Primitive::Group { primitives } =&gt; {
+                <span class="comment">// TODO: Inspect a bit and regroup (?)
+                </span><span class="kw">for </span>primitive <span class="kw">in </span>primitives {
+                    <span class="self">Self</span>::process_primitive(
+                        layers,
+                        translation,
+                        primitive,
+                        current_layer,
                     )
                 }
             }
-            <span class="ident">Primitive::Text</span> {
-                <span class="ident">content</span>,
-                <span class="ident">bounds</span>,
-                <span class="ident">size</span>,
-                <span class="ident">color</span>,
-                <span class="ident">font</span>,
-                <span class="ident">horizontal_alignment</span>,
-                <span class="ident">vertical_alignment</span>,
+            Primitive::Text {
+                content,
+                bounds,
+                size,
+                color,
+                font,
+                horizontal_alignment,
+                vertical_alignment,
             } =&gt; {
-                <span class="kw">let</span> <span class="ident">layer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">layers</span>[<span class="ident">current_layer</span>];
+                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
 
-                <span class="ident">layer</span>.<span class="ident">text</span>.<span class="ident">push</span>(<span class="ident">Text</span> {
-                    <span class="ident">content</span>,
-                    <span class="ident">bounds</span>: <span class="kw-2">*</span><span class="ident">bounds</span> <span class="op">+</span> <span class="ident">translation</span>,
-                    <span class="ident">size</span>: <span class="kw-2">*</span><span class="ident">size</span>,
-                    <span class="ident">color</span>: <span class="ident">color</span>.<span class="ident">into_linear</span>(),
-                    <span class="ident">font</span>: <span class="kw-2">*</span><span class="ident">font</span>,
-                    <span class="ident">horizontal_alignment</span>: <span class="kw-2">*</span><span class="ident">horizontal_alignment</span>,
-                    <span class="ident">vertical_alignment</span>: <span class="kw-2">*</span><span class="ident">vertical_alignment</span>,
+                layer.text.push(Text {
+                    content,
+                    bounds: <span class="kw-2">*</span>bounds + translation,
+                    size: <span class="kw-2">*</span>size,
+                    color: color.into_linear(),
+                    font: <span class="kw-2">*</span>font,
+                    horizontal_alignment: <span class="kw-2">*</span>horizontal_alignment,
+                    vertical_alignment: <span class="kw-2">*</span>vertical_alignment,
                 });
             }
-            <span class="ident">Primitive::Quad</span> {
-                <span class="ident">bounds</span>,
-                <span class="ident">background</span>,
-                <span class="ident">border_radius</span>,
-                <span class="ident">border_width</span>,
-                <span class="ident">border_color</span>,
+            Primitive::Quad {
+                bounds,
+                background,
+                border_radius,
+                border_width,
+                border_color,
             } =&gt; {
-                <span class="kw">let</span> <span class="ident">layer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">layers</span>[<span class="ident">current_layer</span>];
+                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
 
-                <span class="comment">// TODO: Move some of these computations to the GPU (?)</span>
-                <span class="ident">layer</span>.<span class="ident">quads</span>.<span class="ident">push</span>(<span class="ident">Quad</span> {
-                    <span class="ident">position</span>: [
-                        <span class="ident">bounds</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">translation</span>.<span class="ident">x</span>,
-                        <span class="ident">bounds</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">translation</span>.<span class="ident">y</span>,
+                <span class="comment">// TODO: Move some of these computations to the GPU (?)
+                </span>layer.quads.push(Quad {
+                    position: [
+                        bounds.x + translation.x,
+                        bounds.y + translation.y,
                     ],
-                    <span class="ident">size</span>: [<span class="ident">bounds</span>.<span class="ident">width</span>, <span class="ident">bounds</span>.<span class="ident">height</span>],
-                    <span class="ident">color</span>: <span class="kw">match</span> <span class="ident">background</span> {
-                        <span class="ident">Background::Color</span>(<span class="ident">color</span>) =&gt; <span class="ident">color</span>.<span class="ident">into_linear</span>(),
+                    size: [bounds.width, bounds.height],
+                    color: <span class="kw">match </span>background {
+                        Background::Color(color) =&gt; color.into_linear(),
                     },
-                    <span class="ident">border_radius</span>: <span class="kw-2">*</span><span class="ident">border_radius</span>,
-                    <span class="ident">border_width</span>: <span class="kw-2">*</span><span class="ident">border_width</span>,
-                    <span class="ident">border_color</span>: <span class="ident">border_color</span>.<span class="ident">into_linear</span>(),
+                    border_radius: <span class="kw-2">*</span>border_radius,
+                    border_width: <span class="kw-2">*</span>border_width,
+                    border_color: border_color.into_linear(),
                 });
             }
-            <span class="ident">Primitive::Mesh2D</span> { <span class="ident">buffers</span>, <span class="ident">size</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">layer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">layers</span>[<span class="ident">current_layer</span>];
+            Primitive::Mesh2D { buffers, size } =&gt; {
+                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
 
-                <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Rectangle::new</span>(
-                    <span class="ident">Point::new</span>(<span class="ident">translation</span>.<span class="ident">x</span>, <span class="ident">translation</span>.<span class="ident">y</span>),
-                    <span class="kw-2">*</span><span class="ident">size</span>,
+                <span class="kw">let </span>bounds = Rectangle::new(
+                    Point::new(translation.x, translation.y),
+                    <span class="kw-2">*</span>size,
                 );
 
-                <span class="comment">// Only draw visible content</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">clip_bounds</span>) <span class="op">=</span> <span class="ident">layer</span>.<span class="ident">bounds</span>.<span class="ident">intersection</span>(<span class="kw-2">&amp;</span><span class="ident">bounds</span>) {
-                    <span class="ident">layer</span>.<span class="ident">meshes</span>.<span class="ident">push</span>(<span class="ident">Mesh</span> {
-                        <span class="ident">origin</span>: <span class="ident">Point::new</span>(<span class="ident">translation</span>.<span class="ident">x</span>, <span class="ident">translation</span>.<span class="ident">y</span>),
-                        <span class="ident">buffers</span>,
-                        <span class="ident">clip_bounds</span>,
+                <span class="comment">// Only draw visible content
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(clip_bounds) = layer.bounds.intersection(<span class="kw-2">&amp;</span>bounds) {
+                    layer.meshes.push(Mesh {
+                        origin: Point::new(translation.x, translation.y),
+                        buffers,
+                        clip_bounds,
                     });
                 }
             }
-            <span class="ident">Primitive::Clip</span> { <span class="ident">bounds</span>, <span class="ident">content</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">layer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">layers</span>[<span class="ident">current_layer</span>];
-                <span class="kw">let</span> <span class="ident">translated_bounds</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">bounds</span> <span class="op">+</span> <span class="ident">translation</span>;
+            Primitive::Clip { bounds, content } =&gt; {
+                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
+                <span class="kw">let </span>translated_bounds = <span class="kw-2">*</span>bounds + translation;
 
-                <span class="comment">// Only draw visible content</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">clip_bounds</span>) <span class="op">=</span>
-                    <span class="ident">layer</span>.<span class="ident">bounds</span>.<span class="ident">intersection</span>(<span class="kw-2">&amp;</span><span class="ident">translated_bounds</span>)
+                <span class="comment">// Only draw visible content
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(clip_bounds) =
+                    layer.bounds.intersection(<span class="kw-2">&amp;</span>translated_bounds)
                 {
-                    <span class="kw">let</span> <span class="ident">clip_layer</span> <span class="op">=</span> <span class="ident">Layer::new</span>(<span class="ident">clip_bounds</span>);
-                    <span class="ident">layers</span>.<span class="ident">push</span>(<span class="ident">clip_layer</span>);
+                    <span class="kw">let </span>clip_layer = Layer::new(clip_bounds);
+                    layers.push(clip_layer);
 
-                    <span class="ident"><span class="self">Self</span>::process_primitive</span>(
-                        <span class="ident">layers</span>,
-                        <span class="ident">translation</span>,
-                        <span class="ident">content</span>,
-                        <span class="ident">layers</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>,
+                    <span class="self">Self</span>::process_primitive(
+                        layers,
+                        translation,
+                        content,
+                        layers.len() - <span class="number">1</span>,
                     );
                 }
             }
-            <span class="ident">Primitive::Translate</span> {
-                <span class="ident">translation</span>: <span class="ident">new_translation</span>,
-                <span class="ident">content</span>,
+            Primitive::Translate {
+                translation: new_translation,
+                content,
             } =&gt; {
-                <span class="ident"><span class="self">Self</span>::process_primitive</span>(
-                    <span class="ident">layers</span>,
-                    <span class="ident">translation</span> <span class="op">+</span> <span class="kw-2">*</span><span class="ident">new_translation</span>,
-                    <span class="ident">content</span>,
-                    <span class="ident">current_layer</span>,
+                <span class="self">Self</span>::process_primitive(
+                    layers,
+                    translation + <span class="kw-2">*</span>new_translation,
+                    content,
+                    current_layer,
                 );
             }
-            <span class="ident">Primitive::Cached</span> { <span class="ident">cache</span> } =&gt; {
-                <span class="ident"><span class="self">Self</span>::process_primitive</span>(
-                    <span class="ident">layers</span>,
-                    <span class="ident">translation</span>,
-                    <span class="ident">cache</span>,
-                    <span class="ident">current_layer</span>,
+            Primitive::Cached { cache } =&gt; {
+                <span class="self">Self</span>::process_primitive(
+                    layers,
+                    translation,
+                    cache,
+                    current_layer,
                 );
             }
-            <span class="ident">Primitive::Image</span> { <span class="ident">handle</span>, <span class="ident">bounds</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">layer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">layers</span>[<span class="ident">current_layer</span>];
+            Primitive::Image { handle, bounds } =&gt; {
+                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
 
-                <span class="ident">layer</span>.<span class="ident">images</span>.<span class="ident">push</span>(<span class="ident">Image::Raster</span> {
-                    <span class="ident">handle</span>: <span class="ident">handle</span>.<span class="ident">clone</span>(),
-                    <span class="ident">bounds</span>: <span class="kw-2">*</span><span class="ident">bounds</span> <span class="op">+</span> <span class="ident">translation</span>,
+                layer.images.push(Image::Raster {
+                    handle: handle.clone(),
+                    bounds: <span class="kw-2">*</span>bounds + translation,
                 });
             }
-            <span class="ident">Primitive::Svg</span> { <span class="ident">handle</span>, <span class="ident">bounds</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">layer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">layers</span>[<span class="ident">current_layer</span>];
+            Primitive::Svg { handle, bounds } =&gt; {
+                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
 
-                <span class="ident">layer</span>.<span class="ident">images</span>.<span class="ident">push</span>(<span class="ident">Image::Vector</span> {
-                    <span class="ident">handle</span>: <span class="ident">handle</span>.<span class="ident">clone</span>(),
-                    <span class="ident">bounds</span>: <span class="kw-2">*</span><span class="ident">bounds</span> <span class="op">+</span> <span class="ident">translation</span>,
+                layer.images.push(Image::Vector {
+                    handle: handle.clone(),
+                    bounds: <span class="kw-2">*</span>bounds + translation,
                 });
             }
         }
     }
 }
 
-<span class="doccomment">/// A colored rectangle with a border.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This type can be directly uploaded to GPU memory.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Quad</span> {
-    <span class="doccomment">/// The position of the [`Quad`].</span>
-    <span class="kw">pub</span> <span class="ident">position</span>: [<span class="ident">f32</span>; <span class="number">2</span>],
+<span class="doccomment">/// A colored rectangle with a border.
+///
+/// This type can be directly uploaded to GPU memory.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="attribute">#[repr(C)]</span>
+<span class="kw">pub struct </span>Quad {
+    <span class="doccomment">/// The position of the [`Quad`].
+    </span><span class="kw">pub </span>position: [f32; <span class="number">2</span>],
 
-    <span class="doccomment">/// The size of the [`Quad`].</span>
-    <span class="kw">pub</span> <span class="ident">size</span>: [<span class="ident">f32</span>; <span class="number">2</span>],
+    <span class="doccomment">/// The size of the [`Quad`].
+    </span><span class="kw">pub </span>size: [f32; <span class="number">2</span>],
 
-    <span class="doccomment">/// The color of the [`Quad`], in __linear RGB__.</span>
-    <span class="kw">pub</span> <span class="ident">color</span>: [<span class="ident">f32</span>; <span class="number">4</span>],
+    <span class="doccomment">/// The color of the [`Quad`], in __linear RGB__.
+    </span><span class="kw">pub </span>color: [f32; <span class="number">4</span>],
 
-    <span class="doccomment">/// The border color of the [`Quad`], in __linear RGB__.</span>
-    <span class="kw">pub</span> <span class="ident">border_color</span>: [<span class="ident">f32</span>; <span class="number">4</span>],
+    <span class="doccomment">/// The border color of the [`Quad`], in __linear RGB__.
+    </span><span class="kw">pub </span>border_color: [f32; <span class="number">4</span>],
 
-    <span class="doccomment">/// The border radius of the [`Quad`].</span>
-    <span class="kw">pub</span> <span class="ident">border_radius</span>: <span class="ident">f32</span>,
+    <span class="doccomment">/// The border radius of the [`Quad`].
+    </span><span class="kw">pub </span>border_radius: f32,
 
-    <span class="doccomment">/// The border width of the [`Quad`].</span>
-    <span class="kw">pub</span> <span class="ident">border_width</span>: <span class="ident">f32</span>,
+    <span class="doccomment">/// The border width of the [`Quad`].
+    </span><span class="kw">pub </span>border_width: f32,
 }
 
-<span class="doccomment">/// A mesh of triangles.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Mesh</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The origin of the vertices of the [`Mesh`].</span>
-    <span class="kw">pub</span> <span class="ident">origin</span>: <span class="ident">Point</span>,
+<span class="doccomment">/// A mesh of triangles.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub struct </span>Mesh&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// The origin of the vertices of the [`Mesh`].
+    </span><span class="kw">pub </span>origin: Point,
 
-    <span class="doccomment">/// The vertex and index buffers of the [`Mesh`].</span>
-    <span class="kw">pub</span> <span class="ident">buffers</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">triangle::Mesh2D</span>,
+    <span class="doccomment">/// The vertex and index buffers of the [`Mesh`].
+    </span><span class="kw">pub </span>buffers: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>triangle::Mesh2D,
 
-    <span class="doccomment">/// The clipping bounds of the [`Mesh`].</span>
-    <span class="kw">pub</span> <span class="ident">clip_bounds</span>: <span class="ident">Rectangle</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The clipping bounds of the [`Mesh`].
+    </span><span class="kw">pub </span>clip_bounds: Rectangle&lt;f32&gt;,
 }
 
-<span class="doccomment">/// A paragraph of text.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Text</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// The content of the [`Text`].</span>
-    <span class="kw">pub</span> <span class="ident">content</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
+<span class="doccomment">/// A paragraph of text.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub struct </span>Text&lt;<span class="lifetime">&#39;a</span>&gt; {
+    <span class="doccomment">/// The content of the [`Text`].
+    </span><span class="kw">pub </span>content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
 
-    <span class="doccomment">/// The layout bounds of the [`Text`].</span>
-    <span class="kw">pub</span> <span class="ident">bounds</span>: <span class="ident">Rectangle</span>,
+    <span class="doccomment">/// The layout bounds of the [`Text`].
+    </span><span class="kw">pub </span>bounds: Rectangle,
 
-    <span class="doccomment">/// The color of the [`Text`], in __linear RGB_.</span>
-    <span class="kw">pub</span> <span class="ident">color</span>: [<span class="ident">f32</span>; <span class="number">4</span>],
+    <span class="doccomment">/// The color of the [`Text`], in __linear RGB_.
+    </span><span class="kw">pub </span>color: [f32; <span class="number">4</span>],
 
-    <span class="doccomment">/// The size of the [`Text`].</span>
-    <span class="kw">pub</span> <span class="ident">size</span>: <span class="ident">f32</span>,
+    <span class="doccomment">/// The size of the [`Text`].
+    </span><span class="kw">pub </span>size: f32,
 
-    <span class="doccomment">/// The font of the [`Text`].</span>
-    <span class="kw">pub</span> <span class="ident">font</span>: <span class="ident">Font</span>,
+    <span class="doccomment">/// The font of the [`Text`].
+    </span><span class="kw">pub </span>font: Font,
 
-    <span class="doccomment">/// The horizontal alignment of the [`Text`].</span>
-    <span class="kw">pub</span> <span class="ident">horizontal_alignment</span>: <span class="ident">alignment::Horizontal</span>,
+    <span class="doccomment">/// The horizontal alignment of the [`Text`].
+    </span><span class="kw">pub </span>horizontal_alignment: alignment::Horizontal,
 
-    <span class="doccomment">/// The vertical alignment of the [`Text`].</span>
-    <span class="kw">pub</span> <span class="ident">vertical_alignment</span>: <span class="ident">alignment::Vertical</span>,
+    <span class="doccomment">/// The vertical alignment of the [`Text`].
+    </span><span class="kw">pub </span>vertical_alignment: alignment::Vertical,
 }
 
-<span class="doccomment">/// A raster or vector image.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Image</span> {
-    <span class="doccomment">/// A raster image.</span>
-    <span class="ident">Raster</span> {
-        <span class="doccomment">/// The handle of a raster image.</span>
-        <span class="ident">handle</span>: <span class="ident">image::Handle</span>,
+<span class="doccomment">/// A raster or vector image.
+</span><span class="attribute">#[derive(Debug, Clone)]</span>
+<span class="kw">pub enum </span>Image {
+    <span class="doccomment">/// A raster image.
+    </span>Raster {
+        <span class="doccomment">/// The handle of a raster image.
+        </span>handle: image::Handle,
 
-        <span class="doccomment">/// The bounds of the image.</span>
-        <span class="ident">bounds</span>: <span class="ident">Rectangle</span>,
+        <span class="doccomment">/// The bounds of the image.
+        </span>bounds: Rectangle,
     },
-    <span class="doccomment">/// A vector image.</span>
-    <span class="ident">Vector</span> {
-        <span class="doccomment">/// The handle of a vector image.</span>
-        <span class="ident">handle</span>: <span class="ident">svg::Handle</span>,
+    <span class="doccomment">/// A vector image.
+    </span>Vector {
+        <span class="doccomment">/// The handle of a vector image.
+        </span>handle: svg::Handle,
 
-        <span class="doccomment">/// The bounds of the image.</span>
-        <span class="ident">bounds</span>: <span class="ident">Rectangle</span>,
+        <span class="doccomment">/// The bounds of the image.
+        </span>bounds: Rectangle,
     },
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unsafe_code</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">bytemuck::Zeroable</span> <span class="kw">for</span> <span class="ident">Quad</span> {}
+<span class="attribute">#[allow(unsafe_code)]</span>
+<span class="kw">unsafe impl </span>bytemuck::Zeroable <span class="kw">for </span>Quad {}
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unsafe_code</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">bytemuck::Pod</span> <span class="kw">for</span> <span class="ident">Quad</span> {}
+<span class="attribute">#[allow(unsafe_code)]</span>
+<span class="kw">unsafe impl </span>bytemuck::Pod <span class="kw">for </span>Quad {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

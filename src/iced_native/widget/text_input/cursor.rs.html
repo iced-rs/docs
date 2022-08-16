@@ -189,194 +189,194 @@
 <span id="187">187</span>
 <span id="188">188</span>
 <span id="189">189</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Track the cursor of a text input.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::text_input::Value</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Track the cursor of a text input.
+</span><span class="kw">use </span><span class="kw">crate</span>::widget::text_input::Value;
 
-<span class="doccomment">/// The cursor of a text input.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cursor</span> {
-    <span class="ident">state</span>: <span class="ident">State</span>,
+<span class="doccomment">/// The cursor of a text input.
+</span><span class="attribute">#[derive(Debug, Copy, Clone)]</span>
+<span class="kw">pub struct </span>Cursor {
+    state: State,
 }
 
-<span class="doccomment">/// The state of a [`Cursor`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">State</span> {
-    <span class="doccomment">/// Cursor without a selection</span>
-    <span class="ident">Index</span>(<span class="ident">usize</span>),
+<span class="doccomment">/// The state of a [`Cursor`].
+</span><span class="attribute">#[derive(Debug, Copy, Clone)]</span>
+<span class="kw">pub enum </span>State {
+    <span class="doccomment">/// Cursor without a selection
+    </span>Index(usize),
 
-    <span class="doccomment">/// Cursor selecting a range of text</span>
-    <span class="ident">Selection</span> {
-        <span class="doccomment">/// The start of the selection</span>
-        <span class="ident">start</span>: <span class="ident">usize</span>,
-        <span class="doccomment">/// The end of the selection</span>
-        <span class="ident">end</span>: <span class="ident">usize</span>,
+    <span class="doccomment">/// Cursor selecting a range of text
+    </span>Selection {
+        <span class="doccomment">/// The start of the selection
+        </span>start: usize,
+        <span class="doccomment">/// The end of the selection
+        </span>end: usize,
     },
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Cursor</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident">Cursor</span> {
-            <span class="ident">state</span>: <span class="ident">State::Index</span>(<span class="number">0</span>),
+<span class="kw">impl </span>Default <span class="kw">for </span>Cursor {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        Cursor {
+            state: State::Index(<span class="number">0</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Cursor</span> {
-    <span class="doccomment">/// Returns the [`State`] of the [`Cursor`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) -&gt; <span class="ident">State</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">State::Index</span>(<span class="ident">index</span>) =&gt; <span class="ident">State::Index</span>(<span class="ident">index</span>.<span class="ident">min</span>(<span class="ident">value</span>.<span class="ident">len</span>())),
-            <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">start</span>.<span class="ident">min</span>(<span class="ident">value</span>.<span class="ident">len</span>());
-                <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">end</span>.<span class="ident">min</span>(<span class="ident">value</span>.<span class="ident">len</span>());
+<span class="kw">impl </span>Cursor {
+    <span class="doccomment">/// Returns the [`State`] of the [`Cursor`].
+    </span><span class="kw">pub fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) -&gt; State {
+        <span class="kw">match </span><span class="self">self</span>.state {
+            State::Index(index) =&gt; State::Index(index.min(value.len())),
+            State::Selection { start, end } =&gt; {
+                <span class="kw">let </span>start = start.min(value.len());
+                <span class="kw">let </span>end = end.min(value.len());
 
-                <span class="kw">if</span> <span class="ident">start</span> <span class="op">==</span> <span class="ident">end</span> {
-                    <span class="ident">State::Index</span>(<span class="ident">start</span>)
-                } <span class="kw">else</span> {
-                    <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> }
+                <span class="kw">if </span>start == end {
+                    State::Index(start)
+                } <span class="kw">else </span>{
+                    State::Selection { start, end }
                 }
             }
         }
     }
 
-    <span class="doccomment">/// Returns the current selection of the [`Cursor`] for the given [`Value`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// `start` is guaranteed to be &lt;= than `end`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">selection</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
-            <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> } =&gt; {
-                <span class="prelude-val">Some</span>((<span class="ident">start</span>.<span class="ident">min</span>(<span class="ident">end</span>), <span class="ident">start</span>.<span class="ident">max</span>(<span class="ident">end</span>)))
+    <span class="doccomment">/// Returns the current selection of the [`Cursor`] for the given [`Value`].
+    ///
+    /// `start` is guaranteed to be &lt;= than `end`.
+    </span><span class="kw">pub fn </span>selection(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) -&gt; <span class="prelude-ty">Option</span>&lt;(usize, usize)&gt; {
+        <span class="kw">match </span><span class="self">self</span>.state(value) {
+            State::Selection { start, end } =&gt; {
+                <span class="prelude-val">Some</span>((start.min(end), start.max(end)))
             }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">move_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">position</span>: <span class="ident">usize</span>) {
-        <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Index</span>(<span class="ident">position</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>move_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, position: usize) {
+        <span class="self">self</span>.state = State::Index(position);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">move_right</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-        <span class="self">self</span>.<span class="ident">move_right_by_amount</span>(<span class="ident">value</span>, <span class="number">1</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>move_right(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) {
+        <span class="self">self</span>.move_right_by_amount(value, <span class="number">1</span>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">move_right_by_words</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-        <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">value</span>.<span class="ident">next_end_of_word</span>(<span class="self">self</span>.<span class="ident">right</span>(<span class="ident">value</span>)))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>move_right_by_words(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) {
+        <span class="self">self</span>.move_to(value.next_end_of_word(<span class="self">self</span>.right(value)))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">move_right_by_amount</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">amount</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>move_right_by_amount(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        value: <span class="kw-2">&amp;</span>Value,
+        amount: usize,
     ) {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
-            <span class="ident">State::Index</span>(<span class="ident">index</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">index</span>.<span class="ident">saturating_add</span>(<span class="ident">amount</span>).<span class="ident">min</span>(<span class="ident">value</span>.<span class="ident">len</span>()))
+        <span class="kw">match </span><span class="self">self</span>.state(value) {
+            State::Index(index) =&gt; {
+                <span class="self">self</span>.move_to(index.saturating_add(amount).min(value.len()))
             }
-            <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> } =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">end</span>.<span class="ident">max</span>(<span class="ident">start</span>)),
+            State::Selection { start, end } =&gt; <span class="self">self</span>.move_to(end.max(start)),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">move_left</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
-            <span class="ident">State::Index</span>(<span class="ident">index</span>) <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;</span> <span class="number">0</span> =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>),
-            <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> } =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">start</span>.<span class="ident">min</span>(<span class="ident">end</span>)),
-            <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">move_to</span>(<span class="number">0</span>),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>move_left(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) {
+        <span class="kw">match </span><span class="self">self</span>.state(value) {
+            State::Index(index) <span class="kw">if </span>index &gt; <span class="number">0 </span>=&gt; <span class="self">self</span>.move_to(index - <span class="number">1</span>),
+            State::Selection { start, end } =&gt; <span class="self">self</span>.move_to(start.min(end)),
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>.move_to(<span class="number">0</span>),
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">move_left_by_words</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-        <span class="self">self</span>.<span class="ident">move_to</span>(<span class="ident">value</span>.<span class="ident">previous_start_of_word</span>(<span class="self">self</span>.<span class="ident">left</span>(<span class="ident">value</span>)));
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>move_left_by_words(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) {
+        <span class="self">self</span>.move_to(value.previous_start_of_word(<span class="self">self</span>.left(value)));
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">select_range</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">end</span>: <span class="ident">usize</span>) {
-        <span class="kw">if</span> <span class="ident">start</span> <span class="op">==</span> <span class="ident">end</span> {
-            <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Index</span>(<span class="ident">start</span>);
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> };
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>select_range(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize, end: usize) {
+        <span class="kw">if </span>start == end {
+            <span class="self">self</span>.state = State::Index(start);
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.state = State::Selection { start, end };
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">select_left</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
-            <span class="ident">State::Index</span>(<span class="ident">index</span>) <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;</span> <span class="number">0</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">select_range</span>(<span class="ident">index</span>, <span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>select_left(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) {
+        <span class="kw">match </span><span class="self">self</span>.state(value) {
+            State::Index(index) <span class="kw">if </span>index &gt; <span class="number">0 </span>=&gt; {
+                <span class="self">self</span>.select_range(index, index - <span class="number">1</span>)
             }
-            <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> } <span class="kw">if</span> <span class="ident">end</span> <span class="op">&gt;</span> <span class="number">0</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">select_range</span>(<span class="ident">start</span>, <span class="ident">end</span> <span class="op">-</span> <span class="number">1</span>)
+            State::Selection { start, end } <span class="kw">if </span>end &gt; <span class="number">0 </span>=&gt; {
+                <span class="self">self</span>.select_range(start, end - <span class="number">1</span>)
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_ </span>=&gt; {}
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">select_right</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
-            <span class="ident">State::Index</span>(<span class="ident">index</span>) <span class="kw">if</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">value</span>.<span class="ident">len</span>() =&gt; {
-                <span class="self">self</span>.<span class="ident">select_range</span>(<span class="ident">index</span>, <span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>select_right(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) {
+        <span class="kw">match </span><span class="self">self</span>.state(value) {
+            State::Index(index) <span class="kw">if </span>index &lt; value.len() =&gt; {
+                <span class="self">self</span>.select_range(index, index + <span class="number">1</span>)
             }
-            <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> } <span class="kw">if</span> <span class="ident">end</span> <span class="op">&lt;</span> <span class="ident">value</span>.<span class="ident">len</span>() =&gt; {
-                <span class="self">self</span>.<span class="ident">select_range</span>(<span class="ident">start</span>, <span class="ident">end</span> <span class="op">+</span> <span class="number">1</span>)
+            State::Selection { start, end } <span class="kw">if </span>end &lt; value.len() =&gt; {
+                <span class="self">self</span>.select_range(start, end + <span class="number">1</span>)
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_ </span>=&gt; {}
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">select_left_by_words</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
-            <span class="ident">State::Index</span>(<span class="ident">index</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">select_range</span>(<span class="ident">index</span>, <span class="ident">value</span>.<span class="ident">previous_start_of_word</span>(<span class="ident">index</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>select_left_by_words(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) {
+        <span class="kw">match </span><span class="self">self</span>.state(value) {
+            State::Index(index) =&gt; {
+                <span class="self">self</span>.select_range(index, value.previous_start_of_word(index))
             }
-            <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> } =&gt; {
-                <span class="self">self</span>.<span class="ident">select_range</span>(<span class="ident">start</span>, <span class="ident">value</span>.<span class="ident">previous_start_of_word</span>(<span class="ident">end</span>))
-            }
-        }
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">select_right_by_words</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
-            <span class="ident">State::Index</span>(<span class="ident">index</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">select_range</span>(<span class="ident">index</span>, <span class="ident">value</span>.<span class="ident">next_end_of_word</span>(<span class="ident">index</span>))
-            }
-            <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> } =&gt; {
-                <span class="self">self</span>.<span class="ident">select_range</span>(<span class="ident">start</span>, <span class="ident">value</span>.<span class="ident">next_end_of_word</span>(<span class="ident">end</span>))
+            State::Selection { start, end } =&gt; {
+                <span class="self">self</span>.select_range(start, value.previous_start_of_word(end))
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">select_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) {
-        <span class="self">self</span>.<span class="ident">select_range</span>(<span class="number">0</span>, <span class="ident">value</span>.<span class="ident">len</span>());
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>select_right_by_words(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) {
+        <span class="kw">match </span><span class="self">self</span>.state(value) {
+            State::Index(index) =&gt; {
+                <span class="self">self</span>.select_range(index, value.next_end_of_word(index))
+            }
+            State::Selection { start, end } =&gt; {
+                <span class="self">self</span>.select_range(start, value.next_end_of_word(end))
+            }
+        }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">State::Index</span>(<span class="ident">index</span>) =&gt; <span class="ident">index</span>,
-            <span class="ident">State::Selection</span> { <span class="ident">start</span>, .. } =&gt; <span class="ident">start</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>select_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) {
+        <span class="self">self</span>.select_range(<span class="number">0</span>, value.len());
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>start(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) -&gt; usize {
+        <span class="kw">let </span>start = <span class="kw">match </span><span class="self">self</span>.state {
+            State::Index(index) =&gt; index,
+            State::Selection { start, .. } =&gt; start,
         };
 
-        <span class="ident">start</span>.<span class="ident">min</span>(<span class="ident">value</span>.<span class="ident">len</span>())
+        start.min(value.len())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">State::Index</span>(<span class="ident">index</span>) =&gt; <span class="ident">index</span>,
-            <span class="ident">State::Selection</span> { <span class="ident">end</span>, .. } =&gt; <span class="ident">end</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>end(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) -&gt; usize {
+        <span class="kw">let </span>end = <span class="kw">match </span><span class="self">self</span>.state {
+            State::Index(index) =&gt; index,
+            State::Selection { end, .. } =&gt; end,
         };
 
-        <span class="ident">end</span>.<span class="ident">min</span>(<span class="ident">value</span>.<span class="ident">len</span>())
+        end.min(value.len())
     }
 
-    <span class="kw">fn</span> <span class="ident">left</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
-            <span class="ident">State::Index</span>(<span class="ident">index</span>) =&gt; <span class="ident">index</span>,
-            <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> } =&gt; <span class="ident">start</span>.<span class="ident">min</span>(<span class="ident">end</span>),
+    <span class="kw">fn </span>left(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) -&gt; usize {
+        <span class="kw">match </span><span class="self">self</span>.state(value) {
+            State::Index(index) =&gt; index,
+            State::Selection { start, end } =&gt; start.min(end),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">right</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>(<span class="ident">value</span>) {
-            <span class="ident">State::Index</span>(<span class="ident">index</span>) =&gt; <span class="ident">index</span>,
-            <span class="ident">State::Selection</span> { <span class="ident">start</span>, <span class="ident">end</span> } =&gt; <span class="ident">start</span>.<span class="ident">max</span>(<span class="ident">end</span>),
+    <span class="kw">fn </span>right(<span class="kw-2">&amp;</span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>Value) -&gt; usize {
+        <span class="kw">match </span><span class="self">self</span>.state(value) {
+            State::Index(index) =&gt; index,
+            State::Selection { start, end } =&gt; start.max(end),
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

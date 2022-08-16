@@ -72,77 +72,77 @@
 <span id="70">70</span>
 <span id="71">71</span>
 <span id="72">72</span>
-</pre><pre class="rust"><code><span class="doccomment">//! A `tokio` backend.</span>
-<span class="kw">use</span> <span class="ident">futures::Future</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! A `tokio` backend.
+</span><span class="kw">use </span>futures::Future;
 
-<span class="doccomment">/// A `tokio` executor.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Executor</span> <span class="op">=</span> <span class="ident">tokio::runtime::Runtime</span>;
+<span class="doccomment">/// A `tokio` executor.
+</span><span class="kw">pub type </span>Executor = tokio::runtime::Runtime;
 
-<span class="kw">impl</span> <span class="ident"><span class="kw">crate</span>::Executor</span> <span class="kw">for</span> <span class="ident">Executor</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">futures::io::Error</span><span class="op">&gt;</span> {
-        <span class="ident">tokio::runtime::Runtime::new</span>()
+<span class="kw">impl </span><span class="kw">crate</span>::Executor <span class="kw">for </span>Executor {
+    <span class="kw">fn </span>new() -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, futures::io::Error&gt; {
+        tokio::runtime::Runtime::new()
     }
 
-    <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">future</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">tokio::runtime::Runtime::spawn</span>(<span class="self">self</span>, <span class="ident">future</span>);
+    <span class="kw">fn </span>spawn(<span class="kw-2">&amp;</span><span class="self">self</span>, future: <span class="kw">impl </span>Future&lt;Output = ()&gt; + Send + <span class="lifetime">&#39;static</span>) {
+        <span class="kw">let _ </span>= tokio::runtime::Runtime::spawn(<span class="self">self</span>, future);
     }
 
-    <span class="kw">fn</span> <span class="ident">enter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
-        <span class="kw">let</span> <span class="ident">_guard</span> <span class="op">=</span> <span class="ident">tokio::runtime::Runtime::enter</span>(<span class="self">self</span>);
-        <span class="ident">f</span>()
+    <span class="kw">fn </span>enter&lt;R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce() -&gt; R) -&gt; R {
+        <span class="kw">let </span>_guard = tokio::runtime::Runtime::enter(<span class="self">self</span>);
+        f()
     }
 }
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">time</span> {
-    <span class="doccomment">//! Listen and react to time.</span>
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::subscription</span>::{<span class="self">self</span>, <span class="ident">Subscription</span>};
+<span class="kw">pub mod </span>time {
+    <span class="doccomment">//! Listen and react to time.
+    </span><span class="kw">use </span><span class="kw">crate</span>::subscription::{<span class="self">self</span>, Subscription};
 
-    <span class="doccomment">/// Returns a [`Subscription`] that produces messages at a set interval.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The first message is produced after a `duration`, and then continues to</span>
-    <span class="doccomment">/// produce more messages every `duration` after that.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">every</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">std::hash::Hasher</span>, <span class="ident">E</span><span class="op">&gt;</span>(
-        <span class="ident">duration</span>: <span class="ident">std::time::Duration</span>,
-    ) -&gt; <span class="ident">Subscription</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span>, <span class="ident">std::time::Instant</span><span class="op">&gt;</span> {
-        <span class="ident">Subscription::from_recipe</span>(<span class="ident">Every</span>(<span class="ident">duration</span>))
+    <span class="doccomment">/// Returns a [`Subscription`] that produces messages at a set interval.
+    ///
+    /// The first message is produced after a `duration`, and then continues to
+    /// produce more messages every `duration` after that.
+    </span><span class="kw">pub fn </span>every&lt;H: std::hash::Hasher, E&gt;(
+        duration: std::time::Duration,
+    ) -&gt; Subscription&lt;H, E, std::time::Instant&gt; {
+        Subscription::from_recipe(Every(duration))
     }
 
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-    <span class="kw">struct</span> <span class="ident">Every</span>(<span class="ident">std::time::Duration</span>);
+    <span class="attribute">#[derive(Debug)]</span>
+    <span class="kw">struct </span>Every(std::time::Duration);
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">subscription::Recipe</span><span class="op">&lt;</span><span class="ident">H</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Every</span>
-    <span class="kw">where</span>
-        <span class="ident">H</span>: <span class="ident">std::hash::Hasher</span>,
+    <span class="kw">impl</span>&lt;H, E&gt; subscription::Recipe&lt;H, E&gt; <span class="kw">for </span>Every
+    <span class="kw">where
+        </span>H: std::hash::Hasher,
     {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">std::time::Instant</span>;
+        <span class="kw">type </span>Output = std::time::Instant;
 
-        <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-            <span class="kw">use</span> <span class="ident">std::hash::Hash</span>;
+        <span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+            <span class="kw">use </span>std::hash::Hash;
 
-            <span class="ident">std::any::TypeId::of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>().<span class="ident">hash</span>(<span class="ident">state</span>);
-            <span class="self">self</span>.<span class="number">0</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
+            std::any::TypeId::of::&lt;<span class="self">Self</span>&gt;().hash(state);
+            <span class="self">self</span>.<span class="number">0</span>.hash(state);
         }
 
-        <span class="kw">fn</span> <span class="ident">stream</span>(
-            <span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
-            <span class="ident">_input</span>: <span class="ident">futures::stream::BoxStream</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-        ) -&gt; <span class="ident">futures::stream::BoxStream</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-            <span class="kw">use</span> <span class="ident">futures::stream::StreamExt</span>;
+        <span class="kw">fn </span>stream(
+            <span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;,
+            _input: futures::stream::BoxStream&lt;<span class="lifetime">&#39;static</span>, E&gt;,
+        ) -&gt; futures::stream::BoxStream&lt;<span class="lifetime">&#39;static</span>, <span class="self">Self</span>::Output&gt; {
+            <span class="kw">use </span>futures::stream::StreamExt;
 
-            <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">tokio::time::Instant::now</span>() <span class="op">+</span> <span class="self">self</span>.<span class="number">0</span>;
+            <span class="kw">let </span>start = tokio::time::Instant::now() + <span class="self">self</span>.<span class="number">0</span>;
 
-            <span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> {
-                <span class="ident">futures::stream::unfold</span>(
-                    <span class="ident">tokio::time::interval_at</span>(<span class="ident">start</span>, <span class="self">self</span>.<span class="number">0</span>),
-                    <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">interval</span><span class="op">|</span> <span class="kw">async</span> <span class="kw">move</span> {
-                        <span class="prelude-val">Some</span>((<span class="ident">interval</span>.<span class="ident">tick</span>().<span class="kw">await</span>, <span class="ident">interval</span>))
+            <span class="kw">let </span>stream = {
+                futures::stream::unfold(
+                    tokio::time::interval_at(start, <span class="self">self</span>.<span class="number">0</span>),
+                    |<span class="kw-2">mut </span>interval| <span class="kw">async move </span>{
+                        <span class="prelude-val">Some</span>((interval.tick().<span class="kw">await</span>, interval))
                     },
                 )
             };
 
-            <span class="ident">stream</span>.<span class="ident">map</span>(<span class="ident">tokio::time::Instant::into_std</span>).<span class="ident">boxed</span>()
+            stream.map(tokio::time::Instant::into_std).boxed()
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_futures" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_futures" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

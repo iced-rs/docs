@@ -79,84 +79,84 @@
 <span id="77">77</span>
 <span id="78">78</span>
 <span id="79">79</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Access the clipboard.</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_native::clipboard::Action</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Access the clipboard.
+</span><span class="kw">pub use </span>iced_native::clipboard::Action;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::command</span>::{<span class="self">self</span>, <span class="ident">Command</span>};
+<span class="kw">use </span><span class="kw">crate</span>::command::{<span class="self">self</span>, Command};
 
-<span class="doccomment">/// A buffer for short-term storage and transfer within and between</span>
-<span class="doccomment">/// applications.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Clipboard</span> {
-    <span class="ident">state</span>: <span class="ident">State</span>,
+<span class="doccomment">/// A buffer for short-term storage and transfer within and between
+/// applications.
+</span><span class="attribute">#[allow(missing_debug_implementations)]</span>
+<span class="kw">pub struct </span>Clipboard {
+    state: State,
 }
 
-<span class="kw">enum</span> <span class="ident">State</span> {
-    <span class="ident">Connected</span>(<span class="ident">window_clipboard::Clipboard</span>),
-    <span class="ident">Unavailable</span>,
+<span class="kw">enum </span>State {
+    Connected(window_clipboard::Clipboard),
+    Unavailable,
 }
 
-<span class="kw">impl</span> <span class="ident">Clipboard</span> {
-    <span class="doccomment">/// Creates a new [`Clipboard`] for the given window.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="ident">winit::window::Window</span>) -&gt; <span class="ident">Clipboard</span> {
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">window_clipboard::Clipboard::connect</span>(<span class="ident">window</span>)
-            .<span class="ident">ok</span>()
-            .<span class="ident">map</span>(<span class="ident">State::Connected</span>)
-            .<span class="ident">unwrap_or</span>(<span class="ident">State::Unavailable</span>);
+<span class="kw">impl </span>Clipboard {
+    <span class="doccomment">/// Creates a new [`Clipboard`] for the given window.
+    </span><span class="kw">pub fn </span>connect(window: <span class="kw-2">&amp;</span>winit::window::Window) -&gt; Clipboard {
+        <span class="kw">let </span>state = window_clipboard::Clipboard::connect(window)
+            .ok()
+            .map(State::Connected)
+            .unwrap_or(State::Unavailable);
 
-        <span class="ident">Clipboard</span> { <span class="ident">state</span> }
+        Clipboard { state }
     }
 
-    <span class="doccomment">/// Creates a new [`Clipboard`] that isn&#39;t associated with a window.</span>
-    <span class="doccomment">/// This clipboard will never contain a copied value.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unconnected</span>() -&gt; <span class="ident">Clipboard</span> {
-        <span class="ident">Clipboard</span> {
-            <span class="ident">state</span>: <span class="ident">State::Unavailable</span>,
+    <span class="doccomment">/// Creates a new [`Clipboard`] that isn&#39;t associated with a window.
+    /// This clipboard will never contain a copied value.
+    </span><span class="kw">pub fn </span>unconnected() -&gt; Clipboard {
+        Clipboard {
+            state: State::Unavailable,
         }
     }
 
-    <span class="doccomment">/// Reads the current content of the [`Clipboard`] as text.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">State::Connected</span>(<span class="ident">clipboard</span>) =&gt; <span class="ident">clipboard</span>.<span class="ident">read</span>().<span class="ident">ok</span>(),
-            <span class="ident">State::Unavailable</span> =&gt; <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Reads the current content of the [`Clipboard`] as text.
+    </span><span class="kw">pub fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.state {
+            State::Connected(clipboard) =&gt; clipboard.read().ok(),
+            State::Unavailable =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="doccomment">/// Writes the given text contents to the [`Clipboard`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">contents</span>: <span class="ident">String</span>) {
-        <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span> {
-            <span class="ident">State::Connected</span>(<span class="ident">clipboard</span>) =&gt; <span class="kw">match</span> <span class="ident">clipboard</span>.<span class="ident">write</span>(<span class="ident">contents</span>) {
+    <span class="doccomment">/// Writes the given text contents to the [`Clipboard`].
+    </span><span class="kw">pub fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, contents: String) {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.state {
+            State::Connected(clipboard) =&gt; <span class="kw">match </span>clipboard.write(contents) {
                 <span class="prelude-val">Ok</span>(()) =&gt; {}
-                <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
-                    <span class="macro">log::warn!</span>(<span class="string">&quot;error writing to clipboard: {}&quot;</span>, <span class="ident">error</span>)
+                <span class="prelude-val">Err</span>(error) =&gt; {
+                    <span class="macro">log::warn!</span>(<span class="string">&quot;error writing to clipboard: {}&quot;</span>, error)
                 }
             },
-            <span class="ident">State::Unavailable</span> =&gt; {}
+            State::Unavailable =&gt; {}
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">iced_native::Clipboard</span> <span class="kw">for</span> <span class="ident">Clipboard</span> {
-    <span class="kw">fn</span> <span class="ident">read</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">read</span>()
+<span class="kw">impl </span>iced_native::Clipboard <span class="kw">for </span>Clipboard {
+    <span class="kw">fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
+        <span class="self">self</span>.read()
     }
 
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">contents</span>: <span class="ident">String</span>) {
-        <span class="self">self</span>.<span class="ident">write</span>(<span class="ident">contents</span>)
+    <span class="kw">fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, contents: String) {
+        <span class="self">self</span>.write(contents)
     }
 }
 
-<span class="doccomment">/// Read the current contents of the clipboard.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>(
-    <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) -&gt; <span class="ident">Message</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span> {
-    <span class="ident">Command::single</span>(<span class="ident">command::Action::Clipboard</span>(<span class="ident">Action::Read</span>(<span class="ident">Box::new</span>(<span class="ident">f</span>))))
+<span class="doccomment">/// Read the current contents of the clipboard.
+</span><span class="kw">pub fn </span>read&lt;Message&gt;(
+    f: <span class="kw">impl </span>Fn(<span class="prelude-ty">Option</span>&lt;String&gt;) -&gt; Message + <span class="lifetime">&#39;static</span>,
+) -&gt; Command&lt;Message&gt; {
+    Command::single(command::Action::Clipboard(Action::Read(Box::new(f))))
 }
 
-<span class="doccomment">/// Write the given contents to the clipboard.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>(<span class="ident">contents</span>: <span class="ident">String</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span> {
-    <span class="ident">Command::single</span>(<span class="ident">command::Action::Clipboard</span>(<span class="ident">Action::Write</span>(<span class="ident">contents</span>)))
+<span class="doccomment">/// Write the given contents to the clipboard.
+</span><span class="kw">pub fn </span>write&lt;Message&gt;(contents: String) -&gt; Command&lt;Message&gt; {
+    Command::single(command::Action::Clipboard(Action::Write(contents)))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

@@ -88,93 +88,93 @@
 <span id="86">86</span>
 <span id="87">87</span>
 <span id="88">88</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Load and draw vector graphics.</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Hasher</span>, <span class="ident">Rectangle</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! Load and draw vector graphics.
+</span><span class="kw">use crate</span>::{Hasher, Rectangle};
 
-<span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span> <span class="kw">as</span> <span class="kw">_</span>};
-<span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
-<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
+<span class="kw">use </span>std::hash::{Hash, Hasher <span class="kw">as _</span>};
+<span class="kw">use </span>std::path::PathBuf;
+<span class="kw">use </span>std::sync::Arc;
 
-<span class="doccomment">/// A handle of Svg data.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Handle</span> {
-    <span class="ident">id</span>: <span class="ident">u64</span>,
-    <span class="ident">data</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Data</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A handle of Svg data.
+</span><span class="attribute">#[derive(Debug, Clone)]</span>
+<span class="kw">pub struct </span>Handle {
+    id: u64,
+    data: Arc&lt;Data&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Handle</span> {
-    <span class="doccomment">/// Creates an SVG [`Handle`] pointing to the vector image of the given</span>
-    <span class="doccomment">/// path.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_path</span>(<span class="ident">path</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>) -&gt; <span class="ident">Handle</span> {
-        <span class="ident"><span class="self">Self</span>::from_data</span>(<span class="ident">Data::Path</span>(<span class="ident">path</span>.<span class="ident">into</span>()))
+<span class="kw">impl </span>Handle {
+    <span class="doccomment">/// Creates an SVG [`Handle`] pointing to the vector image of the given
+    /// path.
+    </span><span class="kw">pub fn </span>from_path(path: <span class="kw">impl </span>Into&lt;PathBuf&gt;) -&gt; Handle {
+        <span class="self">Self</span>::from_data(Data::Path(path.into()))
     }
 
-    <span class="doccomment">/// Creates an SVG [`Handle`] from raw bytes containing either an SVG string</span>
-    <span class="doccomment">/// or gzip compressed data.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This is useful if you already have your SVG data in-memory, maybe</span>
-    <span class="doccomment">/// because you downloaded or generated it procedurally.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_memory</span>(<span class="ident">bytes</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Handle</span> {
-        <span class="ident"><span class="self">Self</span>::from_data</span>(<span class="ident">Data::Bytes</span>(<span class="ident">bytes</span>.<span class="ident">into</span>()))
+    <span class="doccomment">/// Creates an SVG [`Handle`] from raw bytes containing either an SVG string
+    /// or gzip compressed data.
+    ///
+    /// This is useful if you already have your SVG data in-memory, maybe
+    /// because you downloaded or generated it procedurally.
+    </span><span class="kw">pub fn </span>from_memory(bytes: <span class="kw">impl </span>Into&lt;Vec&lt;u8&gt;&gt;) -&gt; Handle {
+        <span class="self">Self</span>::from_data(Data::Bytes(bytes.into()))
     }
 
-    <span class="kw">fn</span> <span class="ident">from_data</span>(<span class="ident">data</span>: <span class="ident">Data</span>) -&gt; <span class="ident">Handle</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">Hasher::default</span>();
-        <span class="ident">data</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;mut</span> <span class="ident">hasher</span>);
+    <span class="kw">fn </span>from_data(data: Data) -&gt; Handle {
+        <span class="kw">let </span><span class="kw-2">mut </span>hasher = Hasher::default();
+        data.hash(<span class="kw-2">&amp;mut </span>hasher);
 
-        <span class="ident">Handle</span> {
-            <span class="ident">id</span>: <span class="ident">hasher</span>.<span class="ident">finish</span>(),
-            <span class="ident">data</span>: <span class="ident">Arc::new</span>(<span class="ident">data</span>),
+        Handle {
+            id: hasher.finish(),
+            data: Arc::new(data),
         }
     }
 
-    <span class="doccomment">/// Returns the unique identifier of the [`Handle`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">id</span>
+    <span class="doccomment">/// Returns the unique identifier of the [`Handle`].
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+        <span class="self">self</span>.id
     }
 
-    <span class="doccomment">/// Returns a reference to the SVG [`Data`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Data</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Handle</span> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">std::hash::Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
+    <span class="doccomment">/// Returns a reference to the SVG [`Data`].
+    </span><span class="kw">pub fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Data {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.data
     }
 }
 
-<span class="doccomment">/// The data of a vectorial image.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Data</span> {
-    <span class="doccomment">/// File data</span>
-    <span class="ident">Path</span>(<span class="ident">PathBuf</span>),
-
-    <span class="doccomment">/// In-memory data</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Can contain an SVG string or a gzip compressed data.</span>
-    <span class="ident">Bytes</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>),
+<span class="kw">impl </span>Hash <span class="kw">for </span>Handle {
+    <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="self">self</span>.id.hash(state);
+    }
 }
 
-<span class="kw">impl</span> <span class="ident">std::fmt::Debug</span> <span class="kw">for</span> <span class="ident">Data</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Data::Path</span>(<span class="ident">path</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Path({:?})&quot;</span>, <span class="ident">path</span>),
-            <span class="ident">Data::Bytes</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Bytes(...)&quot;</span>),
+<span class="doccomment">/// The data of a vectorial image.
+</span><span class="attribute">#[derive(Clone, Hash)]</span>
+<span class="kw">pub enum </span>Data {
+    <span class="doccomment">/// File data
+    </span>Path(PathBuf),
+
+    <span class="doccomment">/// In-memory data
+    ///
+    /// Can contain an SVG string or a gzip compressed data.
+    </span>Bytes(Vec&lt;u8&gt;),
+}
+
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Data {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Data::Path(path) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Path({:?})&quot;</span>, path),
+            Data::Bytes(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Bytes(...)&quot;</span>),
         }
     }
 }
 
-<span class="doccomment">/// A [`Renderer`] that can render vector graphics.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [renderer]: crate::renderer</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span> {
-    <span class="doccomment">/// Returns the default dimensions of an SVG for the given [`Handle`].</span>
-    <span class="kw">fn</span> <span class="ident">dimensions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>) -&gt; (<span class="ident">u32</span>, <span class="ident">u32</span>);
+<span class="doccomment">/// A [`Renderer`] that can render vector graphics.
+///
+/// [renderer]: crate::renderer
+</span><span class="kw">pub trait </span>Renderer: <span class="kw">crate</span>::Renderer {
+    <span class="doccomment">/// Returns the default dimensions of an SVG for the given [`Handle`].
+    </span><span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>Handle) -&gt; (u32, u32);
 
-    <span class="doccomment">/// Draws an SVG with the given [`Handle`] and inside the provided `bounds`.</span>
-    <span class="kw">fn</span> <span class="ident">draw</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">handle</span>: <span class="ident">Handle</span>, <span class="ident">bounds</span>: <span class="ident">Rectangle</span>);
+    <span class="doccomment">/// Draws an SVG with the given [`Handle`] and inside the provided `bounds`.
+    </span><span class="kw">fn </span>draw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: Handle, bounds: Rectangle);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

@@ -262,267 +262,267 @@
 <span id="260">260</span>
 <span id="261">261</span>
 <span id="262">262</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::settings</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::settings;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Blit</span> {
-    <span class="ident">format</span>: <span class="ident">wgpu::TextureFormat</span>,
-    <span class="ident">pipeline</span>: <span class="ident">wgpu::RenderPipeline</span>,
-    <span class="ident">constants</span>: <span class="ident">wgpu::BindGroup</span>,
-    <span class="ident">texture_layout</span>: <span class="ident">wgpu::BindGroupLayout</span>,
-    <span class="ident">sample_count</span>: <span class="ident">u32</span>,
-    <span class="ident">targets</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Targets</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Blit {
+    format: wgpu::TextureFormat,
+    pipeline: wgpu::RenderPipeline,
+    constants: wgpu::BindGroup,
+    texture_layout: wgpu::BindGroupLayout,
+    sample_count: u32,
+    targets: <span class="prelude-ty">Option</span>&lt;Targets&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Blit</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>,
-        <span class="ident">format</span>: <span class="ident">wgpu::TextureFormat</span>,
-        <span class="ident">antialiasing</span>: <span class="ident">settings::Antialiasing</span>,
-    ) -&gt; <span class="ident">Blit</span> {
-        <span class="kw">let</span> <span class="ident">sampler</span> <span class="op">=</span> <span class="ident">device</span>.<span class="ident">create_sampler</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::SamplerDescriptor</span> {
-            <span class="ident">address_mode_u</span>: <span class="ident">wgpu::AddressMode::ClampToEdge</span>,
-            <span class="ident">address_mode_v</span>: <span class="ident">wgpu::AddressMode::ClampToEdge</span>,
-            <span class="ident">address_mode_w</span>: <span class="ident">wgpu::AddressMode::ClampToEdge</span>,
-            <span class="ident">mag_filter</span>: <span class="ident">wgpu::FilterMode::Nearest</span>,
-            <span class="ident">min_filter</span>: <span class="ident">wgpu::FilterMode::Nearest</span>,
-            <span class="ident">mipmap_filter</span>: <span class="ident">wgpu::FilterMode::Nearest</span>,
-            ..<span class="ident">Default::default</span>()
+<span class="kw">impl </span>Blit {
+    <span class="kw">pub fn </span>new(
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        format: wgpu::TextureFormat,
+        antialiasing: settings::Antialiasing,
+    ) -&gt; Blit {
+        <span class="kw">let </span>sampler = device.create_sampler(<span class="kw-2">&amp;</span>wgpu::SamplerDescriptor {
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Nearest,
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            ..Default::default()
         });
 
-        <span class="kw">let</span> <span class="ident">constant_layout</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_bind_group_layout</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::BindGroupLayoutDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle:msaa uniforms layout&quot;</span>),
-                <span class="ident">entries</span>: <span class="kw-2">&amp;</span>[<span class="ident">wgpu::BindGroupLayoutEntry</span> {
-                    <span class="ident">binding</span>: <span class="number">0</span>,
-                    <span class="ident">visibility</span>: <span class="ident">wgpu::ShaderStages::FRAGMENT</span>,
-                    <span class="ident">ty</span>: <span class="ident">wgpu::BindingType::Sampler</span>(
-                        <span class="ident">wgpu::SamplerBindingType::NonFiltering</span>,
+        <span class="kw">let </span>constant_layout =
+            device.create_bind_group_layout(<span class="kw-2">&amp;</span>wgpu::BindGroupLayoutDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle:msaa uniforms layout&quot;</span>),
+                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupLayoutEntry {
+                    binding: <span class="number">0</span>,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Sampler(
+                        wgpu::SamplerBindingType::NonFiltering,
                     ),
-                    <span class="ident">count</span>: <span class="prelude-val">None</span>,
+                    count: <span class="prelude-val">None</span>,
                 }],
             });
 
-        <span class="kw">let</span> <span class="ident">constant_bind_group</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_bind_group</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::BindGroupDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa uniforms bind group&quot;</span>),
-                <span class="ident">layout</span>: <span class="kw-2">&amp;</span><span class="ident">constant_layout</span>,
-                <span class="ident">entries</span>: <span class="kw-2">&amp;</span>[<span class="ident">wgpu::BindGroupEntry</span> {
-                    <span class="ident">binding</span>: <span class="number">0</span>,
-                    <span class="ident">resource</span>: <span class="ident">wgpu::BindingResource::Sampler</span>(<span class="kw-2">&amp;</span><span class="ident">sampler</span>),
+        <span class="kw">let </span>constant_bind_group =
+            device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa uniforms bind group&quot;</span>),
+                layout: <span class="kw-2">&amp;</span>constant_layout,
+                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
+                    binding: <span class="number">0</span>,
+                    resource: wgpu::BindingResource::Sampler(<span class="kw-2">&amp;</span>sampler),
                 }],
             });
 
-        <span class="kw">let</span> <span class="ident">texture_layout</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_bind_group_layout</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::BindGroupLayoutDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa texture layout&quot;</span>),
-                <span class="ident">entries</span>: <span class="kw-2">&amp;</span>[<span class="ident">wgpu::BindGroupLayoutEntry</span> {
-                    <span class="ident">binding</span>: <span class="number">0</span>,
-                    <span class="ident">visibility</span>: <span class="ident">wgpu::ShaderStages::FRAGMENT</span>,
-                    <span class="ident">ty</span>: <span class="ident">wgpu::BindingType::Texture</span> {
-                        <span class="ident">sample_type</span>: <span class="ident">wgpu::TextureSampleType::Float</span> {
-                            <span class="ident">filterable</span>: <span class="bool-val">false</span>,
+        <span class="kw">let </span>texture_layout =
+            device.create_bind_group_layout(<span class="kw-2">&amp;</span>wgpu::BindGroupLayoutDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa texture layout&quot;</span>),
+                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupLayoutEntry {
+                    binding: <span class="number">0</span>,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        sample_type: wgpu::TextureSampleType::Float {
+                            filterable: <span class="bool-val">false</span>,
                         },
-                        <span class="ident">view_dimension</span>: <span class="ident">wgpu::TextureViewDimension::D2</span>,
-                        <span class="ident">multisampled</span>: <span class="bool-val">false</span>,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        multisampled: <span class="bool-val">false</span>,
                     },
-                    <span class="ident">count</span>: <span class="prelude-val">None</span>,
+                    count: <span class="prelude-val">None</span>,
                 }],
             });
 
-        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_pipeline_layout</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::PipelineLayoutDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa pipeline layout&quot;</span>),
-                <span class="ident">push_constant_ranges</span>: <span class="kw-2">&amp;</span>[],
-                <span class="ident">bind_group_layouts</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">constant_layout</span>, <span class="kw-2">&amp;</span><span class="ident">texture_layout</span>],
+        <span class="kw">let </span>layout =
+            device.create_pipeline_layout(<span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa pipeline layout&quot;</span>),
+                push_constant_ranges: <span class="kw-2">&amp;</span>[],
+                bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>constant_layout, <span class="kw-2">&amp;</span>texture_layout],
             });
 
-        <span class="kw">let</span> <span class="ident">shader</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_shader_module</span>(<span class="ident">wgpu::ShaderModuleDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::blit_shader&quot;</span>),
-                <span class="ident">source</span>: <span class="ident">wgpu::ShaderSource::Wgsl</span>(<span class="ident">std::borrow::Cow::Borrowed</span>(
+        <span class="kw">let </span>shader =
+            device.create_shader_module(wgpu::ShaderModuleDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::blit_shader&quot;</span>),
+                source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(
                     <span class="macro">include_str!</span>(<span class="string">&quot;../shader/blit.wgsl&quot;</span>),
                 )),
             });
 
-        <span class="kw">let</span> <span class="ident">pipeline</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_render_pipeline</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::RenderPipelineDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa pipeline&quot;</span>),
-                <span class="ident">layout</span>: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">layout</span>),
-                <span class="ident">vertex</span>: <span class="ident">wgpu::VertexState</span> {
-                    <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">shader</span>,
-                    <span class="ident">entry_point</span>: <span class="string">&quot;vs_main&quot;</span>,
-                    <span class="ident">buffers</span>: <span class="kw-2">&amp;</span>[],
+        <span class="kw">let </span>pipeline =
+            device.create_render_pipeline(<span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa pipeline&quot;</span>),
+                layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
+                vertex: wgpu::VertexState {
+                    module: <span class="kw-2">&amp;</span>shader,
+                    entry_point: <span class="string">&quot;vs_main&quot;</span>,
+                    buffers: <span class="kw-2">&amp;</span>[],
                 },
-                <span class="ident">fragment</span>: <span class="prelude-val">Some</span>(<span class="ident">wgpu::FragmentState</span> {
-                    <span class="ident">module</span>: <span class="kw-2">&amp;</span><span class="ident">shader</span>,
-                    <span class="ident">entry_point</span>: <span class="string">&quot;fs_main&quot;</span>,
-                    <span class="ident">targets</span>: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(<span class="ident">wgpu::ColorTargetState</span> {
-                        <span class="ident">format</span>,
-                        <span class="ident">blend</span>: <span class="prelude-val">Some</span>(
-                            <span class="ident">wgpu::BlendState::PREMULTIPLIED_ALPHA_BLENDING</span>,
+                fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
+                    module: <span class="kw-2">&amp;</span>shader,
+                    entry_point: <span class="string">&quot;fs_main&quot;</span>,
+                    targets: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(wgpu::ColorTargetState {
+                        format,
+                        blend: <span class="prelude-val">Some</span>(
+                            wgpu::BlendState::PREMULTIPLIED_ALPHA_BLENDING,
                         ),
-                        <span class="ident">write_mask</span>: <span class="ident">wgpu::ColorWrites::ALL</span>,
+                        write_mask: wgpu::ColorWrites::ALL,
                     })],
                 }),
-                <span class="ident">primitive</span>: <span class="ident">wgpu::PrimitiveState</span> {
-                    <span class="ident">topology</span>: <span class="ident">wgpu::PrimitiveTopology::TriangleList</span>,
-                    <span class="ident">front_face</span>: <span class="ident">wgpu::FrontFace::Cw</span>,
-                    ..<span class="ident">Default::default</span>()
+                primitive: wgpu::PrimitiveState {
+                    topology: wgpu::PrimitiveTopology::TriangleList,
+                    front_face: wgpu::FrontFace::Cw,
+                    ..Default::default()
                 },
-                <span class="ident">depth_stencil</span>: <span class="prelude-val">None</span>,
-                <span class="ident">multisample</span>: <span class="ident">wgpu::MultisampleState</span> {
-                    <span class="ident">count</span>: <span class="number">1</span>,
-                    <span class="ident">mask</span>: <span class="op">!</span><span class="number">0</span>,
-                    <span class="ident">alpha_to_coverage_enabled</span>: <span class="bool-val">false</span>,
+                depth_stencil: <span class="prelude-val">None</span>,
+                multisample: wgpu::MultisampleState {
+                    count: <span class="number">1</span>,
+                    mask: !<span class="number">0</span>,
+                    alpha_to_coverage_enabled: <span class="bool-val">false</span>,
                 },
-                <span class="ident">multiview</span>: <span class="prelude-val">None</span>,
+                multiview: <span class="prelude-val">None</span>,
             });
 
-        <span class="ident">Blit</span> {
-            <span class="ident">format</span>,
-            <span class="ident">pipeline</span>,
-            <span class="ident">constants</span>: <span class="ident">constant_bind_group</span>,
-            <span class="ident">texture_layout</span>,
-            <span class="ident">sample_count</span>: <span class="ident">antialiasing</span>.<span class="ident">sample_count</span>(),
-            <span class="ident">targets</span>: <span class="prelude-val">None</span>,
+        Blit {
+            format,
+            pipeline,
+            constants: constant_bind_group,
+            texture_layout,
+            sample_count: antialiasing.sample_count(),
+            targets: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">targets</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>,
-        <span class="ident">width</span>: <span class="ident">u32</span>,
-        <span class="ident">height</span>: <span class="ident">u32</span>,
-    ) -&gt; (<span class="kw-2">&amp;</span><span class="ident">wgpu::TextureView</span>, <span class="kw-2">&amp;</span><span class="ident">wgpu::TextureView</span>) {
-        <span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">targets</span> {
-            <span class="prelude-val">None</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">targets</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Targets::new</span>(
-                    <span class="ident">device</span>,
-                    <span class="self">self</span>.<span class="ident">format</span>,
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">texture_layout</span>,
-                    <span class="self">self</span>.<span class="ident">sample_count</span>,
-                    <span class="ident">width</span>,
-                    <span class="ident">height</span>,
+    <span class="kw">pub fn </span>targets(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        width: u32,
+        height: u32,
+    ) -&gt; (<span class="kw-2">&amp;</span>wgpu::TextureView, <span class="kw-2">&amp;</span>wgpu::TextureView) {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.targets {
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="self">self</span>.targets = <span class="prelude-val">Some</span>(Targets::new(
+                    device,
+                    <span class="self">self</span>.format,
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.texture_layout,
+                    <span class="self">self</span>.sample_count,
+                    width,
+                    height,
                 ));
             }
-            <span class="prelude-val">Some</span>(<span class="ident">targets</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">targets</span>.<span class="ident">width</span> <span class="op">!</span><span class="op">=</span> <span class="ident">width</span> <span class="op">|</span><span class="op">|</span> <span class="ident">targets</span>.<span class="ident">height</span> <span class="op">!</span><span class="op">=</span> <span class="ident">height</span> {
-                    <span class="self">self</span>.<span class="ident">targets</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Targets::new</span>(
-                        <span class="ident">device</span>,
-                        <span class="self">self</span>.<span class="ident">format</span>,
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">texture_layout</span>,
-                        <span class="self">self</span>.<span class="ident">sample_count</span>,
-                        <span class="ident">width</span>,
-                        <span class="ident">height</span>,
+            <span class="prelude-val">Some</span>(targets) =&gt; {
+                <span class="kw">if </span>targets.width != width || targets.height != height {
+                    <span class="self">self</span>.targets = <span class="prelude-val">Some</span>(Targets::new(
+                        device,
+                        <span class="self">self</span>.format,
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.texture_layout,
+                        <span class="self">self</span>.sample_count,
+                        width,
+                        height,
                     ));
                 }
             }
         }
 
-        <span class="kw">let</span> <span class="ident">targets</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">targets</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let </span>targets = <span class="self">self</span>.targets.as_ref().unwrap();
 
-        (<span class="kw-2">&amp;</span><span class="ident">targets</span>.<span class="ident">attachment</span>, <span class="kw-2">&amp;</span><span class="ident">targets</span>.<span class="ident">resolve</span>)
+        (<span class="kw-2">&amp;</span>targets.attachment, <span class="kw-2">&amp;</span>targets.resolve)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="kw">pub fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">encoder</span>: <span class="kw-2">&amp;mut</span> <span class="ident">wgpu::CommandEncoder</span>,
-        <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::TextureView</span>,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        target: <span class="kw-2">&amp;</span>wgpu::TextureView,
     ) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">render_pass</span> <span class="op">=</span>
-            <span class="ident">encoder</span>.<span class="ident">begin_render_pass</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::RenderPassDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa render pass&quot;</span>),
-                <span class="ident">color_attachments</span>: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(<span class="ident">wgpu::RenderPassColorAttachment</span> {
-                    <span class="ident">view</span>: <span class="ident">target</span>,
-                    <span class="ident">resolve_target</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">ops</span>: <span class="ident">wgpu::Operations</span> {
-                        <span class="ident">load</span>: <span class="ident">wgpu::LoadOp::Load</span>,
-                        <span class="ident">store</span>: <span class="bool-val">true</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>render_pass =
+            encoder.begin_render_pass(<span class="kw-2">&amp;</span>wgpu::RenderPassDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa render pass&quot;</span>),
+                color_attachments: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(wgpu::RenderPassColorAttachment {
+                    view: target,
+                    resolve_target: <span class="prelude-val">None</span>,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: <span class="bool-val">true</span>,
                     },
                 })],
-                <span class="ident">depth_stencil_attachment</span>: <span class="prelude-val">None</span>,
+                depth_stencil_attachment: <span class="prelude-val">None</span>,
             });
 
-        <span class="ident">render_pass</span>.<span class="ident">set_pipeline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">pipeline</span>);
-        <span class="ident">render_pass</span>.<span class="ident">set_bind_group</span>(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">constants</span>, <span class="kw-2">&amp;</span>[]);
-        <span class="ident">render_pass</span>.<span class="ident">set_bind_group</span>(
+        render_pass.set_pipeline(<span class="kw-2">&amp;</span><span class="self">self</span>.pipeline);
+        render_pass.set_bind_group(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.constants, <span class="kw-2">&amp;</span>[]);
+        render_pass.set_bind_group(
             <span class="number">1</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">targets</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">bind_group</span>,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.targets.as_ref().unwrap().bind_group,
             <span class="kw-2">&amp;</span>[],
         );
-        <span class="ident">render_pass</span>.<span class="ident">draw</span>(<span class="number">0</span>..<span class="number">6</span>, <span class="number">0</span>..<span class="number">1</span>);
+        render_pass.draw(<span class="number">0</span>..<span class="number">6</span>, <span class="number">0</span>..<span class="number">1</span>);
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Targets</span> {
-    <span class="ident">attachment</span>: <span class="ident">wgpu::TextureView</span>,
-    <span class="ident">resolve</span>: <span class="ident">wgpu::TextureView</span>,
-    <span class="ident">bind_group</span>: <span class="ident">wgpu::BindGroup</span>,
-    <span class="ident">width</span>: <span class="ident">u32</span>,
-    <span class="ident">height</span>: <span class="ident">u32</span>,
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">struct </span>Targets {
+    attachment: wgpu::TextureView,
+    resolve: wgpu::TextureView,
+    bind_group: wgpu::BindGroup,
+    width: u32,
+    height: u32,
 }
 
-<span class="kw">impl</span> <span class="ident">Targets</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>,
-        <span class="ident">format</span>: <span class="ident">wgpu::TextureFormat</span>,
-        <span class="ident">texture_layout</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::BindGroupLayout</span>,
-        <span class="ident">sample_count</span>: <span class="ident">u32</span>,
-        <span class="ident">width</span>: <span class="ident">u32</span>,
-        <span class="ident">height</span>: <span class="ident">u32</span>,
-    ) -&gt; <span class="ident">Targets</span> {
-        <span class="kw">let</span> <span class="ident">extent</span> <span class="op">=</span> <span class="ident">wgpu::Extent3d</span> {
-            <span class="ident">width</span>,
-            <span class="ident">height</span>,
-            <span class="ident">depth_or_array_layers</span>: <span class="number">1</span>,
+<span class="kw">impl </span>Targets {
+    <span class="kw">pub fn </span>new(
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        format: wgpu::TextureFormat,
+        texture_layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
+        sample_count: u32,
+        width: u32,
+        height: u32,
+    ) -&gt; Targets {
+        <span class="kw">let </span>extent = wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: <span class="number">1</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">attachment</span> <span class="op">=</span> <span class="ident">device</span>.<span class="ident">create_texture</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::TextureDescriptor</span> {
-            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa attachment&quot;</span>),
-            <span class="ident">size</span>: <span class="ident">extent</span>,
-            <span class="ident">mip_level_count</span>: <span class="number">1</span>,
-            <span class="ident">sample_count</span>,
-            <span class="ident">dimension</span>: <span class="ident">wgpu::TextureDimension::D2</span>,
-            <span class="ident">format</span>,
-            <span class="ident">usage</span>: <span class="ident">wgpu::TextureUsages::RENDER_ATTACHMENT</span>,
+        <span class="kw">let </span>attachment = device.create_texture(<span class="kw-2">&amp;</span>wgpu::TextureDescriptor {
+            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa attachment&quot;</span>),
+            size: extent,
+            mip_level_count: <span class="number">1</span>,
+            sample_count,
+            dimension: wgpu::TextureDimension::D2,
+            format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         });
 
-        <span class="kw">let</span> <span class="ident">resolve</span> <span class="op">=</span> <span class="ident">device</span>.<span class="ident">create_texture</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::TextureDescriptor</span> {
-            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa resolve target&quot;</span>),
-            <span class="ident">size</span>: <span class="ident">extent</span>,
-            <span class="ident">mip_level_count</span>: <span class="number">1</span>,
-            <span class="ident">sample_count</span>: <span class="number">1</span>,
-            <span class="ident">dimension</span>: <span class="ident">wgpu::TextureDimension::D2</span>,
-            <span class="ident">format</span>,
-            <span class="ident">usage</span>: <span class="ident">wgpu::TextureUsages::RENDER_ATTACHMENT</span>
-                <span class="op">|</span> <span class="ident">wgpu::TextureUsages::TEXTURE_BINDING</span>,
+        <span class="kw">let </span>resolve = device.create_texture(<span class="kw-2">&amp;</span>wgpu::TextureDescriptor {
+            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa resolve target&quot;</span>),
+            size: extent,
+            mip_level_count: <span class="number">1</span>,
+            sample_count: <span class="number">1</span>,
+            dimension: wgpu::TextureDimension::D2,
+            format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::TEXTURE_BINDING,
         });
 
-        <span class="kw">let</span> <span class="ident">attachment</span> <span class="op">=</span>
-            <span class="ident">attachment</span>.<span class="ident">create_view</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::TextureViewDescriptor::default</span>());
+        <span class="kw">let </span>attachment =
+            attachment.create_view(<span class="kw-2">&amp;</span>wgpu::TextureViewDescriptor::default());
 
-        <span class="kw">let</span> <span class="ident">resolve</span> <span class="op">=</span>
-            <span class="ident">resolve</span>.<span class="ident">create_view</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::TextureViewDescriptor::default</span>());
+        <span class="kw">let </span>resolve =
+            resolve.create_view(<span class="kw-2">&amp;</span>wgpu::TextureViewDescriptor::default());
 
-        <span class="kw">let</span> <span class="ident">bind_group</span> <span class="op">=</span> <span class="ident">device</span>.<span class="ident">create_bind_group</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::BindGroupDescriptor</span> {
-            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa texture bind group&quot;</span>),
-            <span class="ident">layout</span>: <span class="ident">texture_layout</span>,
-            <span class="ident">entries</span>: <span class="kw-2">&amp;</span>[<span class="ident">wgpu::BindGroupEntry</span> {
-                <span class="ident">binding</span>: <span class="number">0</span>,
-                <span class="ident">resource</span>: <span class="ident">wgpu::BindingResource::TextureView</span>(<span class="kw-2">&amp;</span><span class="ident">resolve</span>),
+        <span class="kw">let </span>bind_group = device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
+            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::msaa texture bind group&quot;</span>),
+            layout: texture_layout,
+            entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
+                binding: <span class="number">0</span>,
+                resource: wgpu::BindingResource::TextureView(<span class="kw-2">&amp;</span>resolve),
             }],
         });
 
-        <span class="ident">Targets</span> {
-            <span class="ident">attachment</span>,
-            <span class="ident">resolve</span>,
-            <span class="ident">bind_group</span>,
-            <span class="ident">width</span>,
-            <span class="ident">height</span>,
+        Targets {
+            attachment,
+            resolve,
+            bind_group,
+            width,
+            height,
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_wgpu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_wgpu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

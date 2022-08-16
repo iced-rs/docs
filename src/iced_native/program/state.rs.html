@@ -184,189 +184,189 @@
 <span id="182">182</span>
 <span id="183">183</span>
 <span id="184">184</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::application</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::user_interface</span>::{<span class="self">self</span>, <span class="ident">UserInterface</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Clipboard</span>, <span class="ident">Command</span>, <span class="ident">Debug</span>, <span class="ident">Event</span>, <span class="ident">Point</span>, <span class="ident">Program</span>, <span class="ident">Size</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::application;
+<span class="kw">use </span><span class="kw">crate</span>::mouse;
+<span class="kw">use </span><span class="kw">crate</span>::renderer;
+<span class="kw">use </span><span class="kw">crate</span>::user_interface::{<span class="self">self</span>, UserInterface};
+<span class="kw">use crate</span>::{Clipboard, Command, Debug, Event, Point, Program, Size};
 
-<span class="doccomment">/// The execution state of a [`Program`]. It leverages caching, event</span>
-<span class="doccomment">/// processing, and rendering primitive storage.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Program</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="doccomment">/// The execution state of a [`Program`]. It leverages caching, event
+/// processing, and rendering primitive storage.
+</span><span class="attribute">#[allow(missing_debug_implementations)]</span>
+<span class="kw">pub struct </span>State&lt;P&gt;
+<span class="kw">where
+    </span>P: Program + <span class="lifetime">&#39;static</span>,
 {
-    <span class="ident">program</span>: <span class="ident">P</span>,
-    <span class="ident">cache</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">user_interface::Cache</span><span class="op">&gt;</span>,
-    <span class="ident">queued_events</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span>,
-    <span class="ident">queued_messages</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">P::Message</span><span class="op">&gt;</span>,
-    <span class="ident">mouse_interaction</span>: <span class="ident">mouse::Interaction</span>,
+    program: P,
+    cache: <span class="prelude-ty">Option</span>&lt;user_interface::Cache&gt;,
+    queued_events: Vec&lt;Event&gt;,
+    queued_messages: Vec&lt;P::Message&gt;,
+    mouse_interaction: mouse::Interaction,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Program</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="op">&lt;</span><span class="ident">P::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">application::StyleSheet</span>,
+<span class="kw">impl</span>&lt;P&gt; State&lt;P&gt;
+<span class="kw">where
+    </span>P: Program + <span class="lifetime">&#39;static</span>,
+    &lt;P::Renderer <span class="kw">as </span><span class="kw">crate</span>::Renderer&gt;::Theme: application::StyleSheet,
 {
-    <span class="doccomment">/// Creates a new [`State`] with the provided [`Program`], initializing its</span>
-    <span class="doccomment">/// primitive with the given logical bounds and renderer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="kw-2">mut</span> <span class="ident">program</span>: <span class="ident">P</span>,
-        <span class="ident">bounds</span>: <span class="ident">Size</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">P::Renderer</span>,
-        <span class="ident">debug</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Debug</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">user_interface</span> <span class="op">=</span> <span class="ident">build_user_interface</span>(
-            <span class="kw-2">&amp;mut</span> <span class="ident">program</span>,
-            <span class="ident">user_interface::Cache::default</span>(),
-            <span class="ident">renderer</span>,
-            <span class="ident">bounds</span>,
-            <span class="ident">debug</span>,
+    <span class="doccomment">/// Creates a new [`State`] with the provided [`Program`], initializing its
+    /// primitive with the given logical bounds and renderer.
+    </span><span class="kw">pub fn </span>new(
+        <span class="kw-2">mut </span>program: P,
+        bounds: Size,
+        renderer: <span class="kw-2">&amp;mut </span>P::Renderer,
+        debug: <span class="kw-2">&amp;mut </span>Debug,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>user_interface = build_user_interface(
+            <span class="kw-2">&amp;mut </span>program,
+            user_interface::Cache::default(),
+            renderer,
+            bounds,
+            debug,
         );
 
-        <span class="kw">let</span> <span class="ident">cache</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">user_interface</span>.<span class="ident">into_cache</span>());
+        <span class="kw">let </span>cache = <span class="prelude-val">Some</span>(user_interface.into_cache());
 
-        <span class="ident">State</span> {
-            <span class="ident">program</span>,
-            <span class="ident">cache</span>,
-            <span class="ident">queued_events</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">queued_messages</span>: <span class="ident">Vec::new</span>(),
-            <span class="ident">mouse_interaction</span>: <span class="ident">mouse::Interaction::Idle</span>,
+        State {
+            program,
+            cache,
+            queued_events: Vec::new(),
+            queued_messages: Vec::new(),
+            mouse_interaction: mouse::Interaction::Idle,
         }
     }
 
-    <span class="doccomment">/// Returns a reference to the [`Program`] of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">program</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">P</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">program</span>
+    <span class="doccomment">/// Returns a reference to the [`Program`] of the [`State`].
+    </span><span class="kw">pub fn </span>program(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>P {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.program
     }
 
-    <span class="doccomment">/// Queues an event in the [`State`] for processing during an [`update`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`update`]: Self::update</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">queue_event</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>) {
-        <span class="self">self</span>.<span class="ident">queued_events</span>.<span class="ident">push</span>(<span class="ident">event</span>);
+    <span class="doccomment">/// Queues an event in the [`State`] for processing during an [`update`].
+    ///
+    /// [`update`]: Self::update
+    </span><span class="kw">pub fn </span>queue_event(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: Event) {
+        <span class="self">self</span>.queued_events.push(event);
     }
 
-    <span class="doccomment">/// Queues a message in the [`State`] for processing during an [`update`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`update`]: Self::update</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">queue_message</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">P::Message</span>) {
-        <span class="self">self</span>.<span class="ident">queued_messages</span>.<span class="ident">push</span>(<span class="ident">message</span>);
+    <span class="doccomment">/// Queues a message in the [`State`] for processing during an [`update`].
+    ///
+    /// [`update`]: Self::update
+    </span><span class="kw">pub fn </span>queue_message(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: P::Message) {
+        <span class="self">self</span>.queued_messages.push(message);
     }
 
-    <span class="doccomment">/// Returns whether the event queue of the [`State`] is empty or not.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_queue_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">queued_events</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">queued_messages</span>.<span class="ident">is_empty</span>()
+    <span class="doccomment">/// Returns whether the event queue of the [`State`] is empty or not.
+    </span><span class="kw">pub fn </span>is_queue_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.queued_events.is_empty() &amp;&amp; <span class="self">self</span>.queued_messages.is_empty()
     }
 
-    <span class="doccomment">/// Returns the current [`mouse::Interaction`] of the [`State`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="self">self</span>.<span class="ident">mouse_interaction</span>
+    <span class="doccomment">/// Returns the current [`mouse::Interaction`] of the [`State`].
+    </span><span class="kw">pub fn </span>mouse_interaction(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; mouse::Interaction {
+        <span class="self">self</span>.mouse_interaction
     }
 
-    <span class="doccomment">/// Processes all the queued events and messages, rebuilding and redrawing</span>
-    <span class="doccomment">/// the widgets of the linked [`Program`] if necessary.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Returns the [`Command`] obtained from [`Program`] after updating it,</span>
-    <span class="doccomment">/// only if an update was necessary.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">bounds</span>: <span class="ident">Size</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">P::Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">P::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>,
-        <span class="ident">style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">debug</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Debug</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Command</span><span class="op">&lt;</span><span class="ident">P::Message</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_interface</span> <span class="op">=</span> <span class="ident">build_user_interface</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">program</span>,
-            <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">renderer</span>,
-            <span class="ident">bounds</span>,
-            <span class="ident">debug</span>,
+    <span class="doccomment">/// Processes all the queued events and messages, rebuilding and redrawing
+    /// the widgets of the linked [`Program`] if necessary.
+    ///
+    /// Returns the [`Command`] obtained from [`Program`] after updating it,
+    /// only if an update was necessary.
+    </span><span class="kw">pub fn </span>update(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        bounds: Size,
+        cursor_position: Point,
+        renderer: <span class="kw-2">&amp;mut </span>P::Renderer,
+        theme: <span class="kw-2">&amp;</span>&lt;P::Renderer <span class="kw">as </span><span class="kw">crate</span>::Renderer&gt;::Theme,
+        style: <span class="kw-2">&amp;</span>renderer::Style,
+        clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+        debug: <span class="kw-2">&amp;mut </span>Debug,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Command&lt;P::Message&gt;&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>user_interface = build_user_interface(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.program,
+            <span class="self">self</span>.cache.take().unwrap(),
+            renderer,
+            bounds,
+            debug,
         );
 
-        <span class="ident">debug</span>.<span class="ident">event_processing_started</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">messages</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        debug.event_processing_started();
+        <span class="kw">let </span><span class="kw-2">mut </span>messages = Vec::new();
 
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">user_interface</span>.<span class="ident">update</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">queued_events</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">renderer</span>,
-            <span class="ident">clipboard</span>,
-            <span class="kw-2">&amp;mut</span> <span class="ident">messages</span>,
+        <span class="kw">let _ </span>= user_interface.update(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.queued_events,
+            cursor_position,
+            renderer,
+            clipboard,
+            <span class="kw-2">&amp;mut </span>messages,
         );
 
-        <span class="ident">messages</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">queued_messages</span>);
-        <span class="self">self</span>.<span class="ident">queued_events</span>.<span class="ident">clear</span>();
-        <span class="ident">debug</span>.<span class="ident">event_processing_finished</span>();
+        messages.append(<span class="kw-2">&amp;mut </span><span class="self">self</span>.queued_messages);
+        <span class="self">self</span>.queued_events.clear();
+        debug.event_processing_finished();
 
-        <span class="kw">if</span> <span class="ident">messages</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">debug</span>.<span class="ident">draw_started</span>();
-            <span class="self">self</span>.<span class="ident">mouse_interaction</span> <span class="op">=</span>
-                <span class="ident">user_interface</span>.<span class="ident">draw</span>(<span class="ident">renderer</span>, <span class="ident">theme</span>, <span class="ident">style</span>, <span class="ident">cursor_position</span>);
-            <span class="ident">debug</span>.<span class="ident">draw_finished</span>();
+        <span class="kw">if </span>messages.is_empty() {
+            debug.draw_started();
+            <span class="self">self</span>.mouse_interaction =
+                user_interface.draw(renderer, theme, style, cursor_position);
+            debug.draw_finished();
 
-            <span class="self">self</span>.<span class="ident">cache</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">user_interface</span>.<span class="ident">into_cache</span>());
+            <span class="self">self</span>.cache = <span class="prelude-val">Some</span>(user_interface.into_cache());
 
-            <span class="prelude-val">None</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// When there are messages, we are forced to rebuild twice</span>
-            <span class="comment">// for now :^)</span>
-            <span class="kw">let</span> <span class="ident">temp_cache</span> <span class="op">=</span> <span class="ident">user_interface</span>.<span class="ident">into_cache</span>();
+            <span class="prelude-val">None
+        </span>} <span class="kw">else </span>{
+            <span class="comment">// When there are messages, we are forced to rebuild twice
+            // for now :^)
+            </span><span class="kw">let </span>temp_cache = user_interface.into_cache();
 
-            <span class="kw">let</span> <span class="ident">commands</span> <span class="op">=</span>
-                <span class="ident">Command::batch</span>(<span class="ident">messages</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">message</span><span class="op">|</span> {
-                    <span class="ident">debug</span>.<span class="ident">log_message</span>(<span class="kw-2">&amp;</span><span class="ident">message</span>);
+            <span class="kw">let </span>commands =
+                Command::batch(messages.into_iter().map(|message| {
+                    debug.log_message(<span class="kw-2">&amp;</span>message);
 
-                    <span class="ident">debug</span>.<span class="ident">update_started</span>();
-                    <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">program</span>.<span class="ident">update</span>(<span class="ident">message</span>);
-                    <span class="ident">debug</span>.<span class="ident">update_finished</span>();
+                    debug.update_started();
+                    <span class="kw">let </span>command = <span class="self">self</span>.program.update(message);
+                    debug.update_finished();
 
-                    <span class="ident">command</span>
+                    command
                 }));
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_interface</span> <span class="op">=</span> <span class="ident">build_user_interface</span>(
-                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">program</span>,
-                <span class="ident">temp_cache</span>,
-                <span class="ident">renderer</span>,
-                <span class="ident">bounds</span>,
-                <span class="ident">debug</span>,
+            <span class="kw">let </span><span class="kw-2">mut </span>user_interface = build_user_interface(
+                <span class="kw-2">&amp;mut </span><span class="self">self</span>.program,
+                temp_cache,
+                renderer,
+                bounds,
+                debug,
             );
 
-            <span class="ident">debug</span>.<span class="ident">draw_started</span>();
-            <span class="self">self</span>.<span class="ident">mouse_interaction</span> <span class="op">=</span>
-                <span class="ident">user_interface</span>.<span class="ident">draw</span>(<span class="ident">renderer</span>, <span class="ident">theme</span>, <span class="ident">style</span>, <span class="ident">cursor_position</span>);
-            <span class="ident">debug</span>.<span class="ident">draw_finished</span>();
+            debug.draw_started();
+            <span class="self">self</span>.mouse_interaction =
+                user_interface.draw(renderer, theme, style, cursor_position);
+            debug.draw_finished();
 
-            <span class="self">self</span>.<span class="ident">cache</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">user_interface</span>.<span class="ident">into_cache</span>());
+            <span class="self">self</span>.cache = <span class="prelude-val">Some</span>(user_interface.into_cache());
 
-            <span class="prelude-val">Some</span>(<span class="ident">commands</span>)
+            <span class="prelude-val">Some</span>(commands)
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">build_user_interface</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">P</span>: <span class="ident">Program</span><span class="op">&gt;</span>(
-    <span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">P</span>,
-    <span class="ident">cache</span>: <span class="ident">user_interface::Cache</span>,
-    <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">P::Renderer</span>,
-    <span class="ident">size</span>: <span class="ident">Size</span>,
-    <span class="ident">debug</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Debug</span>,
-) -&gt; <span class="ident">UserInterface</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">P::Message</span>, <span class="ident">P::Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="op">&lt;</span><span class="ident">P::Renderer</span> <span class="kw">as</span> <span class="ident"><span class="kw">crate</span>::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">application::StyleSheet</span>,
+<span class="kw">fn </span>build_user_interface&lt;<span class="lifetime">&#39;a</span>, P: Program&gt;(
+    program: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>P,
+    cache: user_interface::Cache,
+    renderer: <span class="kw-2">&amp;mut </span>P::Renderer,
+    size: Size,
+    debug: <span class="kw-2">&amp;mut </span>Debug,
+) -&gt; UserInterface&lt;<span class="lifetime">&#39;a</span>, P::Message, P::Renderer&gt;
+<span class="kw">where
+    </span>&lt;P::Renderer <span class="kw">as </span><span class="kw">crate</span>::Renderer&gt;::Theme: application::StyleSheet,
 {
-    <span class="ident">debug</span>.<span class="ident">view_started</span>();
-    <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">program</span>.<span class="ident">view</span>();
-    <span class="ident">debug</span>.<span class="ident">view_finished</span>();
+    debug.view_started();
+    <span class="kw">let </span>view = program.view();
+    debug.view_finished();
 
-    <span class="ident">debug</span>.<span class="ident">layout_started</span>();
-    <span class="kw">let</span> <span class="ident">user_interface</span> <span class="op">=</span> <span class="ident">UserInterface::build</span>(<span class="ident">view</span>, <span class="ident">size</span>, <span class="ident">cache</span>, <span class="ident">renderer</span>);
-    <span class="ident">debug</span>.<span class="ident">layout_finished</span>();
+    debug.layout_started();
+    <span class="kw">let </span>user_interface = UserInterface::build(view, size, cache, renderer);
+    debug.layout_finished();
 
-    <span class="ident">user_interface</span>
+    user_interface
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

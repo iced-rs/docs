@@ -265,270 +265,270 @@
 <span id="263">263</span>
 <span id="264">264</span>
 <span id="265">265</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Transformation</span>;
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Transformation;
 
-<span class="kw">use</span> <span class="ident">iced_graphics::font</span>;
+<span class="kw">use </span>iced_graphics::font;
 
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cell::RefCell</span>, <span class="ident">collections::HashMap</span>};
-<span class="kw">use</span> <span class="ident">wgpu_glyph::ab_glyph</span>;
+<span class="kw">use </span>std::{cell::RefCell, collections::HashMap};
+<span class="kw">use </span>wgpu_glyph::ab_glyph;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_native::text::Hit</span>;
+<span class="kw">pub use </span>iced_native::text::Hit;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pipeline</span> {
-    <span class="ident">draw_brush</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">wgpu_glyph::GlyphBrush</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">draw_font_map</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">wgpu_glyph::FontId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">measure_brush</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">glyph_brush::GlyphBrush</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Pipeline {
+    draw_brush: RefCell&lt;wgpu_glyph::GlyphBrush&lt;()&gt;&gt;,
+    draw_font_map: RefCell&lt;HashMap&lt;String, wgpu_glyph::FontId&gt;&gt;,
+    measure_brush: RefCell&lt;glyph_brush::GlyphBrush&lt;()&gt;&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Pipeline</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>,
-        <span class="ident">format</span>: <span class="ident">wgpu::TextureFormat</span>,
-        <span class="ident">default_font</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
-        <span class="ident">multithreading</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">default_font</span> <span class="op">=</span> <span class="ident">default_font</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">slice</span><span class="op">|</span> <span class="ident">slice</span>.<span class="ident">to_vec</span>());
+<span class="kw">impl </span>Pipeline {
+    <span class="kw">pub fn </span>new(
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        format: wgpu::TextureFormat,
+        default_font: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>[u8]&gt;,
+        multithreading: bool,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>default_font = default_font.map(|slice| slice.to_vec());
 
-        <span class="comment">// TODO: Font customization</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>))]</span>
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default_system_font&quot;</span>)]</span>
-        <span class="kw">let</span> <span class="ident">default_font</span> <span class="op">=</span> {
-            <span class="ident">default_font</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">font::Source::new</span>()
-                    .<span class="ident">load</span>(<span class="kw-2">&amp;</span>[<span class="ident">font::Family::SansSerif</span>, <span class="ident">font::Family::Serif</span>])
-                    .<span class="ident">ok</span>()
+        <span class="comment">// TODO: Font customization
+        </span><span class="attribute">#[cfg(not(target_os = <span class="string">&quot;ios&quot;</span>))]</span>
+        <span class="attribute">#[cfg(feature = <span class="string">&quot;default_system_font&quot;</span>)]</span>
+        <span class="kw">let </span>default_font = {
+            default_font.or_else(|| {
+                font::Source::new()
+                    .load(<span class="kw-2">&amp;</span>[font::Family::SansSerif, font::Family::Serif])
+                    .ok()
             })
         };
 
-        <span class="kw">let</span> <span class="ident">default_font</span> <span class="op">=</span>
-            <span class="ident">default_font</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">font::FALLBACK</span>.<span class="ident">to_vec</span>());
+        <span class="kw">let </span>default_font =
+            default_font.unwrap_or_else(|| font::FALLBACK.to_vec());
 
-        <span class="kw">let</span> <span class="ident">font</span> <span class="op">=</span> <span class="ident">ab_glyph::FontArc::try_from_vec</span>(<span class="ident">default_font</span>)
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+        <span class="kw">let </span>font = ab_glyph::FontArc::try_from_vec(default_font)
+            .unwrap_or_else(|<span class="kw">_</span>| {
                 <span class="macro">log::warn!</span>(
                     <span class="string">&quot;System font failed to load. Falling back to \
-                    embedded font...&quot;</span>
-                );
+                    embedded font...&quot;
+                </span>);
 
-                <span class="ident">ab_glyph::FontArc::try_from_slice</span>(<span class="ident">font::FALLBACK</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;Load fallback font&quot;</span>)
+                ab_glyph::FontArc::try_from_slice(font::FALLBACK)
+                    .expect(<span class="string">&quot;Load fallback font&quot;</span>)
             });
 
-        <span class="kw">let</span> <span class="ident">draw_brush_builder</span> <span class="op">=</span>
-            <span class="ident">wgpu_glyph::GlyphBrushBuilder::using_font</span>(<span class="ident">font</span>.<span class="ident">clone</span>())
-                .<span class="ident">initial_cache_size</span>((<span class="number">2048</span>, <span class="number">2048</span>))
-                .<span class="ident">draw_cache_multithread</span>(<span class="ident">multithreading</span>);
+        <span class="kw">let </span>draw_brush_builder =
+            wgpu_glyph::GlyphBrushBuilder::using_font(font.clone())
+                .initial_cache_size((<span class="number">2048</span>, <span class="number">2048</span>))
+                .draw_cache_multithread(multithreading);
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>)]</span>
-        <span class="kw">let</span> <span class="ident">draw_brush_builder</span> <span class="op">=</span> <span class="ident">draw_brush_builder</span>.<span class="ident">draw_cache_align_4x4</span>(<span class="bool-val">true</span>);
+        <span class="attribute">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]</span>
+        <span class="kw">let </span>draw_brush_builder = draw_brush_builder.draw_cache_align_4x4(<span class="bool-val">true</span>);
 
-        <span class="kw">let</span> <span class="ident">draw_brush</span> <span class="op">=</span> <span class="ident">draw_brush_builder</span>.<span class="ident">build</span>(<span class="ident">device</span>, <span class="ident">format</span>);
+        <span class="kw">let </span>draw_brush = draw_brush_builder.build(device, format);
 
-        <span class="kw">let</span> <span class="ident">measure_brush</span> <span class="op">=</span>
-            <span class="ident">glyph_brush::GlyphBrushBuilder::using_font</span>(<span class="ident">font</span>).<span class="ident">build</span>();
+        <span class="kw">let </span>measure_brush =
+            glyph_brush::GlyphBrushBuilder::using_font(font).build();
 
-        <span class="ident">Pipeline</span> {
-            <span class="ident">draw_brush</span>: <span class="ident">RefCell::new</span>(<span class="ident">draw_brush</span>),
-            <span class="ident">draw_font_map</span>: <span class="ident">RefCell::new</span>(<span class="ident">HashMap::new</span>()),
-            <span class="ident">measure_brush</span>: <span class="ident">RefCell::new</span>(<span class="ident">measure_brush</span>),
+        Pipeline {
+            draw_brush: RefCell::new(draw_brush),
+            draw_font_map: RefCell::new(HashMap::new()),
+            measure_brush: RefCell::new(measure_brush),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">queue</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">section</span>: <span class="ident">wgpu_glyph::Section</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">draw_brush</span>.<span class="ident">borrow_mut</span>().<span class="ident">queue</span>(<span class="ident">section</span>);
+    <span class="kw">pub fn </span>queue(<span class="kw-2">&amp;mut </span><span class="self">self</span>, section: wgpu_glyph::Section&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <span class="self">self</span>.draw_brush.borrow_mut().queue(section);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw_queued</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>,
-        <span class="ident">staging_belt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">wgpu::util::StagingBelt</span>,
-        <span class="ident">encoder</span>: <span class="kw-2">&amp;mut</span> <span class="ident">wgpu::CommandEncoder</span>,
-        <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::TextureView</span>,
-        <span class="ident">transformation</span>: <span class="ident">Transformation</span>,
-        <span class="ident">region</span>: <span class="ident">wgpu_glyph::Region</span>,
+    <span class="kw">pub fn </span>draw_queued(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        staging_belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        target: <span class="kw-2">&amp;</span>wgpu::TextureView,
+        transformation: Transformation,
+        region: wgpu_glyph::Region,
     ) {
-        <span class="self">self</span>.<span class="ident">draw_brush</span>
-            .<span class="ident">borrow_mut</span>()
-            .<span class="ident">draw_queued_with_transform_and_scissoring</span>(
-                <span class="ident">device</span>,
-                <span class="ident">staging_belt</span>,
-                <span class="ident">encoder</span>,
-                <span class="ident">target</span>,
-                <span class="ident">transformation</span>.<span class="ident">into</span>(),
-                <span class="ident">region</span>,
+        <span class="self">self</span>.draw_brush
+            .borrow_mut()
+            .draw_queued_with_transform_and_scissoring(
+                device,
+                staging_belt,
+                encoder,
+                target,
+                transformation.into(),
+                region,
             )
-            .<span class="ident">expect</span>(<span class="string">&quot;Draw text&quot;</span>);
+            .expect(<span class="string">&quot;Draw text&quot;</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">measure</span>(
+    <span class="kw">pub fn </span>measure(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">content</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">size</span>: <span class="ident">f32</span>,
-        <span class="ident">font</span>: <span class="ident">iced_native::Font</span>,
-        <span class="ident">bounds</span>: <span class="ident">iced_native::Size</span>,
-    ) -&gt; (<span class="ident">f32</span>, <span class="ident">f32</span>) {
-        <span class="kw">use</span> <span class="ident">wgpu_glyph::GlyphCruncher</span>;
+        content: <span class="kw-2">&amp;</span>str,
+        size: f32,
+        font: iced_native::Font,
+        bounds: iced_native::Size,
+    ) -&gt; (f32, f32) {
+        <span class="kw">use </span>wgpu_glyph::GlyphCruncher;
 
-        <span class="kw">let</span> <span class="ident">wgpu_glyph::FontId</span>(<span class="ident">font_id</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">find_font</span>(<span class="ident">font</span>);
+        <span class="kw">let </span>wgpu_glyph::FontId(font_id) = <span class="self">self</span>.find_font(font);
 
-        <span class="kw">let</span> <span class="ident">section</span> <span class="op">=</span> <span class="ident">wgpu_glyph::Section</span> {
-            <span class="ident">bounds</span>: (<span class="ident">bounds</span>.<span class="ident">width</span>, <span class="ident">bounds</span>.<span class="ident">height</span>),
-            <span class="ident">text</span>: <span class="macro">vec!</span>[<span class="ident">wgpu_glyph::Text</span> {
-                <span class="ident">text</span>: <span class="ident">content</span>,
-                <span class="ident">scale</span>: <span class="ident">size</span>.<span class="ident">into</span>(),
-                <span class="ident">font_id</span>: <span class="ident">wgpu_glyph::FontId</span>(<span class="ident">font_id</span>),
-                <span class="ident">extra</span>: <span class="ident">wgpu_glyph::Extra::default</span>(),
+        <span class="kw">let </span>section = wgpu_glyph::Section {
+            bounds: (bounds.width, bounds.height),
+            text: <span class="macro">vec!</span>[wgpu_glyph::Text {
+                text: content,
+                scale: size.into(),
+                font_id: wgpu_glyph::FontId(font_id),
+                extra: wgpu_glyph::Extra::default(),
             }],
-            ..<span class="ident">Default::default</span>()
+            ..Default::default()
         };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bounds</span>) <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">measure_brush</span>.<span class="ident">borrow_mut</span>().<span class="ident">glyph_bounds</span>(<span class="ident">section</span>)
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(bounds) =
+            <span class="self">self</span>.measure_brush.borrow_mut().glyph_bounds(section)
         {
-            (<span class="ident">bounds</span>.<span class="ident">width</span>().<span class="ident">ceil</span>(), <span class="ident">bounds</span>.<span class="ident">height</span>().<span class="ident">ceil</span>())
-        } <span class="kw">else</span> {
+            (bounds.width().ceil(), bounds.height().ceil())
+        } <span class="kw">else </span>{
             (<span class="number">0.0</span>, <span class="number">0.0</span>)
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hit_test</span>(
+    <span class="kw">pub fn </span>hit_test(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">content</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-        <span class="ident">size</span>: <span class="ident">f32</span>,
-        <span class="ident">font</span>: <span class="ident">iced_native::Font</span>,
-        <span class="ident">bounds</span>: <span class="ident">iced_native::Size</span>,
-        <span class="ident">point</span>: <span class="ident">iced_native::Point</span>,
-        <span class="ident">nearest_only</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Hit</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">wgpu_glyph::GlyphCruncher</span>;
+        content: <span class="kw-2">&amp;</span>str,
+        size: f32,
+        font: iced_native::Font,
+        bounds: iced_native::Size,
+        point: iced_native::Point,
+        nearest_only: bool,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Hit&gt; {
+        <span class="kw">use </span>wgpu_glyph::GlyphCruncher;
 
-        <span class="kw">let</span> <span class="ident">wgpu_glyph::FontId</span>(<span class="ident">font_id</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">find_font</span>(<span class="ident">font</span>);
+        <span class="kw">let </span>wgpu_glyph::FontId(font_id) = <span class="self">self</span>.find_font(font);
 
-        <span class="kw">let</span> <span class="ident">section</span> <span class="op">=</span> <span class="ident">wgpu_glyph::Section</span> {
-            <span class="ident">bounds</span>: (<span class="ident">bounds</span>.<span class="ident">width</span>, <span class="ident">bounds</span>.<span class="ident">height</span>),
-            <span class="ident">text</span>: <span class="macro">vec!</span>[<span class="ident">wgpu_glyph::Text</span> {
-                <span class="ident">text</span>: <span class="ident">content</span>,
-                <span class="ident">scale</span>: <span class="ident">size</span>.<span class="ident">into</span>(),
-                <span class="ident">font_id</span>: <span class="ident">wgpu_glyph::FontId</span>(<span class="ident">font_id</span>),
-                <span class="ident">extra</span>: <span class="ident">wgpu_glyph::Extra::default</span>(),
+        <span class="kw">let </span>section = wgpu_glyph::Section {
+            bounds: (bounds.width, bounds.height),
+            text: <span class="macro">vec!</span>[wgpu_glyph::Text {
+                text: content,
+                scale: size.into(),
+                font_id: wgpu_glyph::FontId(font_id),
+                extra: wgpu_glyph::Extra::default(),
             }],
-            ..<span class="ident">Default::default</span>()
+            ..Default::default()
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mb</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">measure_brush</span>.<span class="ident">borrow_mut</span>();
+        <span class="kw">let </span><span class="kw-2">mut </span>mb = <span class="self">self</span>.measure_brush.borrow_mut();
 
-        <span class="comment">// The underlying type is FontArc, so clones are cheap.</span>
-        <span class="kw">use</span> <span class="ident">wgpu_glyph::ab_glyph</span>::{<span class="ident">Font</span>, <span class="ident">ScaleFont</span>};
-        <span class="kw">let</span> <span class="ident">font</span> <span class="op">=</span> <span class="ident">mb</span>.<span class="ident">fonts</span>()[<span class="ident">font_id</span>].<span class="ident">clone</span>().<span class="ident">into_scaled</span>(<span class="ident">size</span>);
+        <span class="comment">// The underlying type is FontArc, so clones are cheap.
+        </span><span class="kw">use </span>wgpu_glyph::ab_glyph::{Font, ScaleFont};
+        <span class="kw">let </span>font = mb.fonts()[font_id].clone().into_scaled(size);
 
-        <span class="comment">// Implements an iterator over the glyph bounding boxes.</span>
-        <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">mb</span>.<span class="ident">glyphs</span>(<span class="ident">section</span>).<span class="ident">map</span>(
-            <span class="op">|</span><span class="ident">wgpu_glyph::SectionGlyph</span> {
-                 <span class="ident">byte_index</span>, <span class="ident">glyph</span>, ..
-             }<span class="op">|</span> {
+        <span class="comment">// Implements an iterator over the glyph bounding boxes.
+        </span><span class="kw">let </span>bounds = mb.glyphs(section).map(
+            |wgpu_glyph::SectionGlyph {
+                 byte_index, glyph, ..
+             }| {
                 (
-                    <span class="kw-2">*</span><span class="ident">byte_index</span>,
-                    <span class="ident">iced_native::Rectangle::new</span>(
-                        <span class="ident">iced_native::Point::new</span>(
-                            <span class="ident">glyph</span>.<span class="ident">position</span>.<span class="ident">x</span> <span class="op">-</span> <span class="ident">font</span>.<span class="ident">h_side_bearing</span>(<span class="ident">glyph</span>.<span class="ident">id</span>),
-                            <span class="ident">glyph</span>.<span class="ident">position</span>.<span class="ident">y</span> <span class="op">-</span> <span class="ident">font</span>.<span class="ident">ascent</span>(),
+                    <span class="kw-2">*</span>byte_index,
+                    iced_native::Rectangle::new(
+                        iced_native::Point::new(
+                            glyph.position.x - font.h_side_bearing(glyph.id),
+                            glyph.position.y - font.ascent(),
                         ),
-                        <span class="ident">iced_native::Size::new</span>(
-                            <span class="ident">font</span>.<span class="ident">h_advance</span>(<span class="ident">glyph</span>.<span class="ident">id</span>),
-                            <span class="ident">font</span>.<span class="ident">ascent</span>() <span class="op">-</span> <span class="ident">font</span>.<span class="ident">descent</span>(),
+                        iced_native::Size::new(
+                            font.h_advance(glyph.id),
+                            font.ascent() - font.descent(),
                         ),
                     ),
                 )
             },
         );
 
-        <span class="comment">// Implements computation of the character index based on the byte index</span>
-        <span class="comment">// within the input string.</span>
-        <span class="kw">let</span> <span class="ident">char_index</span> <span class="op">=</span> <span class="op">|</span><span class="ident">byte_index</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b_count</span> <span class="op">=</span> <span class="number">0</span>;
-            <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">utf8_len</span>) <span class="kw">in</span>
-                <span class="ident">content</span>.<span class="ident">chars</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">len_utf8</span>()).<span class="ident">enumerate</span>()
+        <span class="comment">// Implements computation of the character index based on the byte index
+        // within the input string.
+        </span><span class="kw">let </span>char_index = |byte_index| {
+            <span class="kw">let </span><span class="kw-2">mut </span>b_count = <span class="number">0</span>;
+            <span class="kw">for </span>(i, utf8_len) <span class="kw">in
+                </span>content.chars().map(|c| c.len_utf8()).enumerate()
             {
-                <span class="kw">if</span> <span class="ident">byte_index</span> <span class="op">&lt;</span> (<span class="ident">b_count</span> <span class="op">+</span> <span class="ident">utf8_len</span>) {
-                    <span class="kw">return</span> <span class="ident">i</span>;
+                <span class="kw">if </span>byte_index &lt; (b_count + utf8_len) {
+                    <span class="kw">return </span>i;
                 }
-                <span class="ident">b_count</span> <span class="op">+</span><span class="op">=</span> <span class="ident">utf8_len</span>;
+                b_count += utf8_len;
             }
 
-            <span class="ident">byte_index</span>
+            byte_index
         };
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">nearest_only</span> {
-            <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">bounds</span>) <span class="kw">in</span> <span class="ident">bounds</span>.<span class="ident">clone</span>() {
-                <span class="kw">if</span> <span class="ident">bounds</span>.<span class="ident">contains</span>(<span class="ident">point</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Hit::CharOffset</span>(<span class="ident">char_index</span>(<span class="ident">idx</span>)));
+        <span class="kw">if </span>!nearest_only {
+            <span class="kw">for </span>(idx, bounds) <span class="kw">in </span>bounds.clone() {
+                <span class="kw">if </span>bounds.contains(point) {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(Hit::CharOffset(char_index(idx)));
                 }
             }
         }
 
-        <span class="kw">let</span> <span class="ident">nearest</span> <span class="op">=</span> <span class="ident">bounds</span>
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="ident">bounds</span>)<span class="op">|</span> (<span class="ident">index</span>, <span class="ident">bounds</span>.<span class="ident">center</span>()))
-            .<span class="ident">min_by</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">center_a</span>), (<span class="kw">_</span>, <span class="ident">center_b</span>)<span class="op">|</span> {
-                <span class="ident">center_a</span>
-                    .<span class="ident">distance</span>(<span class="ident">point</span>)
-                    .<span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="ident">center_b</span>.<span class="ident">distance</span>(<span class="ident">point</span>))
-                    .<span class="ident">unwrap_or</span>(<span class="ident">std::cmp::Ordering::Greater</span>)
+        <span class="kw">let </span>nearest = bounds
+            .map(|(index, bounds)| (index, bounds.center()))
+            .min_by(|(<span class="kw">_</span>, center_a), (<span class="kw">_</span>, center_b)| {
+                center_a
+                    .distance(point)
+                    .partial_cmp(<span class="kw-2">&amp;</span>center_b.distance(point))
+                    .unwrap_or(std::cmp::Ordering::Greater)
             });
 
-        <span class="ident">nearest</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">idx</span>, <span class="ident">center</span>)<span class="op">|</span> {
-            <span class="ident">Hit::NearestCharOffset</span>(<span class="ident">char_index</span>(<span class="ident">idx</span>), <span class="ident">point</span> <span class="op">-</span> <span class="ident">center</span>)
+        nearest.map(|(idx, center)| {
+            Hit::NearestCharOffset(char_index(idx), point - center)
         })
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_measurement_cache</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// TODO: We should probably use a `GlyphCalculator` for this. However,</span>
-        <span class="comment">// it uses a lifetimed `GlyphCalculatorGuard` with side-effects on drop.</span>
-        <span class="comment">// This makes stuff quite inconvenient. A manual method for trimming the</span>
-        <span class="comment">// cache would make our lives easier.</span>
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">action</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">measure_brush</span>
-                .<span class="ident">borrow_mut</span>()
-                .<span class="ident">process_queued</span>(<span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> {}, <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {});
+    <span class="kw">pub fn </span>trim_measurement_cache(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="comment">// TODO: We should probably use a `GlyphCalculator` for this. However,
+        // it uses a lifetimed `GlyphCalculatorGuard` with side-effects on drop.
+        // This makes stuff quite inconvenient. A manual method for trimming the
+        // cache would make our lives easier.
+        </span><span class="kw">loop </span>{
+            <span class="kw">let </span>action = <span class="self">self
+                </span>.measure_brush
+                .borrow_mut()
+                .process_queued(|<span class="kw">_</span>, <span class="kw">_</span>| {}, |<span class="kw">_</span>| {});
 
-            <span class="kw">match</span> <span class="ident">action</span> {
+            <span class="kw">match </span>action {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">glyph_brush::BrushError::TextureTooSmall</span> { <span class="ident">suggested</span> }) =&gt; {
-                    <span class="kw">let</span> (<span class="ident">width</span>, <span class="ident">height</span>) <span class="op">=</span> <span class="ident">suggested</span>;
+                <span class="prelude-val">Err</span>(glyph_brush::BrushError::TextureTooSmall { suggested }) =&gt; {
+                    <span class="kw">let </span>(width, height) = suggested;
 
-                    <span class="self">self</span>.<span class="ident">measure_brush</span>
-                        .<span class="ident">borrow_mut</span>()
-                        .<span class="ident">resize_texture</span>(<span class="ident">width</span>, <span class="ident">height</span>);
+                    <span class="self">self</span>.measure_brush
+                        .borrow_mut()
+                        .resize_texture(width, height);
                 }
             }
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_font</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">font</span>: <span class="ident">iced_native::Font</span>) -&gt; <span class="ident">wgpu_glyph::FontId</span> {
-        <span class="kw">match</span> <span class="ident">font</span> {
-            <span class="ident">iced_native::Font::Default</span> =&gt; <span class="ident">wgpu_glyph::FontId</span>(<span class="number">0</span>),
-            <span class="ident">iced_native::Font::External</span> { <span class="ident">name</span>, <span class="ident">bytes</span> } =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">font_id</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">draw_font_map</span>.<span class="ident">borrow</span>().<span class="ident">get</span>(<span class="ident">name</span>) {
-                    <span class="kw">return</span> <span class="kw-2">*</span><span class="ident">font_id</span>;
+    <span class="kw">pub fn </span>find_font(<span class="kw-2">&amp;</span><span class="self">self</span>, font: iced_native::Font) -&gt; wgpu_glyph::FontId {
+        <span class="kw">match </span>font {
+            iced_native::Font::Default =&gt; wgpu_glyph::FontId(<span class="number">0</span>),
+            iced_native::Font::External { name, bytes } =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(font_id) = <span class="self">self</span>.draw_font_map.borrow().get(name) {
+                    <span class="kw">return </span><span class="kw-2">*</span>font_id;
                 }
 
-                <span class="kw">let</span> <span class="ident">font</span> <span class="op">=</span> <span class="ident">ab_glyph::FontArc::try_from_slice</span>(<span class="ident">bytes</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;Load font&quot;</span>);
+                <span class="kw">let </span>font = ab_glyph::FontArc::try_from_slice(bytes)
+                    .expect(<span class="string">&quot;Load font&quot;</span>);
 
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">measure_brush</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_font</span>(<span class="ident">font</span>.<span class="ident">clone</span>());
+                <span class="kw">let _ </span>= <span class="self">self</span>.measure_brush.borrow_mut().add_font(font.clone());
 
-                <span class="kw">let</span> <span class="ident">font_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">draw_brush</span>.<span class="ident">borrow_mut</span>().<span class="ident">add_font</span>(<span class="ident">font</span>);
+                <span class="kw">let </span>font_id = <span class="self">self</span>.draw_brush.borrow_mut().add_font(font);
 
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">draw_font_map</span>
-                    .<span class="ident">borrow_mut</span>()
-                    .<span class="ident">insert</span>(<span class="ident">String::from</span>(<span class="ident">name</span>), <span class="ident">font_id</span>);
+                <span class="kw">let _ </span>= <span class="self">self
+                    </span>.draw_font_map
+                    .borrow_mut()
+                    .insert(String::from(name), font_id);
 
-                <span class="ident">font_id</span>
+                font_id
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_wgpu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_wgpu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

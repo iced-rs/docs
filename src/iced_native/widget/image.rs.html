@@ -192,197 +192,197 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Display images in your user interface.</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">viewer</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">viewer::Viewer</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Display images in your user interface.
+</span><span class="kw">pub mod </span>viewer;
+<span class="kw">pub use </span>viewer::Viewer;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::image</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::Tree</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">ContentFit</span>, <span class="ident">Element</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>, <span class="ident">Widget</span>,
+<span class="kw">use </span><span class="kw">crate</span>::image;
+<span class="kw">use </span><span class="kw">crate</span>::layout;
+<span class="kw">use </span><span class="kw">crate</span>::renderer;
+<span class="kw">use </span><span class="kw">crate</span>::widget::Tree;
+<span class="kw">use crate</span>::{
+    ContentFit, Element, Layout, Length, Point, Rectangle, Size, Vector, Widget,
 };
 
-<span class="kw">use</span> <span class="ident">std::hash::Hash</span>;
+<span class="kw">use </span>std::hash::Hash;
 
-<span class="doccomment">/// Creates a new [`Viewer`] with the given image `Handle`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">viewer</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span>(<span class="ident">handle</span>: <span class="ident">Handle</span>) -&gt; <span class="ident">Viewer</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span> {
-    <span class="ident">Viewer::new</span>(<span class="ident">handle</span>)
+<span class="doccomment">/// Creates a new [`Viewer`] with the given image `Handle`.
+</span><span class="kw">pub fn </span>viewer&lt;Handle&gt;(handle: Handle) -&gt; Viewer&lt;Handle&gt; {
+    Viewer::new(handle)
 }
 
-<span class="doccomment">/// A frame that displays an image while keeping aspect ratio.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Example</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use iced_native::widget::Image;</span>
-<span class="doccomment">/// # use iced_native::image;</span>
-<span class="doccomment">/// #</span>
-<span class="doccomment">/// let image = Image::&lt;image::Handle&gt;::new(&quot;resources/ferris.png&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// &lt;img src=&quot;https://github.com/iced-rs/iced/blob/9712b319bb7a32848001b96bd84977430f14b623/examples/resources/ferris.png?raw=true&quot; width=&quot;300&quot;&gt;</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Hash</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Image</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span> {
-    <span class="ident">handle</span>: <span class="ident">Handle</span>,
-    <span class="ident">width</span>: <span class="ident">Length</span>,
-    <span class="ident">height</span>: <span class="ident">Length</span>,
-    <span class="ident">content_fit</span>: <span class="ident">ContentFit</span>,
+<span class="doccomment">/// A frame that displays an image while keeping aspect ratio.
+///
+/// # Example
+///
+/// ```
+/// # use iced_native::widget::Image;
+/// # use iced_native::image;
+/// #
+/// let image = Image::&lt;image::Handle&gt;::new(&quot;resources/ferris.png&quot;);
+/// ```
+///
+/// &lt;img src=&quot;https://github.com/iced-rs/iced/blob/9712b319bb7a32848001b96bd84977430f14b623/examples/resources/ferris.png?raw=true&quot; width=&quot;300&quot;&gt;
+</span><span class="attribute">#[derive(Debug, Hash)]</span>
+<span class="kw">pub struct </span>Image&lt;Handle&gt; {
+    handle: Handle,
+    width: Length,
+    height: Length,
+    content_fit: ContentFit,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span> <span class="ident">Image</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates a new [`Image`] with the given path.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">handle</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Image</span> {
-            <span class="ident">handle</span>: <span class="ident">handle</span>.<span class="ident">into</span>(),
-            <span class="ident">width</span>: <span class="ident">Length::Shrink</span>,
-            <span class="ident">height</span>: <span class="ident">Length::Shrink</span>,
-            <span class="ident">content_fit</span>: <span class="ident">ContentFit::Contain</span>,
+<span class="kw">impl</span>&lt;Handle&gt; Image&lt;Handle&gt; {
+    <span class="doccomment">/// Creates a new [`Image`] with the given path.
+    </span><span class="kw">pub fn </span>new&lt;T: Into&lt;Handle&gt;&gt;(handle: T) -&gt; <span class="self">Self </span>{
+        Image {
+            handle: handle.into(),
+            width: Length::Shrink,
+            height: Length::Shrink,
+            content_fit: ContentFit::Contain,
         }
     }
 
-    <span class="doccomment">/// Sets the width of the [`Image`] boundaries.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">width</span>: <span class="ident">Length</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">width</span> <span class="op">=</span> <span class="ident">width</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the width of the [`Image`] boundaries.
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the height of the [`Image`] boundaries.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">height</span>: <span class="ident">Length</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">height</span> <span class="op">=</span> <span class="ident">height</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the height of the [`Image`] boundaries.
+    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: Length) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.height = height;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the [`ContentFit`] of the [`Image`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Defaults to [`ContentFit::Contain`]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">content_fit</span>(<span class="self">self</span>, <span class="ident">content_fit</span>: <span class="ident">ContentFit</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">content_fit</span>,
-            ..<span class="self">self</span>
-        }
+    <span class="doccomment">/// Sets the [`ContentFit`] of the [`Image`].
+    ///
+    /// Defaults to [`ContentFit::Contain`]
+    </span><span class="kw">pub fn </span>content_fit(<span class="self">self</span>, content_fit: ContentFit) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            content_fit,
+            ..<span class="self">self
+        </span>}
     }
 }
 
-<span class="doccomment">/// Computes the layout of an [`Image`].</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">layout</span><span class="op">&lt;</span><span class="ident">Renderer</span>, <span class="ident">Handle</span><span class="op">&gt;</span>(
-    <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    <span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>,
-    <span class="ident">width</span>: <span class="ident">Length</span>,
-    <span class="ident">height</span>: <span class="ident">Length</span>,
-    <span class="ident">content_fit</span>: <span class="ident">ContentFit</span>,
-) -&gt; <span class="ident">layout::Node</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">image::Renderer</span><span class="op">&lt;</span><span class="ident">Handle</span> <span class="op">=</span> <span class="ident">Handle</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Computes the layout of an [`Image`].
+</span><span class="kw">pub fn </span>layout&lt;Renderer, Handle&gt;(
+    renderer: <span class="kw-2">&amp;</span>Renderer,
+    limits: <span class="kw-2">&amp;</span>layout::Limits,
+    handle: <span class="kw-2">&amp;</span>Handle,
+    width: Length,
+    height: Length,
+    content_fit: ContentFit,
+) -&gt; layout::Node
+<span class="kw">where
+    </span>Renderer: image::Renderer&lt;Handle = Handle&gt;,
 {
-    <span class="comment">// The raw w/h of the underlying image</span>
-    <span class="kw">let</span> <span class="ident">image_size</span> <span class="op">=</span> {
-        <span class="kw">let</span> (<span class="ident">width</span>, <span class="ident">height</span>) <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">dimensions</span>(<span class="ident">handle</span>);
+    <span class="comment">// The raw w/h of the underlying image
+    </span><span class="kw">let </span>image_size = {
+        <span class="kw">let </span>(width, height) = renderer.dimensions(handle);
 
-        <span class="ident">Size::new</span>(<span class="ident">width</span> <span class="kw">as</span> <span class="ident">f32</span>, <span class="ident">height</span> <span class="kw">as</span> <span class="ident">f32</span>)
+        Size::new(width <span class="kw">as </span>f32, height <span class="kw">as </span>f32)
     };
 
-    <span class="comment">// The size to be available to the widget prior to `Shrink`ing</span>
-    <span class="kw">let</span> <span class="ident">raw_size</span> <span class="op">=</span> <span class="ident">limits</span>.<span class="ident">width</span>(<span class="ident">width</span>).<span class="ident">height</span>(<span class="ident">height</span>).<span class="ident">resolve</span>(<span class="ident">image_size</span>);
+    <span class="comment">// The size to be available to the widget prior to `Shrink`ing
+    </span><span class="kw">let </span>raw_size = limits.width(width).height(height).resolve(image_size);
 
-    <span class="comment">// The uncropped size of the image when fit to the bounds above</span>
-    <span class="kw">let</span> <span class="ident">full_size</span> <span class="op">=</span> <span class="ident">content_fit</span>.<span class="ident">fit</span>(<span class="ident">image_size</span>, <span class="ident">raw_size</span>);
+    <span class="comment">// The uncropped size of the image when fit to the bounds above
+    </span><span class="kw">let </span>full_size = content_fit.fit(image_size, raw_size);
 
-    <span class="comment">// Shrink the widget to fit the resized image, if requested</span>
-    <span class="kw">let</span> <span class="ident">final_size</span> <span class="op">=</span> <span class="ident">Size</span> {
-        <span class="ident">width</span>: <span class="kw">match</span> <span class="ident">width</span> {
-            <span class="ident">Length::Shrink</span> =&gt; <span class="ident">f32::min</span>(<span class="ident">raw_size</span>.<span class="ident">width</span>, <span class="ident">full_size</span>.<span class="ident">width</span>),
-            <span class="kw">_</span> =&gt; <span class="ident">raw_size</span>.<span class="ident">width</span>,
+    <span class="comment">// Shrink the widget to fit the resized image, if requested
+    </span><span class="kw">let </span>final_size = Size {
+        width: <span class="kw">match </span>width {
+            Length::Shrink =&gt; f32::min(raw_size.width, full_size.width),
+            <span class="kw">_ </span>=&gt; raw_size.width,
         },
-        <span class="ident">height</span>: <span class="kw">match</span> <span class="ident">height</span> {
-            <span class="ident">Length::Shrink</span> =&gt; <span class="ident">f32::min</span>(<span class="ident">raw_size</span>.<span class="ident">height</span>, <span class="ident">full_size</span>.<span class="ident">height</span>),
-            <span class="kw">_</span> =&gt; <span class="ident">raw_size</span>.<span class="ident">height</span>,
+        height: <span class="kw">match </span>height {
+            Length::Shrink =&gt; f32::min(raw_size.height, full_size.height),
+            <span class="kw">_ </span>=&gt; raw_size.height,
         },
     };
 
-    <span class="ident">layout::Node::new</span>(<span class="ident">final_size</span>)
+    layout::Node::new(final_size)
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Handle</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Image</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">image::Renderer</span><span class="op">&lt;</span><span class="ident">Handle</span> <span class="op">=</span> <span class="ident">Handle</span><span class="op">&gt;</span>,
-    <span class="ident">Handle</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Hash</span>,
+<span class="kw">impl</span>&lt;Message, Renderer, Handle&gt; Widget&lt;Message, Renderer&gt; <span class="kw">for </span>Image&lt;Handle&gt;
+<span class="kw">where
+    </span>Renderer: image::Renderer&lt;Handle = Handle&gt;,
+    Handle: Clone + Hash,
 {
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">width</span>
+    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.width
     }
 
-    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">height</span>
+    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.height
     }
 
-    <span class="kw">fn</span> <span class="ident">layout</span>(
+    <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="ident">layout</span>(
-            <span class="ident">renderer</span>,
-            <span class="ident">limits</span>,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handle</span>,
-            <span class="self">self</span>.<span class="ident">width</span>,
-            <span class="self">self</span>.<span class="ident">height</span>,
-            <span class="self">self</span>.<span class="ident">content_fit</span>,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        limits: <span class="kw-2">&amp;</span>layout::Limits,
+    ) -&gt; layout::Node {
+        layout(
+            renderer,
+            limits,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.handle,
+            <span class="self">self</span>.width,
+            <span class="self">self</span>.height,
+            <span class="self">self</span>.content_fit,
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">_state</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">_theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">_cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">_viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        _state: <span class="kw-2">&amp;</span>Tree,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        _theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        _style: <span class="kw-2">&amp;</span>renderer::Style,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        _cursor_position: Point,
+        _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="kw">let</span> (<span class="ident">width</span>, <span class="ident">height</span>) <span class="op">=</span> <span class="ident">renderer</span>.<span class="ident">dimensions</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handle</span>);
-        <span class="kw">let</span> <span class="ident">image_size</span> <span class="op">=</span> <span class="ident">Size::new</span>(<span class="ident">width</span> <span class="kw">as</span> <span class="ident">f32</span>, <span class="ident">height</span> <span class="kw">as</span> <span class="ident">f32</span>);
+        <span class="kw">let </span>(width, height) = renderer.dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>.handle);
+        <span class="kw">let </span>image_size = Size::new(width <span class="kw">as </span>f32, height <span class="kw">as </span>f32);
 
-        <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
-        <span class="kw">let</span> <span class="ident">adjusted_fit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">content_fit</span>.<span class="ident">fit</span>(<span class="ident">image_size</span>, <span class="ident">bounds</span>.<span class="ident">size</span>());
+        <span class="kw">let </span>bounds = layout.bounds();
+        <span class="kw">let </span>adjusted_fit = <span class="self">self</span>.content_fit.fit(image_size, bounds.size());
 
-        <span class="kw">let</span> <span class="ident">render</span> <span class="op">=</span> <span class="op">|</span><span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">Vector::new</span>(
-                (<span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">-</span> <span class="ident">adjusted_fit</span>.<span class="ident">width</span>).<span class="ident">max</span>(<span class="number">0.0</span>) <span class="op">/</span> <span class="number">2.0</span>,
-                (<span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">-</span> <span class="ident">adjusted_fit</span>.<span class="ident">height</span>).<span class="ident">max</span>(<span class="number">0.0</span>) <span class="op">/</span> <span class="number">2.0</span>,
+        <span class="kw">let </span>render = |renderer: <span class="kw-2">&amp;mut </span>Renderer| {
+            <span class="kw">let </span>offset = Vector::new(
+                (bounds.width - adjusted_fit.width).max(<span class="number">0.0</span>) / <span class="number">2.0</span>,
+                (bounds.height - adjusted_fit.height).max(<span class="number">0.0</span>) / <span class="number">2.0</span>,
             );
 
-            <span class="kw">let</span> <span class="ident">drawing_bounds</span> <span class="op">=</span> <span class="ident">Rectangle</span> {
-                <span class="ident">width</span>: <span class="ident">adjusted_fit</span>.<span class="ident">width</span>,
-                <span class="ident">height</span>: <span class="ident">adjusted_fit</span>.<span class="ident">height</span>,
-                ..<span class="ident">bounds</span>
+            <span class="kw">let </span>drawing_bounds = Rectangle {
+                width: adjusted_fit.width,
+                height: adjusted_fit.height,
+                ..bounds
             };
 
-            <span class="ident">renderer</span>.<span class="ident">draw</span>(<span class="self">self</span>.<span class="ident">handle</span>.<span class="ident">clone</span>(), <span class="ident">drawing_bounds</span> <span class="op">+</span> <span class="ident">offset</span>)
+            renderer.draw(<span class="self">self</span>.handle.clone(), drawing_bounds + offset)
         };
 
-        <span class="kw">if</span> <span class="ident">adjusted_fit</span>.<span class="ident">width</span> <span class="op">&gt;</span> <span class="ident">bounds</span>.<span class="ident">width</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">adjusted_fit</span>.<span class="ident">height</span> <span class="op">&gt;</span> <span class="ident">bounds</span>.<span class="ident">height</span>
+        <span class="kw">if </span>adjusted_fit.width &gt; bounds.width
+            || adjusted_fit.height &gt; bounds.height
         {
-            <span class="ident">renderer</span>.<span class="ident">with_layer</span>(<span class="ident">bounds</span>, <span class="ident">render</span>);
-        } <span class="kw">else</span> {
-            <span class="ident">render</span>(<span class="ident">renderer</span>)
+            renderer.with_layer(bounds, render);
+        } <span class="kw">else </span>{
+            render(renderer)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>, <span class="ident">Handle</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Image</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">image::Renderer</span><span class="op">&lt;</span><span class="ident">Handle</span> <span class="op">=</span> <span class="ident">Handle</span><span class="op">&gt;</span>,
-    <span class="ident">Handle</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="lifetime">&#39;a</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Handle&gt; From&lt;Image&lt;Handle&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: image::Renderer&lt;Handle = Handle&gt;,
+    Handle: Clone + Hash + <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">image</span>: <span class="ident">Image</span><span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span>) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="ident">Element::new</span>(<span class="ident">image</span>)
+    <span class="kw">fn </span>from(image: Image&lt;Handle&gt;) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
+        Element::new(image)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

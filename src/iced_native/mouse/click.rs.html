@@ -76,81 +76,81 @@
 <span id="74">74</span>
 <span id="75">75</span>
 <span id="76">76</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Track mouse clicks.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::time::Instant</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Point</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Track mouse clicks.
+</span><span class="kw">use </span><span class="kw">crate</span>::time::Instant;
+<span class="kw">use </span><span class="kw">crate</span>::Point;
 
-<span class="doccomment">/// A mouse click.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Click</span> {
-    <span class="ident">kind</span>: <span class="ident">Kind</span>,
-    <span class="ident">position</span>: <span class="ident">Point</span>,
-    <span class="ident">time</span>: <span class="ident">Instant</span>,
+<span class="doccomment">/// A mouse click.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub struct </span>Click {
+    kind: Kind,
+    position: Point,
+    time: Instant,
 }
 
-<span class="doccomment">/// The kind of mouse click.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Kind</span> {
-    <span class="doccomment">/// A single click</span>
-    <span class="ident">Single</span>,
+<span class="doccomment">/// The kind of mouse click.
+</span><span class="attribute">#[derive(Debug, Clone, Copy)]</span>
+<span class="kw">pub enum </span>Kind {
+    <span class="doccomment">/// A single click
+    </span>Single,
 
-    <span class="doccomment">/// A double click</span>
-    <span class="ident">Double</span>,
+    <span class="doccomment">/// A double click
+    </span>Double,
 
-    <span class="doccomment">/// A triple click</span>
-    <span class="ident">Triple</span>,
+    <span class="doccomment">/// A triple click
+    </span>Triple,
 }
 
-<span class="kw">impl</span> <span class="ident">Kind</span> {
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Kind</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Kind::Single</span> =&gt; <span class="ident">Kind::Double</span>,
-            <span class="ident">Kind::Double</span> =&gt; <span class="ident">Kind::Triple</span>,
-            <span class="ident">Kind::Triple</span> =&gt; <span class="ident">Kind::Double</span>,
+<span class="kw">impl </span>Kind {
+    <span class="kw">fn </span>next(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Kind {
+        <span class="kw">match </span><span class="self">self </span>{
+            Kind::Single =&gt; Kind::Double,
+            Kind::Double =&gt; Kind::Triple,
+            Kind::Triple =&gt; Kind::Double,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Click</span> {
-    <span class="doccomment">/// Creates a new [`Click`] with the given position and previous last</span>
-    <span class="doccomment">/// [`Click`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">position</span>: <span class="ident">Point</span>, <span class="ident">previous</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Click</span><span class="op">&gt;</span>) -&gt; <span class="ident">Click</span> {
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
+<span class="kw">impl </span>Click {
+    <span class="doccomment">/// Creates a new [`Click`] with the given position and previous last
+    /// [`Click`].
+    </span><span class="kw">pub fn </span>new(position: Point, previous: <span class="prelude-ty">Option</span>&lt;Click&gt;) -&gt; Click {
+        <span class="kw">let </span>time = Instant::now();
 
-        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">previous</span>) <span class="op">=</span> <span class="ident">previous</span> {
-            <span class="kw">if</span> <span class="ident">previous</span>.<span class="ident">is_consecutive</span>(<span class="ident">position</span>, <span class="ident">time</span>) {
-                <span class="ident">previous</span>.<span class="ident">kind</span>.<span class="ident">next</span>()
-            } <span class="kw">else</span> {
-                <span class="ident">Kind::Single</span>
+        <span class="kw">let </span>kind = <span class="kw">if let </span><span class="prelude-val">Some</span>(previous) = previous {
+            <span class="kw">if </span>previous.is_consecutive(position, time) {
+                previous.kind.next()
+            } <span class="kw">else </span>{
+                Kind::Single
             }
-        } <span class="kw">else</span> {
-            <span class="ident">Kind::Single</span>
+        } <span class="kw">else </span>{
+            Kind::Single
         };
 
-        <span class="ident">Click</span> {
-            <span class="ident">kind</span>,
-            <span class="ident">position</span>,
-            <span class="ident">time</span>,
+        Click {
+            kind,
+            position,
+            time,
         }
     }
 
-    <span class="doccomment">/// Returns the [`Kind`] of [`Click`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Kind</span> {
-        <span class="self">self</span>.<span class="ident">kind</span>
+    <span class="doccomment">/// Returns the [`Kind`] of [`Click`].
+    </span><span class="kw">pub fn </span>kind(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Kind {
+        <span class="self">self</span>.kind
     }
 
-    <span class="kw">fn</span> <span class="ident">is_consecutive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">new_position</span>: <span class="ident">Point</span>, <span class="ident">time</span>: <span class="ident">Instant</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">time</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">time</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">time</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">time</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
+    <span class="kw">fn </span>is_consecutive(<span class="kw-2">&amp;</span><span class="self">self</span>, new_position: Point, time: Instant) -&gt; bool {
+        <span class="kw">let </span>duration = <span class="kw">if </span>time &gt; <span class="self">self</span>.time {
+            <span class="prelude-val">Some</span>(time - <span class="self">self</span>.time)
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
 
-        <span class="self">self</span>.<span class="ident">position</span> <span class="op">==</span> <span class="ident">new_position</span>
-            <span class="op">&amp;&amp;</span> <span class="ident">duration</span>
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">duration</span><span class="op">|</span> <span class="ident">duration</span>.<span class="ident">as_millis</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">300</span>)
-                .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+        <span class="self">self</span>.position == new_position
+            &amp;&amp; duration
+                .map(|duration| duration.as_millis() &lt;= <span class="number">300</span>)
+                .unwrap_or(<span class="bool-val">false</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

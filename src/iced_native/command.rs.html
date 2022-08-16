@@ -84,89 +84,89 @@
 <span id="82">82</span>
 <span id="83">83</span>
 <span id="84">84</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Run asynchronous actions.</span>
-<span class="kw">mod</span> <span class="ident">action</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Run asynchronous actions.
+</span><span class="kw">mod </span>action;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">action::Action</span>;
+<span class="kw">pub use </span>action::Action;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget</span>;
+<span class="kw">use </span><span class="kw">crate</span>::widget;
 
-<span class="kw">use</span> <span class="ident">iced_futures::MaybeSend</span>;
+<span class="kw">use </span>iced_futures::MaybeSend;
 
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::future::Future</span>;
+<span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::future::Future;
 
-<span class="doccomment">/// A set of asynchronous actions to be performed by some runtime.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">iced_futures::Command</span><span class="op">&lt;</span><span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+<span class="doccomment">/// A set of asynchronous actions to be performed by some runtime.
+</span><span class="kw">pub struct </span>Command&lt;T&gt;(iced_futures::Command&lt;Action&lt;T&gt;&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Creates an empty [`Command`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// In other words, a [`Command`] that does nothing.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">none</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">iced_futures::Command::none</span>())
+<span class="kw">impl</span>&lt;T&gt; Command&lt;T&gt; {
+    <span class="doccomment">/// Creates an empty [`Command`].
+    ///
+    /// In other words, a [`Command`] that does nothing.
+    </span><span class="kw">pub const fn </span>none() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(iced_futures::Command::none())
     }
 
-    <span class="doccomment">/// Creates a [`Command`] that performs a single [`Action`].</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">single</span>(<span class="ident">action</span>: <span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">iced_futures::Command::single</span>(<span class="ident">action</span>))
+    <span class="doccomment">/// Creates a [`Command`] that performs a single [`Action`].
+    </span><span class="kw">pub const fn </span>single(action: Action&lt;T&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(iced_futures::Command::single(action))
     }
 
-    <span class="doccomment">/// Creates a [`Command`] that performs a [`widget::Operation`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">widget</span>(<span class="ident">operation</span>: <span class="kw">impl</span> <span class="ident">widget::Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">iced_futures::Command::single</span>(<span class="ident">Action::Widget</span>(
-            <span class="ident">widget::Action::new</span>(<span class="ident">operation</span>),
+    <span class="doccomment">/// Creates a [`Command`] that performs a [`widget::Operation`].
+    </span><span class="kw">pub fn </span>widget(operation: <span class="kw">impl </span>widget::Operation&lt;T&gt; + <span class="lifetime">&#39;static</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(iced_futures::Command::single(Action::Widget(
+            widget::Action::new(operation),
         )))
     }
 
-    <span class="doccomment">/// Creates a [`Command`] that performs the action of the given future.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">perform</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
-        <span class="ident">future</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">MaybeSend</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">T</span>) -&gt; <span class="ident">A</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">MaybeSend</span>,
-    ) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">iced_futures::futures::FutureExt</span>;
+    <span class="doccomment">/// Creates a [`Command`] that performs the action of the given future.
+    </span><span class="kw">pub fn </span>perform&lt;A&gt;(
+        future: <span class="kw">impl </span>Future&lt;Output = T&gt; + <span class="lifetime">&#39;static </span>+ MaybeSend,
+        f: <span class="kw">impl </span>Fn(T) -&gt; A + <span class="lifetime">&#39;static </span>+ MaybeSend,
+    ) -&gt; Command&lt;A&gt; {
+        <span class="kw">use </span>iced_futures::futures::FutureExt;
 
-        <span class="ident">Command::single</span>(<span class="ident">Action::Future</span>(<span class="ident">Box::pin</span>(<span class="ident">future</span>.<span class="ident">map</span>(<span class="ident">f</span>))))
+        Command::single(Action::Future(Box::pin(future.map(f))))
     }
 
-    <span class="doccomment">/// Creates a [`Command`] that performs the actions of all the given</span>
-    <span class="doccomment">/// commands.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Once this command is run, all the commands will be executed at once.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">batch</span>(<span class="ident">commands</span>: <span class="kw">impl</span> <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">iced_futures::Command::batch</span>(
-            <span class="ident">commands</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">Command</span>(<span class="ident">command</span>)<span class="op">|</span> <span class="ident">command</span>),
+    <span class="doccomment">/// Creates a [`Command`] that performs the actions of all the given
+    /// commands.
+    ///
+    /// Once this command is run, all the commands will be executed at once.
+    </span><span class="kw">pub fn </span>batch(commands: <span class="kw">impl </span>IntoIterator&lt;Item = Command&lt;T&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(iced_futures::Command::batch(
+            commands.into_iter().map(|Command(command)| command),
         ))
     }
 
-    <span class="doccomment">/// Applies a transformation to the result of a [`Command`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(
+    <span class="doccomment">/// Applies a transformation to the result of a [`Command`].
+    </span><span class="kw">pub fn </span>map&lt;A&gt;(
         <span class="self">self</span>,
-        <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="ident">T</span>) -&gt; <span class="ident">A</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">MaybeSend</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>,
-    ) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="lifetime">&#39;static</span>,
-        <span class="ident">A</span>: <span class="lifetime">&#39;static</span>,
+        f: <span class="kw">impl </span>Fn(T) -&gt; A + <span class="lifetime">&#39;static </span>+ MaybeSend + Sync + Clone,
+    ) -&gt; Command&lt;A&gt;
+    <span class="kw">where
+        </span>T: <span class="lifetime">&#39;static</span>,
+        A: <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> <span class="ident">Command</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="self">self</span>;
+        <span class="kw">let </span>Command(command) = <span class="self">self</span>;
 
-        <span class="ident">Command</span>(<span class="ident">command</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">action</span><span class="op">|</span> <span class="ident">action</span>.<span class="ident">map</span>(<span class="ident">f</span>.<span class="ident">clone</span>())))
+        Command(command.map(<span class="kw">move </span>|action| action.map(f.clone())))
     }
 
-    <span class="doccomment">/// Returns all of the actions of the [`Command`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">actions</span>(<span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Action</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">Command</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="self">self</span>;
+    <span class="doccomment">/// Returns all of the actions of the [`Command`].
+    </span><span class="kw">pub fn </span>actions(<span class="self">self</span>) -&gt; Vec&lt;Action&lt;T&gt;&gt; {
+        <span class="kw">let </span>Command(command) = <span class="self">self</span>;
 
-        <span class="ident">command</span>.<span class="ident">actions</span>()
+        command.actions()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">Command</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="self">self</span>;
+<span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Command&lt;T&gt; {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">let </span>Command(command) = <span class="self">self</span>;
 
-        <span class="ident">command</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
+        command.fmt(f)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

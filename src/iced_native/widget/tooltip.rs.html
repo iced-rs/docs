@@ -370,375 +370,375 @@
 <span id="368">368</span>
 <span id="369">369</span>
 <span id="370">370</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Display a widget over another.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::event</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::layout</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::renderer</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::text</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::container</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::overlay</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget</span>::{<span class="ident">Text</span>, <span class="ident">Tree</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">Clipboard</span>, <span class="ident">Element</span>, <span class="ident">Event</span>, <span class="ident">Layout</span>, <span class="ident">Length</span>, <span class="ident">Padding</span>, <span class="ident">Point</span>, <span class="ident">Rectangle</span>,
-    <span class="ident">Shell</span>, <span class="ident">Size</span>, <span class="ident">Vector</span>, <span class="ident">Widget</span>,
+</pre><pre class="rust"><code><span class="doccomment">//! Display a widget over another.
+</span><span class="kw">use </span><span class="kw">crate</span>::event;
+<span class="kw">use </span><span class="kw">crate</span>::layout;
+<span class="kw">use </span><span class="kw">crate</span>::mouse;
+<span class="kw">use </span><span class="kw">crate</span>::renderer;
+<span class="kw">use </span><span class="kw">crate</span>::text;
+<span class="kw">use </span><span class="kw">crate</span>::widget;
+<span class="kw">use </span><span class="kw">crate</span>::widget::container;
+<span class="kw">use </span><span class="kw">crate</span>::widget::overlay;
+<span class="kw">use </span><span class="kw">crate</span>::widget::{Text, Tree};
+<span class="kw">use crate</span>::{
+    Clipboard, Element, Event, Layout, Length, Padding, Point, Rectangle,
+    Shell, Size, Vector, Widget,
 };
 
-<span class="doccomment">/// An element to display a widget over another.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Tooltip</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">container::StyleSheet</span> <span class="op">+</span> <span class="ident">widget::text::StyleSheet</span>,
+<span class="doccomment">/// An element to display a widget over another.
+</span><span class="attribute">#[allow(missing_debug_implementations)]</span>
+<span class="kw">pub struct </span>Tooltip&lt;<span class="lifetime">&#39;a</span>, Message, Renderer: text::Renderer&gt;
+<span class="kw">where
+    </span>Renderer: text::Renderer,
+    Renderer::Theme: container::StyleSheet + widget::text::StyleSheet,
 {
-    <span class="ident">content</span>: <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
-    <span class="ident">tooltip</span>: <span class="ident">Text</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>,
-    <span class="ident">position</span>: <span class="ident">Position</span>,
-    <span class="ident">gap</span>: <span class="ident">u16</span>,
-    <span class="ident">padding</span>: <span class="ident">u16</span>,
-    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">container::StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
+    content: Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
+    tooltip: Text&lt;Renderer&gt;,
+    position: Position,
+    gap: u16,
+    padding: u16,
+    style: &lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Tooltip</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">container::StyleSheet</span> <span class="op">+</span> <span class="ident">widget::text::StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Tooltip&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: text::Renderer,
+    Renderer::Theme: container::StyleSheet + widget::text::StyleSheet,
 {
-    <span class="doccomment">/// The default padding of a [`Tooltip`] drawn by this renderer.</span>
-    <span class="kw">const</span> <span class="ident">DEFAULT_PADDING</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">5</span>;
+    <span class="doccomment">/// The default padding of a [`Tooltip`] drawn by this renderer.
+    </span><span class="kw">const </span>DEFAULT_PADDING: u16 = <span class="number">5</span>;
 
-    <span class="doccomment">/// Creates a new [`Tooltip`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Tooltip`]: struct.Tooltip.html</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">content</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">tooltip</span>: <span class="kw">impl</span> <span class="ident">ToString</span>,
-        <span class="ident">position</span>: <span class="ident">Position</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="ident">Tooltip</span> {
-            <span class="ident">content</span>: <span class="ident">content</span>.<span class="ident">into</span>(),
-            <span class="ident">tooltip</span>: <span class="ident">Text::new</span>(<span class="ident">tooltip</span>.<span class="ident">to_string</span>()),
-            <span class="ident">position</span>,
-            <span class="ident">gap</span>: <span class="number">0</span>,
-            <span class="ident">padding</span>: <span class="ident"><span class="self">Self</span>::DEFAULT_PADDING</span>,
-            <span class="ident">style</span>: <span class="ident">Default::default</span>(),
+    <span class="doccomment">/// Creates a new [`Tooltip`].
+    ///
+    /// [`Tooltip`]: struct.Tooltip.html
+    </span><span class="kw">pub fn </span>new(
+        content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;,
+        tooltip: <span class="kw">impl </span>ToString,
+        position: Position,
+    ) -&gt; <span class="self">Self </span>{
+        Tooltip {
+            content: content.into(),
+            tooltip: Text::new(tooltip.to_string()),
+            position,
+            gap: <span class="number">0</span>,
+            padding: <span class="self">Self</span>::DEFAULT_PADDING,
+            style: Default::default(),
         }
     }
 
-    <span class="doccomment">/// Sets the size of the text of the [`Tooltip`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">size</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">size</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">tooltip</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tooltip</span>.<span class="ident">size</span>(<span class="ident">size</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the size of the text of the [`Tooltip`].
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: u16) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.tooltip = <span class="self">self</span>.tooltip.size(size);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the font of the [`Tooltip`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`Font`]: Renderer::Font</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">font</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">font</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Renderer::Font</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">tooltip</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tooltip</span>.<span class="ident">font</span>(<span class="ident">font</span>);
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the font of the [`Tooltip`].
+    ///
+    /// [`Font`]: Renderer::Font
+    </span><span class="kw">pub fn </span>font(<span class="kw-2">mut </span><span class="self">self</span>, font: <span class="kw">impl </span>Into&lt;Renderer::Font&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.tooltip = <span class="self">self</span>.tooltip.font(font);
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the gap between the content and its [`Tooltip`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gap</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">gap</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">gap</span> <span class="op">=</span> <span class="ident">gap</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the gap between the content and its [`Tooltip`].
+    </span><span class="kw">pub fn </span>gap(<span class="kw-2">mut </span><span class="self">self</span>, gap: u16) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.gap = gap;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the padding of the [`Tooltip`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">padding</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">padding</span>: <span class="ident">u16</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">padding</span> <span class="op">=</span> <span class="ident">padding</span>;
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the padding of the [`Tooltip`].
+    </span><span class="kw">pub fn </span>padding(<span class="kw-2">mut </span><span class="self">self</span>, padding: u16) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.padding = padding;
+        <span class="self">self
+    </span>}
 
-    <span class="doccomment">/// Sets the style of the [`Tooltip`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">style</span>(
-        <span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">style</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">container::StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>.<span class="ident">into</span>();
-        <span class="self">self</span>
-    }
+    <span class="doccomment">/// Sets the style of the [`Tooltip`].
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = style.into();
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">Widget</span><span class="op">&lt;</span><span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Tooltip</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">container::StyleSheet</span> <span class="op">+</span> <span class="ident">widget::text::StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Widget&lt;Message, Renderer&gt;
+    <span class="kw">for </span>Tooltip&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: text::Renderer,
+    Renderer::Theme: container::StyleSheet + widget::text::StyleSheet,
 {
-    <span class="kw">fn</span> <span class="ident">children</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Tree</span><span class="op">&gt;</span> {
-        <span class="macro">vec!</span>[<span class="ident">Tree::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>)]
+    <span class="kw">fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Tree&gt; {
+        <span class="macro">vec!</span>[Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.content)]
     }
 
-    <span class="kw">fn</span> <span class="ident">diff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>) {
-        <span class="ident">tree</span>.<span class="ident">diff_children</span>(<span class="ident">std::slice::from_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">content</span>))
+    <span class="kw">fn </span>diff(<span class="kw-2">&amp;</span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree) {
+        tree.diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span><span class="self">self</span>.content))
     }
 
-    <span class="kw">fn</span> <span class="ident">width</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget</span>().<span class="ident">width</span>()
+    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.content.as_widget().width()
     }
 
-    <span class="kw">fn</span> <span class="ident">height</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Length</span> {
-        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget</span>().<span class="ident">height</span>()
+    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="self">self</span>.content.as_widget().height()
     }
 
-    <span class="kw">fn</span> <span class="ident">layout</span>(
+    <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">limits</span>: <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>,
-    ) -&gt; <span class="ident">layout::Node</span> {
-        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget</span>().<span class="ident">layout</span>(<span class="ident">renderer</span>, <span class="ident">limits</span>)
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        limits: <span class="kw-2">&amp;</span>layout::Limits,
+    ) -&gt; layout::Node {
+        <span class="self">self</span>.content.as_widget().layout(renderer, limits)
     }
 
-    <span class="kw">fn</span> <span class="ident">on_event</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Tree</span>,
-        <span class="ident">event</span>: <span class="ident">Event</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-        <span class="ident">clipboard</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Clipboard</span>,
-        <span class="ident">shell</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Shell</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Message</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">event::Status</span> {
-        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget_mut</span>().<span class="ident">on_event</span>(
-            <span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-            <span class="ident">event</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">renderer</span>,
-            <span class="ident">clipboard</span>,
-            <span class="ident">shell</span>,
+    <span class="kw">fn </span>on_event(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
+        event: Event,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+        clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
+    ) -&gt; event::Status {
+        <span class="self">self</span>.content.as_widget_mut().on_event(
+            <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+            event,
+            layout,
+            cursor_position,
+            renderer,
+            clipboard,
+            shell,
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
+    <span class="kw">fn </span>mouse_interaction(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="ident">mouse::Interaction</span> {
-        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget</span>().<span class="ident">mouse_interaction</span>(
-            <span class="kw-2">&amp;</span><span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-            <span class="ident">layout</span>.<span class="ident">children</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>(),
-            <span class="ident">cursor_position</span>,
-            <span class="ident">viewport</span>,
-            <span class="ident">renderer</span>,
+        tree: <span class="kw-2">&amp;</span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        viewport: <span class="kw-2">&amp;</span>Rectangle,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+    ) -&gt; mouse::Interaction {
+        <span class="self">self</span>.content.as_widget().mouse_interaction(
+            <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+            layout.children().next().unwrap(),
+            cursor_position,
+            viewport,
+            renderer,
         )
     }
 
-    <span class="kw">fn</span> <span class="ident">draw</span>(
+    <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="ident">Tree</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-        <span class="ident">inherited_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-        <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+        tree: <span class="kw-2">&amp;</span>Tree,
+        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        inherited_style: <span class="kw-2">&amp;</span>renderer::Style,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        cursor_position: Point,
+        viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget</span>().<span class="ident">draw</span>(
-            <span class="kw-2">&amp;</span><span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-            <span class="ident">renderer</span>,
-            <span class="ident">theme</span>,
-            <span class="ident">inherited_style</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">viewport</span>,
+        <span class="self">self</span>.content.as_widget().draw(
+            <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+            renderer,
+            theme,
+            inherited_style,
+            layout,
+            cursor_position,
+            viewport,
         );
 
-        <span class="kw">let</span> <span class="ident">tooltip</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tooltip</span>;
+        <span class="kw">let </span>tooltip = <span class="kw-2">&amp;</span><span class="self">self</span>.tooltip;
 
-        <span class="ident">draw</span>(
-            <span class="ident">renderer</span>,
-            <span class="ident">theme</span>,
-            <span class="ident">inherited_style</span>,
-            <span class="ident">layout</span>,
-            <span class="ident">cursor_position</span>,
-            <span class="ident">viewport</span>,
-            <span class="self">self</span>.<span class="ident">position</span>,
-            <span class="self">self</span>.<span class="ident">gap</span>,
-            <span class="self">self</span>.<span class="ident">padding</span>,
-            <span class="self">self</span>.<span class="ident">style</span>,
-            <span class="op">|</span><span class="ident">renderer</span>, <span class="ident">limits</span><span class="op">|</span> {
-                <span class="ident">Widget</span>::<span class="op">&lt;</span>(), <span class="ident">Renderer</span><span class="op">&gt;</span><span class="ident">::layout</span>(<span class="ident">tooltip</span>, <span class="ident">renderer</span>, <span class="ident">limits</span>)
+        draw(
+            renderer,
+            theme,
+            inherited_style,
+            layout,
+            cursor_position,
+            viewport,
+            <span class="self">self</span>.position,
+            <span class="self">self</span>.gap,
+            <span class="self">self</span>.padding,
+            <span class="self">self</span>.style,
+            |renderer, limits| {
+                Widget::&lt;(), Renderer&gt;::layout(tooltip, renderer, limits)
             },
-            <span class="op">|</span><span class="ident">renderer</span>, <span class="ident">defaults</span>, <span class="ident">layout</span>, <span class="ident">cursor_position</span>, <span class="ident">viewport</span><span class="op">|</span> {
-                <span class="ident">Widget</span>::<span class="op">&lt;</span>(), <span class="ident">Renderer</span><span class="op">&gt;</span><span class="ident">::draw</span>(
-                    <span class="ident">tooltip</span>,
-                    <span class="kw-2">&amp;</span><span class="ident">Tree::empty</span>(),
-                    <span class="ident">renderer</span>,
-                    <span class="ident">theme</span>,
-                    <span class="ident">defaults</span>,
-                    <span class="ident">layout</span>,
-                    <span class="ident">cursor_position</span>,
-                    <span class="ident">viewport</span>,
+            |renderer, defaults, layout, cursor_position, viewport| {
+                Widget::&lt;(), Renderer&gt;::draw(
+                    tooltip,
+                    <span class="kw-2">&amp;</span>Tree::empty(),
+                    renderer,
+                    theme,
+                    defaults,
+                    layout,
+                    cursor_position,
+                    viewport,
                 );
             },
         );
     }
 
-    <span class="kw">fn</span> <span class="ident">overlay</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>,
-        <span class="ident">tree</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">Tree</span>,
-        <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">renderer</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">overlay::Element</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">as_widget</span>().<span class="ident">overlay</span>(
-            <span class="kw-2">&amp;mut</span> <span class="ident">tree</span>.<span class="ident">children</span>[<span class="number">0</span>],
-            <span class="ident">layout</span>,
-            <span class="ident">renderer</span>,
+    <span class="kw">fn </span>overlay&lt;<span class="lifetime">&#39;b</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Tree,
+        layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;b</span>, Message, Renderer&gt;&gt; {
+        <span class="self">self</span>.content.as_widget().overlay(
+            <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+            layout,
+            renderer,
         )
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Tooltip</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span><span class="op">&gt;</span>
-    <span class="kw">for</span> <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">Message</span>: <span class="lifetime">&#39;a</span>,
-    <span class="ident">Renderer</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">text::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">container::StyleSheet</span> <span class="op">+</span> <span class="ident">widget::text::StyleSheet</span>,
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; From&lt;Tooltip&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Message: <span class="lifetime">&#39;a</span>,
+    Renderer: <span class="lifetime">&#39;a </span>+ text::Renderer,
+    Renderer::Theme: container::StyleSheet + widget::text::StyleSheet,
 {
-    <span class="kw">fn</span> <span class="ident">from</span>(
-        <span class="ident">tooltip</span>: <span class="ident">Tooltip</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="ident">Element</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Message</span>, <span class="ident">Renderer</span><span class="op">&gt;</span> {
-        <span class="ident">Element::new</span>(<span class="ident">tooltip</span>)
+    <span class="kw">fn </span>from(
+        tooltip: Tooltip&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
+    ) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
+        Element::new(tooltip)
     }
 }
 
-<span class="doccomment">/// The position of the tooltip. Defaults to following the cursor.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Position</span> {
-    <span class="doccomment">/// The tooltip will follow the cursor.</span>
-    <span class="ident">FollowCursor</span>,
-    <span class="doccomment">/// The tooltip will appear on the top of the widget.</span>
-    <span class="ident">Top</span>,
-    <span class="doccomment">/// The tooltip will appear on the bottom of the widget.</span>
-    <span class="ident">Bottom</span>,
-    <span class="doccomment">/// The tooltip will appear on the left of the widget.</span>
-    <span class="ident">Left</span>,
-    <span class="doccomment">/// The tooltip will appear on the right of the widget.</span>
-    <span class="ident">Right</span>,
+<span class="doccomment">/// The position of the tooltip. Defaults to following the cursor.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq)]</span>
+<span class="kw">pub enum </span>Position {
+    <span class="doccomment">/// The tooltip will follow the cursor.
+    </span>FollowCursor,
+    <span class="doccomment">/// The tooltip will appear on the top of the widget.
+    </span>Top,
+    <span class="doccomment">/// The tooltip will appear on the bottom of the widget.
+    </span>Bottom,
+    <span class="doccomment">/// The tooltip will appear on the left of the widget.
+    </span>Left,
+    <span class="doccomment">/// The tooltip will appear on the right of the widget.
+    </span>Right,
 }
 
-<span class="doccomment">/// Draws a [`Tooltip`].</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">draw</span><span class="op">&lt;</span><span class="ident">Renderer</span><span class="op">&gt;</span>(
-    <span class="ident">renderer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-    <span class="ident">theme</span>: <span class="kw-2">&amp;</span><span class="ident">Renderer::Theme</span>,
-    <span class="ident">inherited_style</span>: <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-    <span class="ident">layout</span>: <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    <span class="ident">cursor_position</span>: <span class="ident">Point</span>,
-    <span class="ident">viewport</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-    <span class="ident">position</span>: <span class="ident">Position</span>,
-    <span class="ident">gap</span>: <span class="ident">u16</span>,
-    <span class="ident">padding</span>: <span class="ident">u16</span>,
-    <span class="ident">style</span>: <span class="op">&lt;</span><span class="ident">Renderer::Theme</span> <span class="kw">as</span> <span class="ident">container::StyleSheet</span><span class="op">&gt;</span><span class="ident">::Style</span>,
-    <span class="ident">layout_text</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">Renderer</span>, <span class="kw-2">&amp;</span><span class="ident">layout::Limits</span>) -&gt; <span class="ident">layout::Node</span>,
-    <span class="ident">draw_text</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(
-        <span class="kw-2">&amp;mut</span> <span class="ident">Renderer</span>,
-        <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span>,
-        <span class="ident">Layout</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">Point</span>,
-        <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
+<span class="doccomment">/// Draws a [`Tooltip`].
+</span><span class="kw">pub fn </span>draw&lt;Renderer&gt;(
+    renderer: <span class="kw-2">&amp;mut </span>Renderer,
+    theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+    inherited_style: <span class="kw-2">&amp;</span>renderer::Style,
+    layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+    cursor_position: Point,
+    viewport: <span class="kw-2">&amp;</span>Rectangle,
+    position: Position,
+    gap: u16,
+    padding: u16,
+    style: &lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
+    layout_text: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>Renderer, <span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
+    draw_text: <span class="kw">impl </span>FnOnce(
+        <span class="kw-2">&amp;mut </span>Renderer,
+        <span class="kw-2">&amp;</span>renderer::Style,
+        Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+        Point,
+        <span class="kw-2">&amp;</span>Rectangle,
     ),
-) <span class="kw">where</span>
-    <span class="ident">Renderer</span>: <span class="ident"><span class="kw">crate</span>::Renderer</span>,
-    <span class="ident">Renderer::Theme</span>: <span class="ident">container::StyleSheet</span>,
+) <span class="kw">where
+    </span>Renderer: <span class="kw">crate</span>::Renderer,
+    Renderer::Theme: container::StyleSheet,
 {
-    <span class="kw">use</span> <span class="ident">container::StyleSheet</span>;
+    <span class="kw">use </span>container::StyleSheet;
 
-    <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">bounds</span>();
+    <span class="kw">let </span>bounds = layout.bounds();
 
-    <span class="kw">if</span> <span class="ident">bounds</span>.<span class="ident">contains</span>(<span class="ident">cursor_position</span>) {
-        <span class="kw">let</span> <span class="ident">gap</span> <span class="op">=</span> <span class="ident">f32::from</span>(<span class="ident">gap</span>);
-        <span class="kw">let</span> <span class="ident">style</span> <span class="op">=</span> <span class="ident">theme</span>.<span class="ident">appearance</span>(<span class="ident">style</span>);
+    <span class="kw">if </span>bounds.contains(cursor_position) {
+        <span class="kw">let </span>gap = f32::from(gap);
+        <span class="kw">let </span>style = theme.appearance(style);
 
-        <span class="kw">let</span> <span class="ident">defaults</span> <span class="op">=</span> <span class="ident">renderer::Style</span> {
-            <span class="ident">text_color</span>: <span class="ident">style</span>.<span class="ident">text_color</span>.<span class="ident">unwrap_or</span>(<span class="ident">inherited_style</span>.<span class="ident">text_color</span>),
+        <span class="kw">let </span>defaults = renderer::Style {
+            text_color: style.text_color.unwrap_or(inherited_style.text_color),
         };
 
-        <span class="kw">let</span> <span class="ident">text_layout</span> <span class="op">=</span> <span class="ident">layout_text</span>(
-            <span class="ident">renderer</span>,
-            <span class="kw-2">&amp;</span><span class="ident">layout::Limits::new</span>(<span class="ident">Size::ZERO</span>, <span class="ident">viewport</span>.<span class="ident">size</span>())
-                .<span class="ident">pad</span>(<span class="ident">Padding::new</span>(<span class="ident">padding</span>)),
+        <span class="kw">let </span>text_layout = layout_text(
+            renderer,
+            <span class="kw-2">&amp;</span>layout::Limits::new(Size::ZERO, viewport.size())
+                .pad(Padding::new(padding)),
         );
 
-        <span class="kw">let</span> <span class="ident">padding</span> <span class="op">=</span> <span class="ident">f32::from</span>(<span class="ident">padding</span>);
-        <span class="kw">let</span> <span class="ident">text_bounds</span> <span class="op">=</span> <span class="ident">text_layout</span>.<span class="ident">bounds</span>();
-        <span class="kw">let</span> <span class="ident">x_center</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">x</span> <span class="op">+</span> (<span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">-</span> <span class="ident">text_bounds</span>.<span class="ident">width</span>) <span class="op">/</span> <span class="number">2.0</span>;
-        <span class="kw">let</span> <span class="ident">y_center</span> <span class="op">=</span> <span class="ident">bounds</span>.<span class="ident">y</span> <span class="op">+</span> (<span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">-</span> <span class="ident">text_bounds</span>.<span class="ident">height</span>) <span class="op">/</span> <span class="number">2.0</span>;
+        <span class="kw">let </span>padding = f32::from(padding);
+        <span class="kw">let </span>text_bounds = text_layout.bounds();
+        <span class="kw">let </span>x_center = bounds.x + (bounds.width - text_bounds.width) / <span class="number">2.0</span>;
+        <span class="kw">let </span>y_center = bounds.y + (bounds.height - text_bounds.height) / <span class="number">2.0</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tooltip_bounds</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">position</span> {
-                <span class="ident">Position::Top</span> =&gt; <span class="ident">Vector::new</span>(
-                    <span class="ident">x_center</span>,
-                    <span class="ident">bounds</span>.<span class="ident">y</span> <span class="op">-</span> <span class="ident">text_bounds</span>.<span class="ident">height</span> <span class="op">-</span> <span class="ident">gap</span> <span class="op">-</span> <span class="ident">padding</span>,
+        <span class="kw">let </span><span class="kw-2">mut </span>tooltip_bounds = {
+            <span class="kw">let </span>offset = <span class="kw">match </span>position {
+                Position::Top =&gt; Vector::new(
+                    x_center,
+                    bounds.y - text_bounds.height - gap - padding,
                 ),
-                <span class="ident">Position::Bottom</span> =&gt; <span class="ident">Vector::new</span>(
-                    <span class="ident">x_center</span>,
-                    <span class="ident">bounds</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">bounds</span>.<span class="ident">height</span> <span class="op">+</span> <span class="ident">gap</span> <span class="op">+</span> <span class="ident">padding</span>,
+                Position::Bottom =&gt; Vector::new(
+                    x_center,
+                    bounds.y + bounds.height + gap + padding,
                 ),
-                <span class="ident">Position::Left</span> =&gt; <span class="ident">Vector::new</span>(
-                    <span class="ident">bounds</span>.<span class="ident">x</span> <span class="op">-</span> <span class="ident">text_bounds</span>.<span class="ident">width</span> <span class="op">-</span> <span class="ident">gap</span> <span class="op">-</span> <span class="ident">padding</span>,
-                    <span class="ident">y_center</span>,
+                Position::Left =&gt; Vector::new(
+                    bounds.x - text_bounds.width - gap - padding,
+                    y_center,
                 ),
-                <span class="ident">Position::Right</span> =&gt; <span class="ident">Vector::new</span>(
-                    <span class="ident">bounds</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">bounds</span>.<span class="ident">width</span> <span class="op">+</span> <span class="ident">gap</span> <span class="op">+</span> <span class="ident">padding</span>,
-                    <span class="ident">y_center</span>,
+                Position::Right =&gt; Vector::new(
+                    bounds.x + bounds.width + gap + padding,
+                    y_center,
                 ),
-                <span class="ident">Position::FollowCursor</span> =&gt; <span class="ident">Vector::new</span>(
-                    <span class="ident">cursor_position</span>.<span class="ident">x</span>,
-                    <span class="ident">cursor_position</span>.<span class="ident">y</span> <span class="op">-</span> <span class="ident">text_bounds</span>.<span class="ident">height</span>,
+                Position::FollowCursor =&gt; Vector::new(
+                    cursor_position.x,
+                    cursor_position.y - text_bounds.height,
                 ),
             };
 
-            <span class="ident">Rectangle</span> {
-                <span class="ident">x</span>: <span class="ident">offset</span>.<span class="ident">x</span> <span class="op">-</span> <span class="ident">padding</span>,
-                <span class="ident">y</span>: <span class="ident">offset</span>.<span class="ident">y</span> <span class="op">-</span> <span class="ident">padding</span>,
-                <span class="ident">width</span>: <span class="ident">text_bounds</span>.<span class="ident">width</span> <span class="op">+</span> <span class="ident">padding</span> <span class="op">*</span> <span class="number">2.0</span>,
-                <span class="ident">height</span>: <span class="ident">text_bounds</span>.<span class="ident">height</span> <span class="op">+</span> <span class="ident">padding</span> <span class="op">*</span> <span class="number">2.0</span>,
+            Rectangle {
+                x: offset.x - padding,
+                y: offset.y - padding,
+                width: text_bounds.width + padding * <span class="number">2.0</span>,
+                height: text_bounds.height + padding * <span class="number">2.0</span>,
             }
         };
 
-        <span class="kw">if</span> <span class="ident">tooltip_bounds</span>.<span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">viewport</span>.<span class="ident">x</span> {
-            <span class="ident">tooltip_bounds</span>.<span class="ident">x</span> <span class="op">=</span> <span class="ident">viewport</span>.<span class="ident">x</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">viewport</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">viewport</span>.<span class="ident">width</span>
-            <span class="op">&lt;</span> <span class="ident">tooltip_bounds</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">tooltip_bounds</span>.<span class="ident">width</span>
+        <span class="kw">if </span>tooltip_bounds.x &lt; viewport.x {
+            tooltip_bounds.x = viewport.x;
+        } <span class="kw">else if </span>viewport.x + viewport.width
+            &lt; tooltip_bounds.x + tooltip_bounds.width
         {
-            <span class="ident">tooltip_bounds</span>.<span class="ident">x</span> <span class="op">=</span>
-                <span class="ident">viewport</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">viewport</span>.<span class="ident">width</span> <span class="op">-</span> <span class="ident">tooltip_bounds</span>.<span class="ident">width</span>;
+            tooltip_bounds.x =
+                viewport.x + viewport.width - tooltip_bounds.width;
         }
 
-        <span class="kw">if</span> <span class="ident">tooltip_bounds</span>.<span class="ident">y</span> <span class="op">&lt;</span> <span class="ident">viewport</span>.<span class="ident">y</span> {
-            <span class="ident">tooltip_bounds</span>.<span class="ident">y</span> <span class="op">=</span> <span class="ident">viewport</span>.<span class="ident">y</span>;
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">viewport</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">viewport</span>.<span class="ident">height</span>
-            <span class="op">&lt;</span> <span class="ident">tooltip_bounds</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">tooltip_bounds</span>.<span class="ident">height</span>
+        <span class="kw">if </span>tooltip_bounds.y &lt; viewport.y {
+            tooltip_bounds.y = viewport.y;
+        } <span class="kw">else if </span>viewport.y + viewport.height
+            &lt; tooltip_bounds.y + tooltip_bounds.height
         {
-            <span class="ident">tooltip_bounds</span>.<span class="ident">y</span> <span class="op">=</span>
-                <span class="ident">viewport</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">viewport</span>.<span class="ident">height</span> <span class="op">-</span> <span class="ident">tooltip_bounds</span>.<span class="ident">height</span>;
+            tooltip_bounds.y =
+                viewport.y + viewport.height - tooltip_bounds.height;
         }
 
-        <span class="ident">renderer</span>.<span class="ident">with_layer</span>(<span class="kw-2">*</span><span class="ident">viewport</span>, <span class="op">|</span><span class="ident">renderer</span><span class="op">|</span> {
-            <span class="ident">container::draw_background</span>(<span class="ident">renderer</span>, <span class="kw-2">&amp;</span><span class="ident">style</span>, <span class="ident">tooltip_bounds</span>);
+        renderer.with_layer(<span class="kw-2">*</span>viewport, |renderer| {
+            container::draw_background(renderer, <span class="kw-2">&amp;</span>style, tooltip_bounds);
 
-            <span class="ident">draw_text</span>(
-                <span class="ident">renderer</span>,
-                <span class="kw-2">&amp;</span><span class="ident">defaults</span>,
-                <span class="ident">Layout::with_offset</span>(
-                    <span class="ident">Vector::new</span>(
-                        <span class="ident">tooltip_bounds</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">padding</span>,
-                        <span class="ident">tooltip_bounds</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">padding</span>,
+            draw_text(
+                renderer,
+                <span class="kw-2">&amp;</span>defaults,
+                Layout::with_offset(
+                    Vector::new(
+                        tooltip_bounds.x + padding,
+                        tooltip_bounds.y + padding,
                     ),
-                    <span class="kw-2">&amp;</span><span class="ident">text_layout</span>,
+                    <span class="kw-2">&amp;</span>text_layout,
                 ),
-                <span class="ident">cursor_position</span>,
-                <span class="ident">viewport</span>,
+                cursor_position,
+                viewport,
             )
         });
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

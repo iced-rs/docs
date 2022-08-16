@@ -431,178 +431,178 @@
 <span id="429">429</span>
 <span id="430">430</span>
 <span id="431">431</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Error</span>, <span class="ident">Executor</span>, <span class="ident">Runtime</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
+</span><span class="kw">use </span><span class="kw">crate</span>::mouse;
+<span class="kw">use crate</span>::{Error, Executor, Runtime};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_winit::application::StyleSheet</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">iced_winit::Application</span>;
+<span class="kw">pub use </span>iced_winit::application::StyleSheet;
+<span class="kw">pub use </span>iced_winit::Application;
 
-<span class="kw">use</span> <span class="ident">iced_graphics::window</span>;
-<span class="kw">use</span> <span class="ident">iced_winit::application</span>;
-<span class="kw">use</span> <span class="ident">iced_winit::conversion</span>;
-<span class="kw">use</span> <span class="ident">iced_winit::futures</span>;
-<span class="kw">use</span> <span class="ident">iced_winit::futures::channel::mpsc</span>;
-<span class="kw">use</span> <span class="ident">iced_winit::renderer</span>;
-<span class="kw">use</span> <span class="ident">iced_winit::user_interface</span>;
-<span class="kw">use</span> <span class="ident">iced_winit</span>::{<span class="ident">Clipboard</span>, <span class="ident">Command</span>, <span class="ident">Debug</span>, <span class="ident">Proxy</span>, <span class="ident">Settings</span>};
+<span class="kw">use </span>iced_graphics::window;
+<span class="kw">use </span>iced_winit::application;
+<span class="kw">use </span>iced_winit::conversion;
+<span class="kw">use </span>iced_winit::futures;
+<span class="kw">use </span>iced_winit::futures::channel::mpsc;
+<span class="kw">use </span>iced_winit::renderer;
+<span class="kw">use </span>iced_winit::user_interface;
+<span class="kw">use </span>iced_winit::{Clipboard, Command, Debug, Proxy, Settings};
 
-<span class="kw">use</span> <span class="ident">glutin::window::Window</span>;
-<span class="kw">use</span> <span class="ident">std::mem::ManuallyDrop</span>;
+<span class="kw">use </span>glutin::window::Window;
+<span class="kw">use </span>std::mem::ManuallyDrop;
 
-<span class="doccomment">/// Runs an [`Application`] with an executor, compositor, and the provided</span>
-<span class="doccomment">/// settings.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">E</span>, <span class="ident">C</span><span class="op">&gt;</span>(
-    <span class="ident">settings</span>: <span class="ident">Settings</span><span class="op">&lt;</span><span class="ident">A::Flags</span><span class="op">&gt;</span>,
-    <span class="ident">compositor_settings</span>: <span class="ident">C::Settings</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <span class="ident">Application</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">E</span>: <span class="ident">Executor</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">C</span>: <span class="ident">window::GLCompositor</span><span class="op">&lt;</span><span class="ident">Renderer</span> <span class="op">=</span> <span class="ident">A::Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident">iced_native::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="doccomment">/// Runs an [`Application`] with an executor, compositor, and the provided
+/// settings.
+</span><span class="kw">pub fn </span>run&lt;A, E, C&gt;(
+    settings: Settings&lt;A::Flags&gt;,
+    compositor_settings: C::Settings,
+) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
+<span class="kw">where
+    </span>A: Application + <span class="lifetime">&#39;static</span>,
+    E: Executor + <span class="lifetime">&#39;static</span>,
+    C: window::GLCompositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">&#39;static</span>,
+    &lt;A::Renderer <span class="kw">as </span>iced_native::Renderer&gt;::Theme: StyleSheet,
 {
-    <span class="kw">use</span> <span class="ident">futures::task</span>;
-    <span class="kw">use</span> <span class="ident">futures::Future</span>;
-    <span class="kw">use</span> <span class="ident">glutin::event_loop::EventLoop</span>;
-    <span class="kw">use</span> <span class="ident">glutin::platform::run_return::EventLoopExtRunReturn</span>;
-    <span class="kw">use</span> <span class="ident">glutin::ContextBuilder</span>;
+    <span class="kw">use </span>futures::task;
+    <span class="kw">use </span>futures::Future;
+    <span class="kw">use </span>glutin::event_loop::EventLoop;
+    <span class="kw">use </span>glutin::platform::run_return::EventLoopExtRunReturn;
+    <span class="kw">use </span>glutin::ContextBuilder;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">debug</span> <span class="op">=</span> <span class="ident">Debug::new</span>();
-    <span class="ident">debug</span>.<span class="ident">startup_started</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>debug = Debug::new();
+    debug.startup_started();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">event_loop</span> <span class="op">=</span> <span class="ident">EventLoop::with_user_event</span>();
-    <span class="kw">let</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">event_loop</span>.<span class="ident">create_proxy</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>event_loop = EventLoop::with_user_event();
+    <span class="kw">let </span>proxy = event_loop.create_proxy();
 
-    <span class="kw">let</span> <span class="ident">runtime</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="ident">E::new</span>().<span class="ident">map_err</span>(<span class="ident">Error::ExecutorCreationFailed</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">Proxy::new</span>(<span class="ident">event_loop</span>.<span class="ident">create_proxy</span>());
+    <span class="kw">let </span>runtime = {
+        <span class="kw">let </span>executor = E::new().map_err(Error::ExecutorCreationFailed)<span class="question-mark">?</span>;
+        <span class="kw">let </span>proxy = Proxy::new(event_loop.create_proxy());
 
-        <span class="ident">Runtime::new</span>(<span class="ident">executor</span>, <span class="ident">proxy</span>)
+        Runtime::new(executor, proxy)
     };
 
-    <span class="kw">let</span> (<span class="ident">application</span>, <span class="ident">init_command</span>) <span class="op">=</span> {
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">settings</span>.<span class="ident">flags</span>;
+    <span class="kw">let </span>(application, init_command) = {
+        <span class="kw">let </span>flags = settings.flags;
 
-        <span class="ident">runtime</span>.<span class="ident">enter</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">A::new</span>(<span class="ident">flags</span>))
+        runtime.enter(|| A::new(flags))
     };
 
-    <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">settings</span>.<span class="ident">window</span>.<span class="ident">into_builder</span>(
-            <span class="kw-2">&amp;</span><span class="ident">application</span>.<span class="ident">title</span>(),
-            <span class="ident">application</span>.<span class="ident">mode</span>(),
-            <span class="ident">event_loop</span>.<span class="ident">primary_monitor</span>(),
-            <span class="ident">settings</span>.<span class="ident">id</span>,
+    <span class="kw">let </span>context = {
+        <span class="kw">let </span>builder = settings.window.into_builder(
+            <span class="kw-2">&amp;</span>application.title(),
+            application.mode(),
+            event_loop.primary_monitor(),
+            settings.id,
         );
 
-        <span class="macro">log::info!</span>(<span class="string">&quot;Window builder: {:#?}&quot;</span>, <span class="ident">builder</span>);
+        <span class="macro">log::info!</span>(<span class="string">&quot;Window builder: {:#?}&quot;</span>, builder);
 
-        <span class="kw">let</span> <span class="ident">opengl_builder</span> <span class="op">=</span> <span class="ident">ContextBuilder::new</span>()
-            .<span class="ident">with_vsync</span>(<span class="bool-val">true</span>)
-            .<span class="ident">with_multisampling</span>(<span class="ident">C::sample_count</span>(<span class="kw-2">&amp;</span><span class="ident">compositor_settings</span>) <span class="kw">as</span> <span class="ident">u16</span>);
+        <span class="kw">let </span>opengl_builder = ContextBuilder::new()
+            .with_vsync(<span class="bool-val">true</span>)
+            .with_multisampling(C::sample_count(<span class="kw-2">&amp;</span>compositor_settings) <span class="kw">as </span>u16);
 
-        <span class="kw">let</span> <span class="ident">opengles_builder</span> <span class="op">=</span> <span class="ident">opengl_builder</span>.<span class="ident">clone</span>().<span class="ident">with_gl</span>(
-            <span class="ident">glutin::GlRequest::Specific</span>(<span class="ident">glutin::Api::OpenGlEs</span>, (<span class="number">2</span>, <span class="number">0</span>)),
+        <span class="kw">let </span>opengles_builder = opengl_builder.clone().with_gl(
+            glutin::GlRequest::Specific(glutin::Api::OpenGlEs, (<span class="number">2</span>, <span class="number">0</span>)),
         );
 
-        <span class="kw">let</span> (<span class="ident">first_builder</span>, <span class="ident">second_builder</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">settings</span>.<span class="ident">try_opengles_first</span> {
-            (<span class="ident">opengles_builder</span>, <span class="ident">opengl_builder</span>)
-        } <span class="kw">else</span> {
-            (<span class="ident">opengl_builder</span>, <span class="ident">opengles_builder</span>)
+        <span class="kw">let </span>(first_builder, second_builder) = <span class="kw">if </span>settings.try_opengles_first {
+            (opengles_builder, opengl_builder)
+        } <span class="kw">else </span>{
+            (opengl_builder, opengles_builder)
         };
 
-        <span class="macro">log::info!</span>(<span class="string">&quot;Trying first builder: {:#?}&quot;</span>, <span class="ident">first_builder</span>);
+        <span class="macro">log::info!</span>(<span class="string">&quot;Trying first builder: {:#?}&quot;</span>, first_builder);
 
-        <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">first_builder</span>
-            .<span class="ident">build_windowed</span>(<span class="ident">builder</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">event_loop</span>)
-            .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                <span class="macro">log::info!</span>(<span class="string">&quot;Trying second builder: {:#?}&quot;</span>, <span class="ident">second_builder</span>);
-                <span class="ident">second_builder</span>.<span class="ident">build_windowed</span>(<span class="ident">builder</span>, <span class="kw-2">&amp;</span><span class="ident">event_loop</span>)
+        <span class="kw">let </span>context = first_builder
+            .build_windowed(builder.clone(), <span class="kw-2">&amp;</span>event_loop)
+            .or_else(|<span class="kw">_</span>| {
+                <span class="macro">log::info!</span>(<span class="string">&quot;Trying second builder: {:#?}&quot;</span>, second_builder);
+                second_builder.build_windowed(builder, <span class="kw-2">&amp;</span>event_loop)
             })
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
-                <span class="kw">use</span> <span class="ident">glutin::CreationError</span>;
-                <span class="kw">use</span> <span class="ident">iced_graphics::Error</span> <span class="kw">as</span> <span class="ident">ContextError</span>;
+            .map_err(|error| {
+                <span class="kw">use </span>glutin::CreationError;
+                <span class="kw">use </span>iced_graphics::Error <span class="kw">as </span>ContextError;
 
-                <span class="kw">match</span> <span class="ident">error</span> {
-                    <span class="ident">CreationError::Window</span>(<span class="ident">error</span>) =&gt; {
-                        <span class="ident">Error::WindowCreationFailed</span>(<span class="ident">error</span>)
+                <span class="kw">match </span>error {
+                    CreationError::Window(error) =&gt; {
+                        Error::WindowCreationFailed(error)
                     }
-                    <span class="ident">CreationError::OpenGlVersionNotSupported</span> =&gt; {
-                        <span class="ident">Error::GraphicsCreationFailed</span>(
-                            <span class="ident">ContextError::VersionNotSupported</span>,
+                    CreationError::OpenGlVersionNotSupported =&gt; {
+                        Error::GraphicsCreationFailed(
+                            ContextError::VersionNotSupported,
                         )
                     }
-                    <span class="ident">CreationError::NoAvailablePixelFormat</span> =&gt; {
-                        <span class="ident">Error::GraphicsCreationFailed</span>(
-                            <span class="ident">ContextError::NoAvailablePixelFormat</span>,
+                    CreationError::NoAvailablePixelFormat =&gt; {
+                        Error::GraphicsCreationFailed(
+                            ContextError::NoAvailablePixelFormat,
                         )
                     }
-                    <span class="ident">error</span> =&gt; <span class="ident">Error::GraphicsCreationFailed</span>(
-                        <span class="ident">ContextError::BackendError</span>(<span class="ident">error</span>.<span class="ident">to_string</span>()),
+                    error =&gt; Error::GraphicsCreationFailed(
+                        ContextError::BackendError(error.to_string()),
                     ),
                 }
             })<span class="question-mark">?</span>;
 
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unsafe_code</span>)]</span>
-        <span class="kw">unsafe</span> {
-            <span class="ident">context</span>.<span class="ident">make_current</span>().<span class="ident">expect</span>(<span class="string">&quot;Make OpenGL context current&quot;</span>)
+        <span class="attribute">#[allow(unsafe_code)]</span>
+        <span class="kw">unsafe </span>{
+            context.make_current().expect(<span class="string">&quot;Make OpenGL context current&quot;</span>)
         }
     };
 
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unsafe_code</span>)]</span>
-    <span class="kw">let</span> (<span class="ident">compositor</span>, <span class="ident">renderer</span>) <span class="op">=</span> <span class="kw">unsafe</span> {
-        <span class="ident">C::new</span>(<span class="ident">compositor_settings</span>, <span class="op">|</span><span class="ident">address</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">get_proc_address</span>(<span class="ident">address</span>)
-        })<span class="question-mark">?</span>
-    };
+    <span class="attribute">#[allow(unsafe_code)]</span>
+    <span class="kw">let </span>(compositor, renderer) = <span class="kw">unsafe </span>{
+        C::new(compositor_settings, |address| {
+            context.get_proc_address(address)
+        })<span class="question-mark">?
+    </span>};
 
-    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">sender</span>, <span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">mpsc::unbounded</span>();
+    <span class="kw">let </span>(<span class="kw-2">mut </span>sender, receiver) = mpsc::unbounded();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">instance</span> <span class="op">=</span> <span class="ident">Box::pin</span>(<span class="ident">run_instance</span>::<span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">E</span>, <span class="ident">C</span><span class="op">&gt;</span>(
-        <span class="ident">application</span>,
-        <span class="ident">compositor</span>,
-        <span class="ident">renderer</span>,
-        <span class="ident">runtime</span>,
-        <span class="ident">proxy</span>,
-        <span class="ident">debug</span>,
-        <span class="ident">receiver</span>,
-        <span class="ident">context</span>,
-        <span class="ident">init_command</span>,
-        <span class="ident">settings</span>.<span class="ident">exit_on_close_request</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>instance = Box::pin(run_instance::&lt;A, E, C&gt;(
+        application,
+        compositor,
+        renderer,
+        runtime,
+        proxy,
+        debug,
+        receiver,
+        context,
+        init_command,
+        settings.exit_on_close_request,
     ));
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">task::Context::from_waker</span>(<span class="ident">task::noop_waker_ref</span>());
+    <span class="kw">let </span><span class="kw-2">mut </span>context = task::Context::from_waker(task::noop_waker_ref());
 
-    <span class="ident">event_loop</span>.<span class="ident">run_return</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">event</span>, <span class="kw">_</span>, <span class="ident">control_flow</span><span class="op">|</span> {
-        <span class="kw">use</span> <span class="ident">glutin::event_loop::ControlFlow</span>;
+    event_loop.run_return(<span class="kw">move </span>|event, <span class="kw">_</span>, control_flow| {
+        <span class="kw">use </span>glutin::event_loop::ControlFlow;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ControlFlow::Exit</span> <span class="op">=</span> <span class="ident">control_flow</span> {
+        <span class="kw">if let </span>ControlFlow::Exit = control_flow {
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">event</span> {
-            <span class="ident">glutin::event::Event::WindowEvent</span> {
-                <span class="ident">event</span>:
-                    <span class="ident">glutin::event::WindowEvent::ScaleFactorChanged</span> {
-                        <span class="ident">new_inner_size</span>,
+        <span class="kw">let </span>event = <span class="kw">match </span>event {
+            glutin::event::Event::WindowEvent {
+                event:
+                    glutin::event::WindowEvent::ScaleFactorChanged {
+                        new_inner_size,
                         ..
                     },
-                <span class="ident">window_id</span>,
-            } =&gt; <span class="prelude-val">Some</span>(<span class="ident">glutin::event::Event::WindowEvent</span> {
-                <span class="ident">event</span>: <span class="ident">glutin::event::WindowEvent::Resized</span>(<span class="kw-2">*</span><span class="ident">new_inner_size</span>),
-                <span class="ident">window_id</span>,
+                window_id,
+            } =&gt; <span class="prelude-val">Some</span>(glutin::event::Event::WindowEvent {
+                event: glutin::event::WindowEvent::Resized(<span class="kw-2">*</span>new_inner_size),
+                window_id,
             }),
-            <span class="kw">_</span> =&gt; <span class="ident">event</span>.<span class="ident">to_static</span>(),
+            <span class="kw">_ </span>=&gt; event.to_static(),
         };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">event</span>) <span class="op">=</span> <span class="ident">event</span> {
-            <span class="ident">sender</span>.<span class="ident">start_send</span>(<span class="ident">event</span>).<span class="ident">expect</span>(<span class="string">&quot;Send event&quot;</span>);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = event {
+            sender.start_send(event).expect(<span class="string">&quot;Send event&quot;</span>);
 
-            <span class="kw">let</span> <span class="ident">poll</span> <span class="op">=</span> <span class="ident">instance</span>.<span class="ident">as_mut</span>().<span class="ident">poll</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>);
+            <span class="kw">let </span>poll = instance.as_mut().poll(<span class="kw-2">&amp;mut </span>context);
 
-            <span class="kw-2">*</span><span class="ident">control_flow</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">poll</span> {
-                <span class="ident">task::Poll::Pending</span> =&gt; <span class="ident">ControlFlow::Wait</span>,
-                <span class="ident">task::Poll::Ready</span>(<span class="kw">_</span>) =&gt; <span class="ident">ControlFlow::Exit</span>,
+            <span class="kw-2">*</span>control_flow = <span class="kw">match </span>poll {
+                task::Poll::Pending =&gt; ControlFlow::Wait,
+                task::Poll::Ready(<span class="kw">_</span>) =&gt; ControlFlow::Exit,
             };
         }
     });
@@ -610,257 +610,257 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">run_instance</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">E</span>, <span class="ident">C</span><span class="op">&gt;</span>(
-    <span class="kw-2">mut</span> <span class="ident">application</span>: <span class="ident">A</span>,
-    <span class="kw-2">mut</span> <span class="ident">compositor</span>: <span class="ident">C</span>,
-    <span class="kw-2">mut</span> <span class="ident">renderer</span>: <span class="ident">A::Renderer</span>,
-    <span class="kw-2">mut</span> <span class="ident">runtime</span>: <span class="ident">Runtime</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">Proxy</span><span class="op">&lt;</span><span class="ident">A::Message</span><span class="op">&gt;</span>, <span class="ident">A::Message</span><span class="op">&gt;</span>,
-    <span class="kw-2">mut</span> <span class="ident">proxy</span>: <span class="ident">glutin::event_loop::EventLoopProxy</span><span class="op">&lt;</span><span class="ident">A::Message</span><span class="op">&gt;</span>,
-    <span class="kw-2">mut</span> <span class="ident">debug</span>: <span class="ident">Debug</span>,
-    <span class="kw-2">mut</span> <span class="ident">receiver</span>: <span class="ident">mpsc::UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">glutin::event::Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">A::Message</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw-2">mut</span> <span class="ident">context</span>: <span class="ident">glutin::ContextWrapper</span><span class="op">&lt;</span><span class="ident">glutin::PossiblyCurrent</span>, <span class="ident">Window</span><span class="op">&gt;</span>,
-    <span class="ident">init_command</span>: <span class="ident">Command</span><span class="op">&lt;</span><span class="ident">A::Message</span><span class="op">&gt;</span>,
-    <span class="ident">exit_on_close_request</span>: <span class="ident">bool</span>,
-) <span class="kw">where</span>
-    <span class="ident">A</span>: <span class="ident">Application</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">E</span>: <span class="ident">Executor</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">C</span>: <span class="ident">window::GLCompositor</span><span class="op">&lt;</span><span class="ident">Renderer</span> <span class="op">=</span> <span class="ident">A::Renderer</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="op">&lt;</span><span class="ident">A::Renderer</span> <span class="kw">as</span> <span class="ident">iced_native::Renderer</span><span class="op">&gt;</span><span class="ident">::Theme</span>: <span class="ident">StyleSheet</span>,
+<span class="kw">async fn </span>run_instance&lt;A, E, C&gt;(
+    <span class="kw-2">mut </span>application: A,
+    <span class="kw-2">mut </span>compositor: C,
+    <span class="kw-2">mut </span>renderer: A::Renderer,
+    <span class="kw-2">mut </span>runtime: Runtime&lt;E, Proxy&lt;A::Message&gt;, A::Message&gt;,
+    <span class="kw-2">mut </span>proxy: glutin::event_loop::EventLoopProxy&lt;A::Message&gt;,
+    <span class="kw-2">mut </span>debug: Debug,
+    <span class="kw-2">mut </span>receiver: mpsc::UnboundedReceiver&lt;glutin::event::Event&lt;<span class="lifetime">&#39;_</span>, A::Message&gt;&gt;,
+    <span class="kw-2">mut </span>context: glutin::ContextWrapper&lt;glutin::PossiblyCurrent, Window&gt;,
+    init_command: Command&lt;A::Message&gt;,
+    exit_on_close_request: bool,
+) <span class="kw">where
+    </span>A: Application + <span class="lifetime">&#39;static</span>,
+    E: Executor + <span class="lifetime">&#39;static</span>,
+    C: window::GLCompositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">&#39;static</span>,
+    &lt;A::Renderer <span class="kw">as </span>iced_native::Renderer&gt;::Theme: StyleSheet,
 {
-    <span class="kw">use</span> <span class="ident">glutin::event</span>;
-    <span class="kw">use</span> <span class="ident">iced_winit::futures::stream::StreamExt</span>;
+    <span class="kw">use </span>glutin::event;
+    <span class="kw">use </span>iced_winit::futures::stream::StreamExt;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">clipboard</span> <span class="op">=</span> <span class="ident">Clipboard::connect</span>(<span class="ident">context</span>.<span class="ident">window</span>());
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <span class="ident">user_interface::Cache::default</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">application::State::new</span>(<span class="kw-2">&amp;</span><span class="ident">application</span>, <span class="ident">context</span>.<span class="ident">window</span>());
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">viewport_version</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">viewport_version</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>clipboard = Clipboard::connect(context.window());
+    <span class="kw">let </span><span class="kw-2">mut </span>cache = user_interface::Cache::default();
+    <span class="kw">let </span><span class="kw-2">mut </span>state = application::State::new(<span class="kw-2">&amp;</span>application, context.window());
+    <span class="kw">let </span><span class="kw-2">mut </span>viewport_version = state.viewport_version();
 
-    <span class="ident">application::run_command</span>(
-        <span class="kw-2">&amp;</span><span class="ident">application</span>,
-        <span class="kw-2">&amp;mut</span> <span class="ident">cache</span>,
-        <span class="kw-2">&amp;</span><span class="ident">state</span>,
-        <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
-        <span class="ident">init_command</span>,
-        <span class="kw-2">&amp;mut</span> <span class="ident">runtime</span>,
-        <span class="kw-2">&amp;mut</span> <span class="ident">clipboard</span>,
-        <span class="kw-2">&amp;mut</span> <span class="ident">proxy</span>,
-        <span class="kw-2">&amp;mut</span> <span class="ident">debug</span>,
-        <span class="ident">context</span>.<span class="ident">window</span>(),
-        <span class="op">|</span><span class="op">|</span> <span class="ident">compositor</span>.<span class="ident">fetch_information</span>(),
+    application::run_command(
+        <span class="kw-2">&amp;</span>application,
+        <span class="kw-2">&amp;mut </span>cache,
+        <span class="kw-2">&amp;</span>state,
+        <span class="kw-2">&amp;mut </span>renderer,
+        init_command,
+        <span class="kw-2">&amp;mut </span>runtime,
+        <span class="kw-2">&amp;mut </span>clipboard,
+        <span class="kw-2">&amp;mut </span>proxy,
+        <span class="kw-2">&amp;mut </span>debug,
+        context.window(),
+        || compositor.fetch_information(),
     );
-    <span class="ident">runtime</span>.<span class="ident">track</span>(<span class="ident">application</span>.<span class="ident">subscription</span>());
+    runtime.track(application.subscription());
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">user_interface</span> <span class="op">=</span>
-        <span class="ident">ManuallyDrop::new</span>(<span class="ident">application::build_user_interface</span>(
-            <span class="kw-2">&amp;</span><span class="ident">application</span>,
-            <span class="ident">user_interface::Cache::default</span>(),
-            <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
-            <span class="ident">state</span>.<span class="ident">logical_size</span>(),
-            <span class="kw-2">&amp;mut</span> <span class="ident">debug</span>,
+    <span class="kw">let </span><span class="kw-2">mut </span>user_interface =
+        ManuallyDrop::new(application::build_user_interface(
+            <span class="kw-2">&amp;</span>application,
+            user_interface::Cache::default(),
+            <span class="kw-2">&amp;mut </span>renderer,
+            state.logical_size(),
+            <span class="kw-2">&amp;mut </span>debug,
         ));
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mouse_interaction</span> <span class="op">=</span> <span class="ident">mouse::Interaction::default</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">events</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">messages</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="kw">let </span><span class="kw-2">mut </span>mouse_interaction = mouse::Interaction::default();
+    <span class="kw">let </span><span class="kw-2">mut </span>events = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>messages = Vec::new();
 
-    <span class="ident">debug</span>.<span class="ident">startup_finished</span>();
+    debug.startup_finished();
 
-    <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">event</span>) <span class="op">=</span> <span class="ident">receiver</span>.<span class="ident">next</span>().<span class="kw">await</span> {
-        <span class="kw">match</span> <span class="ident">event</span> {
-            <span class="ident">event::Event::MainEventsCleared</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">events</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">messages</span>.<span class="ident">is_empty</span>() {
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = receiver.next().<span class="kw">await </span>{
+        <span class="kw">match </span>event {
+            event::Event::MainEventsCleared =&gt; {
+                <span class="kw">if </span>events.is_empty() &amp;&amp; messages.is_empty() {
                     <span class="kw">continue</span>;
                 }
 
-                <span class="ident">debug</span>.<span class="ident">event_processing_started</span>();
+                debug.event_processing_started();
 
-                <span class="kw">let</span> (<span class="ident">interface_state</span>, <span class="ident">statuses</span>) <span class="op">=</span> <span class="ident">user_interface</span>.<span class="ident">update</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">events</span>,
-                    <span class="ident">state</span>.<span class="ident">cursor_position</span>(),
-                    <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">clipboard</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">messages</span>,
+                <span class="kw">let </span>(interface_state, statuses) = user_interface.update(
+                    <span class="kw-2">&amp;</span>events,
+                    state.cursor_position(),
+                    <span class="kw-2">&amp;mut </span>renderer,
+                    <span class="kw-2">&amp;mut </span>clipboard,
+                    <span class="kw-2">&amp;mut </span>messages,
                 );
 
-                <span class="ident">debug</span>.<span class="ident">event_processing_finished</span>();
+                debug.event_processing_finished();
 
-                <span class="kw">for</span> <span class="ident">event</span> <span class="kw">in</span> <span class="ident">events</span>.<span class="ident">drain</span>(..).<span class="ident">zip</span>(<span class="ident">statuses</span>.<span class="ident">into_iter</span>()) {
-                    <span class="ident">runtime</span>.<span class="ident">broadcast</span>(<span class="ident">event</span>);
+                <span class="kw">for </span>event <span class="kw">in </span>events.drain(..).zip(statuses.into_iter()) {
+                    runtime.broadcast(event);
                 }
 
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">messages</span>.<span class="ident">is_empty</span>()
-                    <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(
-                        <span class="ident">interface_state</span>,
-                        <span class="ident">user_interface::State::Outdated</span>
+                <span class="kw">if </span>!messages.is_empty()
+                    || <span class="macro">matches!</span>(
+                        interface_state,
+                        user_interface::State::Outdated
                     )
                 {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span>
-                        <span class="ident">ManuallyDrop::into_inner</span>(<span class="ident">user_interface</span>).<span class="ident">into_cache</span>();
+                    <span class="kw">let </span><span class="kw-2">mut </span>cache =
+                        ManuallyDrop::into_inner(user_interface).into_cache();
 
-                    <span class="comment">// Update application</span>
-                    <span class="ident">application::update</span>(
-                        <span class="kw-2">&amp;mut</span> <span class="ident">application</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">cache</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">state</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">runtime</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">clipboard</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">proxy</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">debug</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">messages</span>,
-                        <span class="ident">context</span>.<span class="ident">window</span>(),
-                        <span class="op">|</span><span class="op">|</span> <span class="ident">compositor</span>.<span class="ident">fetch_information</span>(),
+                    <span class="comment">// Update application
+                    </span>application::update(
+                        <span class="kw-2">&amp;mut </span>application,
+                        <span class="kw-2">&amp;mut </span>cache,
+                        <span class="kw-2">&amp;</span>state,
+                        <span class="kw-2">&amp;mut </span>renderer,
+                        <span class="kw-2">&amp;mut </span>runtime,
+                        <span class="kw-2">&amp;mut </span>clipboard,
+                        <span class="kw-2">&amp;mut </span>proxy,
+                        <span class="kw-2">&amp;mut </span>debug,
+                        <span class="kw-2">&amp;mut </span>messages,
+                        context.window(),
+                        || compositor.fetch_information(),
                     );
 
-                    <span class="comment">// Update window</span>
-                    <span class="ident">state</span>.<span class="ident">synchronize</span>(<span class="kw-2">&amp;</span><span class="ident">application</span>, <span class="ident">context</span>.<span class="ident">window</span>());
+                    <span class="comment">// Update window
+                    </span>state.synchronize(<span class="kw-2">&amp;</span>application, context.window());
 
-                    <span class="kw">let</span> <span class="ident">should_exit</span> <span class="op">=</span> <span class="ident">application</span>.<span class="ident">should_exit</span>();
+                    <span class="kw">let </span>should_exit = application.should_exit();
 
-                    <span class="ident">user_interface</span> <span class="op">=</span>
-                        <span class="ident">ManuallyDrop::new</span>(<span class="ident">application::build_user_interface</span>(
-                            <span class="kw-2">&amp;</span><span class="ident">application</span>,
-                            <span class="ident">cache</span>,
-                            <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
-                            <span class="ident">state</span>.<span class="ident">logical_size</span>(),
-                            <span class="kw-2">&amp;mut</span> <span class="ident">debug</span>,
+                    user_interface =
+                        ManuallyDrop::new(application::build_user_interface(
+                            <span class="kw-2">&amp;</span>application,
+                            cache,
+                            <span class="kw-2">&amp;mut </span>renderer,
+                            state.logical_size(),
+                            <span class="kw-2">&amp;mut </span>debug,
                         ));
 
-                    <span class="kw">if</span> <span class="ident">should_exit</span> {
+                    <span class="kw">if </span>should_exit {
                         <span class="kw">break</span>;
                     }
                 }
 
-                <span class="ident">debug</span>.<span class="ident">draw_started</span>();
-                <span class="kw">let</span> <span class="ident">new_mouse_interaction</span> <span class="op">=</span> <span class="ident">user_interface</span>.<span class="ident">draw</span>(
-                    <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
-                    <span class="ident">state</span>.<span class="ident">theme</span>(),
-                    <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span> {
-                        <span class="ident">text_color</span>: <span class="ident">state</span>.<span class="ident">text_color</span>(),
+                debug.draw_started();
+                <span class="kw">let </span>new_mouse_interaction = user_interface.draw(
+                    <span class="kw-2">&amp;mut </span>renderer,
+                    state.theme(),
+                    <span class="kw-2">&amp;</span>renderer::Style {
+                        text_color: state.text_color(),
                     },
-                    <span class="ident">state</span>.<span class="ident">cursor_position</span>(),
+                    state.cursor_position(),
                 );
-                <span class="ident">debug</span>.<span class="ident">draw_finished</span>();
+                debug.draw_finished();
 
-                <span class="kw">if</span> <span class="ident">new_mouse_interaction</span> <span class="op">!</span><span class="op">=</span> <span class="ident">mouse_interaction</span> {
-                    <span class="ident">context</span>.<span class="ident">window</span>().<span class="ident">set_cursor_icon</span>(
-                        <span class="ident">conversion::mouse_interaction</span>(<span class="ident">new_mouse_interaction</span>),
+                <span class="kw">if </span>new_mouse_interaction != mouse_interaction {
+                    context.window().set_cursor_icon(
+                        conversion::mouse_interaction(new_mouse_interaction),
                     );
 
-                    <span class="ident">mouse_interaction</span> <span class="op">=</span> <span class="ident">new_mouse_interaction</span>;
+                    mouse_interaction = new_mouse_interaction;
                 }
 
-                <span class="ident">context</span>.<span class="ident">window</span>().<span class="ident">request_redraw</span>();
+                context.window().request_redraw();
             }
-            <span class="ident">event::Event::PlatformSpecific</span>(<span class="ident">event::PlatformSpecific::MacOS</span>(
-                <span class="ident">event::MacOS::ReceivedUrl</span>(<span class="ident">url</span>),
+            event::Event::PlatformSpecific(event::PlatformSpecific::MacOS(
+                event::MacOS::ReceivedUrl(url),
             )) =&gt; {
-                <span class="kw">use</span> <span class="ident">iced_native::event</span>;
-                <span class="ident">events</span>.<span class="ident">push</span>(<span class="ident">iced_native::Event::PlatformSpecific</span>(
-                    <span class="ident">event::PlatformSpecific::MacOS</span>(<span class="ident">event::MacOS::ReceivedUrl</span>(
-                        <span class="ident">url</span>,
+                <span class="kw">use </span>iced_native::event;
+                events.push(iced_native::Event::PlatformSpecific(
+                    event::PlatformSpecific::MacOS(event::MacOS::ReceivedUrl(
+                        url,
                     )),
                 ));
             }
-            <span class="ident">event::Event::UserEvent</span>(<span class="ident">message</span>) =&gt; {
-                <span class="ident">messages</span>.<span class="ident">push</span>(<span class="ident">message</span>);
+            event::Event::UserEvent(message) =&gt; {
+                messages.push(message);
             }
-            <span class="ident">event::Event::RedrawRequested</span>(<span class="kw">_</span>) =&gt; {
-                <span class="ident">debug</span>.<span class="ident">render_started</span>();
+            event::Event::RedrawRequested(<span class="kw">_</span>) =&gt; {
+                debug.render_started();
 
-                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unsafe_code</span>)]</span>
-                <span class="kw">unsafe</span> {
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">context</span>.<span class="ident">is_current</span>() {
-                        <span class="ident">context</span> <span class="op">=</span> <span class="ident">context</span>
-                            .<span class="ident">make_current</span>()
-                            .<span class="ident">expect</span>(<span class="string">&quot;Make OpenGL context current&quot;</span>);
+                <span class="attribute">#[allow(unsafe_code)]</span>
+                <span class="kw">unsafe </span>{
+                    <span class="kw">if </span>!context.is_current() {
+                        context = context
+                            .make_current()
+                            .expect(<span class="string">&quot;Make OpenGL context current&quot;</span>);
                     }
                 }
 
-                <span class="kw">let</span> <span class="ident">current_viewport_version</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">viewport_version</span>();
+                <span class="kw">let </span>current_viewport_version = state.viewport_version();
 
-                <span class="kw">if</span> <span class="ident">viewport_version</span> <span class="op">!</span><span class="op">=</span> <span class="ident">current_viewport_version</span> {
-                    <span class="kw">let</span> <span class="ident">physical_size</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">physical_size</span>();
-                    <span class="kw">let</span> <span class="ident">logical_size</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">logical_size</span>();
+                <span class="kw">if </span>viewport_version != current_viewport_version {
+                    <span class="kw">let </span>physical_size = state.physical_size();
+                    <span class="kw">let </span>logical_size = state.logical_size();
 
-                    <span class="ident">debug</span>.<span class="ident">layout_started</span>();
-                    <span class="ident">user_interface</span> <span class="op">=</span> <span class="ident">ManuallyDrop::new</span>(
-                        <span class="ident">ManuallyDrop::into_inner</span>(<span class="ident">user_interface</span>)
-                            .<span class="ident">relayout</span>(<span class="ident">logical_size</span>, <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>),
+                    debug.layout_started();
+                    user_interface = ManuallyDrop::new(
+                        ManuallyDrop::into_inner(user_interface)
+                            .relayout(logical_size, <span class="kw-2">&amp;mut </span>renderer),
                     );
-                    <span class="ident">debug</span>.<span class="ident">layout_finished</span>();
+                    debug.layout_finished();
 
-                    <span class="ident">debug</span>.<span class="ident">draw_started</span>();
-                    <span class="kw">let</span> <span class="ident">new_mouse_interaction</span> <span class="op">=</span> <span class="ident">user_interface</span>.<span class="ident">draw</span>(
-                        <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
-                        <span class="ident">state</span>.<span class="ident">theme</span>(),
-                        <span class="kw-2">&amp;</span><span class="ident">renderer::Style</span> {
-                            <span class="ident">text_color</span>: <span class="ident">state</span>.<span class="ident">text_color</span>(),
+                    debug.draw_started();
+                    <span class="kw">let </span>new_mouse_interaction = user_interface.draw(
+                        <span class="kw-2">&amp;mut </span>renderer,
+                        state.theme(),
+                        <span class="kw-2">&amp;</span>renderer::Style {
+                            text_color: state.text_color(),
                         },
-                        <span class="ident">state</span>.<span class="ident">cursor_position</span>(),
+                        state.cursor_position(),
                     );
-                    <span class="ident">debug</span>.<span class="ident">draw_finished</span>();
+                    debug.draw_finished();
 
-                    <span class="kw">if</span> <span class="ident">new_mouse_interaction</span> <span class="op">!</span><span class="op">=</span> <span class="ident">mouse_interaction</span> {
-                        <span class="ident">context</span>.<span class="ident">window</span>().<span class="ident">set_cursor_icon</span>(
-                            <span class="ident">conversion::mouse_interaction</span>(
-                                <span class="ident">new_mouse_interaction</span>,
+                    <span class="kw">if </span>new_mouse_interaction != mouse_interaction {
+                        context.window().set_cursor_icon(
+                            conversion::mouse_interaction(
+                                new_mouse_interaction,
                             ),
                         );
 
-                        <span class="ident">mouse_interaction</span> <span class="op">=</span> <span class="ident">new_mouse_interaction</span>;
+                        mouse_interaction = new_mouse_interaction;
                     }
 
-                    <span class="ident">context</span>.<span class="ident">resize</span>(<span class="ident">glutin::dpi::PhysicalSize::new</span>(
-                        <span class="ident">physical_size</span>.<span class="ident">width</span>,
-                        <span class="ident">physical_size</span>.<span class="ident">height</span>,
+                    context.resize(glutin::dpi::PhysicalSize::new(
+                        physical_size.width,
+                        physical_size.height,
                     ));
 
-                    <span class="ident">compositor</span>.<span class="ident">resize_viewport</span>(<span class="ident">physical_size</span>);
+                    compositor.resize_viewport(physical_size);
 
-                    <span class="ident">viewport_version</span> <span class="op">=</span> <span class="ident">current_viewport_version</span>;
+                    viewport_version = current_viewport_version;
                 }
 
-                <span class="ident">compositor</span>.<span class="ident">present</span>(
-                    <span class="kw-2">&amp;mut</span> <span class="ident">renderer</span>,
-                    <span class="ident">state</span>.<span class="ident">viewport</span>(),
-                    <span class="ident">state</span>.<span class="ident">background_color</span>(),
-                    <span class="kw-2">&amp;</span><span class="ident">debug</span>.<span class="ident">overlay</span>(),
+                compositor.present(
+                    <span class="kw-2">&amp;mut </span>renderer,
+                    state.viewport(),
+                    state.background_color(),
+                    <span class="kw-2">&amp;</span>debug.overlay(),
                 );
 
-                <span class="ident">context</span>.<span class="ident">swap_buffers</span>().<span class="ident">expect</span>(<span class="string">&quot;Swap buffers&quot;</span>);
+                context.swap_buffers().expect(<span class="string">&quot;Swap buffers&quot;</span>);
 
-                <span class="ident">debug</span>.<span class="ident">render_finished</span>();
+                debug.render_finished();
 
-                <span class="comment">// TODO: Handle animations!</span>
-                <span class="comment">// Maybe we can use `ControlFlow::WaitUntil` for this.</span>
-            }
-            <span class="ident">event::Event::WindowEvent</span> {
-                <span class="ident">event</span>: <span class="ident">window_event</span>,
+                <span class="comment">// TODO: Handle animations!
+                // Maybe we can use `ControlFlow::WaitUntil` for this.
+            </span>}
+            event::Event::WindowEvent {
+                event: window_event,
                 ..
             } =&gt; {
-                <span class="kw">if</span> <span class="ident">application::requests_exit</span>(<span class="kw-2">&amp;</span><span class="ident">window_event</span>, <span class="ident">state</span>.<span class="ident">modifiers</span>())
-                    <span class="op">&amp;&amp;</span> <span class="ident">exit_on_close_request</span>
+                <span class="kw">if </span>application::requests_exit(<span class="kw-2">&amp;</span>window_event, state.modifiers())
+                    &amp;&amp; exit_on_close_request
                 {
                     <span class="kw">break</span>;
                 }
 
-                <span class="ident">state</span>.<span class="ident">update</span>(<span class="ident">context</span>.<span class="ident">window</span>(), <span class="kw-2">&amp;</span><span class="ident">window_event</span>, <span class="kw-2">&amp;mut</span> <span class="ident">debug</span>);
+                state.update(context.window(), <span class="kw-2">&amp;</span>window_event, <span class="kw-2">&amp;mut </span>debug);
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">event</span>) <span class="op">=</span> <span class="ident">conversion::window_event</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">window_event</span>,
-                    <span class="ident">state</span>.<span class="ident">scale_factor</span>(),
-                    <span class="ident">state</span>.<span class="ident">modifiers</span>(),
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = conversion::window_event(
+                    <span class="kw-2">&amp;</span>window_event,
+                    state.scale_factor(),
+                    state.modifiers(),
                 ) {
-                    <span class="ident">events</span>.<span class="ident">push</span>(<span class="ident">event</span>);
+                    events.push(event);
                 }
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_ </span>=&gt; {}
         }
     }
 
-    <span class="comment">// Manually drop the user interface</span>
-    <span class="ident">drop</span>(<span class="ident">ManuallyDrop::into_inner</span>(<span class="ident">user_interface</span>));
+    <span class="comment">// Manually drop the user interface
+    </span>drop(ManuallyDrop::into_inner(user_interface));
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glutin" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_glutin" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

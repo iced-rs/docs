@@ -169,174 +169,174 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Operate on widgets that can be focused.</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::operation</span>::{<span class="ident">Operation</span>, <span class="ident">Outcome</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::Id</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Operate on widgets that can be focused.
+</span><span class="kw">use </span><span class="kw">crate</span>::widget::operation::{Operation, Outcome};
+<span class="kw">use </span><span class="kw">crate</span>::widget::Id;
 
-<span class="doccomment">/// The internal state of a widget that can be focused.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Focusable</span> {
-    <span class="doccomment">/// Returns whether the widget is focused or not.</span>
-    <span class="kw">fn</span> <span class="ident">is_focused</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>;
+<span class="doccomment">/// The internal state of a widget that can be focused.
+</span><span class="kw">pub trait </span>Focusable {
+    <span class="doccomment">/// Returns whether the widget is focused or not.
+    </span><span class="kw">fn </span>is_focused(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 
-    <span class="doccomment">/// Focuses the widget.</span>
-    <span class="kw">fn</span> <span class="ident">focus</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>);
+    <span class="doccomment">/// Focuses the widget.
+    </span><span class="kw">fn </span>focus(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
 
-    <span class="doccomment">/// Unfocuses the widget.</span>
-    <span class="kw">fn</span> <span class="ident">unfocus</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>);
+    <span class="doccomment">/// Unfocuses the widget.
+    </span><span class="kw">fn </span>unfocus(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
 }
 
-<span class="doccomment">/// A summary of the focusable widgets present on a widget tree.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Count</span> {
-    <span class="doccomment">/// The index of the current focused widget, if any.</span>
-    <span class="ident">focused</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+<span class="doccomment">/// A summary of the focusable widgets present on a widget tree.
+</span><span class="attribute">#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]</span>
+<span class="kw">pub struct </span>Count {
+    <span class="doccomment">/// The index of the current focused widget, if any.
+    </span>focused: <span class="prelude-ty">Option</span>&lt;usize&gt;,
 
-    <span class="doccomment">/// The total amount of focusable widgets.</span>
-    <span class="ident">total</span>: <span class="ident">usize</span>,
+    <span class="doccomment">/// The total amount of focusable widgets.
+    </span>total: usize,
 }
 
-<span class="doccomment">/// Produces an [`Operation`] that focuses the widget with the given [`Id`].</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">focus</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">target</span>: <span class="ident">Id</span>) -&gt; <span class="kw">impl</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">struct</span> <span class="ident">Focus</span> {
-        <span class="ident">target</span>: <span class="ident">Id</span>,
+<span class="doccomment">/// Produces an [`Operation`] that focuses the widget with the given [`Id`].
+</span><span class="kw">pub fn </span>focus&lt;T&gt;(target: Id) -&gt; <span class="kw">impl </span>Operation&lt;T&gt; {
+    <span class="kw">struct </span>Focus {
+        target: Id,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Focus</span> {
-        <span class="kw">fn</span> <span class="ident">focusable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Focusable</span>, <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Id</span><span class="op">&gt;</span>) {
-            <span class="kw">match</span> <span class="ident">id</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">id</span>) <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">target</span> =&gt; {
-                    <span class="ident">state</span>.<span class="ident">focus</span>();
+    <span class="kw">impl</span>&lt;T&gt; Operation&lt;T&gt; <span class="kw">for </span>Focus {
+        <span class="kw">fn </span>focusable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Focusable, id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Id&gt;) {
+            <span class="kw">match </span>id {
+                <span class="prelude-val">Some</span>(id) <span class="kw">if </span>id == <span class="kw-2">&amp;</span><span class="self">self</span>.target =&gt; {
+                    state.focus();
                 }
-                <span class="kw">_</span> =&gt; {
-                    <span class="ident">state</span>.<span class="ident">unfocus</span>();
+                <span class="kw">_ </span>=&gt; {
+                    state.unfocus();
                 }
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">container</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-            <span class="ident">_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Id</span><span class="op">&gt;</span>,
-            <span class="ident">operate_on_children</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+        <span class="kw">fn </span>container(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+            _id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Id&gt;,
+            operate_on_children: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Operation&lt;T&gt;),
         ) {
-            <span class="ident">operate_on_children</span>(<span class="self">self</span>)
+            operate_on_children(<span class="self">self</span>)
         }
     }
 
-    <span class="ident">Focus</span> { <span class="ident">target</span> }
+    Focus { target }
 }
 
-<span class="doccomment">/// Produces an [`Operation`] that generates a [`Count`] and chains it with the</span>
-<span class="doccomment">/// provided function to build a new [`Operation`].</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">O</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw">fn</span>(<span class="ident">Count</span>) -&gt; <span class="ident">O</span>) -&gt; <span class="kw">impl</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">O</span>: <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="doccomment">/// Produces an [`Operation`] that generates a [`Count`] and chains it with the
+/// provided function to build a new [`Operation`].
+</span><span class="kw">pub fn </span>count&lt;T, O&gt;(f: <span class="kw">fn</span>(Count) -&gt; O) -&gt; <span class="kw">impl </span>Operation&lt;T&gt;
+<span class="kw">where
+    </span>O: Operation&lt;T&gt; + <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">struct</span> <span class="ident">CountFocusable</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span> {
-        <span class="ident">count</span>: <span class="ident">Count</span>,
-        <span class="ident">next</span>: <span class="kw">fn</span>(<span class="ident">Count</span>) -&gt; <span class="ident">O</span>,
+    <span class="kw">struct </span>CountFocusable&lt;O&gt; {
+        count: Count,
+        next: <span class="kw">fn</span>(Count) -&gt; O,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CountFocusable</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">O</span>: <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="kw">impl</span>&lt;T, O&gt; Operation&lt;T&gt; <span class="kw">for </span>CountFocusable&lt;O&gt;
+    <span class="kw">where
+        </span>O: Operation&lt;T&gt; + <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">fn</span> <span class="ident">focusable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Focusable</span>, <span class="ident">_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Id</span><span class="op">&gt;</span>) {
-            <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_focused</span>() {
-                <span class="self">self</span>.<span class="ident">count</span>.<span class="ident">focused</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">count</span>.<span class="ident">total</span>);
+        <span class="kw">fn </span>focusable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Focusable, _id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Id&gt;) {
+            <span class="kw">if </span>state.is_focused() {
+                <span class="self">self</span>.count.focused = <span class="prelude-val">Some</span>(<span class="self">self</span>.count.total);
             }
 
-            <span class="self">self</span>.<span class="ident">count</span>.<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="self">self</span>.count.total += <span class="number">1</span>;
         }
 
-        <span class="kw">fn</span> <span class="ident">container</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-            <span class="ident">_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Id</span><span class="op">&gt;</span>,
-            <span class="ident">operate_on_children</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+        <span class="kw">fn </span>container(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+            _id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Id&gt;,
+            operate_on_children: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Operation&lt;T&gt;),
         ) {
-            <span class="ident">operate_on_children</span>(<span class="self">self</span>)
+            operate_on_children(<span class="self">self</span>)
         }
 
-        <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Outcome</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="ident">Outcome::Chain</span>(<span class="ident">Box::new</span>((<span class="self">self</span>.<span class="ident">next</span>)(<span class="self">self</span>.<span class="ident">count</span>)))
+        <span class="kw">fn </span>finish(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Outcome&lt;T&gt; {
+            Outcome::Chain(Box::new((<span class="self">self</span>.next)(<span class="self">self</span>.count)))
         }
     }
 
-    <span class="ident">CountFocusable</span> {
-        <span class="ident">count</span>: <span class="ident">Count::default</span>(),
-        <span class="ident">next</span>: <span class="ident">f</span>,
+    CountFocusable {
+        count: Count::default(),
+        next: f,
     }
 }
 
-<span class="doccomment">/// Produces an [`Operation`] that searches for the current focused widget, and</span>
-<span class="doccomment">/// - if found, focuses the previous focusable widget.</span>
-<span class="doccomment">/// - if not found, focuses the last focusable widget.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">focus_previous</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() -&gt; <span class="kw">impl</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">struct</span> <span class="ident">FocusPrevious</span> {
-        <span class="ident">count</span>: <span class="ident">Count</span>,
-        <span class="ident">current</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// Produces an [`Operation`] that searches for the current focused widget, and
+/// - if found, focuses the previous focusable widget.
+/// - if not found, focuses the last focusable widget.
+</span><span class="kw">pub fn </span>focus_previous&lt;T&gt;() -&gt; <span class="kw">impl </span>Operation&lt;T&gt; {
+    <span class="kw">struct </span>FocusPrevious {
+        count: Count,
+        current: usize,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FocusPrevious</span> {
-        <span class="kw">fn</span> <span class="ident">focusable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Focusable</span>, <span class="ident">_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Id</span><span class="op">&gt;</span>) {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">count</span>.<span class="ident">total</span> <span class="op">==</span> <span class="number">0</span> {
+    <span class="kw">impl</span>&lt;T&gt; Operation&lt;T&gt; <span class="kw">for </span>FocusPrevious {
+        <span class="kw">fn </span>focusable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Focusable, _id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Id&gt;) {
+            <span class="kw">if </span><span class="self">self</span>.count.total == <span class="number">0 </span>{
                 <span class="kw">return</span>;
             }
 
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">count</span>.<span class="ident">focused</span> {
-                <span class="prelude-val">None</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">current</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">count</span>.<span class="ident">total</span> <span class="op">-</span> <span class="number">1</span> =&gt; <span class="ident">state</span>.<span class="ident">focus</span>(),
-                <span class="prelude-val">Some</span>(<span class="number">0</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">current</span> <span class="op">==</span> <span class="number">0</span> =&gt; <span class="ident">state</span>.<span class="ident">unfocus</span>(),
+            <span class="kw">match </span><span class="self">self</span>.count.focused {
+                <span class="prelude-val">None </span><span class="kw">if </span><span class="self">self</span>.current == <span class="self">self</span>.count.total - <span class="number">1 </span>=&gt; state.focus(),
+                <span class="prelude-val">Some</span>(<span class="number">0</span>) <span class="kw">if </span><span class="self">self</span>.current == <span class="number">0 </span>=&gt; state.unfocus(),
                 <span class="prelude-val">Some</span>(<span class="number">0</span>) =&gt; {}
-                <span class="prelude-val">Some</span>(<span class="ident">focused</span>) <span class="kw">if</span> <span class="ident">focused</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">current</span> =&gt; <span class="ident">state</span>.<span class="ident">unfocus</span>(),
-                <span class="prelude-val">Some</span>(<span class="ident">focused</span>) <span class="kw">if</span> <span class="ident">focused</span> <span class="op">-</span> <span class="number">1</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">current</span> =&gt; <span class="ident">state</span>.<span class="ident">focus</span>(),
-                <span class="kw">_</span> =&gt; {}
+                <span class="prelude-val">Some</span>(focused) <span class="kw">if </span>focused == <span class="self">self</span>.current =&gt; state.unfocus(),
+                <span class="prelude-val">Some</span>(focused) <span class="kw">if </span>focused - <span class="number">1 </span>== <span class="self">self</span>.current =&gt; state.focus(),
+                <span class="kw">_ </span>=&gt; {}
             }
 
-            <span class="self">self</span>.<span class="ident">current</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="self">self</span>.current += <span class="number">1</span>;
         }
 
-        <span class="kw">fn</span> <span class="ident">container</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-            <span class="ident">_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Id</span><span class="op">&gt;</span>,
-            <span class="ident">operate_on_children</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+        <span class="kw">fn </span>container(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+            _id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Id&gt;,
+            operate_on_children: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Operation&lt;T&gt;),
         ) {
-            <span class="ident">operate_on_children</span>(<span class="self">self</span>)
+            operate_on_children(<span class="self">self</span>)
         }
     }
 
-    <span class="ident">count</span>(<span class="op">|</span><span class="ident">count</span><span class="op">|</span> <span class="ident">FocusPrevious</span> { <span class="ident">count</span>, <span class="ident">current</span>: <span class="number">0</span> })
+    count(|count| FocusPrevious { count, current: <span class="number">0 </span>})
 }
 
-<span class="doccomment">/// Produces an [`Operation`] that searches for the current focused widget, and</span>
-<span class="doccomment">/// - if found, focuses the next focusable widget.</span>
-<span class="doccomment">/// - if not found, focuses the first focusable widget.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">focus_next</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() -&gt; <span class="kw">impl</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">struct</span> <span class="ident">FocusNext</span> {
-        <span class="ident">count</span>: <span class="ident">Count</span>,
-        <span class="ident">current</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// Produces an [`Operation`] that searches for the current focused widget, and
+/// - if found, focuses the next focusable widget.
+/// - if not found, focuses the first focusable widget.
+</span><span class="kw">pub fn </span>focus_next&lt;T&gt;() -&gt; <span class="kw">impl </span>Operation&lt;T&gt; {
+    <span class="kw">struct </span>FocusNext {
+        count: Count,
+        current: usize,
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FocusNext</span> {
-        <span class="kw">fn</span> <span class="ident">focusable</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Focusable</span>, <span class="ident">_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Id</span><span class="op">&gt;</span>) {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">count</span>.<span class="ident">focused</span> {
-                <span class="prelude-val">None</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">current</span> <span class="op">==</span> <span class="number">0</span> =&gt; <span class="ident">state</span>.<span class="ident">focus</span>(),
-                <span class="prelude-val">Some</span>(<span class="ident">focused</span>) <span class="kw">if</span> <span class="ident">focused</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">current</span> =&gt; <span class="ident">state</span>.<span class="ident">unfocus</span>(),
-                <span class="prelude-val">Some</span>(<span class="ident">focused</span>) <span class="kw">if</span> <span class="ident">focused</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">current</span> =&gt; <span class="ident">state</span>.<span class="ident">focus</span>(),
-                <span class="kw">_</span> =&gt; {}
+    <span class="kw">impl</span>&lt;T&gt; Operation&lt;T&gt; <span class="kw">for </span>FocusNext {
+        <span class="kw">fn </span>focusable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Focusable, _id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Id&gt;) {
+            <span class="kw">match </span><span class="self">self</span>.count.focused {
+                <span class="prelude-val">None </span><span class="kw">if </span><span class="self">self</span>.current == <span class="number">0 </span>=&gt; state.focus(),
+                <span class="prelude-val">Some</span>(focused) <span class="kw">if </span>focused == <span class="self">self</span>.current =&gt; state.unfocus(),
+                <span class="prelude-val">Some</span>(focused) <span class="kw">if </span>focused + <span class="number">1 </span>== <span class="self">self</span>.current =&gt; state.focus(),
+                <span class="kw">_ </span>=&gt; {}
             }
 
-            <span class="self">self</span>.<span class="ident">current</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="self">self</span>.current += <span class="number">1</span>;
         }
 
-        <span class="kw">fn</span> <span class="ident">container</span>(
-            <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-            <span class="ident">_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Id</span><span class="op">&gt;</span>,
-            <span class="ident">operate_on_children</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Operation</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>),
+        <span class="kw">fn </span>container(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+            _id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Id&gt;,
+            operate_on_children: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(<span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Operation&lt;T&gt;),
         ) {
-            <span class="ident">operate_on_children</span>(<span class="self">self</span>)
+            operate_on_children(<span class="self">self</span>)
         }
     }
 
-    <span class="ident">count</span>(<span class="op">|</span><span class="ident">count</span><span class="op">|</span> <span class="ident">FocusNext</span> { <span class="ident">count</span>, <span class="ident">current</span>: <span class="number">0</span> })
+    count(|count| FocusNext { count, current: <span class="number">0 </span>})
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

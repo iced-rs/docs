@@ -115,120 +115,120 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Attach an icon to the window of your application.</span>
-<span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="kw">use</span> <span class="ident">std::io</span>;
+</pre><pre class="rust"><code><span class="doccomment">//! Attach an icon to the window of your application.
+</span><span class="kw">use </span>std::fmt;
+<span class="kw">use </span>std::io;
 
-<span class="doccomment">/// The icon of a window.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Icon</span>(<span class="ident">iced_winit::winit::window::Icon</span>);
+<span class="doccomment">/// The icon of a window.
+</span><span class="attribute">#[derive(Debug, Clone)]</span>
+<span class="kw">pub struct </span>Icon(iced_winit::winit::window::Icon);
 
-<span class="kw">impl</span> <span class="ident">Icon</span> {
-    <span class="doccomment">/// Creates an icon from 32bpp RGBA data.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_rgba</span>(
-        <span class="ident">rgba</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-        <span class="ident">width</span>: <span class="ident">u32</span>,
-        <span class="ident">height</span>: <span class="ident">u32</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span>
-            <span class="ident">iced_winit::winit::window::Icon::from_rgba</span>(<span class="ident">rgba</span>, <span class="ident">width</span>, <span class="ident">height</span>)<span class="question-mark">?</span>;
+<span class="kw">impl </span>Icon {
+    <span class="doccomment">/// Creates an icon from 32bpp RGBA data.
+    </span><span class="kw">pub fn </span>from_rgba(
+        rgba: Vec&lt;u8&gt;,
+        width: u32,
+        height: u32,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="kw">let </span>raw =
+            iced_winit::winit::window::Icon::from_rgba(rgba, width, height)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Icon</span>(<span class="ident">raw</span>))
+        <span class="prelude-val">Ok</span>(Icon(raw))
     }
 }
 
-<span class="doccomment">/// An error produced when using `Icon::from_rgba` with invalid arguments.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
-    <span class="doccomment">/// The provided RGBA data isn&#39;t divisble by 4.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Therefore, it cannot be safely interpreted as 32bpp RGBA pixels.</span>
-    <span class="ident">InvalidData</span> {
-        <span class="doccomment">/// The length of the provided RGBA data.</span>
-        <span class="ident">byte_count</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// An error produced when using `Icon::from_rgba` with invalid arguments.
+</span><span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub enum </span>Error {
+    <span class="doccomment">/// The provided RGBA data isn&#39;t divisble by 4.
+    ///
+    /// Therefore, it cannot be safely interpreted as 32bpp RGBA pixels.
+    </span>InvalidData {
+        <span class="doccomment">/// The length of the provided RGBA data.
+        </span>byte_count: usize,
     },
 
-    <span class="doccomment">/// The number of RGBA pixels does not match the provided dimensions.</span>
-    <span class="ident">DimensionsMismatch</span> {
-        <span class="doccomment">/// The provided width.</span>
-        <span class="ident">width</span>: <span class="ident">u32</span>,
-        <span class="doccomment">/// The provided height.</span>
-        <span class="ident">height</span>: <span class="ident">u32</span>,
-        <span class="doccomment">/// The amount of pixels of the provided RGBA data.</span>
-        <span class="ident">pixel_count</span>: <span class="ident">usize</span>,
+    <span class="doccomment">/// The number of RGBA pixels does not match the provided dimensions.
+    </span>DimensionsMismatch {
+        <span class="doccomment">/// The provided width.
+        </span>width: u32,
+        <span class="doccomment">/// The provided height.
+        </span>height: u32,
+        <span class="doccomment">/// The amount of pixels of the provided RGBA data.
+        </span>pixel_count: usize,
     },
 
-    <span class="doccomment">/// The underlying OS failed to create the icon.</span>
-    <span class="ident">OsError</span>(<span class="ident">io::Error</span>),
+    <span class="doccomment">/// The underlying OS failed to create the icon.
+    </span>OsError(io::Error),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">iced_winit::winit::window::BadIcon</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">error</span>: <span class="ident">iced_winit::winit::window::BadIcon</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">iced_winit::winit::window::BadIcon</span>;
+<span class="kw">impl </span>From&lt;iced_winit::winit::window::BadIcon&gt; <span class="kw">for </span>Error {
+    <span class="kw">fn </span>from(error: iced_winit::winit::window::BadIcon) -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>iced_winit::winit::window::BadIcon;
 
-        <span class="kw">match</span> <span class="ident">error</span> {
-            <span class="ident">BadIcon::ByteCountNotDivisibleBy4</span> { <span class="ident">byte_count</span> } =&gt; {
-                <span class="ident">Error::InvalidData</span> { <span class="ident">byte_count</span> }
+        <span class="kw">match </span>error {
+            BadIcon::ByteCountNotDivisibleBy4 { byte_count } =&gt; {
+                Error::InvalidData { byte_count }
             }
-            <span class="ident">BadIcon::DimensionsVsPixelCount</span> {
-                <span class="ident">width</span>,
-                <span class="ident">height</span>,
-                <span class="ident">pixel_count</span>,
+            BadIcon::DimensionsVsPixelCount {
+                width,
+                height,
+                pixel_count,
                 ..
-            } =&gt; <span class="ident">Error::DimensionsMismatch</span> {
-                <span class="ident">width</span>,
-                <span class="ident">height</span>,
-                <span class="ident">pixel_count</span>,
+            } =&gt; Error::DimensionsMismatch {
+                width,
+                height,
+                pixel_count,
             },
-            <span class="ident">BadIcon::OsError</span>(<span class="ident">os_error</span>) =&gt; <span class="ident">Error::OsError</span>(<span class="ident">os_error</span>),
+            BadIcon::OsError(os_error) =&gt; Error::OsError(os_error),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Icon</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">iced_winit::winit::window::Icon</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">icon</span>: <span class="ident">Icon</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">icon</span>.<span class="number">0</span>
-    }
+<span class="kw">impl </span>From&lt;Icon&gt; <span class="kw">for </span>iced_winit::winit::window::Icon {
+    <span class="kw">fn </span>from(icon: Icon) -&gt; <span class="self">Self </span>{
+        icon.<span class="number">0
+    </span>}
 }
 
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Error::InvalidData</span> { <span class="ident">byte_count</span> } =&gt; {
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Error {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            Error::InvalidData { byte_count } =&gt; {
                 <span class="macro">write!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;The provided RGBA data (with length {:?}) isn&#39;t divisble by \
                 4. Therefore, it cannot be safely interpreted as 32bpp RGBA \
                 pixels.&quot;</span>,
-                    <span class="ident">byte_count</span>,
+                    byte_count,
                 )
             }
-            <span class="ident">Error::DimensionsMismatch</span> {
-                <span class="ident">width</span>,
-                <span class="ident">height</span>,
-                <span class="ident">pixel_count</span>,
+            Error::DimensionsMismatch {
+                width,
+                height,
+                pixel_count,
             } =&gt; {
                 <span class="macro">write!</span>(
-                    <span class="ident">f</span>,
+                    f,
                     <span class="string">&quot;The number of RGBA pixels ({:?}) does not match the provided \
                 dimensions ({:?}x{:?}).&quot;</span>,
-                    <span class="ident">pixel_count</span>, <span class="ident">width</span>, <span class="ident">height</span>,
+                    pixel_count, width, height,
                 )
             }
-            <span class="ident">Error::OsError</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(
-                <span class="ident">f</span>,
+            Error::OsError(e) =&gt; <span class="macro">write!</span>(
+                f,
                 <span class="string">&quot;The underlying OS failed to create the window \
                 icon: {:?}&quot;</span>,
-                <span class="ident">e</span>
+                e
             ),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::error::Error</span> <span class="kw">for</span> <span class="ident">Error</span> {
-    <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
+<span class="kw">impl </span>std::error::Error <span class="kw">for </span>Error {
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>std::error::Error + <span class="lifetime">&#39;static</span>)&gt; {
         <span class="prelude-val">Some</span>(<span class="self">self</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

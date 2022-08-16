@@ -250,255 +250,255 @@
 <span id="248">248</span>
 <span id="249">249</span>
 <span id="250">250</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::widget::pane_grid</span>::{<span class="ident">Axis</span>, <span class="ident">Pane</span>, <span class="ident">Split</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Rectangle</span>, <span class="ident">Size</span>};
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::widget::pane_grid::{Axis, Pane, Split};
+<span class="kw">use crate</span>::{Rectangle, Size};
 
-<span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
+<span class="kw">use </span>std::collections::BTreeMap;
 
-<span class="doccomment">/// A layout node of a [`PaneGrid`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`PaneGrid`]: crate::widget::PaneGrid</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Node</span> {
-    <span class="doccomment">/// The region of this [`Node`] is split into two.</span>
-    <span class="ident">Split</span> {
-        <span class="doccomment">/// The [`Split`] of this [`Node`].</span>
-        <span class="ident">id</span>: <span class="ident">Split</span>,
+<span class="doccomment">/// A layout node of a [`PaneGrid`].
+///
+/// [`PaneGrid`]: crate::widget::PaneGrid
+</span><span class="attribute">#[derive(Debug, Clone)]</span>
+<span class="kw">pub enum </span>Node {
+    <span class="doccomment">/// The region of this [`Node`] is split into two.
+    </span>Split {
+        <span class="doccomment">/// The [`Split`] of this [`Node`].
+        </span>id: Split,
 
-        <span class="doccomment">/// The direction of the split.</span>
-        <span class="ident">axis</span>: <span class="ident">Axis</span>,
+        <span class="doccomment">/// The direction of the split.
+        </span>axis: Axis,
 
-        <span class="doccomment">/// The ratio of the split in [0.0, 1.0].</span>
-        <span class="ident">ratio</span>: <span class="ident">f32</span>,
+        <span class="doccomment">/// The ratio of the split in [0.0, 1.0].
+        </span>ratio: f32,
 
-        <span class="doccomment">/// The left/top [`Node`] of the split.</span>
-        <span class="ident">a</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+        <span class="doccomment">/// The left/top [`Node`] of the split.
+        </span>a: Box&lt;Node&gt;,
 
-        <span class="doccomment">/// The right/bottom [`Node`] of the split.</span>
-        <span class="ident">b</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+        <span class="doccomment">/// The right/bottom [`Node`] of the split.
+        </span>b: Box&lt;Node&gt;,
     },
-    <span class="doccomment">/// The region of this [`Node`] is taken by a [`Pane`].</span>
-    <span class="ident">Pane</span>(<span class="ident">Pane</span>),
+    <span class="doccomment">/// The region of this [`Node`] is taken by a [`Pane`].
+    </span>Pane(Pane),
 }
 
-<span class="kw">impl</span> <span class="ident">Node</span> {
-    <span class="doccomment">/// Returns an iterator over each [`Split`] in this [`Node`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">splits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Split</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unvisited_nodes</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="self">self</span>];
+<span class="kw">impl </span>Node {
+    <span class="doccomment">/// Returns an iterator over each [`Split`] in this [`Node`].
+    </span><span class="kw">pub fn </span>splits(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span>Split&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>unvisited_nodes = <span class="macro">vec!</span>[<span class="self">self</span>];
 
-        <span class="ident">std::iter::from_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">unvisited_nodes</span>.<span class="ident">pop</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Split</span> { <span class="ident">id</span>, <span class="ident">a</span>, <span class="ident">b</span>, .. } <span class="op">=</span> <span class="ident">node</span> {
-                    <span class="ident">unvisited_nodes</span>.<span class="ident">push</span>(<span class="ident">a</span>);
-                    <span class="ident">unvisited_nodes</span>.<span class="ident">push</span>(<span class="ident">b</span>);
+        std::iter::from_fn(<span class="kw">move </span>|| {
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = unvisited_nodes.pop() {
+                <span class="kw">if let </span>Node::Split { id, a, b, .. } = node {
+                    unvisited_nodes.push(a);
+                    unvisited_nodes.push(b);
 
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>);
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(id);
                 }
             }
 
-            <span class="prelude-val">None</span>
-        })
+            <span class="prelude-val">None
+        </span>})
     }
 
-    <span class="doccomment">/// Returns the rectangular region for each [`Pane`] in the [`Node`] given</span>
-    <span class="doccomment">/// the spacing between panes and the total available space.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pane_regions</span>(
+    <span class="doccomment">/// Returns the rectangular region for each [`Pane`] in the [`Node`] given
+    /// the spacing between panes and the total available space.
+    </span><span class="kw">pub fn </span>pane_regions(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">spacing</span>: <span class="ident">f32</span>,
-        <span class="ident">size</span>: <span class="ident">Size</span>,
-    ) -&gt; <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">Pane</span>, <span class="ident">Rectangle</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">regions</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
+        spacing: f32,
+        size: Size,
+    ) -&gt; BTreeMap&lt;Pane, Rectangle&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>regions = BTreeMap::new();
 
-        <span class="self">self</span>.<span class="ident">compute_regions</span>(
-            <span class="ident">spacing</span>,
-            <span class="kw-2">&amp;</span><span class="ident">Rectangle</span> {
-                <span class="ident">x</span>: <span class="number">0.0</span>,
-                <span class="ident">y</span>: <span class="number">0.0</span>,
-                <span class="ident">width</span>: <span class="ident">size</span>.<span class="ident">width</span>,
-                <span class="ident">height</span>: <span class="ident">size</span>.<span class="ident">height</span>,
+        <span class="self">self</span>.compute_regions(
+            spacing,
+            <span class="kw-2">&amp;</span>Rectangle {
+                x: <span class="number">0.0</span>,
+                y: <span class="number">0.0</span>,
+                width: size.width,
+                height: size.height,
             },
-            <span class="kw-2">&amp;mut</span> <span class="ident">regions</span>,
+            <span class="kw-2">&amp;mut </span>regions,
         );
 
-        <span class="ident">regions</span>
+        regions
     }
 
-    <span class="doccomment">/// Returns the axis, rectangular region, and ratio for each [`Split`] in</span>
-    <span class="doccomment">/// the [`Node`] given the spacing between panes and the total available</span>
-    <span class="doccomment">/// space.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_regions</span>(
+    <span class="doccomment">/// Returns the axis, rectangular region, and ratio for each [`Split`] in
+    /// the [`Node`] given the spacing between panes and the total available
+    /// space.
+    </span><span class="kw">pub fn </span>split_regions(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">spacing</span>: <span class="ident">f32</span>,
-        <span class="ident">size</span>: <span class="ident">Size</span>,
-    ) -&gt; <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">Split</span>, (<span class="ident">Axis</span>, <span class="ident">Rectangle</span>, <span class="ident">f32</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">splits</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
+        spacing: f32,
+        size: Size,
+    ) -&gt; BTreeMap&lt;Split, (Axis, Rectangle, f32)&gt; {
+        <span class="kw">let </span><span class="kw-2">mut </span>splits = BTreeMap::new();
 
-        <span class="self">self</span>.<span class="ident">compute_splits</span>(
-            <span class="ident">spacing</span>,
-            <span class="kw-2">&amp;</span><span class="ident">Rectangle</span> {
-                <span class="ident">x</span>: <span class="number">0.0</span>,
-                <span class="ident">y</span>: <span class="number">0.0</span>,
-                <span class="ident">width</span>: <span class="ident">size</span>.<span class="ident">width</span>,
-                <span class="ident">height</span>: <span class="ident">size</span>.<span class="ident">height</span>,
+        <span class="self">self</span>.compute_splits(
+            spacing,
+            <span class="kw-2">&amp;</span>Rectangle {
+                x: <span class="number">0.0</span>,
+                y: <span class="number">0.0</span>,
+                width: size.width,
+                height: size.height,
             },
-            <span class="kw-2">&amp;mut</span> <span class="ident">splits</span>,
+            <span class="kw-2">&amp;mut </span>splits,
         );
 
-        <span class="ident">splits</span>
+        splits
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pane</span>: <span class="kw-2">&amp;</span><span class="ident">Pane</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Node</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Split</span> { <span class="ident">a</span>, <span class="ident">b</span>, .. } =&gt; {
-                <span class="ident">a</span>.<span class="ident">find</span>(<span class="ident">pane</span>).<span class="ident">or_else</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">find</span>(<span class="ident">pane</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>find(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pane: <span class="kw-2">&amp;</span>Pane) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Node&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::Split { a, b, .. } =&gt; {
+                a.find(pane).or_else(<span class="kw">move </span>|| b.find(pane))
             }
-            <span class="ident">Node::Pane</span>(<span class="ident">p</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">p</span> <span class="op">==</span> <span class="ident">pane</span> {
+            Node::Pane(p) =&gt; {
+                <span class="kw">if </span>p == pane {
                     <span class="prelude-val">Some</span>(<span class="self">self</span>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">None</span>
-                }
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>}
             }
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">split</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">Split</span>, <span class="ident">axis</span>: <span class="ident">Axis</span>, <span class="ident">new_pane</span>: <span class="ident">Pane</span>) {
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">Node::Split</span> {
-            <span class="ident">id</span>,
-            <span class="ident">axis</span>,
-            <span class="ident">ratio</span>: <span class="number">0.5</span>,
-            <span class="ident">a</span>: <span class="ident">Box::new</span>(<span class="self">self</span>.<span class="ident">clone</span>()),
-            <span class="ident">b</span>: <span class="ident">Box::new</span>(<span class="ident">Node::Pane</span>(<span class="ident">new_pane</span>)),
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>split(<span class="kw-2">&amp;mut </span><span class="self">self</span>, id: Split, axis: Axis, new_pane: Pane) {
+        <span class="kw-2">*</span><span class="self">self </span>= Node::Split {
+            id,
+            axis,
+            ratio: <span class="number">0.5</span>,
+            a: Box::new(<span class="self">self</span>.clone()),
+            b: Box::new(Node::Pane(new_pane)),
         };
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Node</span>)) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Split</span> { <span class="ident">a</span>, <span class="ident">b</span>, .. } <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">a</span>.<span class="ident">update</span>(<span class="ident">f</span>);
-            <span class="ident">b</span>.<span class="ident">update</span>(<span class="ident">f</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <span class="kw-2">&amp;</span><span class="kw">impl </span>Fn(<span class="kw-2">&amp;mut </span>Node)) {
+        <span class="kw">if let </span>Node::Split { a, b, .. } = <span class="self">self </span>{
+            a.update(f);
+            b.update(f);
         }
 
-        <span class="ident">f</span>(<span class="self">self</span>);
+        f(<span class="self">self</span>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">resize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">split</span>: <span class="kw-2">&amp;</span><span class="ident">Split</span>, <span class="ident">percentage</span>: <span class="ident">f32</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Split</span> {
-                <span class="ident">id</span>, <span class="ident">ratio</span>, <span class="ident">a</span>, <span class="ident">b</span>, ..
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, split: <span class="kw-2">&amp;</span>Split, percentage: f32) -&gt; bool {
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::Split {
+                id, ratio, a, b, ..
             } =&gt; {
-                <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">split</span> {
-                    <span class="kw-2">*</span><span class="ident">ratio</span> <span class="op">=</span> <span class="ident">percentage</span>;
+                <span class="kw">if </span>id == split {
+                    <span class="kw-2">*</span>ratio = percentage;
 
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">resize</span>(<span class="ident">split</span>, <span class="ident">percentage</span>) {
-                    <span class="bool-val">true</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">b</span>.<span class="ident">resize</span>(<span class="ident">split</span>, <span class="ident">percentage</span>)
+                    <span class="bool-val">true
+                </span>} <span class="kw">else if </span>a.resize(split, percentage) {
+                    <span class="bool-val">true
+                </span>} <span class="kw">else </span>{
+                    b.resize(split, percentage)
                 }
             }
-            <span class="ident">Node::Pane</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+            Node::Pane(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pane</span>: <span class="kw-2">&amp;</span><span class="ident">Pane</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pane</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Split</span> { <span class="ident">a</span>, <span class="ident">b</span>, .. } =&gt; {
-                <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">pane</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">pane</span>) {
-                    <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">b</span>.<span class="ident">clone</span>();
-                    <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">first_pane</span>())
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">b</span>.<span class="ident">pane</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">pane</span>) {
-                    <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">a</span>.<span class="ident">clone</span>();
-                    <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">first_pane</span>())
-                } <span class="kw">else</span> {
-                    <span class="ident">a</span>.<span class="ident">remove</span>(<span class="ident">pane</span>).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">remove</span>(<span class="ident">pane</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pane: <span class="kw-2">&amp;</span>Pane) -&gt; <span class="prelude-ty">Option</span>&lt;Pane&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::Split { a, b, .. } =&gt; {
+                <span class="kw">if </span>a.pane() == <span class="prelude-val">Some</span>(<span class="kw-2">*</span>pane) {
+                    <span class="kw-2">*</span><span class="self">self </span>= <span class="kw-2">*</span>b.clone();
+                    <span class="prelude-val">Some</span>(<span class="self">self</span>.first_pane())
+                } <span class="kw">else if </span>b.pane() == <span class="prelude-val">Some</span>(<span class="kw-2">*</span>pane) {
+                    <span class="kw-2">*</span><span class="self">self </span>= <span class="kw-2">*</span>a.clone();
+                    <span class="prelude-val">Some</span>(<span class="self">self</span>.first_pane())
+                } <span class="kw">else </span>{
+                    a.remove(pane).or_else(|| b.remove(pane))
                 }
             }
-            <span class="ident">Node::Pane</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            Node::Pane(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">pane</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pane</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Split</span> { .. } =&gt; <span class="prelude-val">None</span>,
-            <span class="ident">Node::Pane</span>(<span class="ident">pane</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">pane</span>),
+    <span class="kw">fn </span>pane(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Pane&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::Split { .. } =&gt; <span class="prelude-val">None</span>,
+            Node::Pane(pane) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>pane),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">first_pane</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Pane</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Split</span> { <span class="ident">a</span>, .. } =&gt; <span class="ident">a</span>.<span class="ident">first_pane</span>(),
-            <span class="ident">Node::Pane</span>(<span class="ident">pane</span>) =&gt; <span class="kw-2">*</span><span class="ident">pane</span>,
+    <span class="kw">fn </span>first_pane(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pane {
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::Split { a, .. } =&gt; a.first_pane(),
+            Node::Pane(pane) =&gt; <span class="kw-2">*</span>pane,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">compute_regions</span>(
+    <span class="kw">fn </span>compute_regions(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">spacing</span>: <span class="ident">f32</span>,
-        <span class="ident">current</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">regions</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">Pane</span>, <span class="ident">Rectangle</span><span class="op">&gt;</span>,
+        spacing: f32,
+        current: <span class="kw-2">&amp;</span>Rectangle,
+        regions: <span class="kw-2">&amp;mut </span>BTreeMap&lt;Pane, Rectangle&gt;,
     ) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Split</span> {
-                <span class="ident">axis</span>, <span class="ident">ratio</span>, <span class="ident">a</span>, <span class="ident">b</span>, ..
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::Split {
+                axis, ratio, a, b, ..
             } =&gt; {
-                <span class="kw">let</span> (<span class="ident">region_a</span>, <span class="ident">region_b</span>) <span class="op">=</span> <span class="ident">axis</span>.<span class="ident">split</span>(<span class="ident">current</span>, <span class="kw-2">*</span><span class="ident">ratio</span>, <span class="ident">spacing</span>);
+                <span class="kw">let </span>(region_a, region_b) = axis.split(current, <span class="kw-2">*</span>ratio, spacing);
 
-                <span class="ident">a</span>.<span class="ident">compute_regions</span>(<span class="ident">spacing</span>, <span class="kw-2">&amp;</span><span class="ident">region_a</span>, <span class="ident">regions</span>);
-                <span class="ident">b</span>.<span class="ident">compute_regions</span>(<span class="ident">spacing</span>, <span class="kw-2">&amp;</span><span class="ident">region_b</span>, <span class="ident">regions</span>);
+                a.compute_regions(spacing, <span class="kw-2">&amp;</span>region_a, regions);
+                b.compute_regions(spacing, <span class="kw-2">&amp;</span>region_b, regions);
             }
-            <span class="ident">Node::Pane</span>(<span class="ident">pane</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">regions</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">pane</span>, <span class="kw-2">*</span><span class="ident">current</span>);
+            Node::Pane(pane) =&gt; {
+                <span class="kw">let _ </span>= regions.insert(<span class="kw-2">*</span>pane, <span class="kw-2">*</span>current);
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">compute_splits</span>(
+    <span class="kw">fn </span>compute_splits(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">spacing</span>: <span class="ident">f32</span>,
-        <span class="ident">current</span>: <span class="kw-2">&amp;</span><span class="ident">Rectangle</span>,
-        <span class="ident">splits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">Split</span>, (<span class="ident">Axis</span>, <span class="ident">Rectangle</span>, <span class="ident">f32</span>)<span class="op">&gt;</span>,
+        spacing: f32,
+        current: <span class="kw-2">&amp;</span>Rectangle,
+        splits: <span class="kw-2">&amp;mut </span>BTreeMap&lt;Split, (Axis, Rectangle, f32)&gt;,
     ) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Split</span> {
-                <span class="ident">axis</span>,
-                <span class="ident">ratio</span>,
-                <span class="ident">a</span>,
-                <span class="ident">b</span>,
-                <span class="ident">id</span>,
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::Split {
+                axis,
+                ratio,
+                a,
+                b,
+                id,
             } =&gt; {
-                <span class="kw">let</span> (<span class="ident">region_a</span>, <span class="ident">region_b</span>) <span class="op">=</span> <span class="ident">axis</span>.<span class="ident">split</span>(<span class="ident">current</span>, <span class="kw-2">*</span><span class="ident">ratio</span>, <span class="ident">spacing</span>);
+                <span class="kw">let </span>(region_a, region_b) = axis.split(current, <span class="kw-2">*</span>ratio, spacing);
 
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">splits</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">id</span>, (<span class="kw-2">*</span><span class="ident">axis</span>, <span class="kw-2">*</span><span class="ident">current</span>, <span class="kw-2">*</span><span class="ident">ratio</span>));
+                <span class="kw">let _ </span>= splits.insert(<span class="kw-2">*</span>id, (<span class="kw-2">*</span>axis, <span class="kw-2">*</span>current, <span class="kw-2">*</span>ratio));
 
-                <span class="ident">a</span>.<span class="ident">compute_splits</span>(<span class="ident">spacing</span>, <span class="kw-2">&amp;</span><span class="ident">region_a</span>, <span class="ident">splits</span>);
-                <span class="ident">b</span>.<span class="ident">compute_splits</span>(<span class="ident">spacing</span>, <span class="kw-2">&amp;</span><span class="ident">region_b</span>, <span class="ident">splits</span>);
+                a.compute_splits(spacing, <span class="kw-2">&amp;</span>region_a, splits);
+                b.compute_splits(spacing, <span class="kw-2">&amp;</span>region_b, splits);
             }
-            <span class="ident">Node::Pane</span>(<span class="kw">_</span>) =&gt; {}
+            Node::Pane(<span class="kw">_</span>) =&gt; {}
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">std::hash::Hash</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">std::hash::Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;mut</span> <span class="ident">H</span>) {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Node::Split</span> {
-                <span class="ident">id</span>,
-                <span class="ident">axis</span>,
-                <span class="ident">ratio</span>,
-                <span class="ident">a</span>,
-                <span class="ident">b</span>,
+<span class="kw">impl </span>std::hash::Hash <span class="kw">for </span>Node {
+    <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="kw">match </span><span class="self">self </span>{
+            Node::Split {
+                id,
+                axis,
+                ratio,
+                a,
+                b,
             } =&gt; {
-                <span class="ident">id</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
-                <span class="ident">axis</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
-                ((<span class="ident">ratio</span> <span class="op">*</span> <span class="number">100_000.0</span>) <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">hash</span>(<span class="ident">state</span>);
-                <span class="ident">a</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
-                <span class="ident">b</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
+                id.hash(state);
+                axis.hash(state);
+                ((ratio * <span class="number">100_000.0</span>) <span class="kw">as </span>u32).hash(state);
+                a.hash(state);
+                b.hash(state);
             }
-            <span class="ident">Node::Pane</span>(<span class="ident">pane</span>) =&gt; {
-                <span class="ident">pane</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
+            Node::Pane(pane) =&gt; {
+                pane.hash(state);
             }
         }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

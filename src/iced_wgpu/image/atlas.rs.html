@@ -390,137 +390,137 @@
 <span id="388">388</span>
 <span id="389">389</span>
 <span id="390">390</span>
-</pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">entry</span>;
+</pre><pre class="rust"><code><span class="kw">pub mod </span>entry;
 
-<span class="kw">mod</span> <span class="ident">allocation</span>;
-<span class="kw">mod</span> <span class="ident">allocator</span>;
-<span class="kw">mod</span> <span class="ident">layer</span>;
+<span class="kw">mod </span>allocation;
+<span class="kw">mod </span>allocator;
+<span class="kw">mod </span>layer;
 
-<span class="kw">use</span> <span class="ident">std::num::NonZeroU32</span>;
+<span class="kw">use </span>std::num::NonZeroU32;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">allocation::Allocation</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">entry::Entry</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">layer::Layer</span>;
+<span class="kw">pub use </span>allocation::Allocation;
+<span class="kw">pub use </span>entry::Entry;
+<span class="kw">pub use </span>layer::Layer;
 
-<span class="kw">use</span> <span class="ident">allocator::Allocator</span>;
+<span class="kw">use </span>allocator::Allocator;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SIZE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2048</span>;
+<span class="kw">pub const </span>SIZE: u32 = <span class="number">2048</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Atlas</span> {
-    <span class="ident">texture</span>: <span class="ident">wgpu::Texture</span>,
-    <span class="ident">texture_view</span>: <span class="ident">wgpu::TextureView</span>,
-    <span class="ident">layers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Layer</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]</span>
+<span class="kw">pub struct </span>Atlas {
+    texture: wgpu::Texture,
+    texture_view: wgpu::TextureView,
+    layers: Vec&lt;Layer&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">Atlas</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">extent</span> <span class="op">=</span> <span class="ident">wgpu::Extent3d</span> {
-            <span class="ident">width</span>: <span class="ident">SIZE</span>,
-            <span class="ident">height</span>: <span class="ident">SIZE</span>,
-            <span class="ident">depth_or_array_layers</span>: <span class="number">1</span>,
+<span class="kw">impl </span>Atlas {
+    <span class="kw">pub fn </span>new(device: <span class="kw-2">&amp;</span>wgpu::Device) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>extent = wgpu::Extent3d {
+            width: SIZE,
+            height: SIZE,
+            depth_or_array_layers: <span class="number">1</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">texture</span> <span class="op">=</span> <span class="ident">device</span>.<span class="ident">create_texture</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::TextureDescriptor</span> {
-            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image texture atlas&quot;</span>),
-            <span class="ident">size</span>: <span class="ident">extent</span>,
-            <span class="ident">mip_level_count</span>: <span class="number">1</span>,
-            <span class="ident">sample_count</span>: <span class="number">1</span>,
-            <span class="ident">dimension</span>: <span class="ident">wgpu::TextureDimension::D2</span>,
-            <span class="ident">format</span>: <span class="ident">wgpu::TextureFormat::Bgra8UnormSrgb</span>,
-            <span class="ident">usage</span>: <span class="ident">wgpu::TextureUsages::COPY_DST</span>
-                <span class="op">|</span> <span class="ident">wgpu::TextureUsages::COPY_SRC</span>
-                <span class="op">|</span> <span class="ident">wgpu::TextureUsages::TEXTURE_BINDING</span>,
+        <span class="kw">let </span>texture = device.create_texture(<span class="kw-2">&amp;</span>wgpu::TextureDescriptor {
+            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image texture atlas&quot;</span>),
+            size: extent,
+            mip_level_count: <span class="number">1</span>,
+            sample_count: <span class="number">1</span>,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            usage: wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC
+                | wgpu::TextureUsages::TEXTURE_BINDING,
         });
 
-        <span class="kw">let</span> <span class="ident">texture_view</span> <span class="op">=</span> <span class="ident">texture</span>.<span class="ident">create_view</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::TextureViewDescriptor</span> {
-            <span class="ident">dimension</span>: <span class="prelude-val">Some</span>(<span class="ident">wgpu::TextureViewDimension::D2Array</span>),
-            ..<span class="ident">Default::default</span>()
+        <span class="kw">let </span>texture_view = texture.create_view(<span class="kw-2">&amp;</span>wgpu::TextureViewDescriptor {
+            dimension: <span class="prelude-val">Some</span>(wgpu::TextureViewDimension::D2Array),
+            ..Default::default()
         });
 
-        <span class="ident">Atlas</span> {
-            <span class="ident">texture</span>,
-            <span class="ident">texture_view</span>,
-            <span class="ident">layers</span>: <span class="macro">vec!</span>[<span class="ident">Layer::Empty</span>],
+        Atlas {
+            texture,
+            texture_view,
+            layers: <span class="macro">vec!</span>[Layer::Empty],
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">view</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">wgpu::TextureView</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">texture_view</span>
+    <span class="kw">pub fn </span>view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>wgpu::TextureView {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.texture_view
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">layer_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">layers</span>.<span class="ident">len</span>()
+    <span class="kw">pub fn </span>layer_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="self">self</span>.layers.len()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">upload</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">width</span>: <span class="ident">u32</span>,
-        <span class="ident">height</span>: <span class="ident">u32</span>,
-        <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
-        <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>,
-        <span class="ident">encoder</span>: <span class="kw-2">&amp;mut</span> <span class="ident">wgpu::CommandEncoder</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Entry</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">wgpu::util::DeviceExt</span>;
+    <span class="kw">pub fn </span>upload(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        width: u32,
+        height: u32,
+        data: <span class="kw-2">&amp;</span>[u8],
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Entry&gt; {
+        <span class="kw">use </span>wgpu::util::DeviceExt;
 
-        <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">current_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">layers</span>.<span class="ident">len</span>();
-            <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">allocate</span>(<span class="ident">width</span>, <span class="ident">height</span>)<span class="question-mark">?</span>;
+        <span class="kw">let </span>entry = {
+            <span class="kw">let </span>current_size = <span class="self">self</span>.layers.len();
+            <span class="kw">let </span>entry = <span class="self">self</span>.allocate(width, height)<span class="question-mark">?</span>;
 
-            <span class="comment">// We grow the internal texture after allocating if necessary</span>
-            <span class="kw">let</span> <span class="ident">new_layers</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">layers</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">current_size</span>;
-            <span class="self">self</span>.<span class="ident">grow</span>(<span class="ident">new_layers</span>, <span class="ident">device</span>, <span class="ident">encoder</span>);
+            <span class="comment">// We grow the internal texture after allocating if necessary
+            </span><span class="kw">let </span>new_layers = <span class="self">self</span>.layers.len() - current_size;
+            <span class="self">self</span>.grow(new_layers, device, encoder);
 
-            <span class="ident">entry</span>
+            entry
         };
 
-        <span class="macro">log::info!</span>(<span class="string">&quot;Allocated atlas entry: {:?}&quot;</span>, <span class="ident">entry</span>);
+        <span class="macro">log::info!</span>(<span class="string">&quot;Allocated atlas entry: {:?}&quot;</span>, entry);
 
-        <span class="comment">// It is a webgpu requirement that:</span>
-        <span class="comment">//   BufferCopyView.layout.bytes_per_row % wgpu::COPY_BYTES_PER_ROW_ALIGNMENT == 0</span>
-        <span class="comment">// So we calculate padded_width by rounding width up to the next</span>
-        <span class="comment">// multiple of wgpu::COPY_BYTES_PER_ROW_ALIGNMENT.</span>
-        <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">wgpu::COPY_BYTES_PER_ROW_ALIGNMENT</span>;
-        <span class="kw">let</span> <span class="ident">padding</span> <span class="op">=</span> (<span class="ident">align</span> <span class="op">-</span> (<span class="number">4</span> <span class="op">*</span> <span class="ident">width</span>) <span class="op">%</span> <span class="ident">align</span>) <span class="op">%</span> <span class="ident">align</span>;
-        <span class="kw">let</span> <span class="ident">padded_width</span> <span class="op">=</span> (<span class="number">4</span> <span class="op">*</span> <span class="ident">width</span> <span class="op">+</span> <span class="ident">padding</span>) <span class="kw">as</span> <span class="ident">usize</span>;
-        <span class="kw">let</span> <span class="ident">padded_data_size</span> <span class="op">=</span> <span class="ident">padded_width</span> <span class="op">*</span> <span class="ident">height</span> <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="comment">// It is a webgpu requirement that:
+        //   BufferCopyView.layout.bytes_per_row % wgpu::COPY_BYTES_PER_ROW_ALIGNMENT == 0
+        // So we calculate padded_width by rounding width up to the next
+        // multiple of wgpu::COPY_BYTES_PER_ROW_ALIGNMENT.
+        </span><span class="kw">let </span>align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
+        <span class="kw">let </span>padding = (align - (<span class="number">4 </span>* width) % align) % align;
+        <span class="kw">let </span>padded_width = (<span class="number">4 </span>* width + padding) <span class="kw">as </span>usize;
+        <span class="kw">let </span>padded_data_size = padded_width * height <span class="kw">as </span>usize;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">padded_data</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">padded_data_size</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>padded_data = <span class="macro">vec!</span>[<span class="number">0</span>; padded_data_size];
 
-        <span class="kw">for</span> <span class="ident">row</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">height</span> <span class="kw">as</span> <span class="ident">usize</span> {
-            <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">row</span> <span class="op">*</span> <span class="ident">padded_width</span>;
+        <span class="kw">for </span>row <span class="kw">in </span><span class="number">0</span>..height <span class="kw">as </span>usize {
+            <span class="kw">let </span>offset = row * padded_width;
 
-            <span class="ident">padded_data</span>[<span class="ident">offset</span>..<span class="ident">offset</span> <span class="op">+</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">width</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">copy_from_slice</span>(
-                <span class="kw-2">&amp;</span><span class="ident">data</span>[<span class="ident">row</span> <span class="op">*</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">width</span> <span class="kw">as</span> <span class="ident">usize</span>..(<span class="ident">row</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">width</span> <span class="kw">as</span> <span class="ident">usize</span>],
+            padded_data[offset..offset + <span class="number">4 </span>* width <span class="kw">as </span>usize].copy_from_slice(
+                <span class="kw-2">&amp;</span>data[row * <span class="number">4 </span>* width <span class="kw">as </span>usize..(row + <span class="number">1</span>) * <span class="number">4 </span>* width <span class="kw">as </span>usize],
             )
         }
 
-        <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span>
-            <span class="ident">device</span>.<span class="ident">create_buffer_init</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::util::BufferInitDescriptor</span> {
-                <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image staging buffer&quot;</span>),
-                <span class="ident">contents</span>: <span class="kw-2">&amp;</span><span class="ident">padded_data</span>,
-                <span class="ident">usage</span>: <span class="ident">wgpu::BufferUsages::COPY_SRC</span>,
+        <span class="kw">let </span>buffer =
+            device.create_buffer_init(<span class="kw-2">&amp;</span>wgpu::util::BufferInitDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image staging buffer&quot;</span>),
+                contents: <span class="kw-2">&amp;</span>padded_data,
+                usage: wgpu::BufferUsages::COPY_SRC,
             });
 
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">entry</span> {
-            <span class="ident">Entry::Contiguous</span>(<span class="ident">allocation</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">upload_allocation</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">buffer</span>, <span class="ident">width</span>, <span class="ident">height</span>, <span class="ident">padding</span>, <span class="number">0</span>, <span class="ident">allocation</span>, <span class="ident">encoder</span>,
+        <span class="kw">match </span><span class="kw-2">&amp;</span>entry {
+            Entry::Contiguous(allocation) =&gt; {
+                <span class="self">self</span>.upload_allocation(
+                    <span class="kw-2">&amp;</span>buffer, width, height, padding, <span class="number">0</span>, allocation, encoder,
                 );
             }
-            <span class="ident">Entry::Fragmented</span> { <span class="ident">fragments</span>, .. } =&gt; {
-                <span class="kw">for</span> <span class="ident">fragment</span> <span class="kw">in</span> <span class="ident">fragments</span> {
-                    <span class="kw">let</span> (<span class="ident">x</span>, <span class="ident">y</span>) <span class="op">=</span> <span class="ident">fragment</span>.<span class="ident">position</span>;
-                    <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<span class="ident">y</span> <span class="op">*</span> <span class="ident">padded_width</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="op">+</span> <span class="number">4</span> <span class="op">*</span> <span class="ident">x</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+            Entry::Fragmented { fragments, .. } =&gt; {
+                <span class="kw">for </span>fragment <span class="kw">in </span>fragments {
+                    <span class="kw">let </span>(x, y) = fragment.position;
+                    <span class="kw">let </span>offset = (y * padded_width <span class="kw">as </span>u32 + <span class="number">4 </span>* x) <span class="kw">as </span>usize;
 
-                    <span class="self">self</span>.<span class="ident">upload_allocation</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">buffer</span>,
-                        <span class="ident">width</span>,
-                        <span class="ident">height</span>,
-                        <span class="ident">padding</span>,
-                        <span class="ident">offset</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">fragment</span>.<span class="ident">allocation</span>,
-                        <span class="ident">encoder</span>,
+                    <span class="self">self</span>.upload_allocation(
+                        <span class="kw-2">&amp;</span>buffer,
+                        width,
+                        height,
+                        padding,
+                        offset,
+                        <span class="kw-2">&amp;</span>fragment.allocation,
+                        encoder,
                     );
                 }
             }
@@ -528,257 +528,257 @@
 
         <span class="macro">log::info!</span>(<span class="string">&quot;Current atlas: {:?}&quot;</span>, <span class="self">self</span>);
 
-        <span class="prelude-val">Some</span>(<span class="ident">entry</span>)
+        <span class="prelude-val">Some</span>(entry)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">Entry</span>) {
-        <span class="macro">log::info!</span>(<span class="string">&quot;Removing atlas entry: {:?}&quot;</span>, <span class="ident">entry</span>);
+    <span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry: <span class="kw-2">&amp;</span>Entry) {
+        <span class="macro">log::info!</span>(<span class="string">&quot;Removing atlas entry: {:?}&quot;</span>, entry);
 
-        <span class="kw">match</span> <span class="ident">entry</span> {
-            <span class="ident">Entry::Contiguous</span>(<span class="ident">allocation</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">deallocate</span>(<span class="ident">allocation</span>);
+        <span class="kw">match </span>entry {
+            Entry::Contiguous(allocation) =&gt; {
+                <span class="self">self</span>.deallocate(allocation);
             }
-            <span class="ident">Entry::Fragmented</span> { <span class="ident">fragments</span>, .. } =&gt; {
-                <span class="kw">for</span> <span class="ident">fragment</span> <span class="kw">in</span> <span class="ident">fragments</span> {
-                    <span class="self">self</span>.<span class="ident">deallocate</span>(<span class="kw-2">&amp;</span><span class="ident">fragment</span>.<span class="ident">allocation</span>);
+            Entry::Fragmented { fragments, .. } =&gt; {
+                <span class="kw">for </span>fragment <span class="kw">in </span>fragments {
+                    <span class="self">self</span>.deallocate(<span class="kw-2">&amp;</span>fragment.allocation);
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">allocate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">width</span>: <span class="ident">u32</span>, <span class="ident">height</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Entry</span><span class="op">&gt;</span> {
-        <span class="comment">// Allocate one layer if texture fits perfectly</span>
-        <span class="kw">if</span> <span class="ident">width</span> <span class="op">==</span> <span class="ident">SIZE</span> <span class="op">&amp;&amp;</span> <span class="ident">height</span> <span class="op">==</span> <span class="ident">SIZE</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">empty_layers</span> <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">layers</span>
-                .<span class="ident">iter_mut</span>()
-                .<span class="ident">enumerate</span>()
-                .<span class="ident">filter</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">layer</span>)<span class="op">|</span> <span class="ident">layer</span>.<span class="ident">is_empty</span>());
+    <span class="kw">fn </span>allocate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, width: u32, height: u32) -&gt; <span class="prelude-ty">Option</span>&lt;Entry&gt; {
+        <span class="comment">// Allocate one layer if texture fits perfectly
+        </span><span class="kw">if </span>width == SIZE &amp;&amp; height == SIZE {
+            <span class="kw">let </span><span class="kw-2">mut </span>empty_layers = <span class="self">self
+                </span>.layers
+                .iter_mut()
+                .enumerate()
+                .filter(|(<span class="kw">_</span>, layer)| layer.is_empty());
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="ident">layer</span>)) <span class="op">=</span> <span class="ident">empty_layers</span>.<span class="ident">next</span>() {
-                <span class="kw-2">*</span><span class="ident">layer</span> <span class="op">=</span> <span class="ident">Layer::Full</span>;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((i, layer)) = empty_layers.next() {
+                <span class="kw-2">*</span>layer = Layer::Full;
 
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Entry::Contiguous</span>(<span class="ident">Allocation::Full</span> { <span class="ident">layer</span>: <span class="ident">i</span> }));
+                <span class="kw">return </span><span class="prelude-val">Some</span>(Entry::Contiguous(Allocation::Full { layer: i }));
             }
 
-            <span class="self">self</span>.<span class="ident">layers</span>.<span class="ident">push</span>(<span class="ident">Layer::Full</span>);
+            <span class="self">self</span>.layers.push(Layer::Full);
 
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Entry::Contiguous</span>(<span class="ident">Allocation::Full</span> {
-                <span class="ident">layer</span>: <span class="self">self</span>.<span class="ident">layers</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>,
+            <span class="kw">return </span><span class="prelude-val">Some</span>(Entry::Contiguous(Allocation::Full {
+                layer: <span class="self">self</span>.layers.len() - <span class="number">1</span>,
             }));
         }
 
-        <span class="comment">// Split big textures across multiple layers</span>
-        <span class="kw">if</span> <span class="ident">width</span> <span class="op">&gt;</span> <span class="ident">SIZE</span> <span class="op">|</span><span class="op">|</span> <span class="ident">height</span> <span class="op">&gt;</span> <span class="ident">SIZE</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fragments</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">y</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="comment">// Split big textures across multiple layers
+        </span><span class="kw">if </span>width &gt; SIZE || height &gt; SIZE {
+            <span class="kw">let </span><span class="kw-2">mut </span>fragments = Vec::new();
+            <span class="kw">let </span><span class="kw-2">mut </span>y = <span class="number">0</span>;
 
-            <span class="kw">while</span> <span class="ident">y</span> <span class="op">&lt;</span> <span class="ident">height</span> {
-                <span class="kw">let</span> <span class="ident">height</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">height</span> <span class="op">-</span> <span class="ident">y</span>, <span class="ident">SIZE</span>);
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="number">0</span>;
+            <span class="kw">while </span>y &lt; height {
+                <span class="kw">let </span>height = std::cmp::min(height - y, SIZE);
+                <span class="kw">let </span><span class="kw-2">mut </span>x = <span class="number">0</span>;
 
-                <span class="kw">while</span> <span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">width</span> {
-                    <span class="kw">let</span> <span class="ident">width</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">width</span> <span class="op">-</span> <span class="ident">x</span>, <span class="ident">SIZE</span>);
+                <span class="kw">while </span>x &lt; width {
+                    <span class="kw">let </span>width = std::cmp::min(width - x, SIZE);
 
-                    <span class="kw">let</span> <span class="ident">allocation</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">allocate</span>(<span class="ident">width</span>, <span class="ident">height</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let </span>allocation = <span class="self">self</span>.allocate(width, height)<span class="question-mark">?</span>;
 
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Entry::Contiguous</span>(<span class="ident">allocation</span>) <span class="op">=</span> <span class="ident">allocation</span> {
-                        <span class="ident">fragments</span>.<span class="ident">push</span>(<span class="ident">entry::Fragment</span> {
-                            <span class="ident">position</span>: (<span class="ident">x</span>, <span class="ident">y</span>),
-                            <span class="ident">allocation</span>,
+                    <span class="kw">if let </span>Entry::Contiguous(allocation) = allocation {
+                        fragments.push(entry::Fragment {
+                            position: (x, y),
+                            allocation,
                         });
                     }
 
-                    <span class="ident">x</span> <span class="op">+</span><span class="op">=</span> <span class="ident">width</span>;
+                    x += width;
                 }
 
-                <span class="ident">y</span> <span class="op">+</span><span class="op">=</span> <span class="ident">height</span>;
+                y += height;
             }
 
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Entry::Fragmented</span> {
-                <span class="ident">size</span>: (<span class="ident">width</span>, <span class="ident">height</span>),
-                <span class="ident">fragments</span>,
+            <span class="kw">return </span><span class="prelude-val">Some</span>(Entry::Fragmented {
+                size: (width, height),
+                fragments,
             });
         }
 
-        <span class="comment">// Try allocating on an existing layer</span>
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">layer</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">layers</span>.<span class="ident">iter_mut</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">match</span> <span class="ident">layer</span> {
-                <span class="ident">Layer::Empty</span> =&gt; {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">allocator</span> <span class="op">=</span> <span class="ident">Allocator::new</span>(<span class="ident">SIZE</span>);
+        <span class="comment">// Try allocating on an existing layer
+        </span><span class="kw">for </span>(i, layer) <span class="kw">in </span><span class="self">self</span>.layers.iter_mut().enumerate() {
+            <span class="kw">match </span>layer {
+                Layer::Empty =&gt; {
+                    <span class="kw">let </span><span class="kw-2">mut </span>allocator = Allocator::new(SIZE);
 
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">region</span>) <span class="op">=</span> <span class="ident">allocator</span>.<span class="ident">allocate</span>(<span class="ident">width</span>, <span class="ident">height</span>) {
-                        <span class="kw-2">*</span><span class="ident">layer</span> <span class="op">=</span> <span class="ident">Layer::Busy</span>(<span class="ident">allocator</span>);
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(region) = allocator.allocate(width, height) {
+                        <span class="kw-2">*</span>layer = Layer::Busy(allocator);
 
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Entry::Contiguous</span>(<span class="ident">Allocation::Partial</span> {
-                            <span class="ident">region</span>,
-                            <span class="ident">layer</span>: <span class="ident">i</span>,
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(Entry::Contiguous(Allocation::Partial {
+                            region,
+                            layer: i,
                         }));
                     }
                 }
-                <span class="ident">Layer::Busy</span>(<span class="ident">allocator</span>) =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">region</span>) <span class="op">=</span> <span class="ident">allocator</span>.<span class="ident">allocate</span>(<span class="ident">width</span>, <span class="ident">height</span>) {
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Entry::Contiguous</span>(<span class="ident">Allocation::Partial</span> {
-                            <span class="ident">region</span>,
-                            <span class="ident">layer</span>: <span class="ident">i</span>,
+                Layer::Busy(allocator) =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(region) = allocator.allocate(width, height) {
+                        <span class="kw">return </span><span class="prelude-val">Some</span>(Entry::Contiguous(Allocation::Partial {
+                            region,
+                            layer: i,
                         }));
                     }
                 }
-                <span class="kw">_</span> =&gt; {}
+                <span class="kw">_ </span>=&gt; {}
             }
         }
 
-        <span class="comment">// Create new layer with atlas allocator</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">allocator</span> <span class="op">=</span> <span class="ident">Allocator::new</span>(<span class="ident">SIZE</span>);
+        <span class="comment">// Create new layer with atlas allocator
+        </span><span class="kw">let </span><span class="kw-2">mut </span>allocator = Allocator::new(SIZE);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">region</span>) <span class="op">=</span> <span class="ident">allocator</span>.<span class="ident">allocate</span>(<span class="ident">width</span>, <span class="ident">height</span>) {
-            <span class="self">self</span>.<span class="ident">layers</span>.<span class="ident">push</span>(<span class="ident">Layer::Busy</span>(<span class="ident">allocator</span>));
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(region) = allocator.allocate(width, height) {
+            <span class="self">self</span>.layers.push(Layer::Busy(allocator));
 
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Entry::Contiguous</span>(<span class="ident">Allocation::Partial</span> {
-                <span class="ident">region</span>,
-                <span class="ident">layer</span>: <span class="self">self</span>.<span class="ident">layers</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>,
+            <span class="kw">return </span><span class="prelude-val">Some</span>(Entry::Contiguous(Allocation::Partial {
+                region,
+                layer: <span class="self">self</span>.layers.len() - <span class="number">1</span>,
             }));
         }
 
-        <span class="comment">// We ran out of memory (?)</span>
-        <span class="prelude-val">None</span>
-    }
+        <span class="comment">// We ran out of memory (?)
+        </span><span class="prelude-val">None
+    </span>}
 
-    <span class="kw">fn</span> <span class="ident">deallocate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">allocation</span>: <span class="kw-2">&amp;</span><span class="ident">Allocation</span>) {
-        <span class="macro">log::info!</span>(<span class="string">&quot;Deallocating atlas: {:?}&quot;</span>, <span class="ident">allocation</span>);
+    <span class="kw">fn </span>deallocate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, allocation: <span class="kw-2">&amp;</span>Allocation) {
+        <span class="macro">log::info!</span>(<span class="string">&quot;Deallocating atlas: {:?}&quot;</span>, allocation);
 
-        <span class="kw">match</span> <span class="ident">allocation</span> {
-            <span class="ident">Allocation::Full</span> { <span class="ident">layer</span> } =&gt; {
-                <span class="self">self</span>.<span class="ident">layers</span>[<span class="kw-2">*</span><span class="ident">layer</span>] <span class="op">=</span> <span class="ident">Layer::Empty</span>;
+        <span class="kw">match </span>allocation {
+            Allocation::Full { layer } =&gt; {
+                <span class="self">self</span>.layers[<span class="kw-2">*</span>layer] = Layer::Empty;
             }
-            <span class="ident">Allocation::Partial</span> { <span class="ident">layer</span>, <span class="ident">region</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">layer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">layers</span>[<span class="kw-2">*</span><span class="ident">layer</span>];
+            Allocation::Partial { layer, region } =&gt; {
+                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span><span class="self">self</span>.layers[<span class="kw-2">*</span>layer];
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Layer::Busy</span>(<span class="ident">allocator</span>) <span class="op">=</span> <span class="ident">layer</span> {
-                    <span class="ident">allocator</span>.<span class="ident">deallocate</span>(<span class="ident">region</span>);
+                <span class="kw">if let </span>Layer::Busy(allocator) = layer {
+                    allocator.deallocate(region);
 
-                    <span class="kw">if</span> <span class="ident">allocator</span>.<span class="ident">is_empty</span>() {
-                        <span class="kw-2">*</span><span class="ident">layer</span> <span class="op">=</span> <span class="ident">Layer::Empty</span>;
+                    <span class="kw">if </span>allocator.is_empty() {
+                        <span class="kw-2">*</span>layer = Layer::Empty;
                     }
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">upload_allocation</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Buffer</span>,
-        <span class="ident">image_width</span>: <span class="ident">u32</span>,
-        <span class="ident">image_height</span>: <span class="ident">u32</span>,
-        <span class="ident">padding</span>: <span class="ident">u32</span>,
-        <span class="ident">offset</span>: <span class="ident">usize</span>,
-        <span class="ident">allocation</span>: <span class="kw-2">&amp;</span><span class="ident">Allocation</span>,
-        <span class="ident">encoder</span>: <span class="kw-2">&amp;mut</span> <span class="ident">wgpu::CommandEncoder</span>,
+    <span class="kw">fn </span>upload_allocation(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        buffer: <span class="kw-2">&amp;</span>wgpu::Buffer,
+        image_width: u32,
+        image_height: u32,
+        padding: u32,
+        offset: usize,
+        allocation: <span class="kw-2">&amp;</span>Allocation,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
     ) {
-        <span class="kw">let</span> (<span class="ident">x</span>, <span class="ident">y</span>) <span class="op">=</span> <span class="ident">allocation</span>.<span class="ident">position</span>();
-        <span class="kw">let</span> (<span class="ident">width</span>, <span class="ident">height</span>) <span class="op">=</span> <span class="ident">allocation</span>.<span class="ident">size</span>();
-        <span class="kw">let</span> <span class="ident">layer</span> <span class="op">=</span> <span class="ident">allocation</span>.<span class="ident">layer</span>();
+        <span class="kw">let </span>(x, y) = allocation.position();
+        <span class="kw">let </span>(width, height) = allocation.size();
+        <span class="kw">let </span>layer = allocation.layer();
 
-        <span class="kw">let</span> <span class="ident">extent</span> <span class="op">=</span> <span class="ident">wgpu::Extent3d</span> {
-            <span class="ident">width</span>,
-            <span class="ident">height</span>,
-            <span class="ident">depth_or_array_layers</span>: <span class="number">1</span>,
+        <span class="kw">let </span>extent = wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: <span class="number">1</span>,
         };
 
-        <span class="ident">encoder</span>.<span class="ident">copy_buffer_to_texture</span>(
-            <span class="ident">wgpu::ImageCopyBuffer</span> {
-                <span class="ident">buffer</span>,
-                <span class="ident">layout</span>: <span class="ident">wgpu::ImageDataLayout</span> {
-                    <span class="ident">offset</span>: <span class="ident">offset</span> <span class="kw">as</span> <span class="ident">u64</span>,
-                    <span class="ident">bytes_per_row</span>: <span class="ident">NonZeroU32::new</span>(<span class="number">4</span> <span class="op">*</span> <span class="ident">image_width</span> <span class="op">+</span> <span class="ident">padding</span>),
-                    <span class="ident">rows_per_image</span>: <span class="ident">NonZeroU32::new</span>(<span class="ident">image_height</span>),
+        encoder.copy_buffer_to_texture(
+            wgpu::ImageCopyBuffer {
+                buffer,
+                layout: wgpu::ImageDataLayout {
+                    offset: offset <span class="kw">as </span>u64,
+                    bytes_per_row: NonZeroU32::new(<span class="number">4 </span>* image_width + padding),
+                    rows_per_image: NonZeroU32::new(image_height),
                 },
             },
-            <span class="ident">wgpu::ImageCopyTexture</span> {
-                <span class="ident">texture</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">texture</span>,
-                <span class="ident">mip_level</span>: <span class="number">0</span>,
-                <span class="ident">origin</span>: <span class="ident">wgpu::Origin3d</span> {
-                    <span class="ident">x</span>,
-                    <span class="ident">y</span>,
-                    <span class="ident">z</span>: <span class="ident">layer</span> <span class="kw">as</span> <span class="ident">u32</span>,
+            wgpu::ImageCopyTexture {
+                texture: <span class="kw-2">&amp;</span><span class="self">self</span>.texture,
+                mip_level: <span class="number">0</span>,
+                origin: wgpu::Origin3d {
+                    x,
+                    y,
+                    z: layer <span class="kw">as </span>u32,
                 },
-                <span class="ident">aspect</span>: <span class="ident">wgpu::TextureAspect::default</span>(),
+                aspect: wgpu::TextureAspect::default(),
             },
-            <span class="ident">extent</span>,
+            extent,
         );
     }
 
-    <span class="kw">fn</span> <span class="ident">grow</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">amount</span>: <span class="ident">usize</span>,
-        <span class="ident">device</span>: <span class="kw-2">&amp;</span><span class="ident">wgpu::Device</span>,
-        <span class="ident">encoder</span>: <span class="kw-2">&amp;mut</span> <span class="ident">wgpu::CommandEncoder</span>,
+    <span class="kw">fn </span>grow(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        amount: usize,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
     ) {
-        <span class="kw">if</span> <span class="ident">amount</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if </span>amount == <span class="number">0 </span>{
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">new_texture</span> <span class="op">=</span> <span class="ident">device</span>.<span class="ident">create_texture</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::TextureDescriptor</span> {
-            <span class="ident">label</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image texture atlas&quot;</span>),
-            <span class="ident">size</span>: <span class="ident">wgpu::Extent3d</span> {
-                <span class="ident">width</span>: <span class="ident">SIZE</span>,
-                <span class="ident">height</span>: <span class="ident">SIZE</span>,
-                <span class="ident">depth_or_array_layers</span>: <span class="self">self</span>.<span class="ident">layers</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>,
+        <span class="kw">let </span>new_texture = device.create_texture(<span class="kw-2">&amp;</span>wgpu::TextureDescriptor {
+            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image texture atlas&quot;</span>),
+            size: wgpu::Extent3d {
+                width: SIZE,
+                height: SIZE,
+                depth_or_array_layers: <span class="self">self</span>.layers.len() <span class="kw">as </span>u32,
             },
-            <span class="ident">mip_level_count</span>: <span class="number">1</span>,
-            <span class="ident">sample_count</span>: <span class="number">1</span>,
-            <span class="ident">dimension</span>: <span class="ident">wgpu::TextureDimension::D2</span>,
-            <span class="ident">format</span>: <span class="ident">wgpu::TextureFormat::Bgra8UnormSrgb</span>,
-            <span class="ident">usage</span>: <span class="ident">wgpu::TextureUsages::COPY_DST</span>
-                <span class="op">|</span> <span class="ident">wgpu::TextureUsages::COPY_SRC</span>
-                <span class="op">|</span> <span class="ident">wgpu::TextureUsages::TEXTURE_BINDING</span>,
+            mip_level_count: <span class="number">1</span>,
+            sample_count: <span class="number">1</span>,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            usage: wgpu::TextureUsages::COPY_DST
+                | wgpu::TextureUsages::COPY_SRC
+                | wgpu::TextureUsages::TEXTURE_BINDING,
         });
 
-        <span class="kw">let</span> <span class="ident">amount_to_copy</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">layers</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">amount</span>;
+        <span class="kw">let </span>amount_to_copy = <span class="self">self</span>.layers.len() - amount;
 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">layer</span>) <span class="kw">in</span>
-            <span class="self">self</span>.<span class="ident">layers</span>.<span class="ident">iter_mut</span>().<span class="ident">take</span>(<span class="ident">amount_to_copy</span>).<span class="ident">enumerate</span>()
+        <span class="kw">for </span>(i, layer) <span class="kw">in
+            </span><span class="self">self</span>.layers.iter_mut().take(amount_to_copy).enumerate()
         {
-            <span class="kw">if</span> <span class="ident">layer</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">if </span>layer.is_empty() {
                 <span class="kw">continue</span>;
             }
 
-            <span class="ident">encoder</span>.<span class="ident">copy_texture_to_texture</span>(
-                <span class="ident">wgpu::ImageCopyTexture</span> {
-                    <span class="ident">texture</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">texture</span>,
-                    <span class="ident">mip_level</span>: <span class="number">0</span>,
-                    <span class="ident">origin</span>: <span class="ident">wgpu::Origin3d</span> {
-                        <span class="ident">x</span>: <span class="number">0</span>,
-                        <span class="ident">y</span>: <span class="number">0</span>,
-                        <span class="ident">z</span>: <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>,
+            encoder.copy_texture_to_texture(
+                wgpu::ImageCopyTexture {
+                    texture: <span class="kw-2">&amp;</span><span class="self">self</span>.texture,
+                    mip_level: <span class="number">0</span>,
+                    origin: wgpu::Origin3d {
+                        x: <span class="number">0</span>,
+                        y: <span class="number">0</span>,
+                        z: i <span class="kw">as </span>u32,
                     },
-                    <span class="ident">aspect</span>: <span class="ident">wgpu::TextureAspect::default</span>(),
+                    aspect: wgpu::TextureAspect::default(),
                 },
-                <span class="ident">wgpu::ImageCopyTexture</span> {
-                    <span class="ident">texture</span>: <span class="kw-2">&amp;</span><span class="ident">new_texture</span>,
-                    <span class="ident">mip_level</span>: <span class="number">0</span>,
-                    <span class="ident">origin</span>: <span class="ident">wgpu::Origin3d</span> {
-                        <span class="ident">x</span>: <span class="number">0</span>,
-                        <span class="ident">y</span>: <span class="number">0</span>,
-                        <span class="ident">z</span>: <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u32</span>,
+                wgpu::ImageCopyTexture {
+                    texture: <span class="kw-2">&amp;</span>new_texture,
+                    mip_level: <span class="number">0</span>,
+                    origin: wgpu::Origin3d {
+                        x: <span class="number">0</span>,
+                        y: <span class="number">0</span>,
+                        z: i <span class="kw">as </span>u32,
                     },
-                    <span class="ident">aspect</span>: <span class="ident">wgpu::TextureAspect::default</span>(),
+                    aspect: wgpu::TextureAspect::default(),
                 },
-                <span class="ident">wgpu::Extent3d</span> {
-                    <span class="ident">width</span>: <span class="ident">SIZE</span>,
-                    <span class="ident">height</span>: <span class="ident">SIZE</span>,
-                    <span class="ident">depth_or_array_layers</span>: <span class="number">1</span>,
+                wgpu::Extent3d {
+                    width: SIZE,
+                    height: SIZE,
+                    depth_or_array_layers: <span class="number">1</span>,
                 },
             );
         }
 
-        <span class="self">self</span>.<span class="ident">texture</span> <span class="op">=</span> <span class="ident">new_texture</span>;
-        <span class="self">self</span>.<span class="ident">texture_view</span> <span class="op">=</span>
-            <span class="self">self</span>.<span class="ident">texture</span>.<span class="ident">create_view</span>(<span class="kw-2">&amp;</span><span class="ident">wgpu::TextureViewDescriptor</span> {
-                <span class="ident">dimension</span>: <span class="prelude-val">Some</span>(<span class="ident">wgpu::TextureViewDimension::D2Array</span>),
-                ..<span class="ident">Default::default</span>()
+        <span class="self">self</span>.texture = new_texture;
+        <span class="self">self</span>.texture_view =
+            <span class="self">self</span>.texture.create_view(<span class="kw-2">&amp;</span>wgpu::TextureViewDescriptor {
+                dimension: <span class="prelude-val">Some</span>(wgpu::TextureViewDimension::D2Array),
+                ..Default::default()
             });
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_wgpu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_wgpu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>

@@ -494,499 +494,499 @@
 <span id="492">492</span>
 <span id="493">493</span>
 <span id="494">494</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Convert [`winit`] types into [`iced_native`] types, and viceversa.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! [`winit`]: https://github.com/rust-windowing/winit</span>
-<span class="doccomment">//! [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::keyboard</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mouse</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::touch</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::window</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Event</span>, <span class="ident">Mode</span>, <span class="ident">Point</span>, <span class="ident">Position</span>};
+</pre><pre class="rust"><code><span class="doccomment">//! Convert [`winit`] types into [`iced_native`] types, and viceversa.
+//!
+//! [`winit`]: https://github.com/rust-windowing/winit
+//! [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native
+</span><span class="kw">use </span><span class="kw">crate</span>::keyboard;
+<span class="kw">use </span><span class="kw">crate</span>::mouse;
+<span class="kw">use </span><span class="kw">crate</span>::touch;
+<span class="kw">use </span><span class="kw">crate</span>::window;
+<span class="kw">use crate</span>::{Event, Mode, Point, Position};
 
-<span class="doccomment">/// Converts a winit window event into an iced event.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">window_event</span>(
-    <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">winit::event::WindowEvent</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-    <span class="ident">scale_factor</span>: <span class="ident">f64</span>,
-    <span class="ident">modifiers</span>: <span class="ident">winit::event::ModifiersState</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident">winit::event::WindowEvent</span>;
+<span class="doccomment">/// Converts a winit window event into an iced event.
+</span><span class="kw">pub fn </span>window_event(
+    event: <span class="kw-2">&amp;</span>winit::event::WindowEvent&lt;<span class="lifetime">&#39;_</span>&gt;,
+    scale_factor: f64,
+    modifiers: winit::event::ModifiersState,
+) -&gt; <span class="prelude-ty">Option</span>&lt;Event&gt; {
+    <span class="kw">use </span>winit::event::WindowEvent;
 
-    <span class="kw">match</span> <span class="ident">event</span> {
-        <span class="ident">WindowEvent::Resized</span>(<span class="ident">new_size</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">logical_size</span> <span class="op">=</span> <span class="ident">new_size</span>.<span class="ident">to_logical</span>(<span class="ident">scale_factor</span>);
+    <span class="kw">match </span>event {
+        WindowEvent::Resized(new_size) =&gt; {
+            <span class="kw">let </span>logical_size = new_size.to_logical(scale_factor);
 
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Window</span>(<span class="ident">window::Event::Resized</span> {
-                <span class="ident">width</span>: <span class="ident">logical_size</span>.<span class="ident">width</span>,
-                <span class="ident">height</span>: <span class="ident">logical_size</span>.<span class="ident">height</span>,
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::Resized {
+                width: logical_size.width,
+                height: logical_size.height,
             }))
         }
-        <span class="ident">WindowEvent::ScaleFactorChanged</span> { <span class="ident">new_inner_size</span>, .. } =&gt; {
-            <span class="kw">let</span> <span class="ident">logical_size</span> <span class="op">=</span> <span class="ident">new_inner_size</span>.<span class="ident">to_logical</span>(<span class="ident">scale_factor</span>);
+        WindowEvent::ScaleFactorChanged { new_inner_size, .. } =&gt; {
+            <span class="kw">let </span>logical_size = new_inner_size.to_logical(scale_factor);
 
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Window</span>(<span class="ident">window::Event::Resized</span> {
-                <span class="ident">width</span>: <span class="ident">logical_size</span>.<span class="ident">width</span>,
-                <span class="ident">height</span>: <span class="ident">logical_size</span>.<span class="ident">height</span>,
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::Resized {
+                width: logical_size.width,
+                height: logical_size.height,
             }))
         }
-        <span class="ident">WindowEvent::CloseRequested</span> =&gt; {
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Window</span>(<span class="ident">window::Event::CloseRequested</span>))
+        WindowEvent::CloseRequested =&gt; {
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::CloseRequested))
         }
-        <span class="ident">WindowEvent::CursorMoved</span> { <span class="ident">position</span>, .. } =&gt; {
-            <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">position</span>.<span class="ident">to_logical</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>(<span class="ident">scale_factor</span>);
+        WindowEvent::CursorMoved { position, .. } =&gt; {
+            <span class="kw">let </span>position = position.to_logical::&lt;f64&gt;(scale_factor);
 
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::CursorMoved</span> {
-                <span class="ident">position</span>: <span class="ident">Point::new</span>(<span class="ident">position</span>.<span class="ident">x</span> <span class="kw">as</span> <span class="ident">f32</span>, <span class="ident">position</span>.<span class="ident">y</span> <span class="kw">as</span> <span class="ident">f32</span>),
+            <span class="prelude-val">Some</span>(Event::Mouse(mouse::Event::CursorMoved {
+                position: Point::new(position.x <span class="kw">as </span>f32, position.y <span class="kw">as </span>f32),
             }))
         }
-        <span class="ident">WindowEvent::CursorEntered</span> { .. } =&gt; {
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::CursorEntered</span>))
+        WindowEvent::CursorEntered { .. } =&gt; {
+            <span class="prelude-val">Some</span>(Event::Mouse(mouse::Event::CursorEntered))
         }
-        <span class="ident">WindowEvent::CursorLeft</span> { .. } =&gt; {
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::CursorLeft</span>))
+        WindowEvent::CursorLeft { .. } =&gt; {
+            <span class="prelude-val">Some</span>(Event::Mouse(mouse::Event::CursorLeft))
         }
-        <span class="ident">WindowEvent::MouseInput</span> { <span class="ident">button</span>, <span class="ident">state</span>, .. } =&gt; {
-            <span class="kw">let</span> <span class="ident">button</span> <span class="op">=</span> <span class="ident">mouse_button</span>(<span class="kw-2">*</span><span class="ident">button</span>);
+        WindowEvent::MouseInput { button, state, .. } =&gt; {
+            <span class="kw">let </span>button = mouse_button(<span class="kw-2">*</span>button);
 
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Mouse</span>(<span class="kw">match</span> <span class="ident">state</span> {
-                <span class="ident">winit::event::ElementState::Pressed</span> =&gt; {
-                    <span class="ident">mouse::Event::ButtonPressed</span>(<span class="ident">button</span>)
+            <span class="prelude-val">Some</span>(Event::Mouse(<span class="kw">match </span>state {
+                winit::event::ElementState::Pressed =&gt; {
+                    mouse::Event::ButtonPressed(button)
                 }
-                <span class="ident">winit::event::ElementState::Released</span> =&gt; {
-                    <span class="ident">mouse::Event::ButtonReleased</span>(<span class="ident">button</span>)
+                winit::event::ElementState::Released =&gt; {
+                    mouse::Event::ButtonReleased(button)
                 }
             }))
         }
-        <span class="ident">WindowEvent::MouseWheel</span> { <span class="ident">delta</span>, .. } =&gt; <span class="kw">match</span> <span class="ident">delta</span> {
-            <span class="ident">winit::event::MouseScrollDelta::LineDelta</span>(<span class="ident">delta_x</span>, <span class="ident">delta_y</span>) =&gt; {
-                <span class="prelude-val">Some</span>(<span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::WheelScrolled</span> {
-                    <span class="ident">delta</span>: <span class="ident">mouse::ScrollDelta::Lines</span> {
-                        <span class="ident">x</span>: <span class="kw-2">*</span><span class="ident">delta_x</span>,
-                        <span class="ident">y</span>: <span class="kw-2">*</span><span class="ident">delta_y</span>,
+        WindowEvent::MouseWheel { delta, .. } =&gt; <span class="kw">match </span>delta {
+            winit::event::MouseScrollDelta::LineDelta(delta_x, delta_y) =&gt; {
+                <span class="prelude-val">Some</span>(Event::Mouse(mouse::Event::WheelScrolled {
+                    delta: mouse::ScrollDelta::Lines {
+                        x: <span class="kw-2">*</span>delta_x,
+                        y: <span class="kw-2">*</span>delta_y,
                     },
                 }))
             }
-            <span class="ident">winit::event::MouseScrollDelta::PixelDelta</span>(<span class="ident">position</span>) =&gt; {
-                <span class="prelude-val">Some</span>(<span class="ident">Event::Mouse</span>(<span class="ident">mouse::Event::WheelScrolled</span> {
-                    <span class="ident">delta</span>: <span class="ident">mouse::ScrollDelta::Pixels</span> {
-                        <span class="ident">x</span>: <span class="ident">position</span>.<span class="ident">x</span> <span class="kw">as</span> <span class="ident">f32</span>,
-                        <span class="ident">y</span>: <span class="ident">position</span>.<span class="ident">y</span> <span class="kw">as</span> <span class="ident">f32</span>,
+            winit::event::MouseScrollDelta::PixelDelta(position) =&gt; {
+                <span class="prelude-val">Some</span>(Event::Mouse(mouse::Event::WheelScrolled {
+                    delta: mouse::ScrollDelta::Pixels {
+                        x: position.x <span class="kw">as </span>f32,
+                        y: position.y <span class="kw">as </span>f32,
                     },
                 }))
             }
         },
-        <span class="ident">WindowEvent::ReceivedCharacter</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">is_private_use_character</span>(<span class="kw-2">*</span><span class="ident">c</span>) =&gt; {
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Keyboard</span>(<span class="ident">keyboard::Event::CharacterReceived</span>(<span class="kw-2">*</span><span class="ident">c</span>)))
+        WindowEvent::ReceivedCharacter(c) <span class="kw">if </span>!is_private_use_character(<span class="kw-2">*</span>c) =&gt; {
+            <span class="prelude-val">Some</span>(Event::Keyboard(keyboard::Event::CharacterReceived(<span class="kw-2">*</span>c)))
         }
-        <span class="ident">WindowEvent::KeyboardInput</span> {
-            <span class="ident">input</span>:
-                <span class="ident">winit::event::KeyboardInput</span> {
-                    <span class="ident">virtual_keycode</span>: <span class="prelude-val">Some</span>(<span class="ident">virtual_keycode</span>),
-                    <span class="ident">state</span>,
+        WindowEvent::KeyboardInput {
+            input:
+                winit::event::KeyboardInput {
+                    virtual_keycode: <span class="prelude-val">Some</span>(virtual_keycode),
+                    state,
                     ..
                 },
             ..
-        } =&gt; <span class="prelude-val">Some</span>(<span class="ident">Event::Keyboard</span>({
-            <span class="kw">let</span> <span class="ident">key_code</span> <span class="op">=</span> <span class="ident">key_code</span>(<span class="kw-2">*</span><span class="ident">virtual_keycode</span>);
-            <span class="kw">let</span> <span class="ident">modifiers</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::modifiers</span>(<span class="ident">modifiers</span>);
+        } =&gt; <span class="prelude-val">Some</span>(Event::Keyboard({
+            <span class="kw">let </span>key_code = key_code(<span class="kw-2">*</span>virtual_keycode);
+            <span class="kw">let </span>modifiers = <span class="self">self</span>::modifiers(modifiers);
 
-            <span class="kw">match</span> <span class="ident">state</span> {
-                <span class="ident">winit::event::ElementState::Pressed</span> =&gt; {
-                    <span class="ident">keyboard::Event::KeyPressed</span> {
-                        <span class="ident">key_code</span>,
-                        <span class="ident">modifiers</span>,
+            <span class="kw">match </span>state {
+                winit::event::ElementState::Pressed =&gt; {
+                    keyboard::Event::KeyPressed {
+                        key_code,
+                        modifiers,
                     }
                 }
-                <span class="ident">winit::event::ElementState::Released</span> =&gt; {
-                    <span class="ident">keyboard::Event::KeyReleased</span> {
-                        <span class="ident">key_code</span>,
-                        <span class="ident">modifiers</span>,
+                winit::event::ElementState::Released =&gt; {
+                    keyboard::Event::KeyReleased {
+                        key_code,
+                        modifiers,
                     }
                 }
             }
         })),
-        <span class="ident">WindowEvent::ModifiersChanged</span>(<span class="ident">new_modifiers</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Event::Keyboard</span>(
-            <span class="ident">keyboard::Event::ModifiersChanged</span>(<span class="ident"><span class="self">self</span>::modifiers</span>(<span class="kw-2">*</span><span class="ident">new_modifiers</span>)),
+        WindowEvent::ModifiersChanged(new_modifiers) =&gt; <span class="prelude-val">Some</span>(Event::Keyboard(
+            keyboard::Event::ModifiersChanged(<span class="self">self</span>::modifiers(<span class="kw-2">*</span>new_modifiers)),
         )),
-        <span class="ident">WindowEvent::Focused</span>(<span class="ident">focused</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Event::Window</span>(<span class="kw">if</span> <span class="kw-2">*</span><span class="ident">focused</span> {
-            <span class="ident">window::Event::Focused</span>
-        } <span class="kw">else</span> {
-            <span class="ident">window::Event::Unfocused</span>
+        WindowEvent::Focused(focused) =&gt; <span class="prelude-val">Some</span>(Event::Window(<span class="kw">if </span><span class="kw-2">*</span>focused {
+            window::Event::Focused
+        } <span class="kw">else </span>{
+            window::Event::Unfocused
         })),
-        <span class="ident">WindowEvent::HoveredFile</span>(<span class="ident">path</span>) =&gt; {
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Window</span>(<span class="ident">window::Event::FileHovered</span>(<span class="ident">path</span>.<span class="ident">clone</span>())))
+        WindowEvent::HoveredFile(path) =&gt; {
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::FileHovered(path.clone())))
         }
-        <span class="ident">WindowEvent::DroppedFile</span>(<span class="ident">path</span>) =&gt; {
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Window</span>(<span class="ident">window::Event::FileDropped</span>(<span class="ident">path</span>.<span class="ident">clone</span>())))
+        WindowEvent::DroppedFile(path) =&gt; {
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::FileDropped(path.clone())))
         }
-        <span class="ident">WindowEvent::HoveredFileCancelled</span> =&gt; {
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Window</span>(<span class="ident">window::Event::FilesHoveredLeft</span>))
+        WindowEvent::HoveredFileCancelled =&gt; {
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::FilesHoveredLeft))
         }
-        <span class="ident">WindowEvent::Touch</span>(<span class="ident">touch</span>) =&gt; {
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Touch</span>(<span class="ident">touch_event</span>(<span class="kw-2">*</span><span class="ident">touch</span>, <span class="ident">scale_factor</span>)))
+        WindowEvent::Touch(touch) =&gt; {
+            <span class="prelude-val">Some</span>(Event::Touch(touch_event(<span class="kw-2">*</span>touch, scale_factor)))
         }
-        <span class="ident">WindowEvent::Moved</span>(<span class="ident">position</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">winit::dpi::LogicalPosition</span> { <span class="ident">x</span>, <span class="ident">y</span> } <span class="op">=</span>
-                <span class="ident">position</span>.<span class="ident">to_logical</span>(<span class="ident">scale_factor</span>);
+        WindowEvent::Moved(position) =&gt; {
+            <span class="kw">let </span>winit::dpi::LogicalPosition { x, y } =
+                position.to_logical(scale_factor);
 
-            <span class="prelude-val">Some</span>(<span class="ident">Event::Window</span>(<span class="ident">window::Event::Moved</span> { <span class="ident">x</span>, <span class="ident">y</span> }))
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::Moved { x, y }))
         }
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }
 }
 
-<span class="doccomment">/// Converts a [`Position`] to a [`winit`] logical position for a given monitor.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`winit`]: https://github.com/rust-windowing/winit</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">position</span>(
-    <span class="ident">monitor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">winit::monitor::MonitorHandle</span><span class="op">&gt;</span>,
-    (<span class="ident">width</span>, <span class="ident">height</span>): (<span class="ident">u32</span>, <span class="ident">u32</span>),
-    <span class="ident">position</span>: <span class="ident">Position</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">winit::dpi::Position</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">position</span> {
-        <span class="ident">Position::Default</span> =&gt; <span class="prelude-val">None</span>,
-        <span class="ident">Position::Specific</span>(<span class="ident">x</span>, <span class="ident">y</span>) =&gt; {
-            <span class="prelude-val">Some</span>(<span class="ident">winit::dpi::Position::Logical</span>(<span class="ident">winit::dpi::LogicalPosition</span> {
-                <span class="ident">x</span>: <span class="ident">f64::from</span>(<span class="ident">x</span>),
-                <span class="ident">y</span>: <span class="ident">f64::from</span>(<span class="ident">y</span>),
+<span class="doccomment">/// Converts a [`Position`] to a [`winit`] logical position for a given monitor.
+///
+/// [`winit`]: https://github.com/rust-windowing/winit
+</span><span class="kw">pub fn </span>position(
+    monitor: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>winit::monitor::MonitorHandle&gt;,
+    (width, height): (u32, u32),
+    position: Position,
+) -&gt; <span class="prelude-ty">Option</span>&lt;winit::dpi::Position&gt; {
+    <span class="kw">match </span>position {
+        Position::Default =&gt; <span class="prelude-val">None</span>,
+        Position::Specific(x, y) =&gt; {
+            <span class="prelude-val">Some</span>(winit::dpi::Position::Logical(winit::dpi::LogicalPosition {
+                x: f64::from(x),
+                y: f64::from(y),
             }))
         }
-        <span class="ident">Position::Centered</span> =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">monitor</span>) <span class="op">=</span> <span class="ident">monitor</span> {
-                <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">monitor</span>.<span class="ident">position</span>();
+        Position::Centered =&gt; {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(monitor) = monitor {
+                <span class="kw">let </span>start = monitor.position();
 
-                <span class="kw">let</span> <span class="ident">resolution</span>: <span class="ident">winit::dpi::LogicalSize</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="op">=</span>
-                    <span class="ident">monitor</span>.<span class="ident">size</span>().<span class="ident">to_logical</span>(<span class="ident">monitor</span>.<span class="ident">scale_factor</span>());
+                <span class="kw">let </span>resolution: winit::dpi::LogicalSize&lt;f64&gt; =
+                    monitor.size().to_logical(monitor.scale_factor());
 
-                <span class="kw">let</span> <span class="ident">centered</span>: <span class="ident">winit::dpi::PhysicalPosition</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span>
-                    <span class="ident">winit::dpi::LogicalPosition</span> {
-                        <span class="ident">x</span>: (<span class="ident">resolution</span>.<span class="ident">width</span> <span class="op">-</span> <span class="ident">f64::from</span>(<span class="ident">width</span>)) <span class="op">/</span> <span class="number">2.0</span>,
-                        <span class="ident">y</span>: (<span class="ident">resolution</span>.<span class="ident">height</span> <span class="op">-</span> <span class="ident">f64::from</span>(<span class="ident">height</span>)) <span class="op">/</span> <span class="number">2.0</span>,
+                <span class="kw">let </span>centered: winit::dpi::PhysicalPosition&lt;i32&gt; =
+                    winit::dpi::LogicalPosition {
+                        x: (resolution.width - f64::from(width)) / <span class="number">2.0</span>,
+                        y: (resolution.height - f64::from(height)) / <span class="number">2.0</span>,
                     }
-                    .<span class="ident">to_physical</span>(<span class="ident">monitor</span>.<span class="ident">scale_factor</span>());
+                    .to_physical(monitor.scale_factor());
 
-                <span class="prelude-val">Some</span>(<span class="ident">winit::dpi::Position::Physical</span>(
-                    <span class="ident">winit::dpi::PhysicalPosition</span> {
-                        <span class="ident">x</span>: <span class="ident">start</span>.<span class="ident">x</span> <span class="op">+</span> <span class="ident">centered</span>.<span class="ident">x</span>,
-                        <span class="ident">y</span>: <span class="ident">start</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">centered</span>.<span class="ident">y</span>,
+                <span class="prelude-val">Some</span>(winit::dpi::Position::Physical(
+                    winit::dpi::PhysicalPosition {
+                        x: start.x + centered.x,
+                        y: start.y + centered.y,
                     },
                 ))
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
-            }
+            } <span class="kw">else </span>{
+                <span class="prelude-val">None
+            </span>}
         }
     }
 }
 
-<span class="doccomment">/// Converts a [`Mode`] to a [`winit`] fullscreen mode.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`winit`]: https://github.com/rust-windowing/winit</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fullscreen</span>(
-    <span class="ident">monitor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">winit::monitor::MonitorHandle</span><span class="op">&gt;</span>,
-    <span class="ident">mode</span>: <span class="ident">Mode</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">winit::window::Fullscreen</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">mode</span> {
-        <span class="ident">Mode::Windowed</span> <span class="op">|</span> <span class="ident">Mode::Hidden</span> =&gt; <span class="prelude-val">None</span>,
-        <span class="ident">Mode::Fullscreen</span> =&gt; {
-            <span class="prelude-val">Some</span>(<span class="ident">winit::window::Fullscreen::Borderless</span>(<span class="ident">monitor</span>))
+<span class="doccomment">/// Converts a [`Mode`] to a [`winit`] fullscreen mode.
+///
+/// [`winit`]: https://github.com/rust-windowing/winit
+</span><span class="kw">pub fn </span>fullscreen(
+    monitor: <span class="prelude-ty">Option</span>&lt;winit::monitor::MonitorHandle&gt;,
+    mode: Mode,
+) -&gt; <span class="prelude-ty">Option</span>&lt;winit::window::Fullscreen&gt; {
+    <span class="kw">match </span>mode {
+        Mode::Windowed | Mode::Hidden =&gt; <span class="prelude-val">None</span>,
+        Mode::Fullscreen =&gt; {
+            <span class="prelude-val">Some</span>(winit::window::Fullscreen::Borderless(monitor))
         }
     }
 }
 
-<span class="doccomment">/// Converts a [`Mode`] to a visibility flag.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visible</span>(<span class="ident">mode</span>: <span class="ident">Mode</span>) -&gt; <span class="ident">bool</span> {
-    <span class="kw">match</span> <span class="ident">mode</span> {
-        <span class="ident">Mode::Windowed</span> <span class="op">|</span> <span class="ident">Mode::Fullscreen</span> =&gt; <span class="bool-val">true</span>,
-        <span class="ident">Mode::Hidden</span> =&gt; <span class="bool-val">false</span>,
+<span class="doccomment">/// Converts a [`Mode`] to a visibility flag.
+</span><span class="kw">pub fn </span>visible(mode: Mode) -&gt; bool {
+    <span class="kw">match </span>mode {
+        Mode::Windowed | Mode::Fullscreen =&gt; <span class="bool-val">true</span>,
+        Mode::Hidden =&gt; <span class="bool-val">false</span>,
     }
 }
 
-<span class="doccomment">/// Converts a `MouseCursor` from [`iced_native`] to a [`winit`] cursor icon.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`winit`]: https://github.com/rust-windowing/winit</span>
-<span class="doccomment">/// [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mouse_interaction</span>(
-    <span class="ident">interaction</span>: <span class="ident">mouse::Interaction</span>,
-) -&gt; <span class="ident">winit::window::CursorIcon</span> {
-    <span class="kw">use</span> <span class="ident">mouse::Interaction</span>;
+<span class="doccomment">/// Converts a `MouseCursor` from [`iced_native`] to a [`winit`] cursor icon.
+///
+/// [`winit`]: https://github.com/rust-windowing/winit
+/// [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native
+</span><span class="kw">pub fn </span>mouse_interaction(
+    interaction: mouse::Interaction,
+) -&gt; winit::window::CursorIcon {
+    <span class="kw">use </span>mouse::Interaction;
 
-    <span class="kw">match</span> <span class="ident">interaction</span> {
-        <span class="ident">Interaction::Idle</span> =&gt; <span class="ident">winit::window::CursorIcon::Default</span>,
-        <span class="ident">Interaction::Pointer</span> =&gt; <span class="ident">winit::window::CursorIcon::Hand</span>,
-        <span class="ident">Interaction::Working</span> =&gt; <span class="ident">winit::window::CursorIcon::Progress</span>,
-        <span class="ident">Interaction::Grab</span> =&gt; <span class="ident">winit::window::CursorIcon::Grab</span>,
-        <span class="ident">Interaction::Grabbing</span> =&gt; <span class="ident">winit::window::CursorIcon::Grabbing</span>,
-        <span class="ident">Interaction::Crosshair</span> =&gt; <span class="ident">winit::window::CursorIcon::Crosshair</span>,
-        <span class="ident">Interaction::Text</span> =&gt; <span class="ident">winit::window::CursorIcon::Text</span>,
-        <span class="ident">Interaction::ResizingHorizontally</span> =&gt; {
-            <span class="ident">winit::window::CursorIcon::EwResize</span>
+    <span class="kw">match </span>interaction {
+        Interaction::Idle =&gt; winit::window::CursorIcon::Default,
+        Interaction::Pointer =&gt; winit::window::CursorIcon::Hand,
+        Interaction::Working =&gt; winit::window::CursorIcon::Progress,
+        Interaction::Grab =&gt; winit::window::CursorIcon::Grab,
+        Interaction::Grabbing =&gt; winit::window::CursorIcon::Grabbing,
+        Interaction::Crosshair =&gt; winit::window::CursorIcon::Crosshair,
+        Interaction::Text =&gt; winit::window::CursorIcon::Text,
+        Interaction::ResizingHorizontally =&gt; {
+            winit::window::CursorIcon::EwResize
         }
-        <span class="ident">Interaction::ResizingVertically</span> =&gt; <span class="ident">winit::window::CursorIcon::NsResize</span>,
+        Interaction::ResizingVertically =&gt; winit::window::CursorIcon::NsResize,
     }
 }
 
-<span class="doccomment">/// Converts a `MouseButton` from [`winit`] to an [`iced_native`] mouse button.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`winit`]: https://github.com/rust-windowing/winit</span>
-<span class="doccomment">/// [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mouse_button</span>(<span class="ident">mouse_button</span>: <span class="ident">winit::event::MouseButton</span>) -&gt; <span class="ident">mouse::Button</span> {
-    <span class="kw">match</span> <span class="ident">mouse_button</span> {
-        <span class="ident">winit::event::MouseButton::Left</span> =&gt; <span class="ident">mouse::Button::Left</span>,
-        <span class="ident">winit::event::MouseButton::Right</span> =&gt; <span class="ident">mouse::Button::Right</span>,
-        <span class="ident">winit::event::MouseButton::Middle</span> =&gt; <span class="ident">mouse::Button::Middle</span>,
-        <span class="ident">winit::event::MouseButton::Other</span>(<span class="ident">other</span>) =&gt; {
-            <span class="ident">mouse::Button::Other</span>(<span class="ident">other</span> <span class="kw">as</span> <span class="ident">u8</span>)
+<span class="doccomment">/// Converts a `MouseButton` from [`winit`] to an [`iced_native`] mouse button.
+///
+/// [`winit`]: https://github.com/rust-windowing/winit
+/// [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native
+</span><span class="kw">pub fn </span>mouse_button(mouse_button: winit::event::MouseButton) -&gt; mouse::Button {
+    <span class="kw">match </span>mouse_button {
+        winit::event::MouseButton::Left =&gt; mouse::Button::Left,
+        winit::event::MouseButton::Right =&gt; mouse::Button::Right,
+        winit::event::MouseButton::Middle =&gt; mouse::Button::Middle,
+        winit::event::MouseButton::Other(other) =&gt; {
+            mouse::Button::Other(other <span class="kw">as </span>u8)
         }
     }
 }
 
-<span class="doccomment">/// Converts some `ModifiersState` from [`winit`] to an [`iced_native`]</span>
-<span class="doccomment">/// modifiers state.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`winit`]: https://github.com/rust-windowing/winit</span>
-<span class="doccomment">/// [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">modifiers</span>(
-    <span class="ident">modifiers</span>: <span class="ident">winit::event::ModifiersState</span>,
-) -&gt; <span class="ident">keyboard::Modifiers</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">keyboard::Modifiers::empty</span>();
+<span class="doccomment">/// Converts some `ModifiersState` from [`winit`] to an [`iced_native`]
+/// modifiers state.
+///
+/// [`winit`]: https://github.com/rust-windowing/winit
+/// [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native
+</span><span class="kw">pub fn </span>modifiers(
+    modifiers: winit::event::ModifiersState,
+) -&gt; keyboard::Modifiers {
+    <span class="kw">let </span><span class="kw-2">mut </span>result = keyboard::Modifiers::empty();
 
-    <span class="ident">result</span>.<span class="ident">set</span>(<span class="ident">keyboard::Modifiers::SHIFT</span>, <span class="ident">modifiers</span>.<span class="ident">shift</span>());
-    <span class="ident">result</span>.<span class="ident">set</span>(<span class="ident">keyboard::Modifiers::CTRL</span>, <span class="ident">modifiers</span>.<span class="ident">ctrl</span>());
-    <span class="ident">result</span>.<span class="ident">set</span>(<span class="ident">keyboard::Modifiers::ALT</span>, <span class="ident">modifiers</span>.<span class="ident">alt</span>());
-    <span class="ident">result</span>.<span class="ident">set</span>(<span class="ident">keyboard::Modifiers::LOGO</span>, <span class="ident">modifiers</span>.<span class="ident">logo</span>());
+    result.set(keyboard::Modifiers::SHIFT, modifiers.shift());
+    result.set(keyboard::Modifiers::CTRL, modifiers.ctrl());
+    result.set(keyboard::Modifiers::ALT, modifiers.alt());
+    result.set(keyboard::Modifiers::LOGO, modifiers.logo());
 
-    <span class="ident">result</span>
+    result
 }
 
-<span class="doccomment">/// Converts a physical cursor position to a logical `Point`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cursor_position</span>(
-    <span class="ident">position</span>: <span class="ident">winit::dpi::PhysicalPosition</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>,
-    <span class="ident">scale_factor</span>: <span class="ident">f64</span>,
-) -&gt; <span class="ident">Point</span> {
-    <span class="kw">let</span> <span class="ident">logical_position</span> <span class="op">=</span> <span class="ident">position</span>.<span class="ident">to_logical</span>(<span class="ident">scale_factor</span>);
+<span class="doccomment">/// Converts a physical cursor position to a logical `Point`.
+</span><span class="kw">pub fn </span>cursor_position(
+    position: winit::dpi::PhysicalPosition&lt;f64&gt;,
+    scale_factor: f64,
+) -&gt; Point {
+    <span class="kw">let </span>logical_position = position.to_logical(scale_factor);
 
-    <span class="ident">Point::new</span>(<span class="ident">logical_position</span>.<span class="ident">x</span>, <span class="ident">logical_position</span>.<span class="ident">y</span>)
+    Point::new(logical_position.x, logical_position.y)
 }
 
-<span class="doccomment">/// Converts a `Touch` from [`winit`] to an [`iced_native`] touch event.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`winit`]: https://github.com/rust-windowing/winit</span>
-<span class="doccomment">/// [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">touch_event</span>(
-    <span class="ident">touch</span>: <span class="ident">winit::event::Touch</span>,
-    <span class="ident">scale_factor</span>: <span class="ident">f64</span>,
-) -&gt; <span class="ident">touch::Event</span> {
-    <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">touch::Finger</span>(<span class="ident">touch</span>.<span class="ident">id</span>);
-    <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span> <span class="ident">touch</span>.<span class="ident">location</span>.<span class="ident">to_logical</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>(<span class="ident">scale_factor</span>);
+<span class="doccomment">/// Converts a `Touch` from [`winit`] to an [`iced_native`] touch event.
+///
+/// [`winit`]: https://github.com/rust-windowing/winit
+/// [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native
+</span><span class="kw">pub fn </span>touch_event(
+    touch: winit::event::Touch,
+    scale_factor: f64,
+) -&gt; touch::Event {
+    <span class="kw">let </span>id = touch::Finger(touch.id);
+    <span class="kw">let </span>position = {
+        <span class="kw">let </span>location = touch.location.to_logical::&lt;f64&gt;(scale_factor);
 
-        <span class="ident">Point::new</span>(<span class="ident">location</span>.<span class="ident">x</span> <span class="kw">as</span> <span class="ident">f32</span>, <span class="ident">location</span>.<span class="ident">y</span> <span class="kw">as</span> <span class="ident">f32</span>)
+        Point::new(location.x <span class="kw">as </span>f32, location.y <span class="kw">as </span>f32)
     };
 
-    <span class="kw">match</span> <span class="ident">touch</span>.<span class="ident">phase</span> {
-        <span class="ident">winit::event::TouchPhase::Started</span> =&gt; {
-            <span class="ident">touch::Event::FingerPressed</span> { <span class="ident">id</span>, <span class="ident">position</span> }
+    <span class="kw">match </span>touch.phase {
+        winit::event::TouchPhase::Started =&gt; {
+            touch::Event::FingerPressed { id, position }
         }
-        <span class="ident">winit::event::TouchPhase::Moved</span> =&gt; {
-            <span class="ident">touch::Event::FingerMoved</span> { <span class="ident">id</span>, <span class="ident">position</span> }
+        winit::event::TouchPhase::Moved =&gt; {
+            touch::Event::FingerMoved { id, position }
         }
-        <span class="ident">winit::event::TouchPhase::Ended</span> =&gt; {
-            <span class="ident">touch::Event::FingerLifted</span> { <span class="ident">id</span>, <span class="ident">position</span> }
+        winit::event::TouchPhase::Ended =&gt; {
+            touch::Event::FingerLifted { id, position }
         }
-        <span class="ident">winit::event::TouchPhase::Cancelled</span> =&gt; {
-            <span class="ident">touch::Event::FingerLost</span> { <span class="ident">id</span>, <span class="ident">position</span> }
+        winit::event::TouchPhase::Cancelled =&gt; {
+            touch::Event::FingerLost { id, position }
         }
     }
 }
 
-<span class="doccomment">/// Converts a `VirtualKeyCode` from [`winit`] to an [`iced_native`] key code.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`winit`]: https://github.com/rust-windowing/winit</span>
-<span class="doccomment">/// [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_code</span>(
-    <span class="ident">virtual_keycode</span>: <span class="ident">winit::event::VirtualKeyCode</span>,
-) -&gt; <span class="ident">keyboard::KeyCode</span> {
-    <span class="kw">use</span> <span class="ident">keyboard::KeyCode</span>;
+<span class="doccomment">/// Converts a `VirtualKeyCode` from [`winit`] to an [`iced_native`] key code.
+///
+/// [`winit`]: https://github.com/rust-windowing/winit
+/// [`iced_native`]: https://github.com/iced-rs/iced/tree/0.4/native
+</span><span class="kw">pub fn </span>key_code(
+    virtual_keycode: winit::event::VirtualKeyCode,
+) -&gt; keyboard::KeyCode {
+    <span class="kw">use </span>keyboard::KeyCode;
 
-    <span class="kw">match</span> <span class="ident">virtual_keycode</span> {
-        <span class="ident">winit::event::VirtualKeyCode::Key1</span> =&gt; <span class="ident">KeyCode::Key1</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Key2</span> =&gt; <span class="ident">KeyCode::Key2</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Key3</span> =&gt; <span class="ident">KeyCode::Key3</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Key4</span> =&gt; <span class="ident">KeyCode::Key4</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Key5</span> =&gt; <span class="ident">KeyCode::Key5</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Key6</span> =&gt; <span class="ident">KeyCode::Key6</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Key7</span> =&gt; <span class="ident">KeyCode::Key7</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Key8</span> =&gt; <span class="ident">KeyCode::Key8</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Key9</span> =&gt; <span class="ident">KeyCode::Key9</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Key0</span> =&gt; <span class="ident">KeyCode::Key0</span>,
-        <span class="ident">winit::event::VirtualKeyCode::A</span> =&gt; <span class="ident">KeyCode::A</span>,
-        <span class="ident">winit::event::VirtualKeyCode::B</span> =&gt; <span class="ident">KeyCode::B</span>,
-        <span class="ident">winit::event::VirtualKeyCode::C</span> =&gt; <span class="ident">KeyCode::C</span>,
-        <span class="ident">winit::event::VirtualKeyCode::D</span> =&gt; <span class="ident">KeyCode::D</span>,
-        <span class="ident">winit::event::VirtualKeyCode::E</span> =&gt; <span class="ident">KeyCode::E</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F</span> =&gt; <span class="ident">KeyCode::F</span>,
-        <span class="ident">winit::event::VirtualKeyCode::G</span> =&gt; <span class="ident">KeyCode::G</span>,
-        <span class="ident">winit::event::VirtualKeyCode::H</span> =&gt; <span class="ident">KeyCode::H</span>,
-        <span class="ident">winit::event::VirtualKeyCode::I</span> =&gt; <span class="ident">KeyCode::I</span>,
-        <span class="ident">winit::event::VirtualKeyCode::J</span> =&gt; <span class="ident">KeyCode::J</span>,
-        <span class="ident">winit::event::VirtualKeyCode::K</span> =&gt; <span class="ident">KeyCode::K</span>,
-        <span class="ident">winit::event::VirtualKeyCode::L</span> =&gt; <span class="ident">KeyCode::L</span>,
-        <span class="ident">winit::event::VirtualKeyCode::M</span> =&gt; <span class="ident">KeyCode::M</span>,
-        <span class="ident">winit::event::VirtualKeyCode::N</span> =&gt; <span class="ident">KeyCode::N</span>,
-        <span class="ident">winit::event::VirtualKeyCode::O</span> =&gt; <span class="ident">KeyCode::O</span>,
-        <span class="ident">winit::event::VirtualKeyCode::P</span> =&gt; <span class="ident">KeyCode::P</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Q</span> =&gt; <span class="ident">KeyCode::Q</span>,
-        <span class="ident">winit::event::VirtualKeyCode::R</span> =&gt; <span class="ident">KeyCode::R</span>,
-        <span class="ident">winit::event::VirtualKeyCode::S</span> =&gt; <span class="ident">KeyCode::S</span>,
-        <span class="ident">winit::event::VirtualKeyCode::T</span> =&gt; <span class="ident">KeyCode::T</span>,
-        <span class="ident">winit::event::VirtualKeyCode::U</span> =&gt; <span class="ident">KeyCode::U</span>,
-        <span class="ident">winit::event::VirtualKeyCode::V</span> =&gt; <span class="ident">KeyCode::V</span>,
-        <span class="ident">winit::event::VirtualKeyCode::W</span> =&gt; <span class="ident">KeyCode::W</span>,
-        <span class="ident">winit::event::VirtualKeyCode::X</span> =&gt; <span class="ident">KeyCode::X</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Y</span> =&gt; <span class="ident">KeyCode::Y</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Z</span> =&gt; <span class="ident">KeyCode::Z</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Escape</span> =&gt; <span class="ident">KeyCode::Escape</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F1</span> =&gt; <span class="ident">KeyCode::F1</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F2</span> =&gt; <span class="ident">KeyCode::F2</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F3</span> =&gt; <span class="ident">KeyCode::F3</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F4</span> =&gt; <span class="ident">KeyCode::F4</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F5</span> =&gt; <span class="ident">KeyCode::F5</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F6</span> =&gt; <span class="ident">KeyCode::F6</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F7</span> =&gt; <span class="ident">KeyCode::F7</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F8</span> =&gt; <span class="ident">KeyCode::F8</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F9</span> =&gt; <span class="ident">KeyCode::F9</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F10</span> =&gt; <span class="ident">KeyCode::F10</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F11</span> =&gt; <span class="ident">KeyCode::F11</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F12</span> =&gt; <span class="ident">KeyCode::F12</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F13</span> =&gt; <span class="ident">KeyCode::F13</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F14</span> =&gt; <span class="ident">KeyCode::F14</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F15</span> =&gt; <span class="ident">KeyCode::F15</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F16</span> =&gt; <span class="ident">KeyCode::F16</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F17</span> =&gt; <span class="ident">KeyCode::F17</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F18</span> =&gt; <span class="ident">KeyCode::F18</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F19</span> =&gt; <span class="ident">KeyCode::F19</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F20</span> =&gt; <span class="ident">KeyCode::F20</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F21</span> =&gt; <span class="ident">KeyCode::F21</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F22</span> =&gt; <span class="ident">KeyCode::F22</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F23</span> =&gt; <span class="ident">KeyCode::F23</span>,
-        <span class="ident">winit::event::VirtualKeyCode::F24</span> =&gt; <span class="ident">KeyCode::F24</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Snapshot</span> =&gt; <span class="ident">KeyCode::Snapshot</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Scroll</span> =&gt; <span class="ident">KeyCode::Scroll</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Pause</span> =&gt; <span class="ident">KeyCode::Pause</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Insert</span> =&gt; <span class="ident">KeyCode::Insert</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Home</span> =&gt; <span class="ident">KeyCode::Home</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Delete</span> =&gt; <span class="ident">KeyCode::Delete</span>,
-        <span class="ident">winit::event::VirtualKeyCode::End</span> =&gt; <span class="ident">KeyCode::End</span>,
-        <span class="ident">winit::event::VirtualKeyCode::PageDown</span> =&gt; <span class="ident">KeyCode::PageDown</span>,
-        <span class="ident">winit::event::VirtualKeyCode::PageUp</span> =&gt; <span class="ident">KeyCode::PageUp</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Left</span> =&gt; <span class="ident">KeyCode::Left</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Up</span> =&gt; <span class="ident">KeyCode::Up</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Right</span> =&gt; <span class="ident">KeyCode::Right</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Down</span> =&gt; <span class="ident">KeyCode::Down</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Back</span> =&gt; <span class="ident">KeyCode::Backspace</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Return</span> =&gt; <span class="ident">KeyCode::Enter</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Space</span> =&gt; <span class="ident">KeyCode::Space</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Compose</span> =&gt; <span class="ident">KeyCode::Compose</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Caret</span> =&gt; <span class="ident">KeyCode::Caret</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Numlock</span> =&gt; <span class="ident">KeyCode::Numlock</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Numpad0</span> =&gt; <span class="ident">KeyCode::Numpad0</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Numpad1</span> =&gt; <span class="ident">KeyCode::Numpad1</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Numpad2</span> =&gt; <span class="ident">KeyCode::Numpad2</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Numpad3</span> =&gt; <span class="ident">KeyCode::Numpad3</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Numpad4</span> =&gt; <span class="ident">KeyCode::Numpad4</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Numpad5</span> =&gt; <span class="ident">KeyCode::Numpad5</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Numpad6</span> =&gt; <span class="ident">KeyCode::Numpad6</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Numpad7</span> =&gt; <span class="ident">KeyCode::Numpad7</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Numpad8</span> =&gt; <span class="ident">KeyCode::Numpad8</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Numpad9</span> =&gt; <span class="ident">KeyCode::Numpad9</span>,
-        <span class="ident">winit::event::VirtualKeyCode::AbntC1</span> =&gt; <span class="ident">KeyCode::AbntC1</span>,
-        <span class="ident">winit::event::VirtualKeyCode::AbntC2</span> =&gt; <span class="ident">KeyCode::AbntC2</span>,
-        <span class="ident">winit::event::VirtualKeyCode::NumpadAdd</span> =&gt; <span class="ident">KeyCode::NumpadAdd</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Plus</span> =&gt; <span class="ident">KeyCode::Plus</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Apostrophe</span> =&gt; <span class="ident">KeyCode::Apostrophe</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Apps</span> =&gt; <span class="ident">KeyCode::Apps</span>,
-        <span class="ident">winit::event::VirtualKeyCode::At</span> =&gt; <span class="ident">KeyCode::At</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Ax</span> =&gt; <span class="ident">KeyCode::Ax</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Backslash</span> =&gt; <span class="ident">KeyCode::Backslash</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Calculator</span> =&gt; <span class="ident">KeyCode::Calculator</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Capital</span> =&gt; <span class="ident">KeyCode::Capital</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Colon</span> =&gt; <span class="ident">KeyCode::Colon</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Comma</span> =&gt; <span class="ident">KeyCode::Comma</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Convert</span> =&gt; <span class="ident">KeyCode::Convert</span>,
-        <span class="ident">winit::event::VirtualKeyCode::NumpadDecimal</span> =&gt; <span class="ident">KeyCode::NumpadDecimal</span>,
-        <span class="ident">winit::event::VirtualKeyCode::NumpadDivide</span> =&gt; <span class="ident">KeyCode::NumpadDivide</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Equals</span> =&gt; <span class="ident">KeyCode::Equals</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Grave</span> =&gt; <span class="ident">KeyCode::Grave</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Kana</span> =&gt; <span class="ident">KeyCode::Kana</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Kanji</span> =&gt; <span class="ident">KeyCode::Kanji</span>,
-        <span class="ident">winit::event::VirtualKeyCode::LAlt</span> =&gt; <span class="ident">KeyCode::LAlt</span>,
-        <span class="ident">winit::event::VirtualKeyCode::LBracket</span> =&gt; <span class="ident">KeyCode::LBracket</span>,
-        <span class="ident">winit::event::VirtualKeyCode::LControl</span> =&gt; <span class="ident">KeyCode::LControl</span>,
-        <span class="ident">winit::event::VirtualKeyCode::LShift</span> =&gt; <span class="ident">KeyCode::LShift</span>,
-        <span class="ident">winit::event::VirtualKeyCode::LWin</span> =&gt; <span class="ident">KeyCode::LWin</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Mail</span> =&gt; <span class="ident">KeyCode::Mail</span>,
-        <span class="ident">winit::event::VirtualKeyCode::MediaSelect</span> =&gt; <span class="ident">KeyCode::MediaSelect</span>,
-        <span class="ident">winit::event::VirtualKeyCode::MediaStop</span> =&gt; <span class="ident">KeyCode::MediaStop</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Minus</span> =&gt; <span class="ident">KeyCode::Minus</span>,
-        <span class="ident">winit::event::VirtualKeyCode::NumpadMultiply</span> =&gt; <span class="ident">KeyCode::NumpadMultiply</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Mute</span> =&gt; <span class="ident">KeyCode::Mute</span>,
-        <span class="ident">winit::event::VirtualKeyCode::MyComputer</span> =&gt; <span class="ident">KeyCode::MyComputer</span>,
-        <span class="ident">winit::event::VirtualKeyCode::NavigateForward</span> =&gt; {
-            <span class="ident">KeyCode::NavigateForward</span>
+    <span class="kw">match </span>virtual_keycode {
+        winit::event::VirtualKeyCode::Key1 =&gt; KeyCode::Key1,
+        winit::event::VirtualKeyCode::Key2 =&gt; KeyCode::Key2,
+        winit::event::VirtualKeyCode::Key3 =&gt; KeyCode::Key3,
+        winit::event::VirtualKeyCode::Key4 =&gt; KeyCode::Key4,
+        winit::event::VirtualKeyCode::Key5 =&gt; KeyCode::Key5,
+        winit::event::VirtualKeyCode::Key6 =&gt; KeyCode::Key6,
+        winit::event::VirtualKeyCode::Key7 =&gt; KeyCode::Key7,
+        winit::event::VirtualKeyCode::Key8 =&gt; KeyCode::Key8,
+        winit::event::VirtualKeyCode::Key9 =&gt; KeyCode::Key9,
+        winit::event::VirtualKeyCode::Key0 =&gt; KeyCode::Key0,
+        winit::event::VirtualKeyCode::A =&gt; KeyCode::A,
+        winit::event::VirtualKeyCode::B =&gt; KeyCode::B,
+        winit::event::VirtualKeyCode::C =&gt; KeyCode::C,
+        winit::event::VirtualKeyCode::D =&gt; KeyCode::D,
+        winit::event::VirtualKeyCode::E =&gt; KeyCode::E,
+        winit::event::VirtualKeyCode::F =&gt; KeyCode::F,
+        winit::event::VirtualKeyCode::G =&gt; KeyCode::G,
+        winit::event::VirtualKeyCode::H =&gt; KeyCode::H,
+        winit::event::VirtualKeyCode::I =&gt; KeyCode::I,
+        winit::event::VirtualKeyCode::J =&gt; KeyCode::J,
+        winit::event::VirtualKeyCode::K =&gt; KeyCode::K,
+        winit::event::VirtualKeyCode::L =&gt; KeyCode::L,
+        winit::event::VirtualKeyCode::M =&gt; KeyCode::M,
+        winit::event::VirtualKeyCode::N =&gt; KeyCode::N,
+        winit::event::VirtualKeyCode::O =&gt; KeyCode::O,
+        winit::event::VirtualKeyCode::P =&gt; KeyCode::P,
+        winit::event::VirtualKeyCode::Q =&gt; KeyCode::Q,
+        winit::event::VirtualKeyCode::R =&gt; KeyCode::R,
+        winit::event::VirtualKeyCode::S =&gt; KeyCode::S,
+        winit::event::VirtualKeyCode::T =&gt; KeyCode::T,
+        winit::event::VirtualKeyCode::U =&gt; KeyCode::U,
+        winit::event::VirtualKeyCode::V =&gt; KeyCode::V,
+        winit::event::VirtualKeyCode::W =&gt; KeyCode::W,
+        winit::event::VirtualKeyCode::X =&gt; KeyCode::X,
+        winit::event::VirtualKeyCode::Y =&gt; KeyCode::Y,
+        winit::event::VirtualKeyCode::Z =&gt; KeyCode::Z,
+        winit::event::VirtualKeyCode::Escape =&gt; KeyCode::Escape,
+        winit::event::VirtualKeyCode::F1 =&gt; KeyCode::F1,
+        winit::event::VirtualKeyCode::F2 =&gt; KeyCode::F2,
+        winit::event::VirtualKeyCode::F3 =&gt; KeyCode::F3,
+        winit::event::VirtualKeyCode::F4 =&gt; KeyCode::F4,
+        winit::event::VirtualKeyCode::F5 =&gt; KeyCode::F5,
+        winit::event::VirtualKeyCode::F6 =&gt; KeyCode::F6,
+        winit::event::VirtualKeyCode::F7 =&gt; KeyCode::F7,
+        winit::event::VirtualKeyCode::F8 =&gt; KeyCode::F8,
+        winit::event::VirtualKeyCode::F9 =&gt; KeyCode::F9,
+        winit::event::VirtualKeyCode::F10 =&gt; KeyCode::F10,
+        winit::event::VirtualKeyCode::F11 =&gt; KeyCode::F11,
+        winit::event::VirtualKeyCode::F12 =&gt; KeyCode::F12,
+        winit::event::VirtualKeyCode::F13 =&gt; KeyCode::F13,
+        winit::event::VirtualKeyCode::F14 =&gt; KeyCode::F14,
+        winit::event::VirtualKeyCode::F15 =&gt; KeyCode::F15,
+        winit::event::VirtualKeyCode::F16 =&gt; KeyCode::F16,
+        winit::event::VirtualKeyCode::F17 =&gt; KeyCode::F17,
+        winit::event::VirtualKeyCode::F18 =&gt; KeyCode::F18,
+        winit::event::VirtualKeyCode::F19 =&gt; KeyCode::F19,
+        winit::event::VirtualKeyCode::F20 =&gt; KeyCode::F20,
+        winit::event::VirtualKeyCode::F21 =&gt; KeyCode::F21,
+        winit::event::VirtualKeyCode::F22 =&gt; KeyCode::F22,
+        winit::event::VirtualKeyCode::F23 =&gt; KeyCode::F23,
+        winit::event::VirtualKeyCode::F24 =&gt; KeyCode::F24,
+        winit::event::VirtualKeyCode::Snapshot =&gt; KeyCode::Snapshot,
+        winit::event::VirtualKeyCode::Scroll =&gt; KeyCode::Scroll,
+        winit::event::VirtualKeyCode::Pause =&gt; KeyCode::Pause,
+        winit::event::VirtualKeyCode::Insert =&gt; KeyCode::Insert,
+        winit::event::VirtualKeyCode::Home =&gt; KeyCode::Home,
+        winit::event::VirtualKeyCode::Delete =&gt; KeyCode::Delete,
+        winit::event::VirtualKeyCode::End =&gt; KeyCode::End,
+        winit::event::VirtualKeyCode::PageDown =&gt; KeyCode::PageDown,
+        winit::event::VirtualKeyCode::PageUp =&gt; KeyCode::PageUp,
+        winit::event::VirtualKeyCode::Left =&gt; KeyCode::Left,
+        winit::event::VirtualKeyCode::Up =&gt; KeyCode::Up,
+        winit::event::VirtualKeyCode::Right =&gt; KeyCode::Right,
+        winit::event::VirtualKeyCode::Down =&gt; KeyCode::Down,
+        winit::event::VirtualKeyCode::Back =&gt; KeyCode::Backspace,
+        winit::event::VirtualKeyCode::Return =&gt; KeyCode::Enter,
+        winit::event::VirtualKeyCode::Space =&gt; KeyCode::Space,
+        winit::event::VirtualKeyCode::Compose =&gt; KeyCode::Compose,
+        winit::event::VirtualKeyCode::Caret =&gt; KeyCode::Caret,
+        winit::event::VirtualKeyCode::Numlock =&gt; KeyCode::Numlock,
+        winit::event::VirtualKeyCode::Numpad0 =&gt; KeyCode::Numpad0,
+        winit::event::VirtualKeyCode::Numpad1 =&gt; KeyCode::Numpad1,
+        winit::event::VirtualKeyCode::Numpad2 =&gt; KeyCode::Numpad2,
+        winit::event::VirtualKeyCode::Numpad3 =&gt; KeyCode::Numpad3,
+        winit::event::VirtualKeyCode::Numpad4 =&gt; KeyCode::Numpad4,
+        winit::event::VirtualKeyCode::Numpad5 =&gt; KeyCode::Numpad5,
+        winit::event::VirtualKeyCode::Numpad6 =&gt; KeyCode::Numpad6,
+        winit::event::VirtualKeyCode::Numpad7 =&gt; KeyCode::Numpad7,
+        winit::event::VirtualKeyCode::Numpad8 =&gt; KeyCode::Numpad8,
+        winit::event::VirtualKeyCode::Numpad9 =&gt; KeyCode::Numpad9,
+        winit::event::VirtualKeyCode::AbntC1 =&gt; KeyCode::AbntC1,
+        winit::event::VirtualKeyCode::AbntC2 =&gt; KeyCode::AbntC2,
+        winit::event::VirtualKeyCode::NumpadAdd =&gt; KeyCode::NumpadAdd,
+        winit::event::VirtualKeyCode::Plus =&gt; KeyCode::Plus,
+        winit::event::VirtualKeyCode::Apostrophe =&gt; KeyCode::Apostrophe,
+        winit::event::VirtualKeyCode::Apps =&gt; KeyCode::Apps,
+        winit::event::VirtualKeyCode::At =&gt; KeyCode::At,
+        winit::event::VirtualKeyCode::Ax =&gt; KeyCode::Ax,
+        winit::event::VirtualKeyCode::Backslash =&gt; KeyCode::Backslash,
+        winit::event::VirtualKeyCode::Calculator =&gt; KeyCode::Calculator,
+        winit::event::VirtualKeyCode::Capital =&gt; KeyCode::Capital,
+        winit::event::VirtualKeyCode::Colon =&gt; KeyCode::Colon,
+        winit::event::VirtualKeyCode::Comma =&gt; KeyCode::Comma,
+        winit::event::VirtualKeyCode::Convert =&gt; KeyCode::Convert,
+        winit::event::VirtualKeyCode::NumpadDecimal =&gt; KeyCode::NumpadDecimal,
+        winit::event::VirtualKeyCode::NumpadDivide =&gt; KeyCode::NumpadDivide,
+        winit::event::VirtualKeyCode::Equals =&gt; KeyCode::Equals,
+        winit::event::VirtualKeyCode::Grave =&gt; KeyCode::Grave,
+        winit::event::VirtualKeyCode::Kana =&gt; KeyCode::Kana,
+        winit::event::VirtualKeyCode::Kanji =&gt; KeyCode::Kanji,
+        winit::event::VirtualKeyCode::LAlt =&gt; KeyCode::LAlt,
+        winit::event::VirtualKeyCode::LBracket =&gt; KeyCode::LBracket,
+        winit::event::VirtualKeyCode::LControl =&gt; KeyCode::LControl,
+        winit::event::VirtualKeyCode::LShift =&gt; KeyCode::LShift,
+        winit::event::VirtualKeyCode::LWin =&gt; KeyCode::LWin,
+        winit::event::VirtualKeyCode::Mail =&gt; KeyCode::Mail,
+        winit::event::VirtualKeyCode::MediaSelect =&gt; KeyCode::MediaSelect,
+        winit::event::VirtualKeyCode::MediaStop =&gt; KeyCode::MediaStop,
+        winit::event::VirtualKeyCode::Minus =&gt; KeyCode::Minus,
+        winit::event::VirtualKeyCode::NumpadMultiply =&gt; KeyCode::NumpadMultiply,
+        winit::event::VirtualKeyCode::Mute =&gt; KeyCode::Mute,
+        winit::event::VirtualKeyCode::MyComputer =&gt; KeyCode::MyComputer,
+        winit::event::VirtualKeyCode::NavigateForward =&gt; {
+            KeyCode::NavigateForward
         }
-        <span class="ident">winit::event::VirtualKeyCode::NavigateBackward</span> =&gt; {
-            <span class="ident">KeyCode::NavigateBackward</span>
+        winit::event::VirtualKeyCode::NavigateBackward =&gt; {
+            KeyCode::NavigateBackward
         }
-        <span class="ident">winit::event::VirtualKeyCode::NextTrack</span> =&gt; <span class="ident">KeyCode::NextTrack</span>,
-        <span class="ident">winit::event::VirtualKeyCode::NoConvert</span> =&gt; <span class="ident">KeyCode::NoConvert</span>,
-        <span class="ident">winit::event::VirtualKeyCode::NumpadComma</span> =&gt; <span class="ident">KeyCode::NumpadComma</span>,
-        <span class="ident">winit::event::VirtualKeyCode::NumpadEnter</span> =&gt; <span class="ident">KeyCode::NumpadEnter</span>,
-        <span class="ident">winit::event::VirtualKeyCode::NumpadEquals</span> =&gt; <span class="ident">KeyCode::NumpadEquals</span>,
-        <span class="ident">winit::event::VirtualKeyCode::OEM102</span> =&gt; <span class="ident">KeyCode::OEM102</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Period</span> =&gt; <span class="ident">KeyCode::Period</span>,
-        <span class="ident">winit::event::VirtualKeyCode::PlayPause</span> =&gt; <span class="ident">KeyCode::PlayPause</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Power</span> =&gt; <span class="ident">KeyCode::Power</span>,
-        <span class="ident">winit::event::VirtualKeyCode::PrevTrack</span> =&gt; <span class="ident">KeyCode::PrevTrack</span>,
-        <span class="ident">winit::event::VirtualKeyCode::RAlt</span> =&gt; <span class="ident">KeyCode::RAlt</span>,
-        <span class="ident">winit::event::VirtualKeyCode::RBracket</span> =&gt; <span class="ident">KeyCode::RBracket</span>,
-        <span class="ident">winit::event::VirtualKeyCode::RControl</span> =&gt; <span class="ident">KeyCode::RControl</span>,
-        <span class="ident">winit::event::VirtualKeyCode::RShift</span> =&gt; <span class="ident">KeyCode::RShift</span>,
-        <span class="ident">winit::event::VirtualKeyCode::RWin</span> =&gt; <span class="ident">KeyCode::RWin</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Semicolon</span> =&gt; <span class="ident">KeyCode::Semicolon</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Slash</span> =&gt; <span class="ident">KeyCode::Slash</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Sleep</span> =&gt; <span class="ident">KeyCode::Sleep</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Stop</span> =&gt; <span class="ident">KeyCode::Stop</span>,
-        <span class="ident">winit::event::VirtualKeyCode::NumpadSubtract</span> =&gt; <span class="ident">KeyCode::NumpadSubtract</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Sysrq</span> =&gt; <span class="ident">KeyCode::Sysrq</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Tab</span> =&gt; <span class="ident">KeyCode::Tab</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Underline</span> =&gt; <span class="ident">KeyCode::Underline</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Unlabeled</span> =&gt; <span class="ident">KeyCode::Unlabeled</span>,
-        <span class="ident">winit::event::VirtualKeyCode::VolumeDown</span> =&gt; <span class="ident">KeyCode::VolumeDown</span>,
-        <span class="ident">winit::event::VirtualKeyCode::VolumeUp</span> =&gt; <span class="ident">KeyCode::VolumeUp</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Wake</span> =&gt; <span class="ident">KeyCode::Wake</span>,
-        <span class="ident">winit::event::VirtualKeyCode::WebBack</span> =&gt; <span class="ident">KeyCode::WebBack</span>,
-        <span class="ident">winit::event::VirtualKeyCode::WebFavorites</span> =&gt; <span class="ident">KeyCode::WebFavorites</span>,
-        <span class="ident">winit::event::VirtualKeyCode::WebForward</span> =&gt; <span class="ident">KeyCode::WebForward</span>,
-        <span class="ident">winit::event::VirtualKeyCode::WebHome</span> =&gt; <span class="ident">KeyCode::WebHome</span>,
-        <span class="ident">winit::event::VirtualKeyCode::WebRefresh</span> =&gt; <span class="ident">KeyCode::WebRefresh</span>,
-        <span class="ident">winit::event::VirtualKeyCode::WebSearch</span> =&gt; <span class="ident">KeyCode::WebSearch</span>,
-        <span class="ident">winit::event::VirtualKeyCode::WebStop</span> =&gt; <span class="ident">KeyCode::WebStop</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Yen</span> =&gt; <span class="ident">KeyCode::Yen</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Copy</span> =&gt; <span class="ident">KeyCode::Copy</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Paste</span> =&gt; <span class="ident">KeyCode::Paste</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Cut</span> =&gt; <span class="ident">KeyCode::Cut</span>,
-        <span class="ident">winit::event::VirtualKeyCode::Asterisk</span> =&gt; <span class="ident">KeyCode::Asterisk</span>,
+        winit::event::VirtualKeyCode::NextTrack =&gt; KeyCode::NextTrack,
+        winit::event::VirtualKeyCode::NoConvert =&gt; KeyCode::NoConvert,
+        winit::event::VirtualKeyCode::NumpadComma =&gt; KeyCode::NumpadComma,
+        winit::event::VirtualKeyCode::NumpadEnter =&gt; KeyCode::NumpadEnter,
+        winit::event::VirtualKeyCode::NumpadEquals =&gt; KeyCode::NumpadEquals,
+        winit::event::VirtualKeyCode::OEM102 =&gt; KeyCode::OEM102,
+        winit::event::VirtualKeyCode::Period =&gt; KeyCode::Period,
+        winit::event::VirtualKeyCode::PlayPause =&gt; KeyCode::PlayPause,
+        winit::event::VirtualKeyCode::Power =&gt; KeyCode::Power,
+        winit::event::VirtualKeyCode::PrevTrack =&gt; KeyCode::PrevTrack,
+        winit::event::VirtualKeyCode::RAlt =&gt; KeyCode::RAlt,
+        winit::event::VirtualKeyCode::RBracket =&gt; KeyCode::RBracket,
+        winit::event::VirtualKeyCode::RControl =&gt; KeyCode::RControl,
+        winit::event::VirtualKeyCode::RShift =&gt; KeyCode::RShift,
+        winit::event::VirtualKeyCode::RWin =&gt; KeyCode::RWin,
+        winit::event::VirtualKeyCode::Semicolon =&gt; KeyCode::Semicolon,
+        winit::event::VirtualKeyCode::Slash =&gt; KeyCode::Slash,
+        winit::event::VirtualKeyCode::Sleep =&gt; KeyCode::Sleep,
+        winit::event::VirtualKeyCode::Stop =&gt; KeyCode::Stop,
+        winit::event::VirtualKeyCode::NumpadSubtract =&gt; KeyCode::NumpadSubtract,
+        winit::event::VirtualKeyCode::Sysrq =&gt; KeyCode::Sysrq,
+        winit::event::VirtualKeyCode::Tab =&gt; KeyCode::Tab,
+        winit::event::VirtualKeyCode::Underline =&gt; KeyCode::Underline,
+        winit::event::VirtualKeyCode::Unlabeled =&gt; KeyCode::Unlabeled,
+        winit::event::VirtualKeyCode::VolumeDown =&gt; KeyCode::VolumeDown,
+        winit::event::VirtualKeyCode::VolumeUp =&gt; KeyCode::VolumeUp,
+        winit::event::VirtualKeyCode::Wake =&gt; KeyCode::Wake,
+        winit::event::VirtualKeyCode::WebBack =&gt; KeyCode::WebBack,
+        winit::event::VirtualKeyCode::WebFavorites =&gt; KeyCode::WebFavorites,
+        winit::event::VirtualKeyCode::WebForward =&gt; KeyCode::WebForward,
+        winit::event::VirtualKeyCode::WebHome =&gt; KeyCode::WebHome,
+        winit::event::VirtualKeyCode::WebRefresh =&gt; KeyCode::WebRefresh,
+        winit::event::VirtualKeyCode::WebSearch =&gt; KeyCode::WebSearch,
+        winit::event::VirtualKeyCode::WebStop =&gt; KeyCode::WebStop,
+        winit::event::VirtualKeyCode::Yen =&gt; KeyCode::Yen,
+        winit::event::VirtualKeyCode::Copy =&gt; KeyCode::Copy,
+        winit::event::VirtualKeyCode::Paste =&gt; KeyCode::Paste,
+        winit::event::VirtualKeyCode::Cut =&gt; KeyCode::Cut,
+        winit::event::VirtualKeyCode::Asterisk =&gt; KeyCode::Asterisk,
     }
 }
 
-<span class="comment">// As defined in: http://www.unicode.org/faq/private_use.html</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_private_use_character</span>(<span class="ident">c</span>: <span class="ident">char</span>) -&gt; <span class="ident">bool</span> {
+<span class="comment">// As defined in: http://www.unicode.org/faq/private_use.html
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_private_use_character(c: char) -&gt; bool {
     <span class="macro">matches!</span>(
-        <span class="ident">c</span>,
-        <span class="string">&#39;\u{E000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{F8FF}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{F0000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{FFFFD}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{100000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{10FFFD}&#39;</span>
-    )
+        c,
+        <span class="string">&#39;\u{E000}&#39;</span>..=<span class="string">&#39;\u{F8FF}&#39;
+        </span>| <span class="string">&#39;\u{F0000}&#39;</span>..=<span class="string">&#39;\u{FFFFD}&#39;
+        </span>| <span class="string">&#39;\u{100000}&#39;</span>..=<span class="string">&#39;\u{10FFFD}&#39;
+    </span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (f03ce3096 2022-08-08)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (40336865f 2022-08-15)" ></div></body></html>
