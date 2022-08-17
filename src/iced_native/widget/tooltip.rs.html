@@ -370,6 +370,18 @@
 <span id="368">368</span>
 <span id="369">369</span>
 <span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Display a widget over another.
 </span><span class="kw">use </span><span class="kw">crate</span>::event;
 <span class="kw">use </span><span class="kw">crate</span>::layout;
@@ -397,6 +409,7 @@
     position: Position,
     gap: u16,
     padding: u16,
+    snap_within_viewport: bool,
     style: &lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
 }
 
@@ -422,6 +435,7 @@
             position,
             gap: <span class="number">0</span>,
             padding: <span class="self">Self</span>::DEFAULT_PADDING,
+            snap_within_viewport: <span class="bool-val">true</span>,
             style: Default::default(),
         }
     }
@@ -449,6 +463,12 @@
     <span class="doccomment">/// Sets the padding of the [`Tooltip`].
     </span><span class="kw">pub fn </span>padding(<span class="kw-2">mut </span><span class="self">self</span>, padding: u16) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.padding = padding;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets whether the [`Tooltip`] is snapped within the viewport.
+    </span><span class="kw">pub fn </span>snap_within_viewport(<span class="kw-2">mut </span><span class="self">self</span>, snap: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.snap_within_viewport = snap;
         <span class="self">self
     </span>}
 
@@ -562,6 +582,7 @@
             <span class="self">self</span>.position,
             <span class="self">self</span>.gap,
             <span class="self">self</span>.padding,
+            <span class="self">self</span>.snap_within_viewport,
             <span class="self">self</span>.style,
             |renderer, limits| {
                 Widget::&lt;(), Renderer&gt;::layout(tooltip, renderer, limits)
@@ -635,6 +656,7 @@
     position: Position,
     gap: u16,
     padding: u16,
+    snap_within_viewport: bool,
     style: &lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
     layout_text: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>Renderer, <span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
     draw_text: <span class="kw">impl </span>FnOnce(
@@ -703,25 +725,27 @@
             }
         };
 
-        <span class="kw">if </span>tooltip_bounds.x &lt; viewport.x {
-            tooltip_bounds.x = viewport.x;
-        } <span class="kw">else if </span>viewport.x + viewport.width
-            &lt; tooltip_bounds.x + tooltip_bounds.width
-        {
-            tooltip_bounds.x =
-                viewport.x + viewport.width - tooltip_bounds.width;
+        <span class="kw">if </span>snap_within_viewport {
+            <span class="kw">if </span>tooltip_bounds.x &lt; viewport.x {
+                tooltip_bounds.x = viewport.x;
+            } <span class="kw">else if </span>viewport.x + viewport.width
+                &lt; tooltip_bounds.x + tooltip_bounds.width
+            {
+                tooltip_bounds.x =
+                    viewport.x + viewport.width - tooltip_bounds.width;
+            }
+
+            <span class="kw">if </span>tooltip_bounds.y &lt; viewport.y {
+                tooltip_bounds.y = viewport.y;
+            } <span class="kw">else if </span>viewport.y + viewport.height
+                &lt; tooltip_bounds.y + tooltip_bounds.height
+            {
+                tooltip_bounds.y =
+                    viewport.y + viewport.height - tooltip_bounds.height;
+            }
         }
 
-        <span class="kw">if </span>tooltip_bounds.y &lt; viewport.y {
-            tooltip_bounds.y = viewport.y;
-        } <span class="kw">else if </span>viewport.y + viewport.height
-            &lt; tooltip_bounds.y + tooltip_bounds.height
-        {
-            tooltip_bounds.y =
-                viewport.y + viewport.height - tooltip_bounds.height;
-        }
-
-        renderer.with_layer(<span class="kw-2">*</span>viewport, |renderer| {
+        renderer.with_layer(Rectangle::with_size(Size::INFINITY), |renderer| {
             container::draw_background(renderer, <span class="kw-2">&amp;</span>style, tooltip_bounds);
 
             draw_text(
