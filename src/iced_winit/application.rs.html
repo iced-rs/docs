@@ -734,6 +734,23 @@
 <span id="732">732</span>
 <span id="733">733</span>
 <span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="kw">mod </span>state;
 
@@ -745,7 +762,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::widget::operation;
 <span class="kw">use crate</span>::{
-    Command, Debug, Error, Executor, Mode, Proxy, Runtime, Settings, Size,
+    Command, Debug, Error, Executor, Proxy, Runtime, Settings, Size,
     Subscription,
 };
 
@@ -817,16 +834,6 @@
         Subscription::none()
     }
 
-    <span class="doccomment">/// Returns the current [`Application`] mode.
-    ///
-    /// The runtime will automatically transition your application if a new mode
-    /// is returned.
-    ///
-    /// By default, an application will run in windowed mode.
-    </span><span class="kw">fn </span>mode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Mode {
-        Mode::Windowed
-    }
-
     <span class="doccomment">/// Returns the scale factor of the [`Application`].
     ///
     /// It can be used to dynamically control the size of the UI at runtime
@@ -883,12 +890,15 @@
         runtime.enter(|| A::new(flags))
     };
 
-    <span class="kw">let </span>builder = settings.window.into_builder(
-        <span class="kw-2">&amp;</span>application.title(),
-        application.mode(),
-        event_loop.primary_monitor(),
-        settings.id,
-    );
+    <span class="kw">let </span>should_be_visible = settings.window.visible;
+    <span class="kw">let </span>builder = settings
+        .window
+        .into_builder(
+            <span class="kw-2">&amp;</span>application.title(),
+            event_loop.primary_monitor(),
+            settings.id,
+        )
+        .with_visible(<span class="bool-val">false</span>);
 
     <span class="macro">log::info!</span>(<span class="string">&quot;Window builder: {:#?}&quot;</span>, builder);
 
@@ -925,6 +935,7 @@
         receiver,
         init_command,
         window,
+        should_be_visible,
         settings.exit_on_close_request,
     ));
 
@@ -975,6 +986,7 @@
     <span class="kw-2">mut </span>receiver: mpsc::UnboundedReceiver&lt;winit::event::Event&lt;<span class="lifetime">&#39;_</span>, A::Message&gt;&gt;,
     init_command: Command&lt;A::Message&gt;,
     window: winit::window::Window,
+    should_be_visible: bool,
     exit_on_close_request: bool,
 ) <span class="kw">where
     </span>A: Application + <span class="lifetime">&#39;static</span>,
@@ -988,6 +1000,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>clipboard = Clipboard::connect(<span class="kw-2">&amp;</span>window);
     <span class="kw">let </span><span class="kw-2">mut </span>cache = user_interface::Cache::default();
     <span class="kw">let </span><span class="kw-2">mut </span>surface = compositor.create_surface(<span class="kw-2">&amp;</span>window);
+    <span class="kw">let </span><span class="kw-2">mut </span>visible = <span class="bool-val">false</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>state = State::new(<span class="kw-2">&amp;</span>application, <span class="kw-2">&amp;</span>window);
     <span class="kw">let </span><span class="kw-2">mut </span>viewport_version = state.viewport_version();
@@ -1119,6 +1132,7 @@
                 event::MacOS::ReceivedUrl(url),
             )) =&gt; {
                 <span class="kw">use </span>iced_native::event;
+
                 events.push(iced_native::Event::PlatformSpecific(
                     event::PlatformSpecific::MacOS(event::MacOS::ReceivedUrl(
                         url,
@@ -1185,6 +1199,12 @@
                 ) {
                     <span class="prelude-val">Ok</span>(()) =&gt; {
                         debug.render_finished();
+
+                        <span class="kw">if </span>!visible &amp;&amp; should_be_visible {
+                            window.set_visible(<span class="bool-val">true</span>);
+
+                            visible = <span class="bool-val">true</span>;
+                        }
 
                         <span class="comment">// TODO: Handle animations!
                         // Maybe we can use `ControlFlow::WaitUntil` for this.
@@ -1373,6 +1393,20 @@
                         y,
                     });
                 }
+                window::Action::SetMode(mode) =&gt; {
+                    window.set_visible(conversion::visible(mode));
+                    window.set_fullscreen(conversion::fullscreen(
+                        window.primary_monitor(),
+                        mode,
+                    ));
+                }
+                window::Action::FetchMode(tag) =&gt; {
+                    <span class="kw">let </span>mode = conversion::mode(window.fullscreen());
+
+                    proxy
+                        .send_event(tag(mode))
+                        .expect(<span class="string">&quot;Send message to event loop&quot;</span>);
+                }
             },
             command::Action::System(action) =&gt; <span class="kw">match </span>action {
                 system::Action::QueryInformation(_tag) =&gt; {
@@ -1469,4 +1503,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (86c6ebee8 2022-08-16)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (9c20b2a8c 2022-08-17)" ></div></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Event","A window-related event."]],"fn":[["move_to","Moves a window to the given logical coordinates."],["resize","Resizes the window to the given logical dimensions."]]};
+window.SIDEBAR_ITEMS = {"enum":[["Event","A window-related event."],["Mode","The mode of a window-based application."]],"fn":[["fetch_mode","Fetches the current [`Mode`] of the window."],["move_to","Moves a window to the given logical coordinates."],["resize","Resizes the window to the given logical dimensions."],["set_mode","Sets the [`Mode`] of the window."]]};
