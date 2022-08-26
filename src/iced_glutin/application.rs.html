@@ -430,20 +430,6 @@
 <span id="428">428</span>
 <span id="429">429</span>
 <span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="kw">use </span><span class="kw">crate</span>::mouse;
 <span class="kw">use crate</span>::{Error, Executor, Runtime};
@@ -500,17 +486,12 @@
         runtime.enter(|| A::new(flags))
     };
 
-    <span class="kw">let </span>should_be_visible = settings.window.visible;
-
     <span class="kw">let </span>context = {
-        <span class="kw">let </span>builder = settings
-            .window
-            .into_builder(
-                <span class="kw-2">&amp;</span>application.title(),
-                event_loop.primary_monitor(),
-                settings.id,
-            )
-            .with_visible(<span class="bool-val">false</span>);
+        <span class="kw">let </span>builder = settings.window.into_builder(
+            <span class="kw-2">&amp;</span>application.title(),
+            event_loop.primary_monitor(),
+            settings.id,
+        );
 
         <span class="macro">log::info!</span>(<span class="string">&quot;Window builder: {:#?}&quot;</span>, builder);
 
@@ -585,7 +566,6 @@
         receiver,
         context,
         init_command,
-        should_be_visible,
         settings.exit_on_close_request,
     ));
 
@@ -638,7 +618,6 @@
     <span class="kw-2">mut </span>receiver: mpsc::UnboundedReceiver&lt;glutin::event::Event&lt;<span class="lifetime">&#39;_</span>, A::Message&gt;&gt;,
     <span class="kw-2">mut </span>context: glutin::ContextWrapper&lt;glutin::PossiblyCurrent, Window&gt;,
     init_command: Command&lt;A::Message&gt;,
-    should_be_visible: bool,
     exit_on_close_request: bool,
 ) <span class="kw">where
     </span>A: Application + <span class="lifetime">&#39;static</span>,
@@ -652,7 +631,6 @@
     <span class="kw">let </span><span class="kw-2">mut </span>clipboard = Clipboard::connect(context.window());
     <span class="kw">let </span><span class="kw-2">mut </span>cache = user_interface::Cache::default();
     <span class="kw">let </span><span class="kw-2">mut </span>state = application::State::new(<span class="kw-2">&amp;</span>application, context.window());
-    <span class="kw">let </span><span class="kw-2">mut </span>visible = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>viewport_version = state.viewport_version();
 
     application::run_command(
@@ -851,12 +829,6 @@
                 context.swap_buffers().expect(<span class="string">&quot;Swap buffers&quot;</span>);
 
                 debug.render_finished();
-
-                <span class="kw">if </span>!visible &amp;&amp; should_be_visible {
-                    context.window().set_visible(<span class="bool-val">true</span>);
-
-                    visible = <span class="bool-val">true</span>;
-                }
 
                 <span class="comment">// TODO: Handle animations!
                 // Maybe we can use `ControlFlow::WaitUntil` for this.
