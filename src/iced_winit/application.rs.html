@@ -738,6 +738,10 @@
 <span id="736">736</span>
 <span id="737">737</span>
 <span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="kw">mod </span>state;
 
@@ -856,12 +860,12 @@
 {
     <span class="kw">use </span>futures::task;
     <span class="kw">use </span>futures::Future;
-    <span class="kw">use </span>winit::event_loop::EventLoop;
+    <span class="kw">use </span>winit::event_loop::EventLoopBuilder;
 
     <span class="kw">let </span><span class="kw-2">mut </span>debug = Debug::new();
     debug.startup_started();
 
-    <span class="kw">let </span>event_loop = EventLoop::with_user_event();
+    <span class="kw">let </span>event_loop = EventLoopBuilder::with_user_event().build();
     <span class="kw">let </span>proxy = event_loop.create_proxy();
 
     <span class="kw">let </span>runtime = {
@@ -926,7 +930,7 @@
     platform::run(event_loop, <span class="kw">move </span>|event, <span class="kw">_</span>, control_flow| {
         <span class="kw">use </span>winit::event_loop::ControlFlow;
 
-        <span class="kw">if let </span>ControlFlow::Exit = control_flow {
+        <span class="kw">if let </span>ControlFlow::ExitWithCode(<span class="kw">_</span>) = control_flow {
             <span class="kw">return</span>;
         }
 
@@ -1375,7 +1379,11 @@
                     ));
                 }
                 window::Action::FetchMode(tag) =&gt; {
-                    <span class="kw">let </span>mode = conversion::mode(window.fullscreen());
+                    <span class="kw">let </span>mode = <span class="kw">if </span>window.is_visible().unwrap_or(<span class="bool-val">true</span>) {
+                        conversion::mode(window.fullscreen())
+                    } <span class="kw">else </span>{
+                        window::Mode::Hidden
+                    };
 
                     proxy
                         .send_event(tag(mode))
@@ -1453,7 +1461,7 @@
     {
         <span class="kw">use </span>winit::platform::run_return::EventLoopExtRunReturn;
 
-        event_loop.run_return(event_handler);
+        <span class="kw">let _ </span>= event_loop.run_return(event_handler);
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -1477,4 +1485,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (c07a8b4e0 2022-08-26)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (ce36e8825 2022-08-28)" ></div></body></html>
