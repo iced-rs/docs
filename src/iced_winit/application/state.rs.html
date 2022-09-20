@@ -211,6 +211,10 @@
 <span id="209">209</span>
 <span id="210">210</span>
 <span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::application::{<span class="self">self</span>, StyleSheet <span class="kw">as _</span>};
 <span class="kw">use </span><span class="kw">crate</span>::conversion;
 <span class="kw">use crate</span>::{Application, Color, Debug, Point, Size, Viewport};
@@ -403,16 +407,20 @@
             <span class="self">self</span>.title = new_title;
         }
 
-        <span class="comment">// Update scale factor
+        <span class="comment">// Update scale factor and size
         </span><span class="kw">let </span>new_scale_factor = application.scale_factor();
+        <span class="kw">let </span>new_size = window.inner_size();
+        <span class="kw">let </span>current_size = <span class="self">self</span>.viewport.physical_size();
 
-        <span class="kw">if </span><span class="self">self</span>.scale_factor != new_scale_factor {
-            <span class="kw">let </span>size = window.inner_size();
-
+        <span class="kw">if </span><span class="self">self</span>.scale_factor != new_scale_factor
+            || (current_size.width, current_size.height)
+                != (new_size.width, new_size.height)
+        {
             <span class="self">self</span>.viewport = Viewport::with_physical_size(
-                Size::new(size.width, size.height),
+                Size::new(new_size.width, new_size.height),
                 window.scale_factor() * new_scale_factor,
             );
+            <span class="self">self</span>.viewport_version = <span class="self">self</span>.viewport_version.wrapping_add(<span class="number">1</span>);
 
             <span class="self">self</span>.scale_factor = new_scale_factor;
         }
