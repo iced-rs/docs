@@ -1,4 +1,5 @@
 (function() {var implementors = {
+"iced":[],
 "iced_graphics":[],
 "iced_native":[],
 "iced_style":[]

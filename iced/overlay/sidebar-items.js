@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["menu","Build and show dropdown menus."]],"type":[["Element","A generic [`Overlay`]."]]};
