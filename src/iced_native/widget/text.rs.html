@@ -257,6 +257,8 @@
 <span id="255">255</span>
 <span id="256">256</span>
 <span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Write some text for your users to read.
 </span><span class="kw">use </span><span class="kw">crate</span>::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::layout;
@@ -264,6 +266,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::text;
 <span class="kw">use </span><span class="kw">crate</span>::widget::Tree;
 <span class="kw">use crate</span>::{Element, Layout, Length, Point, Rectangle, Size, Widget};
+
+<span class="kw">use </span>std::borrow::Cow;
 
 <span class="kw">pub use </span>iced_style::text::{Appearance, StyleSheet};
 
@@ -274,7 +278,7 @@
 /// ```
 /// # use iced_native::Color;
 /// #
-/// # type Text = iced_native::widget::Text&lt;iced_native::renderer::Null&gt;;
+/// # type Text&lt;&#39;a&gt; = iced_native::widget::Text&lt;&#39;a, iced_native::renderer::Null&gt;;
 /// #
 /// Text::new(&quot;I &lt;3 iced!&quot;)
 ///     .size(40)
@@ -283,12 +287,12 @@
 ///
 /// ![Text drawn by `iced_wgpu`](https://github.com/iced-rs/iced/blob/7760618fb112074bc40b148944521f312152012a/docs/images/text.png?raw=true)
 </span><span class="attribute">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Text&lt;Renderer&gt;
+</span><span class="kw">pub struct </span>Text&lt;<span class="lifetime">&#39;a</span>, Renderer&gt;
 <span class="kw">where
     </span>Renderer: text::Renderer,
     Renderer::Theme: StyleSheet,
 {
-    content: String,
+    content: Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;,
     size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
     width: Length,
     height: Length,
@@ -298,15 +302,15 @@
     style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
 
-<span class="kw">impl</span>&lt;Renderer&gt; Text&lt;Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Renderer&gt; Text&lt;<span class="lifetime">&#39;a</span>, Renderer&gt;
 <span class="kw">where
     </span>Renderer: text::Renderer,
     Renderer::Theme: StyleSheet,
 {
     <span class="doccomment">/// Create a new fragment of [`Text`] with the given contents.
-    </span><span class="kw">pub fn </span>new&lt;T: ToString&gt;(label: T) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(content: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;) -&gt; <span class="self">Self </span>{
         Text {
-            content: label.to_string(),
+            content: content.into(),
             size: <span class="prelude-val">None</span>,
             font: Default::default(),
             width: Length::Shrink,
@@ -371,7 +375,7 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;Message, Renderer&gt; Widget&lt;Message, Renderer&gt; <span class="kw">for </span>Text&lt;Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Widget&lt;Message, Renderer&gt; <span class="kw">for </span>Text&lt;<span class="lifetime">&#39;a</span>, Renderer&gt;
 <span class="kw">where
     </span>Renderer: text::Renderer,
     Renderer::Theme: StyleSheet,
@@ -475,18 +479,18 @@
     });
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; From&lt;Text&lt;Renderer&gt;&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; From&lt;Text&lt;<span class="lifetime">&#39;a</span>, Renderer&gt;&gt;
     <span class="kw">for </span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
 <span class="kw">where
     </span>Renderer: text::Renderer + <span class="lifetime">&#39;a</span>,
     Renderer::Theme: StyleSheet,
 {
-    <span class="kw">fn </span>from(text: Text&lt;Renderer&gt;) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
+    <span class="kw">fn </span>from(text: Text&lt;<span class="lifetime">&#39;a</span>, Renderer&gt;) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
         Element::new(text)
     }
 }
 
-<span class="kw">impl</span>&lt;Renderer&gt; Clone <span class="kw">for </span>Text&lt;Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Renderer&gt; Clone <span class="kw">for </span>Text&lt;<span class="lifetime">&#39;a</span>, Renderer&gt;
 <span class="kw">where
     </span>Renderer: text::Renderer,
     Renderer::Theme: StyleSheet,

@@ -387,6 +387,8 @@
 <span id="385">385</span>
 <span id="386">386</span>
 <span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Display a widget over another.
 </span><span class="kw">use </span><span class="kw">crate</span>::event;
 <span class="kw">use </span><span class="kw">crate</span>::layout;
@@ -402,6 +404,8 @@
     Shell, Size, Vector, Widget,
 };
 
+<span class="kw">use </span>std::borrow::Cow;
+
 <span class="doccomment">/// An element to display a widget over another.
 </span><span class="attribute">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Tooltip&lt;<span class="lifetime">&#39;a</span>, Message, Renderer: text::Renderer&gt;
@@ -410,7 +414,7 @@
     Renderer::Theme: container::StyleSheet + widget::text::StyleSheet,
 {
     content: Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
-    tooltip: Text&lt;Renderer&gt;,
+    tooltip: Text&lt;<span class="lifetime">&#39;a</span>, Renderer&gt;,
     position: Position,
     gap: u16,
     padding: u16,
@@ -431,12 +435,12 @@
     /// [`Tooltip`]: struct.Tooltip.html
     </span><span class="kw">pub fn </span>new(
         content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;,
-        tooltip: <span class="kw">impl </span>ToString,
+        tooltip: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;&gt;,
         position: Position,
     ) -&gt; <span class="self">Self </span>{
         Tooltip {
             content: content.into(),
-            tooltip: Text::new(tooltip.to_string()),
+            tooltip: Text::new(tooltip),
             position,
             gap: <span class="number">0</span>,
             padding: <span class="self">Self</span>::DEFAULT_PADDING,
