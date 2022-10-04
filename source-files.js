@@ -1,5 +1,5 @@
 var sourcesIndex = JSON.parse('{\
-"iced":["",[["window",[],["icon.rs","position.rs","settings.rs"]]],["application.rs","clipboard.rs","element.rs","error.rs","executor.rs","keyboard.rs","lib.rs","mouse.rs","overlay.rs","result.rs","sandbox.rs","settings.rs","time.rs","widget.rs","window.rs"]],\
+"iced":["",[["window",[],["icon.rs","position.rs","settings.rs"]]],["application.rs","clipboard.rs","element.rs","error.rs","executor.rs","keyboard.rs","lib.rs","mouse.rs","overlay.rs","result.rs","sandbox.rs","settings.rs","time.rs","touch.rs","widget.rs","window.rs"]],\
 "iced_core":["",[["keyboard",[],["event.rs","key_code.rs","modifiers.rs"]],["mouse",[],["button.rs","event.rs","interaction.rs"]]],["alignment.rs","background.rs","color.rs","content_fit.rs","font.rs","keyboard.rs","length.rs","lib.rs","mouse.rs","padding.rs","point.rs","rectangle.rs","size.rs","time.rs","vector.rs"]],\
 "iced_futures":["",[["backend",[["native",[],["async_std.rs","smol.rs","thread_pool.rs","tokio.rs"]]],["default.rs","native.rs","null.rs"]],["subscription",[],["tracker.rs"]]],["backend.rs","command.rs","executor.rs","lib.rs","maybe_send.rs","runtime.rs","subscription.rs"]],\
 "iced_glow":["",[["quad",[],["compatibility.rs","core.rs"]],["window",[],["compositor.rs"]]],["backend.rs","lib.rs","program.rs","quad.rs","settings.rs","text.rs","triangle.rs","window.rs"]],\
