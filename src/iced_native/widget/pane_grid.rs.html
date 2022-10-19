@@ -891,6 +891,14 @@
 <span id="889">889</span>
 <span id="890">890</span>
 <span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Let your users split regions of your application and organize layout dynamically.
 //!
 //! [![Pane grid - Iced](https://thumbs.gfycat.com/MixedFlatJellyfish-small.gif)](https://gfycat.com/mixedflatjellyfish)
@@ -1234,6 +1242,7 @@
                         cursor_position,
                         viewport,
                         renderer,
+                        <span class="self">self</span>.on_drag.is_some(),
                     )
                 })
                 .max()
@@ -1541,7 +1550,7 @@
     resize_leeway: <span class="prelude-ty">Option</span>&lt;u16&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;mouse::Interaction&gt; {
     <span class="kw">if </span>action.picked_pane().is_some() {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(mouse::Interaction::Grab);
+        <span class="kw">return </span><span class="prelude-val">Some</span>(mouse::Interaction::Grabbing);
     }
 
     <span class="kw">let </span>resize_axis =
@@ -1649,27 +1658,12 @@
         cursor_position
     };
 
+    <span class="kw">let </span><span class="kw-2">mut </span>render_picked_pane = <span class="prelude-val">None</span>;
+
     <span class="kw">for </span>((id, pane), layout) <span class="kw">in </span>elements.zip(layout.children()) {
         <span class="kw">match </span>picked_pane {
             <span class="prelude-val">Some</span>((dragging, origin)) <span class="kw">if </span>id == dragging =&gt; {
-                <span class="kw">let </span>bounds = layout.bounds();
-
-                renderer.with_translation(
-                    cursor_position
-                        - Point::new(bounds.x + origin.x, bounds.y + origin.y),
-                    |renderer| {
-                        renderer.with_layer(bounds, |renderer| {
-                            draw_pane(
-                                pane,
-                                renderer,
-                                default_style,
-                                layout,
-                                pane_cursor_position,
-                                viewport,
-                            );
-                        });
-                    },
-                );
+                render_picked_pane = <span class="prelude-val">Some</span>((pane, origin, layout));
             }
             <span class="kw">_ </span>=&gt; {
                 draw_pane(
@@ -1683,6 +1677,28 @@
             }
         }
     }
+
+    <span class="comment">// Render picked pane last
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>((pane, origin, layout)) = render_picked_pane {
+        <span class="kw">let </span>bounds = layout.bounds();
+
+        renderer.with_translation(
+            cursor_position
+                - Point::new(bounds.x + origin.x, bounds.y + origin.y),
+            |renderer| {
+                renderer.with_layer(bounds, |renderer| {
+                    draw_pane(
+                        pane,
+                        renderer,
+                        default_style,
+                        layout,
+                        pane_cursor_position,
+                        viewport,
+                    );
+                });
+            },
+        );
+    };
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>((axis, split_region, is_picked)) = picked_split {
         <span class="kw">let </span>highlight = <span class="kw">if </span>is_picked {
@@ -1783,4 +1799,4 @@
         .next()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (b8b5caee0 2022-10-16)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_native" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.66.0-nightly (a24a020e6 2022-10-18)" ></div></body></html>
