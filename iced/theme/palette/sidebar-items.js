@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Background",""],["Danger",""],["EXTENDED_DARK",""],["EXTENDED_LIGHT",""],["Extended",""],["Pair",""],["Palette",""],["Primary",""],["Secondary",""],["Success",""]]};
+window.SIDEBAR_ITEMS = {"static":[["EXTENDED_DARK",""],["EXTENDED_LIGHT",""]],"struct":[["Background",""],["Danger",""],["Extended",""],["Pair",""],["Palette",""],["Primary",""],["Secondary",""],["Success",""]]};
