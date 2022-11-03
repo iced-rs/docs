@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["component","Turns an implementor of [`Component`] into an [`Element`] that can be embedded in any application."],["responsive",""]],"mod":[["component","Build and reuse custom widgets using The Elm Architecture."],["responsive",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["component","Turns an implementor of [`Component`] into an [`Element`] that can be embedded in any application."],["lazy",""],["responsive",""]],"mod":[["component","Build and reuse custom widgets using The Elm Architecture."],["responsive",""]],"struct":[["Lazy",""]]};
