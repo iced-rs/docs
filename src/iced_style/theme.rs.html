@@ -726,8 +726,32 @@
 <span id="725">725</span>
 <span id="726">726</span>
 <span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
 </pre><pre class="rust"><code><span class="kw">pub mod </span>palette;
 
+<span class="kw">use </span><span class="self">self</span>::palette::Extended;
 <span class="kw">pub use </span><span class="self">self</span>::palette::Palette;
 
 <span class="kw">use </span><span class="kw">crate</span>::application;
@@ -748,17 +772,23 @@
 
 <span class="kw">use </span>iced_core::{Background, Color};
 
-<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+<span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub enum </span>Theme {
     Light,
     Dark,
+    Custom(Box&lt;Custom&gt;),
 }
 
 <span class="kw">impl </span>Theme {
-    <span class="kw">pub fn </span>palette(<span class="self">self</span>) -&gt; Palette {
+    <span class="kw">pub fn </span>custom(palette: Palette) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Custom(Box::new(Custom::new(palette)))
+    }
+
+    <span class="kw">pub fn </span>palette(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Palette {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Light =&gt; Palette::LIGHT,
             <span class="self">Self</span>::Dark =&gt; Palette::DARK,
+            <span class="self">Self</span>::Custom(custom) =&gt; custom.palette,
         }
     }
 
@@ -766,6 +796,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Light =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_LIGHT,
             <span class="self">Self</span>::Dark =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_DARK,
+            <span class="self">Self</span>::Custom(custom) =&gt; <span class="kw-2">&amp;</span>custom.extended,
         }
     }
 }
@@ -773,6 +804,21 @@
 <span class="kw">impl </span>Default <span class="kw">for </span>Theme {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Light
+    }
+}
+
+<span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub struct </span>Custom {
+    palette: Palette,
+    extended: Extended,
+}
+
+<span class="kw">impl </span>Custom {
+    <span class="kw">pub fn </span>new(palette: Palette) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            palette,
+            extended: Extended::generate(palette),
+        }
     }
 }
 
@@ -799,7 +845,7 @@
                 background_color: palette.background.base.color,
                 text_color: palette.background.base.text,
             },
-            Application::Custom(f) =&gt; f(<span class="kw-2">*</span><span class="self">self</span>),
+            Application::Custom(f) =&gt; f(<span class="self">self</span>.clone()),
         }
     }
 }
