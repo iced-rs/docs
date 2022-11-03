@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["FillRule","The fill rule defines how to determine what is inside and what is outside of a shape."],["Style","Supported shaders for triangle primitives."]],"struct":[["Fill","The style used to fill geometry."]]};

@@ -254,115 +254,35 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Draw meshes of triangles.
-</span><span class="kw">use </span><span class="kw">crate</span>::program::{<span class="self">self</span>, Shader};
+</span><span class="kw">mod </span>gradient;
+<span class="kw">mod </span>solid;
+
+<span class="kw">use </span><span class="kw">crate</span>::program;
 <span class="kw">use </span><span class="kw">crate</span>::Transformation;
+
+<span class="kw">use </span>iced_graphics::layer::mesh::{<span class="self">self</span>, Mesh};
+<span class="kw">use </span>iced_graphics::triangle::{<span class="self">self</span>, Vertex2D};
+
 <span class="kw">use </span>glow::HasContext;
-<span class="kw">use </span>iced_graphics::layer;
 <span class="kw">use </span>std::marker::PhantomData;
-
-<span class="kw">pub use </span>iced_graphics::triangle::{Mesh2D, Vertex2D};
-
-<span class="kw">const </span>VERTEX_BUFFER_SIZE: usize = <span class="number">10_000</span>;
-<span class="kw">const </span>INDEX_BUFFER_SIZE: usize = <span class="number">10_000</span>;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Pipeline {
-    program: &lt;glow::Context <span class="kw">as </span>HasContext&gt;::Program,
     vertex_array: &lt;glow::Context <span class="kw">as </span>HasContext&gt;::VertexArray,
     vertices: Buffer&lt;Vertex2D&gt;,
     indices: Buffer&lt;u32&gt;,
-    transform_location: &lt;glow::Context <span class="kw">as </span>HasContext&gt;::UniformLocation,
-    current_transform: Transformation,
+    programs: ProgramList,
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">struct </span>ProgramList {
+    solid: solid::Program,
+    gradient: gradient::Program,
 }
 
 <span class="kw">impl </span>Pipeline {
-    <span class="kw">pub fn </span>new(
-        gl: <span class="kw-2">&amp;</span>glow::Context,
-        shader_version: <span class="kw-2">&amp;</span>program::Version,
-    ) -&gt; Pipeline {
-        <span class="kw">let </span>program = <span class="kw">unsafe </span>{
-            <span class="kw">let </span>vertex_shader = Shader::vertex(
-                gl,
-                shader_version,
-                <span class="macro">include_str!</span>(<span class="string">&quot;shader/common/triangle.vert&quot;</span>),
-            );
-            <span class="kw">let </span>fragment_shader = Shader::fragment(
-                gl,
-                shader_version,
-                <span class="macro">include_str!</span>(<span class="string">&quot;shader/common/triangle.frag&quot;</span>),
-            );
-
-            program::create(
-                gl,
-                <span class="kw-2">&amp;</span>[vertex_shader, fragment_shader],
-                <span class="kw-2">&amp;</span>[(<span class="number">0</span>, <span class="string">&quot;i_Position&quot;</span>), (<span class="number">1</span>, <span class="string">&quot;i_Color&quot;</span>)],
-            )
-        };
-
-        <span class="kw">let </span>transform_location =
-            <span class="kw">unsafe </span>{ gl.get_uniform_location(program, <span class="string">&quot;u_Transform&quot;</span>) }
-                .expect(<span class="string">&quot;Get transform location&quot;</span>);
-
-        <span class="kw">unsafe </span>{
-            gl.use_program(<span class="prelude-val">Some</span>(program));
-
-            <span class="kw">let </span>transform: [f32; <span class="number">16</span>] = Transformation::identity().into();
-            gl.uniform_matrix_4_f32_slice(
-                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>transform_location),
-                <span class="bool-val">false</span>,
-                <span class="kw-2">&amp;</span>transform,
-            );
-
-            gl.use_program(<span class="prelude-val">None</span>);
-        }
-
+    <span class="kw">pub fn </span>new(gl: <span class="kw-2">&amp;</span>glow::Context, shader_version: <span class="kw-2">&amp;</span>program::Version) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>vertex_array =
             <span class="kw">unsafe </span>{ gl.create_vertex_array().expect(<span class="string">&quot;Create vertex array&quot;</span>) };
 
@@ -375,7 +295,7 @@
                 gl,
                 glow::ARRAY_BUFFER,
                 glow::DYNAMIC_DRAW,
-                VERTEX_BUFFER_SIZE,
+                std::mem::size_of::&lt;Vertex2D&gt;() <span class="kw">as </span>usize,
             )
         };
 
@@ -384,7 +304,7 @@
                 gl,
                 glow::ELEMENT_ARRAY_BUFFER,
                 glow::DYNAMIC_DRAW,
-                INDEX_BUFFER_SIZE,
+                std::mem::size_of::&lt;u32&gt;() <span class="kw">as </span>usize,
             )
         };
 
@@ -394,83 +314,63 @@
             gl.enable_vertex_attrib_array(<span class="number">0</span>);
             gl.vertex_attrib_pointer_f32(<span class="number">0</span>, <span class="number">2</span>, glow::FLOAT, <span class="bool-val">false</span>, stride, <span class="number">0</span>);
 
-            gl.enable_vertex_attrib_array(<span class="number">1</span>);
-            gl.vertex_attrib_pointer_f32(
-                <span class="number">1</span>,
-                <span class="number">4</span>,
-                glow::FLOAT,
-                <span class="bool-val">false</span>,
-                stride,
-                <span class="number">4 </span>* <span class="number">2</span>,
-            );
-
             gl.bind_vertex_array(<span class="prelude-val">None</span>);
-        }
+        };
 
-        Pipeline {
-            program,
+        <span class="self">Self </span>{
             vertex_array,
             vertices,
             indices,
-            transform_location,
-            current_transform: Transformation::identity(),
+            programs: ProgramList {
+                solid: solid::Program::new(gl, shader_version),
+                gradient: gradient::Program::new(gl, shader_version),
+            },
         }
     }
 
     <span class="kw">pub fn </span>draw(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        meshes: <span class="kw-2">&amp;</span>[Mesh&lt;<span class="lifetime">&#39;_</span>&gt;],
         gl: <span class="kw-2">&amp;</span>glow::Context,
         target_height: u32,
         transformation: Transformation,
         scale_factor: f32,
-        meshes: <span class="kw-2">&amp;</span>[layer::Mesh&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) {
         <span class="kw">unsafe </span>{
             gl.enable(glow::MULTISAMPLE);
             gl.enable(glow::SCISSOR_TEST);
-            gl.use_program(<span class="prelude-val">Some</span>(<span class="self">self</span>.program));
-            gl.bind_vertex_array(<span class="prelude-val">Some</span>(<span class="self">self</span>.vertex_array));
+            gl.bind_vertex_array(<span class="prelude-val">Some</span>(<span class="self">self</span>.vertex_array))
         }
 
-        <span class="comment">// This looks a bit crazy, but we are just counting how many vertices
-        // and indices we will need to handle.
-        // TODO: Improve readability
-        </span><span class="kw">let </span>(total_vertices, total_indices) = meshes
-            .iter()
-            .map(|layer::Mesh { buffers, .. }| {
-                (buffers.vertices.len(), buffers.indices.len())
-            })
-            .fold((<span class="number">0</span>, <span class="number">0</span>), |(total_v, total_i), (v, i)| {
-                (total_v + v, total_i + i)
-            });
+        <span class="comment">//count the total amount of vertices &amp; indices we need to handle
+        </span><span class="kw">let </span>(total_vertices, total_indices) = mesh::attribute_count_of(meshes);
 
-        <span class="comment">// Then we ensure the current buffers are big enough, resizing if
-        // necessary
+        <span class="comment">// Then we ensure the current attribute buffers are big enough, resizing if necessary
         </span><span class="kw">unsafe </span>{
             <span class="self">self</span>.vertices.bind(gl, total_vertices);
             <span class="self">self</span>.indices.bind(gl, total_indices);
         }
 
         <span class="comment">// We upload all the vertices and indices upfront
-        </span><span class="kw">let </span><span class="kw-2">mut </span>last_vertex = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>last_index = <span class="number">0</span>;
+        </span><span class="kw">let </span><span class="kw-2">mut </span>vertex_offset = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>index_offset = <span class="number">0</span>;
 
-        <span class="kw">for </span>layer::Mesh { buffers, .. } <span class="kw">in </span>meshes {
+        <span class="kw">for </span>mesh <span class="kw">in </span>meshes {
             <span class="kw">unsafe </span>{
                 gl.buffer_sub_data_u8_slice(
                     glow::ARRAY_BUFFER,
-                    (last_vertex * std::mem::size_of::&lt;Vertex2D&gt;()) <span class="kw">as </span>i32,
-                    bytemuck::cast_slice(<span class="kw-2">&amp;</span>buffers.vertices),
+                    (vertex_offset * std::mem::size_of::&lt;Vertex2D&gt;()) <span class="kw">as </span>i32,
+                    bytemuck::cast_slice(<span class="kw-2">&amp;</span>mesh.buffers.vertices),
                 );
 
                 gl.buffer_sub_data_u8_slice(
                     glow::ELEMENT_ARRAY_BUFFER,
-                    (last_index * std::mem::size_of::&lt;u32&gt;()) <span class="kw">as </span>i32,
-                    bytemuck::cast_slice(<span class="kw-2">&amp;</span>buffers.indices),
+                    (index_offset * std::mem::size_of::&lt;u32&gt;()) <span class="kw">as </span>i32,
+                    bytemuck::cast_slice(<span class="kw-2">&amp;</span>mesh.buffers.indices),
                 );
 
-                last_vertex += buffers.vertices.len();
-                last_index += buffers.indices.len();
+                vertex_offset += mesh.buffers.vertices.len();
+                index_offset += mesh.buffers.indices.len();
             }
         }
 
@@ -478,29 +378,13 @@
         </span><span class="kw">let </span><span class="kw-2">mut </span>last_vertex = <span class="number">0</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>last_index = <span class="number">0</span>;
 
-        <span class="kw">for </span>layer::Mesh {
-            buffers,
-            origin,
-            clip_bounds,
-        } <span class="kw">in </span>meshes
-        {
-            <span class="kw">let </span>transform =
-                transformation * Transformation::translate(origin.x, origin.y);
+        <span class="kw">for </span>mesh <span class="kw">in </span>meshes {
+            <span class="kw">let </span>transform = transformation
+                * Transformation::translate(mesh.origin.x, mesh.origin.y);
 
-            <span class="kw">let </span>clip_bounds = (<span class="kw-2">*</span>clip_bounds * scale_factor).snap();
+            <span class="kw">let </span>clip_bounds = (mesh.clip_bounds * scale_factor).snap();
 
             <span class="kw">unsafe </span>{
-                <span class="kw">if </span><span class="self">self</span>.current_transform != transform {
-                    <span class="kw">let </span>matrix: [f32; <span class="number">16</span>] = transform.into();
-                    gl.uniform_matrix_4_f32_slice(
-                        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.transform_location),
-                        <span class="bool-val">false</span>,
-                        <span class="kw-2">&amp;</span>matrix,
-                    );
-
-                    <span class="self">self</span>.current_transform = transform;
-                }
-
                 gl.scissor(
                     clip_bounds.x <span class="kw">as </span>i32,
                     (target_height - (clip_bounds.y + clip_bounds.height))
@@ -509,50 +393,74 @@
                     clip_bounds.height <span class="kw">as </span>i32,
                 );
 
+                <span class="kw">match </span>mesh.style {
+                    triangle::Style::Solid(color) =&gt; {
+                        <span class="self">self</span>.programs.solid.use_program(gl, color, <span class="kw-2">&amp;</span>transform);
+                    }
+                    triangle::Style::Gradient(gradient) =&gt; {
+                        <span class="self">self</span>.programs
+                            .gradient
+                            .use_program(gl, gradient, <span class="kw-2">&amp;</span>transform);
+                    }
+                }
+
                 gl.draw_elements_base_vertex(
                     glow::TRIANGLES,
-                    buffers.indices.len() <span class="kw">as </span>i32,
+                    mesh.buffers.indices.len() <span class="kw">as </span>i32,
                     glow::UNSIGNED_INT,
                     (last_index * std::mem::size_of::&lt;u32&gt;()) <span class="kw">as </span>i32,
                     last_vertex <span class="kw">as </span>i32,
                 );
 
-                last_vertex += buffers.vertices.len();
-                last_index += buffers.indices.len();
+                last_vertex += mesh.buffers.vertices.len();
+                last_index += mesh.buffers.indices.len();
             }
         }
 
         <span class="kw">unsafe </span>{
             gl.bind_vertex_array(<span class="prelude-val">None</span>);
-            gl.use_program(<span class="prelude-val">None</span>);
             gl.disable(glow::SCISSOR_TEST);
             gl.disable(glow::MULTISAMPLE);
         }
     }
 }
 
-<span class="attr">#[repr(C)]
-#[derive(Debug, Clone, Copy)]
-</span><span class="kw">struct </span>Uniforms {
-    transform: [f32; <span class="number">16</span>],
-}
+<span class="doccomment">/// A simple shader program. Uses [`triangle.vert`] for its vertex shader and only binds position
+/// attribute location.
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>program(
+    gl: <span class="kw-2">&amp;</span>glow::Context,
+    shader_version: <span class="kw-2">&amp;</span>program::Version,
+    fragment_shader: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
+) -&gt; &lt;glow::Context <span class="kw">as </span>HasContext&gt;::Program {
+    <span class="kw">unsafe </span>{
+        <span class="kw">let </span>vertex_shader = program::Shader::vertex(
+            gl,
+            shader_version,
+            <span class="macro">include_str!</span>(<span class="string">&quot;shader/common/triangle.vert&quot;</span>),
+        );
 
-<span class="kw">unsafe impl </span>bytemuck::Zeroable <span class="kw">for </span>Uniforms {}
-<span class="kw">unsafe impl </span>bytemuck::Pod <span class="kw">for </span>Uniforms {}
+        <span class="kw">let </span>fragment_shader =
+            program::Shader::fragment(gl, shader_version, fragment_shader);
 
-<span class="kw">impl </span>Default <span class="kw">for </span>Uniforms {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            transform: <span class="kw-2">*</span>Transformation::identity().as_ref(),
-        }
+        program::create(
+            gl,
+            <span class="kw-2">&amp;</span>[vertex_shader, fragment_shader],
+            <span class="kw-2">&amp;</span>[(<span class="number">0</span>, <span class="string">&quot;i_Position&quot;</span>)],
+        )
     }
 }
 
-<span class="kw">impl </span>From&lt;Transformation&gt; <span class="kw">for </span>Uniforms {
-    <span class="kw">fn </span>from(transformation: Transformation) -&gt; Uniforms {
-        <span class="self">Self </span>{
-            transform: transformation.into(),
-        }
+<span class="kw">pub fn </span>set_transform(
+    gl: <span class="kw-2">&amp;</span>glow::Context,
+    location: &lt;glow::Context <span class="kw">as </span>HasContext&gt;::UniformLocation,
+    transform: Transformation,
+) {
+    <span class="kw">unsafe </span>{
+        gl.uniform_matrix_4_f32_slice(
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>location),
+            <span class="bool-val">false</span>,
+            transform.as_ref(),
+        );
     }
 }
 

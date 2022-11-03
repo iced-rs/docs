@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["LineCap","The shape used at the end of open subpaths when they are stroked."],["LineJoin","The shape used at the corners of paths or basic shapes when they are stroked."],["Style","Supported shaders for triangle primitives."]],"struct":[["LineDash","The dash pattern used when stroking the line."],["Stroke","The style of a stroke."]]};

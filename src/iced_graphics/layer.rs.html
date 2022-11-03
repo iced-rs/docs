@@ -246,96 +246,25 @@
 <span id="245">245</span>
 <span id="246">246</span>
 <span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Organize rendering primitives into a flattened list of layers.
-</span><span class="kw">use </span><span class="kw">crate</span>::alignment;
-<span class="kw">use </span><span class="kw">crate</span>::triangle;
+</span><span class="kw">mod </span>image;
+<span class="kw">mod </span>quad;
+<span class="kw">mod </span>text;
+
+<span class="kw">pub mod </span>mesh;
+
+<span class="kw">pub use </span>image::Image;
+<span class="kw">pub use </span>mesh::Mesh;
+<span class="kw">pub use </span>quad::Quad;
+<span class="kw">pub use </span>text::Text;
+
+<span class="kw">use </span><span class="kw">crate</span>::alignment;
 <span class="kw">use crate</span>::{
     Background, Font, Point, Primitive, Rectangle, Size, Vector, Viewport,
 };
 
-<span class="kw">use </span>iced_native::image;
-<span class="kw">use </span>iced_native::svg;
-
 <span class="doccomment">/// A group of primitives that should be clipped together.
-</span><span class="attr">#[derive(Debug, Clone)]
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Layer&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// The clipping bounds of the [`Layer`].
     </span><span class="kw">pub </span>bounds: Rectangle,
@@ -485,7 +414,11 @@
                     border_color: border_color.into_linear(),
                 });
             }
-            Primitive::Mesh2D { buffers, size } =&gt; {
+            Primitive::Mesh2D {
+                buffers,
+                size,
+                style,
+            } =&gt; {
                 <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
 
                 <span class="kw">let </span>bounds = Rectangle::new(
@@ -499,6 +432,7 @@
                         origin: Point::new(translation.x, translation.y),
                         buffers,
                         clip_bounds,
+                        style,
                     });
                 }
             }
@@ -559,95 +493,5 @@
         }
     }
 }
-
-<span class="doccomment">/// A colored rectangle with a border.
-///
-/// This type can be directly uploaded to GPU memory.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-#[repr(C)]
-</span><span class="kw">pub struct </span>Quad {
-    <span class="doccomment">/// The position of the [`Quad`].
-    </span><span class="kw">pub </span>position: [f32; <span class="number">2</span>],
-
-    <span class="doccomment">/// The size of the [`Quad`].
-    </span><span class="kw">pub </span>size: [f32; <span class="number">2</span>],
-
-    <span class="doccomment">/// The color of the [`Quad`], in __linear RGB__.
-    </span><span class="kw">pub </span>color: [f32; <span class="number">4</span>],
-
-    <span class="doccomment">/// The border color of the [`Quad`], in __linear RGB__.
-    </span><span class="kw">pub </span>border_color: [f32; <span class="number">4</span>],
-
-    <span class="doccomment">/// The border radius of the [`Quad`].
-    </span><span class="kw">pub </span>border_radius: f32,
-
-    <span class="doccomment">/// The border width of the [`Quad`].
-    </span><span class="kw">pub </span>border_width: f32,
-}
-
-<span class="doccomment">/// A mesh of triangles.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>Mesh&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="doccomment">/// The origin of the vertices of the [`Mesh`].
-    </span><span class="kw">pub </span>origin: Point,
-
-    <span class="doccomment">/// The vertex and index buffers of the [`Mesh`].
-    </span><span class="kw">pub </span>buffers: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>triangle::Mesh2D,
-
-    <span class="doccomment">/// The clipping bounds of the [`Mesh`].
-    </span><span class="kw">pub </span>clip_bounds: Rectangle&lt;f32&gt;,
-}
-
-<span class="doccomment">/// A paragraph of text.
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>Text&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="doccomment">/// The content of the [`Text`].
-    </span><span class="kw">pub </span>content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
-
-    <span class="doccomment">/// The layout bounds of the [`Text`].
-    </span><span class="kw">pub </span>bounds: Rectangle,
-
-    <span class="doccomment">/// The color of the [`Text`], in __linear RGB_.
-    </span><span class="kw">pub </span>color: [f32; <span class="number">4</span>],
-
-    <span class="doccomment">/// The size of the [`Text`].
-    </span><span class="kw">pub </span>size: f32,
-
-    <span class="doccomment">/// The font of the [`Text`].
-    </span><span class="kw">pub </span>font: Font,
-
-    <span class="doccomment">/// The horizontal alignment of the [`Text`].
-    </span><span class="kw">pub </span>horizontal_alignment: alignment::Horizontal,
-
-    <span class="doccomment">/// The vertical alignment of the [`Text`].
-    </span><span class="kw">pub </span>vertical_alignment: alignment::Vertical,
-}
-
-<span class="doccomment">/// A raster or vector image.
-</span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub enum </span>Image {
-    <span class="doccomment">/// A raster image.
-    </span>Raster {
-        <span class="doccomment">/// The handle of a raster image.
-        </span>handle: image::Handle,
-
-        <span class="doccomment">/// The bounds of the image.
-        </span>bounds: Rectangle,
-    },
-    <span class="doccomment">/// A vector image.
-    </span>Vector {
-        <span class="doccomment">/// The handle of a vector image.
-        </span>handle: svg::Handle,
-
-        <span class="doccomment">/// The bounds of the image.
-        </span>bounds: Rectangle,
-    },
-}
-
-<span class="attr">#[allow(unsafe_code)]
-</span><span class="kw">unsafe impl </span>bytemuck::Zeroable <span class="kw">for </span>Quad {}
-
-<span class="attr">#[allow(unsafe_code)]
-</span><span class="kw">unsafe impl </span>bytemuck::Pod <span class="kw">for </span>Quad {}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>

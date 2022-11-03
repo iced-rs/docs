@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["attribute_count_of","Returns the number of total vertices & total indices of all [`Mesh`]es."]],"struct":[["Mesh","A mesh of triangles."]]};

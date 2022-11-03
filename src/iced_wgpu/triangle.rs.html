@@ -302,474 +302,179 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
-<span id="354">354</span>
-<span id="355">355</span>
-<span id="356">356</span>
-<span id="357">357</span>
-<span id="358">358</span>
-<span id="359">359</span>
-<span id="360">360</span>
-<span id="361">361</span>
-<span id="362">362</span>
-<span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
-<span id="372">372</span>
-<span id="373">373</span>
-<span id="374">374</span>
-<span id="375">375</span>
-<span id="376">376</span>
-<span id="377">377</span>
-<span id="378">378</span>
-<span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
-<span id="384">384</span>
-<span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
-<span id="390">390</span>
-<span id="391">391</span>
-<span id="392">392</span>
-<span id="393">393</span>
-<span id="394">394</span>
-<span id="395">395</span>
-<span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
-<span id="401">401</span>
-<span id="402">402</span>
-<span id="403">403</span>
-<span id="404">404</span>
-<span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Draw meshes of triangles.
-</span><span class="kw">use crate</span>::{settings, Transformation};
-<span class="kw">use </span>iced_graphics::layer;
-
-<span class="kw">use </span>bytemuck::{Pod, Zeroable};
-<span class="kw">use </span>std::mem;
-
-<span class="kw">pub use </span>iced_graphics::triangle::{Mesh2D, Vertex2D};
-
+</span><span class="kw">mod </span>gradient;
 <span class="kw">mod </span>msaa;
+<span class="kw">mod </span>solid;
 
-<span class="kw">const </span>UNIFORM_BUFFER_SIZE: usize = <span class="number">50</span>;
-<span class="kw">const </span>VERTEX_BUFFER_SIZE: usize = <span class="number">10_000</span>;
-<span class="kw">const </span>INDEX_BUFFER_SIZE: usize = <span class="number">10_000</span>;
+<span class="kw">use </span><span class="kw">crate</span>::buffer::r#static::Buffer;
+<span class="kw">use </span><span class="kw">crate</span>::settings;
+<span class="kw">use </span><span class="kw">crate</span>::Transformation;
 
-<span class="attr">#[derive(Debug)]
+<span class="kw">use </span>iced_graphics::layer::mesh::{<span class="self">self</span>, Mesh};
+<span class="kw">use </span>iced_graphics::triangle::{<span class="self">self</span>, Vertex2D};
+<span class="kw">use </span>iced_graphics::Size;
+
+<span class="kw">use </span>core::fmt;
+<span class="kw">use </span>std::fmt::Formatter;
+
+<span class="doccomment">/// Triangle pipeline for all mesh layers in a [`iced_graphics::Canvas`] widget.
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>Pipeline {
-    pipeline: wgpu::RenderPipeline,
     blit: <span class="prelude-ty">Option</span>&lt;msaa::Blit&gt;,
-    constants_layout: wgpu::BindGroupLayout,
-    constants: wgpu::BindGroup,
-    uniforms_buffer: Buffer&lt;Uniforms&gt;,
     vertex_buffer: Buffer&lt;Vertex2D&gt;,
     index_buffer: Buffer&lt;u32&gt;,
+    index_strides: Vec&lt;u32&gt;,
+    pipelines: PipelineList,
 }
 
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">struct </span>Buffer&lt;T&gt; {
-    label: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-    raw: wgpu::Buffer,
-    size: usize,
-    usage: wgpu::BufferUsages,
-    _type: std::marker::PhantomData&lt;T&gt;,
+<span class="doccomment">/// Supported triangle pipelines for different fills.
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PipelineList {
+    solid: solid::Pipeline,
+    gradient: gradient::Pipeline,
 }
 
-<span class="kw">impl</span>&lt;T&gt; Buffer&lt;T&gt; {
-    <span class="kw">pub fn </span>new(
-        label: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str,
-        device: <span class="kw-2">&amp;</span>wgpu::Device,
-        size: usize,
-        usage: wgpu::BufferUsages,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>raw = device.create_buffer(<span class="kw-2">&amp;</span>wgpu::BufferDescriptor {
-            label: <span class="prelude-val">Some</span>(label),
-            size: (std::mem::size_of::&lt;T&gt;() * size) <span class="kw">as </span>u64,
-            usage,
-            mapped_at_creation: <span class="bool-val">false</span>,
-        });
+<span class="kw">impl </span>fmt::Debug <span class="kw">for </span>PipelineList {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">&quot;TrianglePipelines&quot;</span>).finish()
+    }
+}
 
-        Buffer {
-            label,
-            raw,
-            size,
-            usage,
-            _type: std::marker::PhantomData,
-        }
+<span class="kw">impl </span>PipelineList {
+    <span class="doccomment">/// Resets each pipeline&#39;s buffers.
+    </span><span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.solid.buffer.clear();
+        <span class="self">self</span>.gradient.uniform_buffer.clear();
+        <span class="self">self</span>.gradient.storage_buffer.clear();
     }
 
-    <span class="kw">pub fn </span>expand(<span class="kw-2">&amp;mut </span><span class="self">self</span>, device: <span class="kw-2">&amp;</span>wgpu::Device, size: usize) -&gt; bool {
-        <span class="kw">let </span>needs_resize = <span class="self">self</span>.size &lt; size;
-
-        <span class="kw">if </span>needs_resize {
-            <span class="self">self</span>.raw = device.create_buffer(<span class="kw-2">&amp;</span>wgpu::BufferDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="self">self</span>.label),
-                size: (std::mem::size_of::&lt;T&gt;() * size) <span class="kw">as </span>u64,
-                usage: <span class="self">self</span>.usage,
-                mapped_at_creation: <span class="bool-val">false</span>,
-            });
-
-            <span class="self">self</span>.size = size;
-        }
-
-        needs_resize
+    <span class="doccomment">/// Writes the contents of each pipeline&#39;s CPU buffer to the GPU, resizing the GPU buffer
+    /// beforehand if necessary.
+    </span><span class="kw">fn </span>write(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        staging_belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+    ) {
+        <span class="self">self</span>.solid.write(device, staging_belt, encoder);
+        <span class="self">self</span>.gradient.write(device, staging_belt, encoder);
     }
 }
 
 <span class="kw">impl </span>Pipeline {
-    <span class="kw">pub fn </span>new(
+    <span class="doccomment">/// Creates supported pipelines, listed in [TrianglePipelines].
+    </span><span class="kw">pub fn </span>new(
         device: <span class="kw-2">&amp;</span>wgpu::Device,
         format: wgpu::TextureFormat,
         antialiasing: <span class="prelude-ty">Option</span>&lt;settings::Antialiasing&gt;,
     ) -&gt; Pipeline {
-        <span class="kw">let </span>constants_layout =
-            device.create_bind_group_layout(<span class="kw-2">&amp;</span>wgpu::BindGroupLayoutDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle uniforms layout&quot;</span>),
-                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupLayoutEntry {
-                    binding: <span class="number">0</span>,
-                    visibility: wgpu::ShaderStages::VERTEX,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: <span class="bool-val">true</span>,
-                        min_binding_size: wgpu::BufferSize::new(
-                            mem::size_of::&lt;Uniforms&gt;() <span class="kw">as </span>u64,
-                        ),
-                    },
-                    count: <span class="prelude-val">None</span>,
-                }],
-            });
-
-        <span class="kw">let </span>constants_buffer = Buffer::new(
-            <span class="string">&quot;iced_wgpu::triangle uniforms buffer&quot;</span>,
-            device,
-            UNIFORM_BUFFER_SIZE,
-            wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-        );
-
-        <span class="kw">let </span>constant_bind_group =
-            device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle uniforms bind group&quot;</span>),
-                layout: <span class="kw-2">&amp;</span>constants_layout,
-                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
-                    binding: <span class="number">0</span>,
-                    resource: wgpu::BindingResource::Buffer(
-                        wgpu::BufferBinding {
-                            buffer: <span class="kw-2">&amp;</span>constants_buffer.raw,
-                            offset: <span class="number">0</span>,
-                            size: wgpu::BufferSize::new(std::mem::size_of::&lt;
-                                Uniforms,
-                            &gt;(
-                            )
-                                <span class="kw">as </span>u64),
-                        },
-                    ),
-                }],
-            });
-
-        <span class="kw">let </span>layout =
-            device.create_pipeline_layout(<span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle pipeline layout&quot;</span>),
-                push_constant_ranges: <span class="kw-2">&amp;</span>[],
-                bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>constants_layout],
-            });
-
-        <span class="kw">let </span>shader =
-            device.create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::shader&quot;</span>),
-                source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(
-                    <span class="macro">include_str!</span>(<span class="string">&quot;shader/triangle.wgsl&quot;</span>),
-                )),
-            });
-
-        <span class="kw">let </span>pipeline =
-            device.create_render_pipeline(<span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle pipeline&quot;</span>),
-                layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
-                vertex: wgpu::VertexState {
-                    module: <span class="kw-2">&amp;</span>shader,
-                    entry_point: <span class="string">&quot;vs_main&quot;</span>,
-                    buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
-                        array_stride: mem::size_of::&lt;Vertex2D&gt;() <span class="kw">as </span>u64,
-                        step_mode: wgpu::VertexStepMode::Vertex,
-                        attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
-                            <span class="comment">// Position
-                            </span><span class="number">0 </span>=&gt; Float32x2,
-                            <span class="comment">// Color
-                            </span><span class="number">1 </span>=&gt; Float32x4,
-                        ),
-                    }],
-                },
-                fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
-                    module: <span class="kw-2">&amp;</span>shader,
-                    entry_point: <span class="string">&quot;fs_main&quot;</span>,
-                    targets: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(wgpu::ColorTargetState {
-                        format,
-                        blend: <span class="prelude-val">Some</span>(wgpu::BlendState::ALPHA_BLENDING),
-                        write_mask: wgpu::ColorWrites::ALL,
-                    })],
-                }),
-                primitive: wgpu::PrimitiveState {
-                    topology: wgpu::PrimitiveTopology::TriangleList,
-                    front_face: wgpu::FrontFace::Cw,
-                    ..Default::default()
-                },
-                depth_stencil: <span class="prelude-val">None</span>,
-                multisample: wgpu::MultisampleState {
-                    count: antialiasing.map(|a| a.sample_count()).unwrap_or(<span class="number">1</span>),
-                    mask: !<span class="number">0</span>,
-                    alpha_to_coverage_enabled: <span class="bool-val">false</span>,
-                },
-                multiview: <span class="prelude-val">None</span>,
-            });
-
         Pipeline {
-            pipeline,
             blit: antialiasing.map(|a| msaa::Blit::new(device, format, a)),
-            constants_layout,
-            constants: constant_bind_group,
-            uniforms_buffer: constants_buffer,
             vertex_buffer: Buffer::new(
-                <span class="string">&quot;iced_wgpu::triangle vertex buffer&quot;</span>,
                 device,
-                VERTEX_BUFFER_SIZE,
+                <span class="string">&quot;iced_wgpu::triangle vertex buffer&quot;</span>,
                 wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             ),
             index_buffer: Buffer::new(
-                <span class="string">&quot;iced_wgpu::triangle index buffer&quot;</span>,
                 device,
-                INDEX_BUFFER_SIZE,
+                <span class="string">&quot;iced_wgpu::triangle vertex buffer&quot;</span>,
                 wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
             ),
+            index_strides: Vec::new(),
+            pipelines: PipelineList {
+                solid: solid::Pipeline::new(device, format, antialiasing),
+                gradient: gradient::Pipeline::new(device, format, antialiasing),
+            },
         }
     }
 
-    <span class="kw">pub fn </span>draw(
+    <span class="doccomment">/// Draws the contents of the current layer&#39;s meshes to the [target].
+    </span><span class="kw">pub fn </span>draw(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
         staging_belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
         encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
         target: <span class="kw-2">&amp;</span>wgpu::TextureView,
-        target_width: u32,
-        target_height: u32,
+        target_size: Size&lt;u32&gt;,
         transformation: Transformation,
         scale_factor: f32,
-        meshes: <span class="kw-2">&amp;</span>[layer::Mesh&lt;<span class="lifetime">&#39;_</span>&gt;],
+        meshes: <span class="kw-2">&amp;</span>[Mesh&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) {
-        <span class="comment">// This looks a bit crazy, but we are just counting how many vertices
-        // and indices we will need to handle.
-        // TODO: Improve readability
-        </span><span class="kw">let </span>(total_vertices, total_indices) = meshes
-            .iter()
-            .map(|layer::Mesh { buffers, .. }| {
-                (buffers.vertices.len(), buffers.indices.len())
-            })
-            .fold((<span class="number">0</span>, <span class="number">0</span>), |(total_v, total_i), (v, i)| {
-                (total_v + v, total_i + i)
-            });
+        <span class="comment">//count the total amount of vertices &amp; indices we need to handle
+        </span><span class="kw">let </span>(total_vertices, total_indices) = mesh::attribute_count_of(meshes);
 
-        <span class="comment">// Then we ensure the current buffers are big enough, resizing if
-        // necessary
-        </span><span class="kw">let _ </span>= <span class="self">self</span>.vertex_buffer.expand(device, total_vertices);
-        <span class="kw">let _ </span>= <span class="self">self</span>.index_buffer.expand(device, total_indices);
+        <span class="comment">// Then we ensure the current attribute buffers are big enough, resizing if necessary.
 
-        <span class="comment">// If the uniforms buffer is resized, then we need to recreate its
-        // bind group.
-        </span><span class="kw">if </span><span class="self">self</span>.uniforms_buffer.expand(device, meshes.len()) {
-            <span class="self">self</span>.constants =
-                device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
-                    label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle uniforms buffer&quot;</span>),
-                    layout: <span class="kw-2">&amp;</span><span class="self">self</span>.constants_layout,
-                    entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
-                        binding: <span class="number">0</span>,
-                        resource: wgpu::BindingResource::Buffer(
-                            wgpu::BufferBinding {
-                                buffer: <span class="kw-2">&amp;</span><span class="self">self</span>.uniforms_buffer.raw,
-                                offset: <span class="number">0</span>,
-                                size: wgpu::BufferSize::new(
-                                    std::mem::size_of::&lt;Uniforms&gt;() <span class="kw">as </span>u64,
-                                ),
-                            },
-                        ),
-                    }],
-                });
-        }
+        //We are not currently using the return value of these functions as we have no system in
+        //place to calculate mesh diff, or to know whether or not that would be more performant for
+        //the majority of use cases. Therefore we will write GPU data every frame (for now).
+        </span><span class="kw">let _ </span>= <span class="self">self</span>.vertex_buffer.resize(device, total_vertices);
+        <span class="kw">let _ </span>= <span class="self">self</span>.index_buffer.resize(device, total_indices);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>uniforms: Vec&lt;Uniforms&gt; = Vec::with_capacity(meshes.len());
-        <span class="kw">let </span><span class="kw-2">mut </span>offsets: Vec&lt;(
-            wgpu::BufferAddress,
-            wgpu::BufferAddress,
-            usize,
-        )&gt; = Vec::with_capacity(meshes.len());
-        <span class="kw">let </span><span class="kw-2">mut </span>last_vertex = <span class="number">0</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>last_index = <span class="number">0</span>;
+        <span class="comment">//prepare dynamic buffers &amp; data store for writing
+        </span><span class="self">self</span>.index_strides.clear();
+        <span class="self">self</span>.pipelines.clear();
 
-        <span class="comment">// We upload everything upfront
-        </span><span class="kw">for </span>mesh <span class="kw">in </span>meshes {
-            <span class="kw">let </span>transform = (transformation
-                * Transformation::translate(mesh.origin.x, mesh.origin.y))
-            .into();
+        <span class="kw">let </span><span class="kw-2">mut </span>vertex_offset = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>index_offset = <span class="number">0</span>;
 
-            <span class="kw">let </span>vertices = bytemuck::cast_slice(<span class="kw-2">&amp;</span>mesh.buffers.vertices);
-            <span class="kw">let </span>indices = bytemuck::cast_slice(<span class="kw-2">&amp;</span>mesh.buffers.indices);
+        <span class="kw">for </span>mesh <span class="kw">in </span>meshes {
+            <span class="kw">let </span>transform = transformation
+                * Transformation::translate(mesh.origin.x, mesh.origin.y);
 
-            <span class="kw">if let </span>(<span class="prelude-val">Some</span>(vertices_size), <span class="prelude-val">Some</span>(indices_size)) = (
-                wgpu::BufferSize::new(vertices.len() <span class="kw">as </span>u64),
-                wgpu::BufferSize::new(indices.len() <span class="kw">as </span>u64),
-            ) {
-                {
-                    <span class="kw">let </span><span class="kw-2">mut </span>vertex_buffer = staging_belt.write_buffer(
-                        encoder,
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.vertex_buffer.raw,
-                        (std::mem::size_of::&lt;Vertex2D&gt;() * last_vertex) <span class="kw">as </span>u64,
-                        vertices_size,
-                        device,
-                    );
+            <span class="comment">//write to both buffers
+            </span><span class="kw">let </span>new_vertex_offset = <span class="self">self</span>.vertex_buffer.write(
+                device,
+                staging_belt,
+                encoder,
+                vertex_offset,
+                <span class="kw-2">&amp;</span>mesh.buffers.vertices,
+            );
 
-                    vertex_buffer.copy_from_slice(vertices);
+            <span class="kw">let </span>new_index_offset = <span class="self">self</span>.index_buffer.write(
+                device,
+                staging_belt,
+                encoder,
+                index_offset,
+                <span class="kw-2">&amp;</span>mesh.buffers.indices,
+            );
+
+            vertex_offset += new_vertex_offset;
+            index_offset += new_index_offset;
+
+            <span class="self">self</span>.index_strides.push(mesh.buffers.indices.len() <span class="kw">as </span>u32);
+
+            <span class="comment">//push uniform data to CPU buffers
+            </span><span class="kw">match </span>mesh.style {
+                triangle::Style::Solid(color) =&gt; {
+                    <span class="self">self</span>.pipelines.solid.push(transform, color);
                 }
-
-                {
-                    <span class="kw">let </span><span class="kw-2">mut </span>index_buffer = staging_belt.write_buffer(
-                        encoder,
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.index_buffer.raw,
-                        (std::mem::size_of::&lt;u32&gt;() * last_index) <span class="kw">as </span>u64,
-                        indices_size,
-                        device,
-                    );
-
-                    index_buffer.copy_from_slice(indices);
+                triangle::Style::Gradient(gradient) =&gt; {
+                    <span class="self">self</span>.pipelines.gradient.push(transform, gradient);
                 }
-
-                uniforms.push(transform);
-                offsets.push((
-                    last_vertex <span class="kw">as </span>u64,
-                    last_index <span class="kw">as </span>u64,
-                    mesh.buffers.indices.len(),
-                ));
-
-                last_vertex += mesh.buffers.vertices.len();
-                last_index += mesh.buffers.indices.len();
             }
         }
 
-        <span class="kw">let </span>uniforms = bytemuck::cast_slice(<span class="kw-2">&amp;</span>uniforms);
+        <span class="comment">//write uniform data to GPU
+        </span><span class="self">self</span>.pipelines.write(device, staging_belt, encoder);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(uniforms_size) =
-            wgpu::BufferSize::new(uniforms.len() <span class="kw">as </span>u64)
-        {
-            <span class="kw">let </span><span class="kw-2">mut </span>uniforms_buffer = staging_belt.write_buffer(
-                encoder,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.uniforms_buffer.raw,
-                <span class="number">0</span>,
-                uniforms_size,
-                device,
-            );
+        <span class="comment">//configure the render pass now that the data is uploaded to the GPU
+        </span>{
+            <span class="comment">//configure antialiasing pass
+            </span><span class="kw">let </span>(attachment, resolve_target, load) = <span class="kw">if let </span><span class="prelude-val">Some</span>(blit) =
+                <span class="kw-2">&amp;mut </span><span class="self">self</span>.blit
+            {
+                <span class="kw">let </span>(attachment, resolve_target) =
+                    blit.targets(device, target_size.width, target_size.height);
 
-            uniforms_buffer.copy_from_slice(uniforms);
-        }
-
-        {
-            <span class="kw">let </span>(attachment, resolve_target, load) =
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(blit) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.blit {
-                    <span class="kw">let </span>(attachment, resolve_target) =
-                        blit.targets(device, target_width, target_height);
-
-                    (
-                        attachment,
-                        <span class="prelude-val">Some</span>(resolve_target),
-                        wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                    )
-                } <span class="kw">else </span>{
-                    (target, <span class="prelude-val">None</span>, wgpu::LoadOp::Load)
-                };
+                (
+                    attachment,
+                    <span class="prelude-val">Some</span>(resolve_target),
+                    wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                )
+            } <span class="kw">else </span>{
+                (target, <span class="prelude-val">None</span>, wgpu::LoadOp::Load)
+            };
 
             <span class="kw">let </span><span class="kw-2">mut </span>render_pass =
                 encoder.begin_render_pass(<span class="kw-2">&amp;</span>wgpu::RenderPassDescriptor {
@@ -784,12 +489,12 @@
                     depth_stencil_attachment: <span class="prelude-val">None</span>,
                 });
 
-            render_pass.set_pipeline(<span class="kw-2">&amp;</span><span class="self">self</span>.pipeline);
+            <span class="kw">let </span><span class="kw-2">mut </span>num_solids = <span class="number">0</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>num_gradients = <span class="number">0</span>;
+            <span class="kw">let </span><span class="kw-2">mut </span>last_is_solid = <span class="prelude-val">None</span>;
 
-            <span class="kw">for </span>(i, (vertex_offset, index_offset, indices)) <span class="kw">in
-                </span>offsets.into_iter().enumerate()
-            {
-                <span class="kw">let </span>clip_bounds = (meshes[i].clip_bounds * scale_factor).snap();
+            <span class="kw">for </span>(index, mesh) <span class="kw">in </span>meshes.iter().enumerate() {
+                <span class="kw">let </span>clip_bounds = (mesh.clip_bounds * scale_factor).snap();
 
                 render_pass.set_scissor_rect(
                     clip_bounds.x,
@@ -798,29 +503,61 @@
                     clip_bounds.height,
                 );
 
-                render_pass.set_bind_group(
-                    <span class="number">0</span>,
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.constants,
-                    <span class="kw-2">&amp;</span>[(std::mem::size_of::&lt;Uniforms&gt;() * i) <span class="kw">as </span>u32],
-                );
+                <span class="kw">match </span>mesh.style {
+                    triangle::Style::Solid(<span class="kw">_</span>) =&gt; {
+                        <span class="kw">if </span>!last_is_solid.unwrap_or(<span class="bool-val">false</span>) {
+                            <span class="self">self</span>.pipelines
+                                .solid
+                                .set_render_pass_pipeline(<span class="kw-2">&amp;mut </span>render_pass);
 
-                render_pass.set_index_buffer(
-                    <span class="self">self</span>.index_buffer
-                        .raw
-                        .slice(index_offset * mem::size_of::&lt;u32&gt;() <span class="kw">as </span>u64..),
-                    wgpu::IndexFormat::Uint32,
-                );
+                            last_is_solid = <span class="prelude-val">Some</span>(<span class="bool-val">true</span>);
+                        }
+
+                        <span class="self">self</span>.pipelines.solid.configure_render_pass(
+                            <span class="kw-2">&amp;mut </span>render_pass,
+                            num_solids,
+                        );
+
+                        num_solids += <span class="number">1</span>;
+                    }
+                    triangle::Style::Gradient(<span class="kw">_</span>) =&gt; {
+                        <span class="kw">if </span>last_is_solid.unwrap_or(<span class="bool-val">true</span>) {
+                            <span class="self">self</span>.pipelines
+                                .gradient
+                                .set_render_pass_pipeline(<span class="kw-2">&amp;mut </span>render_pass);
+
+                            last_is_solid = <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
+                        }
+
+                        <span class="self">self</span>.pipelines.gradient.configure_render_pass(
+                            <span class="kw-2">&amp;mut </span>render_pass,
+                            num_gradients,
+                        );
+
+                        num_gradients += <span class="number">1</span>;
+                    }
+                };
 
                 render_pass.set_vertex_buffer(
                     <span class="number">0</span>,
-                    <span class="self">self</span>.vertex_buffer.raw.slice(
-                        vertex_offset * mem::size_of::&lt;Vertex2D&gt;() <span class="kw">as </span>u64..,
-                    ),
+                    <span class="self">self</span>.vertex_buffer.slice_from_index(index),
                 );
 
-                render_pass.draw_indexed(<span class="number">0</span>..indices <span class="kw">as </span>u32, <span class="number">0</span>, <span class="number">0</span>..<span class="number">1</span>);
+                render_pass.set_index_buffer(
+                    <span class="self">self</span>.index_buffer.slice_from_index(index),
+                    wgpu::IndexFormat::Uint32,
+                );
+
+                render_pass.draw_indexed(
+                    <span class="number">0</span>..(<span class="self">self</span>.index_strides[index] <span class="kw">as </span>u32),
+                    <span class="number">0</span>,
+                    <span class="number">0</span>..<span class="number">1</span>,
+                );
             }
         }
+
+        <span class="self">self</span>.vertex_buffer.clear();
+        <span class="self">self</span>.index_buffer.clear();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(blit) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.blit {
             blit.draw(encoder, target);
@@ -828,33 +565,44 @@
     }
 }
 
-<span class="attr">#[repr(C)]
-#[derive(Debug, Clone, Copy, Zeroable, Pod)]
-</span><span class="kw">struct </span>Uniforms {
-    transform: [f32; <span class="number">16</span>],
-    <span class="comment">// We need to align this to 256 bytes to please `wgpu`...
-    // TODO: Be smarter and stop wasting memory!
-    </span>_padding_a: [f32; <span class="number">32</span>],
-    _padding_b: [f32; <span class="number">16</span>],
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>Uniforms {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            transform: <span class="kw-2">*</span>Transformation::identity().as_ref(),
-            _padding_a: [<span class="number">0.0</span>; <span class="number">32</span>],
-            _padding_b: [<span class="number">0.0</span>; <span class="number">16</span>],
-        }
+<span class="comment">//utility functions for individual pipelines with shared functionality
+</span><span class="kw">fn </span>vertex_buffer_layout&lt;<span class="lifetime">&#39;a</span>&gt;() -&gt; wgpu::VertexBufferLayout&lt;<span class="lifetime">&#39;a</span>&gt; {
+    wgpu::VertexBufferLayout {
+        array_stride: std::mem::size_of::&lt;Vertex2D&gt;() <span class="kw">as </span>u64,
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: <span class="kw-2">&amp;</span>[wgpu::VertexAttribute {
+            format: wgpu::VertexFormat::Float32x2,
+            offset: <span class="number">0</span>,
+            shader_location: <span class="number">0</span>,
+        }],
     }
 }
 
-<span class="kw">impl </span>From&lt;Transformation&gt; <span class="kw">for </span>Uniforms {
-    <span class="kw">fn </span>from(transformation: Transformation) -&gt; Uniforms {
-        <span class="self">Self </span>{
-            transform: transformation.into(),
-            _padding_a: [<span class="number">0.0</span>; <span class="number">32</span>],
-            _padding_b: [<span class="number">0.0</span>; <span class="number">16</span>],
-        }
+<span class="kw">fn </span>fragment_target(
+    texture_format: wgpu::TextureFormat,
+) -&gt; <span class="prelude-ty">Option</span>&lt;wgpu::ColorTargetState&gt; {
+    <span class="prelude-val">Some</span>(wgpu::ColorTargetState {
+        format: texture_format,
+        blend: <span class="prelude-val">Some</span>(wgpu::BlendState::ALPHA_BLENDING),
+        write_mask: wgpu::ColorWrites::ALL,
+    })
+}
+
+<span class="kw">fn </span>primitive_state() -&gt; wgpu::PrimitiveState {
+    wgpu::PrimitiveState {
+        topology: wgpu::PrimitiveTopology::TriangleList,
+        front_face: wgpu::FrontFace::Cw,
+        ..Default::default()
+    }
+}
+
+<span class="kw">fn </span>multisample_state(
+    antialiasing: <span class="prelude-ty">Option</span>&lt;settings::Antialiasing&gt;,
+) -&gt; wgpu::MultisampleState {
+    wgpu::MultisampleState {
+        count: antialiasing.map(|a| a.sample_count()).unwrap_or(<span class="number">1</span>),
+        mask: !<span class="number">0</span>,
+        alpha_to_coverage_enabled: <span class="bool-val">false</span>,
     }
 }
 </code></pre></div>

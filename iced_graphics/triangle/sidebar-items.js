@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Mesh2D","A set of [`Vertex2D`] and indices representing a list of triangles."],["Vertex2D","A two-dimensional vertex with some color in linear RGBA."]]};
+window.SIDEBAR_ITEMS = {"enum":[["Style","Supported shaders for triangle primitives."]],"struct":[["Mesh2D","A set of [`Vertex2D`] and indices representing a list of triangles."],["Vertex2D","A two-dimensional vertex."]]};
