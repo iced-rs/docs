@@ -753,6 +753,20 @@
 <span id="752">752</span>
 <span id="753">753</span>
 <span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="kw">mod </span>state;
 
@@ -892,6 +906,9 @@
         runtime.enter(|| A::new(flags))
     };
 
+    <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
+    </span><span class="kw">let </span>target = settings.window.platform_specific.target.clone();
+
     <span class="kw">let </span>builder = settings.window.into_builder(
         <span class="kw-2">&amp;</span>application.title(),
         event_loop.primary_monitor(),
@@ -914,9 +931,20 @@
         <span class="kw">let </span>document = window.document().unwrap();
         <span class="kw">let </span>body = document.body().unwrap();
 
-        <span class="kw">let _ </span>= body
-            .append_child(<span class="kw-2">&amp;</span>canvas)
-            .expect(<span class="string">&quot;Append canvas to HTML body&quot;</span>);
+        <span class="kw">let </span>target = target.and_then(|target| {
+            body.query_selector(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, target))
+                .ok()
+                .unwrap_or(<span class="prelude-val">None</span>)
+        });
+
+        <span class="kw">let _ </span>= <span class="kw">match </span>target {
+            <span class="prelude-val">Some</span>(node) =&gt; node
+                .replace_child(<span class="kw-2">&amp;</span>canvas, <span class="kw-2">&amp;</span>node)
+                .expect(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Could not replace #{}&quot;</span>, node.id())),
+            <span class="prelude-val">None </span>=&gt; body
+                .append_child(<span class="kw-2">&amp;</span>canvas)
+                .expect(<span class="string">&quot;Append canvas to HTML body&quot;</span>),
+        };
     }
 
     <span class="kw">let </span>(compositor, renderer) = C::new(compositor_settings, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>window))<span class="question-mark">?</span>;
@@ -1508,4 +1536,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (edf018221 2022-11-02)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="iced_winit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (215e3cd21 2022-11-03)" ></div></body></html>
