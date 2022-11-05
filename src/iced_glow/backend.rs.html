@@ -253,7 +253,29 @@
 <span id="252">252</span>
 <span id="253">253</span>
 <span id="254">254</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::quad;
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+</pre><pre class="rust"><code><span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+</span><span class="kw">use </span><span class="kw">crate</span>::image;
+<span class="kw">use </span><span class="kw">crate</span>::quad;
 <span class="kw">use </span><span class="kw">crate</span>::text;
 <span class="kw">use crate</span>::{program, triangle};
 <span class="kw">use crate</span>::{Settings, Transformation, Viewport};
@@ -270,6 +292,8 @@
 /// [`iced`]: https://github.com/iced-rs/iced
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Backend {
+    <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+    </span>image_pipeline: image::Pipeline,
     quad_pipeline: quad::Pipeline,
     text_pipeline: text::Pipeline,
     triangle_pipeline: triangle::Pipeline,
@@ -287,10 +311,14 @@
 
         <span class="kw">let </span>shader_version = program::Version::new(gl);
 
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+        </span><span class="kw">let </span>image_pipeline = image::Pipeline::new(gl, <span class="kw-2">&amp;</span>shader_version);
         <span class="kw">let </span>quad_pipeline = quad::Pipeline::new(gl, <span class="kw-2">&amp;</span>shader_version);
         <span class="kw">let </span>triangle_pipeline = triangle::Pipeline::new(gl, <span class="kw-2">&amp;</span>shader_version);
 
         <span class="self">Self </span>{
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+            </span>image_pipeline,
             quad_pipeline,
             text_pipeline,
             triangle_pipeline,
@@ -325,6 +353,9 @@
                 viewport_size.height,
             );
         }
+
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+        </span><span class="self">self</span>.image_pipeline.trim_cache(gl);
     }
 
     <span class="kw">fn </span>flush(
@@ -365,6 +396,15 @@
                 scaled,
                 scale_factor,
             );
+        }
+
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+        </span><span class="kw">if </span>!layer.images.is_empty() {
+            <span class="kw">let </span>scaled = transformation
+                * Transformation::scale(scale_factor, scale_factor);
+
+            <span class="self">self</span>.image_pipeline
+                .draw(gl, scaled, scale_factor, <span class="kw-2">&amp;</span>layer.images);
         }
 
         <span class="kw">if </span>!layer.text.is_empty() {
@@ -493,8 +533,8 @@
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
 </span><span class="kw">impl </span>backend::Image <span class="kw">for </span>Backend {
-    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, _handle: <span class="kw-2">&amp;</span>iced_native::image::Handle) -&gt; (u32, u32) {
-        (<span class="number">50</span>, <span class="number">50</span>)
+    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>iced_native::image::Handle) -&gt; Size&lt;u32&gt; {
+        <span class="self">self</span>.image_pipeline.dimensions(handle)
     }
 }
 
@@ -502,9 +542,9 @@
 </span><span class="kw">impl </span>backend::Svg <span class="kw">for </span>Backend {
     <span class="kw">fn </span>viewport_dimensions(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _handle: <span class="kw-2">&amp;</span>iced_native::svg::Handle,
-    ) -&gt; (u32, u32) {
-        (<span class="number">50</span>, <span class="number">50</span>)
+        handle: <span class="kw-2">&amp;</span>iced_native::svg::Handle,
+    ) -&gt; Size&lt;u32&gt; {
+        <span class="self">self</span>.image_pipeline.viewport_dimensions(handle)
     }
 }
 </code></pre></div>

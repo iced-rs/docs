@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Svg","Entry in cache corresponding to an svg handle"]],"struct":[["Cache","Caches svg vector and raster data"]]};

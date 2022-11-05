@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Memory","Entry in cache corresponding to an image handle"]],"struct":[["Cache","Caches image raster data"]]};

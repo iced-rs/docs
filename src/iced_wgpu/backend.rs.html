@@ -323,7 +323,7 @@
 <span class="kw">use </span>iced_native::alignment;
 <span class="kw">use </span>iced_native::{Font, Size};
 
-<span class="attr">#[cfg(any(feature = <span class="string">&quot;image_rs&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+<span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::image;
 
 <span class="doccomment">/// A [`wgpu`] graphics backend for [`iced`].
@@ -336,7 +336,7 @@
     text_pipeline: text::Pipeline,
     triangle_pipeline: triangle::Pipeline,
 
-    <span class="attr">#[cfg(any(feature = <span class="string">&quot;image_rs&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+    <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
     </span>image_pipeline: image::Pipeline,
 
     default_text_size: u16,
@@ -360,7 +360,7 @@
         <span class="kw">let </span>triangle_pipeline =
             triangle::Pipeline::new(device, format, settings.antialiasing);
 
-        <span class="attr">#[cfg(any(feature = <span class="string">&quot;image_rs&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
         </span><span class="kw">let </span>image_pipeline = image::Pipeline::new(device, format);
 
         <span class="self">Self </span>{
@@ -368,7 +368,7 @@
             text_pipeline,
             triangle_pipeline,
 
-            <span class="attr">#[cfg(any(feature = <span class="string">&quot;image_rs&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
             </span>image_pipeline,
 
             default_text_size: settings.default_text_size,
@@ -411,8 +411,8 @@
             );
         }
 
-        <span class="attr">#[cfg(any(feature = <span class="string">&quot;image_rs&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
-        </span><span class="self">self</span>.image_pipeline.trim_cache();
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+        </span><span class="self">self</span>.image_pipeline.trim_cache(device, encoder);
     }
 
     <span class="kw">fn </span>flush(
@@ -461,7 +461,7 @@
             );
         }
 
-        <span class="attr">#[cfg(any(feature = <span class="string">&quot;image_rs&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
         </span>{
             <span class="kw">if </span>!layer.images.is_empty() {
                 <span class="kw">let </span>scaled = transformation
@@ -607,9 +607,9 @@
     }
 }
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;image_rs&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
 </span><span class="kw">impl </span>backend::Image <span class="kw">for </span>Backend {
-    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>iced_native::image::Handle) -&gt; (u32, u32) {
+    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>iced_native::image::Handle) -&gt; Size&lt;u32&gt; {
         <span class="self">self</span>.image_pipeline.dimensions(handle)
     }
 }
@@ -619,7 +619,7 @@
     <span class="kw">fn </span>viewport_dimensions(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         handle: <span class="kw-2">&amp;</span>iced_native::svg::Handle,
-    ) -&gt; (u32, u32) {
+    ) -&gt; Size&lt;u32&gt; {
         <span class="self">self</span>.image_pipeline.viewport_dimensions(handle)
     }
 }

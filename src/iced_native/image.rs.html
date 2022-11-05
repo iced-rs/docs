@@ -134,7 +134,7 @@
 <span id="133">133</span>
 <span id="134">134</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Load and draw raster graphics.
-</span><span class="kw">use crate</span>::{Hasher, Rectangle};
+</span><span class="kw">use crate</span>::{Hasher, Rectangle, Size};
 
 <span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::hash::{Hash, Hasher <span class="kw">as _</span>};
@@ -157,7 +157,7 @@
     }
 
     <span class="doccomment">/// Creates an image [`Handle`] containing the image pixels directly. This
-    /// function expects the input data to be provided as a `Vec&lt;u8&gt;` of BGRA
+    /// function expects the input data to be provided as a `Vec&lt;u8&gt;` of RGBA
     /// pixels.
     ///
     /// This is useful if you have already decoded your image.
@@ -166,7 +166,7 @@
         height: u32,
         pixels: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;&gt;,
     ) -&gt; Handle {
-        <span class="self">Self</span>::from_data(Data::Pixels {
+        <span class="self">Self</span>::from_data(Data::Rgba {
             width,
             height,
             pixels: pixels.into(),
@@ -228,8 +228,8 @@
     <span class="doccomment">/// In-memory data
     </span>Bytes(Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;),
 
-    <span class="doccomment">/// Decoded image pixels in BGRA format.
-    </span>Pixels {
+    <span class="doccomment">/// Decoded image pixels in RGBA format.
+    </span>Rgba {
         <span class="doccomment">/// The width of the image.
         </span>width: u32,
         <span class="doccomment">/// The height of the image.
@@ -244,7 +244,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             Data::Path(path) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Path({:?})&quot;</span>, path),
             Data::Bytes(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Bytes(...)&quot;</span>),
-            Data::Pixels { width, height, .. } =&gt; {
+            Data::Rgba { width, height, .. } =&gt; {
                 <span class="macro">write!</span>(f, <span class="string">&quot;Pixels({} * {})&quot;</span>, width, height)
             }
         }
@@ -261,7 +261,7 @@
     </span><span class="kw">type </span>Handle: Clone + Hash;
 
     <span class="doccomment">/// Returns the dimensions of an image for the given [`Handle`].
-    </span><span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; (u32, u32);
+    </span><span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; Size&lt;u32&gt;;
 
     <span class="doccomment">/// Draws an image with the given [`Handle`] and inside the provided
     /// `bounds`.

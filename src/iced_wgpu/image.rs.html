@@ -563,25 +563,36 @@
 <span id="562">562</span>
 <span id="563">563</span>
 <span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
 </pre><pre class="rust"><code><span class="kw">mod </span>atlas;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;image_rs&quot;</span>)]
-</span><span class="kw">mod </span>raster;
+<span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+</span><span class="kw">use </span>iced_graphics::image::raster;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
-</span><span class="kw">mod </span>vector;
+</span><span class="kw">use </span>iced_graphics::image::vector;
 
 <span class="kw">use </span><span class="kw">crate</span>::Transformation;
 <span class="kw">use </span>atlas::Atlas;
 
 <span class="kw">use </span>iced_graphics::layer;
-<span class="kw">use </span>iced_native::Rectangle;
+<span class="kw">use </span>iced_native::{Rectangle, Size};
+
 <span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::mem;
 
 <span class="kw">use </span>bytemuck::{Pod, Zeroable};
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;image_rs&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
 </span><span class="kw">use </span>iced_native::image;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
@@ -589,10 +600,10 @@
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Pipeline {
-    <span class="attr">#[cfg(feature = <span class="string">&quot;image_rs&quot;</span>)]
-    </span>raster_cache: RefCell&lt;raster::Cache&gt;,
+    <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+    </span>raster_cache: RefCell&lt;raster::Cache&lt;Atlas&gt;&gt;,
     <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
-    </span>vector_cache: RefCell&lt;vector::Cache&gt;,
+    </span>vector_cache: RefCell&lt;vector::Cache&lt;Atlas&gt;&gt;,
 
     pipeline: wgpu::RenderPipeline,
     uniforms: wgpu::Buffer,
@@ -807,11 +818,11 @@
         });
 
         Pipeline {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;image_rs&quot;</span>)]
-            </span>raster_cache: RefCell::new(raster::Cache::new()),
+            <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+            </span>raster_cache: RefCell::new(raster::Cache::default()),
 
             <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
-            </span>vector_cache: RefCell::new(vector::Cache::new()),
+            </span>vector_cache: RefCell::new(vector::Cache::default()),
 
             pipeline,
             uniforms: uniforms_buffer,
@@ -826,8 +837,8 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;image_rs&quot;</span>)]
-    </span><span class="kw">pub fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle) -&gt; (u32, u32) {
+    <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+    </span><span class="kw">pub fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle) -&gt; Size&lt;u32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>cache = <span class="self">self</span>.raster_cache.borrow_mut();
         <span class="kw">let </span>memory = cache.load(handle);
 
@@ -835,7 +846,7 @@
     }
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
-    </span><span class="kw">pub fn </span>viewport_dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>svg::Handle) -&gt; (u32, u32) {
+    </span><span class="kw">pub fn </span>viewport_dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>svg::Handle) -&gt; Size&lt;u32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>cache = <span class="self">self</span>.vector_cache.borrow_mut();
         <span class="kw">let </span>svg = cache.load(handle);
 
@@ -855,7 +866,7 @@
     ) {
         <span class="kw">let </span>instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt; = <span class="kw-2">&amp;mut </span>Vec::new();
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;image_rs&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
         </span><span class="kw">let </span><span class="kw-2">mut </span>raster_cache = <span class="self">self</span>.raster_cache.borrow_mut();
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
@@ -863,12 +874,11 @@
 
         <span class="kw">for </span>image <span class="kw">in </span>images {
             <span class="kw">match </span><span class="kw-2">&amp;</span>image {
-                <span class="attr">#[cfg(feature = <span class="string">&quot;image_rs&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
                 </span>layer::Image::Raster { handle, bounds } =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(atlas_entry) = raster_cache.upload(
                         handle,
-                        device,
-                        encoder,
+                        <span class="kw-2">&amp;mut </span>(device, encoder),
                         <span class="kw-2">&amp;mut </span><span class="self">self</span>.texture_atlas,
                     ) {
                         add_instances(
@@ -879,7 +889,7 @@
                         );
                     }
                 }
-                <span class="attr">#[cfg(not(feature = <span class="string">&quot;image_rs&quot;</span>))]
+                <span class="attr">#[cfg(not(feature = <span class="string">&quot;image&quot;</span>))]
                 </span>layer::Image::Raster { .. } =&gt; {}
 
                 <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
@@ -890,8 +900,7 @@
                         handle,
                         size,
                         _scale,
-                        device,
-                        encoder,
+                        <span class="kw-2">&amp;mut </span>(device, encoder),
                         <span class="kw-2">&amp;mut </span><span class="self">self</span>.texture_atlas,
                     ) {
                         add_instances(
@@ -1011,12 +1020,20 @@
         }
     }
 
-    <span class="kw">pub fn </span>trim_cache(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;image_rs&quot;</span>)]
-        </span><span class="self">self</span>.raster_cache.borrow_mut().trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>.texture_atlas);
+    <span class="kw">pub fn </span>trim_cache(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+    ) {
+        <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+        </span><span class="self">self</span>.raster_cache
+            .borrow_mut()
+            .trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>.texture_atlas, <span class="kw-2">&amp;mut </span>(device, encoder));
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
-        </span><span class="self">self</span>.vector_cache.borrow_mut().trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>.texture_atlas);
+        </span><span class="self">self</span>.vector_cache
+            .borrow_mut()
+            .trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>.texture_atlas, <span class="kw-2">&amp;mut </span>(device, encoder));
     }
 }
 
@@ -1074,15 +1091,18 @@
             add_instance(image_position, image_size, allocation, instances);
         }
         atlas::Entry::Fragmented { fragments, size } =&gt; {
-            <span class="kw">let </span>scaling_x = image_size[<span class="number">0</span>] / size.<span class="number">0 </span><span class="kw">as </span>f32;
-            <span class="kw">let </span>scaling_y = image_size[<span class="number">1</span>] / size.<span class="number">1 </span><span class="kw">as </span>f32;
+            <span class="kw">let </span>scaling_x = image_size[<span class="number">0</span>] / size.width <span class="kw">as </span>f32;
+            <span class="kw">let </span>scaling_y = image_size[<span class="number">1</span>] / size.height <span class="kw">as </span>f32;
 
             <span class="kw">for </span>fragment <span class="kw">in </span>fragments {
                 <span class="kw">let </span>allocation = <span class="kw-2">&amp;</span>fragment.allocation;
 
                 <span class="kw">let </span>[x, y] = image_position;
                 <span class="kw">let </span>(fragment_x, fragment_y) = fragment.position;
-                <span class="kw">let </span>(fragment_width, fragment_height) = allocation.size();
+                <span class="kw">let </span>Size {
+                    width: fragment_width,
+                    height: fragment_height,
+                } = allocation.size();
 
                 <span class="kw">let </span>position = [
                     x + fragment_x <span class="kw">as </span>f32 * scaling_x,
@@ -1108,7 +1128,7 @@
     instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt;,
 ) {
     <span class="kw">let </span>(x, y) = allocation.position();
-    <span class="kw">let </span>(width, height) = allocation.size();
+    <span class="kw">let </span>Size { width, height } = allocation.size();
     <span class="kw">let </span>layer = allocation.layer();
 
     <span class="kw">let </span>instance = Instance {

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/image/raster.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raster.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../iced_wgpu/index.html">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `graphics/src/image/raster.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raster.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><div class="width-limiter"><nav class="sub"><a class="sub-logo-container" href="../../../iced_graphics/index.html">
                         <img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><pre class="src-line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
@@ -221,46 +221,76 @@
 <span id="220">220</span>
 <span id="221">221</span>
 <span id="222">222</span>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::image::atlas::{<span class="self">self</span>, Atlas};
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Raster image loading and caching.
+</span><span class="kw">use </span><span class="kw">crate</span>::image::Storage;
+<span class="kw">use </span><span class="kw">crate</span>::Size;
+
 <span class="kw">use </span>iced_native::image;
-<span class="kw">use </span>std::collections::{HashMap, HashSet};
 
 <span class="kw">use </span>bitflags::bitflags;
+<span class="kw">use </span>std::collections::{HashMap, HashSet};
 
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub enum </span>Memory {
-    Host(::image_rs::ImageBuffer&lt;::image_rs::Bgra&lt;u8&gt;, Vec&lt;u8&gt;&gt;),
-    Device(atlas::Entry),
-    NotFound,
-    Invalid,
+<span class="doccomment">/// Entry in cache corresponding to an image handle
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Memory&lt;T: Storage&gt; {
+    <span class="doccomment">/// Image data on host
+    </span>Host(::image_rs::ImageBuffer&lt;::image_rs::Rgba&lt;u8&gt;, Vec&lt;u8&gt;&gt;),
+    <span class="doccomment">/// Storage entry
+    </span>Device(T::Entry),
+    <span class="doccomment">/// Image not found
+    </span>NotFound,
+    <span class="doccomment">/// Invalid image data
+    </span>Invalid,
 }
 
-<span class="kw">impl </span>Memory {
-    <span class="kw">pub fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (u32, u32) {
+<span class="kw">impl</span>&lt;T: Storage&gt; Memory&lt;T&gt; {
+    <span class="doccomment">/// Width and height of image
+    </span><span class="kw">pub fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;u32&gt; {
+        <span class="kw">use </span><span class="kw">crate</span>::image::storage::Entry;
+
         <span class="kw">match </span><span class="self">self </span>{
-            Memory::Host(image) =&gt; image.dimensions(),
+            Memory::Host(image) =&gt; {
+                <span class="kw">let </span>(width, height) = image.dimensions();
+
+                Size::new(width, height)
+            }
             Memory::Device(entry) =&gt; entry.size(),
-            Memory::NotFound =&gt; (<span class="number">1</span>, <span class="number">1</span>),
-            Memory::Invalid =&gt; (<span class="number">1</span>, <span class="number">1</span>),
+            Memory::NotFound =&gt; Size::new(<span class="number">1</span>, <span class="number">1</span>),
+            Memory::Invalid =&gt; Size::new(<span class="number">1</span>, <span class="number">1</span>),
         }
     }
 }
 
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Cache {
-    map: HashMap&lt;u64, Memory&gt;,
+<span class="doccomment">/// Caches image raster data
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Cache&lt;T: Storage&gt; {
+    map: HashMap&lt;u64, Memory&lt;T&gt;&gt;,
     hits: HashSet&lt;u64&gt;,
 }
 
-<span class="kw">impl </span>Cache {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            map: HashMap::new(),
-            hits: HashSet::new(),
-        }
-    }
-
-    <span class="kw">pub fn </span>load(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle) -&gt; <span class="kw-2">&amp;mut </span>Memory {
+<span class="kw">impl</span>&lt;T: Storage&gt; Cache&lt;T&gt; {
+    <span class="doccomment">/// Load image
+    </span><span class="kw">pub fn </span>load(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle) -&gt; <span class="kw-2">&amp;mut </span>Memory&lt;T&gt; {
         <span class="kw">if </span><span class="self">self</span>.contains(handle) {
             <span class="kw">return </span><span class="self">self</span>.get(handle).unwrap();
         }
@@ -276,7 +306,7 @@
                         })
                         .unwrap_or_else(Operation::empty);
 
-                    Memory::Host(operation.perform(image.to_bgra8()))
+                    Memory::Host(operation.perform(image.to_rgba8()))
                 } <span class="kw">else </span>{
                     Memory::NotFound
                 }
@@ -288,12 +318,12 @@
                             .ok()
                             .unwrap_or_else(Operation::empty);
 
-                    Memory::Host(operation.perform(image.to_bgra8()))
+                    Memory::Host(operation.perform(image.to_rgba8()))
                 } <span class="kw">else </span>{
                     Memory::Invalid
                 }
             }
-            image::Data::Pixels {
+            image::Data::Rgba {
                 width,
                 height,
                 pixels,
@@ -314,19 +344,19 @@
         <span class="self">self</span>.get(handle).unwrap()
     }
 
-    <span class="kw">pub fn </span>upload(
+    <span class="doccomment">/// Load image and upload raster data
+    </span><span class="kw">pub fn </span>upload(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         handle: <span class="kw-2">&amp;</span>image::Handle,
-        device: <span class="kw-2">&amp;</span>wgpu::Device,
-        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
-        atlas: <span class="kw-2">&amp;mut </span>Atlas,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>atlas::Entry&gt; {
+        state: <span class="kw-2">&amp;mut </span>T::State&lt;<span class="lifetime">&#39;_</span>&gt;,
+        storage: <span class="kw-2">&amp;mut </span>T,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T::Entry&gt; {
         <span class="kw">let </span>memory = <span class="self">self</span>.load(handle);
 
         <span class="kw">if let </span>Memory::Host(image) = memory {
             <span class="kw">let </span>(width, height) = image.dimensions();
 
-            <span class="kw">let </span>entry = atlas.upload(width, height, image, device, encoder)<span class="question-mark">?</span>;
+            <span class="kw">let </span>entry = storage.upload(width, height, image, state)<span class="question-mark">?</span>;
 
             <span class="kw-2">*</span>memory = Memory::Device(entry);
         }
@@ -338,7 +368,8 @@
         </span>}
     }
 
-    <span class="kw">pub fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>, atlas: <span class="kw-2">&amp;mut </span>Atlas) {
+    <span class="doccomment">/// Trim cache misses from cache
+    </span><span class="kw">pub fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>, storage: <span class="kw-2">&amp;mut </span>T, state: <span class="kw-2">&amp;mut </span>T::State&lt;<span class="lifetime">&#39;_</span>&gt;) {
         <span class="kw">let </span>hits = <span class="kw-2">&amp;</span><span class="self">self</span>.hits;
 
         <span class="self">self</span>.map.retain(|k, memory| {
@@ -346,7 +377,7 @@
 
             <span class="kw">if </span>!retain {
                 <span class="kw">if let </span>Memory::Device(entry) = memory {
-                    atlas.remove(entry);
+                    storage.remove(entry, state);
                 }
             }
 
@@ -356,18 +387,27 @@
         <span class="self">self</span>.hits.clear();
     }
 
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Memory&gt; {
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>Memory&lt;T&gt;&gt; {
         <span class="kw">let _ </span>= <span class="self">self</span>.hits.insert(handle.id());
 
         <span class="self">self</span>.map.get_mut(<span class="kw-2">&amp;</span>handle.id())
     }
 
-    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle, memory: Memory) {
+    <span class="kw">fn </span>insert(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle, memory: Memory&lt;T&gt;) {
         <span class="kw">let _ </span>= <span class="self">self</span>.map.insert(handle.id(), memory);
     }
 
     <span class="kw">fn </span>contains(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle) -&gt; bool {
         <span class="self">self</span>.map.contains_key(<span class="kw-2">&amp;</span>handle.id())
+    }
+}
+
+<span class="kw">impl</span>&lt;T: Storage&gt; Default <span class="kw">for </span>Cache&lt;T&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            map: HashMap::new(),
+            hits: HashSet::new(),
+        }
     }
 }
 
@@ -444,4 +484,4 @@
     out
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_wgpu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (09508489e 2022-11-04)" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="iced_graphics" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (09508489e 2022-11-04)" ></div></body></html>

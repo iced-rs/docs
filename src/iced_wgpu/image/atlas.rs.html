@@ -389,13 +389,18 @@
 <span id="388">388</span>
 <span id="389">389</span>
 <span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
 </pre><pre class="rust"><code><span class="kw">pub mod </span>entry;
 
 <span class="kw">mod </span>allocation;
 <span class="kw">mod </span>allocator;
 <span class="kw">mod </span>layer;
-
-<span class="kw">use </span>std::num::NonZeroU32;
 
 <span class="kw">pub use </span>allocation::Allocation;
 <span class="kw">pub use </span>entry::Entry;
@@ -404,6 +409,11 @@
 <span class="kw">use </span>allocator::Allocator;
 
 <span class="kw">pub const </span>SIZE: u32 = <span class="number">2048</span>;
+
+<span class="kw">use </span>iced_graphics::image;
+<span class="kw">use </span>iced_graphics::Size;
+
+<span class="kw">use </span>std::num::NonZeroU32;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Atlas {
@@ -426,7 +436,7 @@
             mip_level_count: <span class="number">1</span>,
             sample_count: <span class="number">1</span>,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
             usage: wgpu::TextureUsages::COPY_DST
                 | wgpu::TextureUsages::COPY_SRC
                 | wgpu::TextureUsages::TEXTURE_BINDING,
@@ -450,99 +460,6 @@
 
     <span class="kw">pub fn </span>layer_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.layers.len()
-    }
-
-    <span class="kw">pub fn </span>upload(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        width: u32,
-        height: u32,
-        data: <span class="kw-2">&amp;</span>[u8],
-        device: <span class="kw-2">&amp;</span>wgpu::Device,
-        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Entry&gt; {
-        <span class="kw">use </span>wgpu::util::DeviceExt;
-
-        <span class="kw">let </span>entry = {
-            <span class="kw">let </span>current_size = <span class="self">self</span>.layers.len();
-            <span class="kw">let </span>entry = <span class="self">self</span>.allocate(width, height)<span class="question-mark">?</span>;
-
-            <span class="comment">// We grow the internal texture after allocating if necessary
-            </span><span class="kw">let </span>new_layers = <span class="self">self</span>.layers.len() - current_size;
-            <span class="self">self</span>.grow(new_layers, device, encoder);
-
-            entry
-        };
-
-        <span class="macro">log::info!</span>(<span class="string">&quot;Allocated atlas entry: {:?}&quot;</span>, entry);
-
-        <span class="comment">// It is a webgpu requirement that:
-        //   BufferCopyView.layout.bytes_per_row % wgpu::COPY_BYTES_PER_ROW_ALIGNMENT == 0
-        // So we calculate padded_width by rounding width up to the next
-        // multiple of wgpu::COPY_BYTES_PER_ROW_ALIGNMENT.
-        </span><span class="kw">let </span>align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
-        <span class="kw">let </span>padding = (align - (<span class="number">4 </span>* width) % align) % align;
-        <span class="kw">let </span>padded_width = (<span class="number">4 </span>* width + padding) <span class="kw">as </span>usize;
-        <span class="kw">let </span>padded_data_size = padded_width * height <span class="kw">as </span>usize;
-
-        <span class="kw">let </span><span class="kw-2">mut </span>padded_data = <span class="macro">vec!</span>[<span class="number">0</span>; padded_data_size];
-
-        <span class="kw">for </span>row <span class="kw">in </span><span class="number">0</span>..height <span class="kw">as </span>usize {
-            <span class="kw">let </span>offset = row * padded_width;
-
-            padded_data[offset..offset + <span class="number">4 </span>* width <span class="kw">as </span>usize].copy_from_slice(
-                <span class="kw-2">&amp;</span>data[row * <span class="number">4 </span>* width <span class="kw">as </span>usize..(row + <span class="number">1</span>) * <span class="number">4 </span>* width <span class="kw">as </span>usize],
-            )
-        }
-
-        <span class="kw">let </span>buffer =
-            device.create_buffer_init(<span class="kw-2">&amp;</span>wgpu::util::BufferInitDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image staging buffer&quot;</span>),
-                contents: <span class="kw-2">&amp;</span>padded_data,
-                usage: wgpu::BufferUsages::COPY_SRC,
-            });
-
-        <span class="kw">match </span><span class="kw-2">&amp;</span>entry {
-            Entry::Contiguous(allocation) =&gt; {
-                <span class="self">self</span>.upload_allocation(
-                    <span class="kw-2">&amp;</span>buffer, width, height, padding, <span class="number">0</span>, allocation, encoder,
-                );
-            }
-            Entry::Fragmented { fragments, .. } =&gt; {
-                <span class="kw">for </span>fragment <span class="kw">in </span>fragments {
-                    <span class="kw">let </span>(x, y) = fragment.position;
-                    <span class="kw">let </span>offset = (y * padded_width <span class="kw">as </span>u32 + <span class="number">4 </span>* x) <span class="kw">as </span>usize;
-
-                    <span class="self">self</span>.upload_allocation(
-                        <span class="kw-2">&amp;</span>buffer,
-                        width,
-                        height,
-                        padding,
-                        offset,
-                        <span class="kw-2">&amp;</span>fragment.allocation,
-                        encoder,
-                    );
-                }
-            }
-        }
-
-        <span class="macro">log::info!</span>(<span class="string">&quot;Current atlas: {:?}&quot;</span>, <span class="self">self</span>);
-
-        <span class="prelude-val">Some</span>(entry)
-    }
-
-    <span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry: <span class="kw-2">&amp;</span>Entry) {
-        <span class="macro">log::info!</span>(<span class="string">&quot;Removing atlas entry: {:?}&quot;</span>, entry);
-
-        <span class="kw">match </span>entry {
-            Entry::Contiguous(allocation) =&gt; {
-                <span class="self">self</span>.deallocate(allocation);
-            }
-            Entry::Fragmented { fragments, .. } =&gt; {
-                <span class="kw">for </span>fragment <span class="kw">in </span>fragments {
-                    <span class="self">self</span>.deallocate(<span class="kw-2">&amp;</span>fragment.allocation);
-                }
-            }
-        }
     }
 
     <span class="kw">fn </span>allocate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, width: u32, height: u32) -&gt; <span class="prelude-ty">Option</span>&lt;Entry&gt; {
@@ -595,7 +512,7 @@
             }
 
             <span class="kw">return </span><span class="prelude-val">Some</span>(Entry::Fragmented {
-                size: (width, height),
+                size: Size::new(width, height),
                 fragments,
             });
         }
@@ -675,7 +592,7 @@
         encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
     ) {
         <span class="kw">let </span>(x, y) = allocation.position();
-        <span class="kw">let </span>(width, height) = allocation.size();
+        <span class="kw">let </span>Size { width, height } = allocation.size();
         <span class="kw">let </span>layer = allocation.layer();
 
         <span class="kw">let </span>extent = wgpu::Extent3d {
@@ -727,7 +644,7 @@
             mip_level_count: <span class="number">1</span>,
             sample_count: <span class="number">1</span>,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
             usage: wgpu::TextureUsages::COPY_DST
                 | wgpu::TextureUsages::COPY_SRC
                 | wgpu::TextureUsages::TEXTURE_BINDING,
@@ -777,6 +694,103 @@
                 dimension: <span class="prelude-val">Some</span>(wgpu::TextureViewDimension::D2Array),
                 ..Default::default()
             });
+    }
+}
+
+<span class="kw">impl </span>image::Storage <span class="kw">for </span>Atlas {
+    <span class="kw">type </span>Entry = Entry;
+    <span class="kw">type </span>State&lt;<span class="lifetime">&#39;a</span>&gt; = (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>wgpu::Device, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>wgpu::CommandEncoder);
+
+    <span class="kw">fn </span>upload(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        width: u32,
+        height: u32,
+        data: <span class="kw-2">&amp;</span>[u8],
+        (device, encoder): <span class="kw-2">&amp;mut </span><span class="self">Self</span>::State&lt;<span class="lifetime">&#39;_</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Entry&gt; {
+        <span class="kw">use </span>wgpu::util::DeviceExt;
+
+        <span class="kw">let </span>entry = {
+            <span class="kw">let </span>current_size = <span class="self">self</span>.layers.len();
+            <span class="kw">let </span>entry = <span class="self">self</span>.allocate(width, height)<span class="question-mark">?</span>;
+
+            <span class="comment">// We grow the internal texture after allocating if necessary
+            </span><span class="kw">let </span>new_layers = <span class="self">self</span>.layers.len() - current_size;
+            <span class="self">self</span>.grow(new_layers, device, encoder);
+
+            entry
+        };
+
+        <span class="macro">log::info!</span>(<span class="string">&quot;Allocated atlas entry: {:?}&quot;</span>, entry);
+
+        <span class="comment">// It is a webgpu requirement that:
+        //   BufferCopyView.layout.bytes_per_row % wgpu::COPY_BYTES_PER_ROW_ALIGNMENT == 0
+        // So we calculate padded_width by rounding width up to the next
+        // multiple of wgpu::COPY_BYTES_PER_ROW_ALIGNMENT.
+        </span><span class="kw">let </span>align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
+        <span class="kw">let </span>padding = (align - (<span class="number">4 </span>* width) % align) % align;
+        <span class="kw">let </span>padded_width = (<span class="number">4 </span>* width + padding) <span class="kw">as </span>usize;
+        <span class="kw">let </span>padded_data_size = padded_width * height <span class="kw">as </span>usize;
+
+        <span class="kw">let </span><span class="kw-2">mut </span>padded_data = <span class="macro">vec!</span>[<span class="number">0</span>; padded_data_size];
+
+        <span class="kw">for </span>row <span class="kw">in </span><span class="number">0</span>..height <span class="kw">as </span>usize {
+            <span class="kw">let </span>offset = row * padded_width;
+
+            padded_data[offset..offset + <span class="number">4 </span>* width <span class="kw">as </span>usize].copy_from_slice(
+                <span class="kw-2">&amp;</span>data[row * <span class="number">4 </span>* width <span class="kw">as </span>usize..(row + <span class="number">1</span>) * <span class="number">4 </span>* width <span class="kw">as </span>usize],
+            )
+        }
+
+        <span class="kw">let </span>buffer =
+            device.create_buffer_init(<span class="kw-2">&amp;</span>wgpu::util::BufferInitDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image staging buffer&quot;</span>),
+                contents: <span class="kw-2">&amp;</span>padded_data,
+                usage: wgpu::BufferUsages::COPY_SRC,
+            });
+
+        <span class="kw">match </span><span class="kw-2">&amp;</span>entry {
+            Entry::Contiguous(allocation) =&gt; {
+                <span class="self">self</span>.upload_allocation(
+                    <span class="kw-2">&amp;</span>buffer, width, height, padding, <span class="number">0</span>, allocation, encoder,
+                );
+            }
+            Entry::Fragmented { fragments, .. } =&gt; {
+                <span class="kw">for </span>fragment <span class="kw">in </span>fragments {
+                    <span class="kw">let </span>(x, y) = fragment.position;
+                    <span class="kw">let </span>offset = (y * padded_width <span class="kw">as </span>u32 + <span class="number">4 </span>* x) <span class="kw">as </span>usize;
+
+                    <span class="self">self</span>.upload_allocation(
+                        <span class="kw-2">&amp;</span>buffer,
+                        width,
+                        height,
+                        padding,
+                        offset,
+                        <span class="kw-2">&amp;</span>fragment.allocation,
+                        encoder,
+                    );
+                }
+            }
+        }
+
+        <span class="macro">log::info!</span>(<span class="string">&quot;Current atlas: {:?}&quot;</span>, <span class="self">self</span>);
+
+        <span class="prelude-val">Some</span>(entry)
+    }
+
+    <span class="kw">fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry: <span class="kw-2">&amp;</span>Entry, <span class="kw">_</span>: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::State&lt;<span class="lifetime">&#39;_</span>&gt;) {
+        <span class="macro">log::info!</span>(<span class="string">&quot;Removing atlas entry: {:?}&quot;</span>, entry);
+
+        <span class="kw">match </span>entry {
+            Entry::Contiguous(allocation) =&gt; {
+                <span class="self">self</span>.deallocate(allocation);
+            }
+            Entry::Fragmented { fragments, .. } =&gt; {
+                <span class="kw">for </span>fragment <span class="kw">in </span>fragments {
+                    <span class="self">self</span>.deallocate(<span class="kw-2">&amp;</span>fragment.allocation);
+                }
+            }
+        }
     }
 }
 </code></pre></div>
