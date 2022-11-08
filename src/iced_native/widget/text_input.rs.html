@@ -1095,6 +1095,10 @@
 <span id="1094">1094</span>
 <span id="1095">1095</span>
 <span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -1447,15 +1451,19 @@
 {
     <span class="kw">let </span>text_size = size.unwrap_or_else(|| renderer.default_size());
 
-    <span class="kw">let </span>limits = limits
+    <span class="kw">let </span>text_limits = limits
         .pad(padding)
         .width(width)
         .height(Length::Units(text_size));
+    <span class="kw">let </span>limits = limits.width(width).height(Length::Shrink);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>text = layout::Node::new(limits.resolve(Size::ZERO));
+    <span class="kw">let </span><span class="kw-2">mut </span>text = layout::Node::new(text_limits.resolve(Size::ZERO));
+    <span class="kw">let </span>padding = padding.fit(text.size(), limits.max());
+    <span class="kw">let </span>size = limits.pad(padding).resolve(text.size()).pad(padding);
+
     text.move_to(Point::new(padding.left.into(), padding.top.into()));
 
-    layout::Node::with_children(text.size().pad(padding), <span class="macro">vec!</span>[text])
+    layout::Node::with_children(size, <span class="macro">vec!</span>[text])
 }
 
 <span class="doccomment">/// Processes an [`Event`] and updates the [`State`] of a [`TextInput`]
