@@ -327,15 +327,35 @@
 <span id="326">326</span>
 <span id="327">327</span>
 <span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The state of a [`PaneGrid`].
 //!
 //! [`PaneGrid`]: crate::widget::PaneGrid
 </span><span class="kw">use </span><span class="kw">crate</span>::widget::pane_grid::{
     Axis, Configuration, Direction, Node, Pane, Split,
 };
-<span class="kw">use crate</span>::{Point, Rectangle, Size};
+<span class="kw">use crate</span>::{Point, Size};
 
-<span class="kw">use </span>std::collections::{BTreeMap, HashMap};
+<span class="kw">use </span>std::collections::HashMap;
 
 <span class="doccomment">/// The state of a [`PaneGrid`].
 ///
@@ -360,6 +380,9 @@
     ///
     /// [`PaneGrid`]: crate::widget::PaneGrid
     </span><span class="kw">pub </span>internal: Internal,
+
+    <span class="doccomment">/// The maximized [`Pane`] of the [`PaneGrid`]
+    </span><span class="kw">pub</span>(<span class="kw">super</span>) maximized: <span class="prelude-ty">Option</span>&lt;Pane&gt;,
 }
 
 <span class="kw">impl</span>&lt;T&gt; State&lt;T&gt; {
@@ -381,7 +404,11 @@
         <span class="kw">let </span>internal =
             Internal::from_configuration(<span class="kw-2">&amp;mut </span>panes, config.into(), <span class="number">0</span>);
 
-        State { panes, internal }
+        State {
+            panes,
+            internal,
+            maximized: <span class="prelude-val">None</span>,
+        }
     }
 
     <span class="doccomment">/// Returns the total amount of panes in the [`State`].
@@ -482,6 +509,7 @@
         node.split(new_split, axis, new_pane);
 
         <span class="kw">let _ </span>= <span class="self">self</span>.panes.insert(new_pane, state);
+        <span class="kw">let _ </span>= <span class="self">self</span>.maximized.take();
 
         <span class="prelude-val">Some</span>((new_pane, new_split))
     }
@@ -523,11 +551,38 @@
     <span class="doccomment">/// Closes the given [`Pane`] and returns its internal state and its closest
     /// sibling, if it exists.
     </span><span class="kw">pub fn </span>close(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pane: <span class="kw-2">&amp;</span>Pane) -&gt; <span class="prelude-ty">Option</span>&lt;(T, Pane)&gt; {
+        <span class="kw">if </span><span class="self">self</span>.maximized == <span class="prelude-val">Some</span>(<span class="kw-2">*</span>pane) {
+            <span class="kw">let _ </span>= <span class="self">self</span>.maximized.take();
+        }
+
         <span class="kw">if let </span><span class="prelude-val">Some</span>(sibling) = <span class="self">self</span>.internal.layout.remove(pane) {
             <span class="self">self</span>.panes.remove(pane).map(|state| (state, sibling))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
+    }
+
+    <span class="doccomment">/// Maximize the given [`Pane`]. Only this pane will be rendered by the
+    /// [`PaneGrid`] until [`Self::restore()`] is called.
+    ///
+    /// [`PaneGrid`]: crate::widget::PaneGrid
+    </span><span class="kw">pub fn </span>maximize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pane: <span class="kw-2">&amp;</span>Pane) {
+        <span class="self">self</span>.maximized = <span class="prelude-val">Some</span>(<span class="kw-2">*</span>pane);
+    }
+
+    <span class="doccomment">/// Restore the currently maximized [`Pane`] to it&#39;s normal size. All panes
+    /// will be rendered by the [`PaneGrid`].
+    ///
+    /// [`PaneGrid`]: crate::widget::PaneGrid
+    </span><span class="kw">pub fn </span>restore(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">let _ </span>= <span class="self">self</span>.maximized.take();
+    }
+
+    <span class="doccomment">/// Returns the maximized [`Pane`] of the [`PaneGrid`].
+    ///
+    /// [`PaneGrid`]: crate::widget::PaneGrid
+    </span><span class="kw">pub fn </span>maximized(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Pane&gt; {
+        <span class="self">self</span>.maximized
     }
 }
 
@@ -555,11 +610,13 @@
                 <span class="kw">let </span>Internal {
                     layout: a,
                     last_id: next_id,
+                    ..
                 } = <span class="self">Self</span>::from_configuration(panes, <span class="kw-2">*</span>a, next_id);
 
                 <span class="kw">let </span>Internal {
                     layout: b,
                     last_id: next_id,
+                    ..
                 } = <span class="self">Self</span>::from_configuration(panes, <span class="kw-2">*</span>b, next_id);
 
                 (
@@ -633,26 +690,9 @@
 }
 
 <span class="kw">impl </span>Internal {
-    <span class="doccomment">/// Calculates the current [`Pane`] regions from the [`PaneGrid`] layout.
-    ///
-    /// [`PaneGrid`]: crate::widget::PaneGrid
-    </span><span class="kw">pub fn </span>pane_regions(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        spacing: f32,
-        size: Size,
-    ) -&gt; BTreeMap&lt;Pane, Rectangle&gt; {
-        <span class="self">self</span>.layout.pane_regions(spacing, size)
-    }
-
-    <span class="doccomment">/// Calculates the current [`Split`] regions from the [`PaneGrid`] layout.
-    ///
-    /// [`PaneGrid`]: crate::widget::PaneGrid
-    </span><span class="kw">pub fn </span>split_regions(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        spacing: f32,
-        size: Size,
-    ) -&gt; BTreeMap&lt;Split, (Axis, Rectangle, f32)&gt; {
-        <span class="self">self</span>.layout.split_regions(spacing, size)
+    <span class="doccomment">/// The layout [`Node`] of the [`Internal`] state
+    </span><span class="kw">pub fn </span>layout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Node {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.layout
     }
 }
 </code></pre></div>

@@ -898,6 +898,83 @@
 <span id="897">897</span>
 <span id="898">898</span>
 <span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Let your users split regions of your application and organize layout dynamically.
 //!
 //! [![Pane grid - Iced](https://thumbs.gfycat.com/MixedFlatJellyfish-small.gif)](https://gfycat.com/mixedflatjellyfish)
@@ -985,7 +1062,7 @@
 /// let (mut state, _) = pane_grid::State::new(PaneState::SomePane);
 ///
 /// let pane_grid =
-///     PaneGrid::new(&amp;state, |pane, state| {
+///     PaneGrid::new(&amp;state, |pane, state, is_maximized| {
 ///         pane_grid::Content::new(match state {
 ///             PaneState::SomePane =&gt; text(&quot;This is some pane&quot;),
 ///             PaneState::AnotherKindOfPane =&gt; text(&quot;This is another kind of pane&quot;),
@@ -1000,8 +1077,7 @@
     </span>Renderer: <span class="kw">crate</span>::Renderer,
     Renderer::Theme: StyleSheet + container::StyleSheet,
 {
-    state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>state::Internal,
-    elements: Vec&lt;(Pane, Content&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;)&gt;,
+    contents: Contents&lt;<span class="lifetime">&#39;a</span>, Content&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;,
     width: Length,
     height: Length,
     spacing: u16,
@@ -1019,22 +1095,35 @@
     <span class="doccomment">/// Creates a [`PaneGrid`] with the given [`State`] and view function.
     ///
     /// The view function will be called to display each [`Pane`] present in the
-    /// [`State`].
+    /// [`State`]. [`bool`] is set if the pane is maximized.
     </span><span class="kw">pub fn </span>new&lt;T&gt;(
         state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>State&lt;T&gt;,
-        view: <span class="kw">impl </span>Fn(Pane, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T) -&gt; Content&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
+        view: <span class="kw">impl </span>Fn(Pane, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T, bool) -&gt; Content&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>elements = {
-            state
-                .panes
-                .iter()
-                .map(|(pane, pane_state)| (<span class="kw-2">*</span>pane, view(<span class="kw-2">*</span>pane, pane_state)))
-                .collect()
+        <span class="kw">let </span>contents = <span class="kw">if let </span><span class="prelude-val">Some</span>((pane, pane_state)) =
+            state.maximized.and_then(|pane| {
+                state.panes.get(<span class="kw-2">&amp;</span>pane).map(|pane_state| (pane, pane_state))
+            }) {
+            Contents::Maximized(
+                pane,
+                view(pane, pane_state, <span class="bool-val">true</span>),
+                Node::Pane(pane),
+            )
+        } <span class="kw">else </span>{
+            Contents::All(
+                state
+                    .panes
+                    .iter()
+                    .map(|(pane, pane_state)| {
+                        (<span class="kw-2">*</span>pane, view(<span class="kw-2">*</span>pane, pane_state, <span class="bool-val">false</span>))
+                    })
+                    .collect(),
+                <span class="kw-2">&amp;</span>state.internal,
+            )
         };
 
         <span class="self">Self </span>{
-            elements,
-            state: <span class="kw-2">&amp;</span>state.internal,
+            contents,
             width: Length::Fill,
             height: Length::Fill,
             spacing: <span class="number">0</span>,
@@ -1108,6 +1197,12 @@
         <span class="self">self</span>.style = style.into();
         <span class="self">self
     </span>}
+
+    <span class="kw">fn </span>drag_enabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        (!<span class="self">self</span>.contents.is_maximized())
+            .then(|| <span class="self">self</span>.on_drag.is_some())
+            .unwrap_or_default()
+    }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Widget&lt;Message, Renderer&gt;
@@ -1125,18 +1220,25 @@
     }
 
     <span class="kw">fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Tree&gt; {
-        <span class="self">self</span>.elements
+        <span class="self">self</span>.contents
             .iter()
             .map(|(<span class="kw">_</span>, content)| content.state())
             .collect()
     }
 
     <span class="kw">fn </span>diff(<span class="kw-2">&amp;</span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree) {
-        tree.diff_children_custom(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.elements,
-            |state, (<span class="kw">_</span>, content)| content.diff(state),
-            |(<span class="kw">_</span>, content)| content.state(),
-        )
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.contents {
+            Contents::All(contents, <span class="kw">_</span>) =&gt; tree.diff_children_custom(
+                contents,
+                |state, (<span class="kw">_</span>, content)| content.diff(state),
+                |(<span class="kw">_</span>, content)| content.state(),
+            ),
+            Contents::Maximized(<span class="kw">_</span>, content, <span class="kw">_</span>) =&gt; tree.diff_children_custom(
+                <span class="kw-2">&amp;</span>[content],
+                |state, content| content.diff(state),
+                |content| content.state(),
+            ),
+        }
     }
 
     <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
@@ -1155,12 +1257,12 @@
         layout(
             renderer,
             limits,
-            <span class="self">self</span>.state,
+            <span class="self">self</span>.contents.layout(),
             <span class="self">self</span>.width,
             <span class="self">self</span>.height,
             <span class="self">self</span>.spacing,
-            <span class="self">self</span>.elements.iter().map(|(pane, content)| (<span class="kw-2">*</span>pane, content)),
-            |element, renderer, limits| element.layout(renderer, limits),
+            <span class="self">self</span>.contents.iter(),
+            |content, renderer, limits| content.layout(renderer, limits),
         )
     }
 
@@ -1176,28 +1278,34 @@
     ) -&gt; event::Status {
         <span class="kw">let </span>action = tree.state.downcast_mut::&lt;state::Action&gt;();
 
+        <span class="kw">let </span>on_drag = <span class="kw">if </span><span class="self">self</span>.drag_enabled() {
+            <span class="kw-2">&amp;</span><span class="self">self</span>.on_drag
+        } <span class="kw">else </span>{
+            <span class="kw-2">&amp;</span><span class="prelude-val">None
+        </span>};
+
         <span class="kw">let </span>event_status = update(
             action,
-            <span class="self">self</span>.state,
+            <span class="self">self</span>.contents.layout(),
             <span class="kw-2">&amp;</span>event,
             layout,
             cursor_position,
             shell,
             <span class="self">self</span>.spacing,
-            <span class="self">self</span>.elements.iter().map(|(pane, content)| (<span class="kw-2">*</span>pane, content)),
+            <span class="self">self</span>.contents.iter(),
             <span class="kw-2">&amp;</span><span class="self">self</span>.on_click,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.on_drag,
+            on_drag,
             <span class="kw-2">&amp;</span><span class="self">self</span>.on_resize,
         );
 
         <span class="kw">let </span>picked_pane = action.picked_pane().map(|(pane, <span class="kw">_</span>)| pane);
 
-        <span class="self">self</span>.elements
+        <span class="self">self</span>.contents
             .iter_mut()
             .zip(<span class="kw-2">&amp;mut </span>tree.children)
             .zip(layout.children())
             .map(|(((pane, content), tree), layout)| {
-                <span class="kw">let </span>is_picked = picked_pane == <span class="prelude-val">Some</span>(<span class="kw-2">*</span>pane);
+                <span class="kw">let </span>is_picked = picked_pane == <span class="prelude-val">Some</span>(pane);
 
                 content.on_event(
                     tree,
@@ -1223,14 +1331,14 @@
     ) -&gt; mouse::Interaction {
         mouse_interaction(
             tree.state.downcast_ref(),
-            <span class="self">self</span>.state,
+            <span class="self">self</span>.contents.layout(),
             layout,
             cursor_position,
             <span class="self">self</span>.spacing,
             <span class="self">self</span>.on_resize.as_ref().map(|(leeway, <span class="kw">_</span>)| <span class="kw-2">*</span>leeway),
         )
         .unwrap_or_else(|| {
-            <span class="self">self</span>.elements
+            <span class="self">self</span>.contents
                 .iter()
                 .zip(<span class="kw-2">&amp;</span>tree.children)
                 .zip(layout.children())
@@ -1241,7 +1349,7 @@
                         cursor_position,
                         viewport,
                         renderer,
-                        <span class="self">self</span>.on_drag.is_some(),
+                        <span class="self">self</span>.drag_enabled(),
                     )
                 })
                 .max()
@@ -1261,7 +1369,7 @@
     ) {
         draw(
             tree.state.downcast_ref(),
-            <span class="self">self</span>.state,
+            <span class="self">self</span>.contents.layout(),
             layout,
             cursor_position,
             renderer,
@@ -1271,10 +1379,10 @@
             <span class="self">self</span>.spacing,
             <span class="self">self</span>.on_resize.as_ref().map(|(leeway, <span class="kw">_</span>)| <span class="kw-2">*</span>leeway),
             <span class="self">self</span>.style,
-            <span class="self">self</span>.elements
+            <span class="self">self</span>.contents
                 .iter()
                 .zip(<span class="kw-2">&amp;</span>tree.children)
-                .map(|((pane, content), tree)| (<span class="kw-2">*</span>pane, (content, tree))),
+                .map(|((pane, content), tree)| (pane, (content, tree))),
             |(content, tree),
              renderer,
              style,
@@ -1300,7 +1408,7 @@
         layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;_</span>, Message, Renderer&gt;&gt; {
-        <span class="self">self</span>.elements
+        <span class="self">self</span>.contents
             .iter()
             .zip(<span class="kw-2">&amp;mut </span>tree.children)
             .zip(layout.children())
@@ -1329,24 +1437,24 @@
 </span><span class="kw">pub fn </span>layout&lt;Renderer, T&gt;(
     renderer: <span class="kw-2">&amp;</span>Renderer,
     limits: <span class="kw-2">&amp;</span>layout::Limits,
-    state: <span class="kw-2">&amp;</span>state::Internal,
+    node: <span class="kw-2">&amp;</span>Node,
     width: Length,
     height: Length,
     spacing: u16,
-    elements: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
-    layout_element: <span class="kw">impl </span>Fn(T, <span class="kw-2">&amp;</span>Renderer, <span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
+    contents: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
+    layout_content: <span class="kw">impl </span>Fn(T, <span class="kw-2">&amp;</span>Renderer, <span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
 ) -&gt; layout::Node {
     <span class="kw">let </span>limits = limits.width(width).height(height);
     <span class="kw">let </span>size = limits.resolve(Size::ZERO);
 
-    <span class="kw">let </span>regions = state.pane_regions(f32::from(spacing), size);
-    <span class="kw">let </span>children = elements
-        .filter_map(|(pane, element)| {
+    <span class="kw">let </span>regions = node.pane_regions(f32::from(spacing), size);
+    <span class="kw">let </span>children = contents
+        .filter_map(|(pane, content)| {
             <span class="kw">let </span>region = regions.get(<span class="kw-2">&amp;</span>pane)<span class="question-mark">?</span>;
             <span class="kw">let </span>size = Size::new(region.width, region.height);
 
-            <span class="kw">let </span><span class="kw-2">mut </span>node = layout_element(
-                element,
+            <span class="kw">let </span><span class="kw-2">mut </span>node = layout_content(
+                content,
                 renderer,
                 <span class="kw-2">&amp;</span>layout::Limits::new(size, size),
             );
@@ -1364,13 +1472,13 @@
 /// accordingly.
 </span><span class="kw">pub fn </span>update&lt;<span class="lifetime">&#39;a</span>, Message, T: Draggable&gt;(
     action: <span class="kw-2">&amp;mut </span>state::Action,
-    state: <span class="kw-2">&amp;</span>state::Internal,
+    node: <span class="kw-2">&amp;</span>Node,
     event: <span class="kw-2">&amp;</span>Event,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     cursor_position: Point,
     shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
     spacing: u16,
-    elements: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
+    contents: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
     on_click: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Pane) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
     on_drag: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(DragEvent) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
     on_resize: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;(u16, Box&lt;<span class="kw">dyn </span>Fn(ResizeEvent) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;)&gt;,
@@ -1392,7 +1500,7 @@
                             cursor_position.y - bounds.y,
                         );
 
-                        <span class="kw">let </span>splits = state.split_regions(
+                        <span class="kw">let </span>splits = node.split_regions(
                             f32::from(spacing),
                             Size::new(bounds.width, bounds.height),
                         );
@@ -1414,7 +1522,7 @@
                                 layout,
                                 cursor_position,
                                 shell,
-                                elements,
+                                contents,
                                 on_click,
                                 on_drag,
                             );
@@ -1426,7 +1534,7 @@
                             layout,
                             cursor_position,
                             shell,
-                            elements,
+                            contents,
                             on_click,
                             on_drag,
                         );
@@ -1439,7 +1547,7 @@
         | Event::Touch(touch::Event::FingerLost { .. }) =&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>((pane, <span class="kw">_</span>)) = action.picked_pane() {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(on_drag) = on_drag {
-                    <span class="kw">let </span><span class="kw-2">mut </span>dropped_region = elements
+                    <span class="kw">let </span><span class="kw-2">mut </span>dropped_region = contents
                         .zip(layout.children())
                         .filter(|(<span class="kw">_</span>, layout)| {
                             layout.bounds().contains(cursor_position)
@@ -1470,7 +1578,7 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>((split, <span class="kw">_</span>)) = action.picked_split() {
                     <span class="kw">let </span>bounds = layout.bounds();
 
-                    <span class="kw">let </span>splits = state.split_regions(
+                    <span class="kw">let </span>splits = node.split_regions(
                         f32::from(spacing),
                         Size::new(bounds.width, bounds.height),
                     );
@@ -1509,13 +1617,13 @@
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     cursor_position: Point,
     shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
-    elements: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
+    contents: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
     on_click: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Pane) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
     on_drag: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(DragEvent) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
 ) <span class="kw">where
     </span>T: Draggable,
 {
-    <span class="kw">let </span><span class="kw-2">mut </span>clicked_region = elements
+    <span class="kw">let </span><span class="kw-2">mut </span>clicked_region = contents
         .zip(layout.children())
         .filter(|(<span class="kw">_</span>, layout)| layout.bounds().contains(cursor_position));
 
@@ -1542,7 +1650,7 @@
 <span class="doccomment">/// Returns the current [`mouse::Interaction`] of a [`PaneGrid`].
 </span><span class="kw">pub fn </span>mouse_interaction(
     action: <span class="kw-2">&amp;</span>state::Action,
-    state: <span class="kw-2">&amp;</span>state::Internal,
+    node: <span class="kw-2">&amp;</span>Node,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     cursor_position: Point,
     spacing: u16,
@@ -1558,7 +1666,7 @@
                 <span class="kw">let </span>bounds = layout.bounds();
 
                 <span class="kw">let </span>splits =
-                    state.split_regions(f32::from(spacing), bounds.size());
+                    node.split_regions(f32::from(spacing), bounds.size());
 
                 <span class="kw">let </span>relative_cursor = Point::new(
                     cursor_position.x - bounds.x,
@@ -1587,7 +1695,7 @@
 <span class="doccomment">/// Draws a [`PaneGrid`].
 </span><span class="kw">pub fn </span>draw&lt;Renderer, T&gt;(
     action: <span class="kw-2">&amp;</span>state::Action,
-    state: <span class="kw-2">&amp;</span>state::Internal,
+    node: <span class="kw-2">&amp;</span>Node,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     cursor_position: Point,
     renderer: <span class="kw-2">&amp;mut </span>Renderer,
@@ -1597,7 +1705,7 @@
     spacing: u16,
     resize_leeway: <span class="prelude-ty">Option</span>&lt;u16&gt;,
     style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
-    elements: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
+    contents: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
     draw_pane: <span class="kw">impl </span>Fn(
         T,
         <span class="kw-2">&amp;mut </span>Renderer,
@@ -1617,7 +1725,7 @@
         .and_then(|(split, axis)| {
             <span class="kw">let </span>bounds = layout.bounds();
 
-            <span class="kw">let </span>splits = state.split_regions(f32::from(spacing), bounds.size());
+            <span class="kw">let </span>splits = node.split_regions(f32::from(spacing), bounds.size());
 
             <span class="kw">let </span>(_axis, region, ratio) = splits.get(<span class="kw-2">&amp;</span>split)<span class="question-mark">?</span>;
 
@@ -1636,7 +1744,7 @@
                 );
 
                 <span class="kw">let </span>splits =
-                    state.split_regions(f32::from(spacing), bounds.size());
+                    node.split_regions(f32::from(spacing), bounds.size());
 
                 <span class="kw">let </span>(_split, axis, region) = hovered_split(
                     splits.iter(),
@@ -1659,7 +1767,7 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>render_picked_pane = <span class="prelude-val">None</span>;
 
-    <span class="kw">for </span>((id, pane), layout) <span class="kw">in </span>elements.zip(layout.children()) {
+    <span class="kw">for </span>((id, pane), layout) <span class="kw">in </span>contents.zip(layout.children()) {
         <span class="kw">match </span>picked_pane {
             <span class="prelude-val">Some</span>((dragging, origin)) <span class="kw">if </span>id == dragging =&gt; {
                 render_picked_pane = <span class="prelude-val">Some</span>((pane, origin, layout));
@@ -1796,6 +1904,52 @@
             </span>}
         })
         .next()
+}
+
+<span class="doccomment">/// The visible contents of the [`PaneGrid`]
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Contents&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="doccomment">/// All panes are visible
+    </span>All(Vec&lt;(Pane, T)&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>state::Internal),
+    <span class="doccomment">/// A maximized pane is visible
+    </span>Maximized(Pane, T, Node),
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, T&gt; Contents&lt;<span class="lifetime">&#39;a</span>, T&gt; {
+    <span class="doccomment">/// Returns the layout [`Node`] of the [`Contents`]
+    </span><span class="kw">pub fn </span>layout(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Node {
+        <span class="kw">match </span><span class="self">self </span>{
+            Contents::All(<span class="kw">_</span>, state) =&gt; state.layout(),
+            Contents::Maximized(<span class="kw">_</span>, <span class="kw">_</span>, layout) =&gt; layout,
+        }
+    }
+
+    <span class="doccomment">/// Returns an iterator over the values of the [`Contents`]
+    </span><span class="kw">pub fn </span>iter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = (Pane, <span class="kw-2">&amp;</span>T)&gt; + <span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Contents::All(contents, <span class="kw">_</span>) =&gt; Box::new(
+                contents.iter().map(|(pane, content)| (<span class="kw-2">*</span>pane, content)),
+            ),
+            Contents::Maximized(pane, content, <span class="kw">_</span>) =&gt; {
+                Box::new(std::iter::once((<span class="kw-2">*</span>pane, content)))
+            }
+        }
+    }
+
+    <span class="kw">fn </span>iter_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Box&lt;<span class="kw">dyn </span>Iterator&lt;Item = (Pane, <span class="kw-2">&amp;mut </span>T)&gt; + <span class="lifetime">&#39;_</span>&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            Contents::All(contents, <span class="kw">_</span>) =&gt; Box::new(
+                contents.iter_mut().map(|(pane, content)| (<span class="kw-2">*</span>pane, content)),
+            ),
+            Contents::Maximized(pane, content, <span class="kw">_</span>) =&gt; {
+                Box::new(std::iter::once((<span class="kw-2">*</span>pane, content)))
+            }
+        }
+    }
+
+    <span class="kw">fn </span>is_maximized(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Maximized(..))
+    }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_native" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (73c9eaf21 2022-11-07)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>
