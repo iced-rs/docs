@@ -560,6 +560,28 @@
 <span id="559">559</span>
 <span id="560">560</span>
 <span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of selectable values.
 </span><span class="kw">use </span><span class="kw">crate</span>::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
@@ -571,6 +593,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::text::{<span class="self">self</span>, Text};
 <span class="kw">use </span><span class="kw">crate</span>::touch;
+<span class="kw">use </span><span class="kw">crate</span>::widget::container;
+<span class="kw">use </span><span class="kw">crate</span>::widget::scrollable;
 <span class="kw">use </span><span class="kw">crate</span>::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use crate</span>::{
     Clipboard, Element, Layout, Length, Padding, Point, Rectangle, Shell, Size,
@@ -604,7 +628,12 @@
     </span>T: ToString + Eq,
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
     Renderer: text::Renderer,
-    Renderer::Theme: StyleSheet,
+    Renderer::Theme: StyleSheet
+        + scrollable::StyleSheet
+        + menu::StyleSheet
+        + container::StyleSheet,
+    &lt;Renderer::Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style:
+        From&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
 {
     <span class="doccomment">/// The default padding of a [`PickList`].
     </span><span class="kw">pub const </span>DEFAULT_PADDING: Padding = Padding::new(<span class="number">5</span>);
@@ -676,7 +705,12 @@
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
     Message: <span class="lifetime">&#39;a</span>,
     Renderer: text::Renderer + <span class="lifetime">&#39;a</span>,
-    Renderer::Theme: StyleSheet,
+    Renderer::Theme: StyleSheet
+        + scrollable::StyleSheet
+        + menu::StyleSheet
+        + container::StyleSheet,
+    &lt;Renderer::Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style:
+        From&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
         tree::Tag::of::&lt;State&lt;T&gt;&gt;()
@@ -764,7 +798,7 @@
             <span class="kw-2">&amp;</span><span class="self">self</span>.font,
             <span class="self">self</span>.placeholder.as_deref(),
             <span class="self">self</span>.selected.as_ref(),
-            <span class="self">self</span>.style,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.style,
         )
     }
 
@@ -783,7 +817,7 @@
             <span class="self">self</span>.text_size,
             <span class="self">self</span>.font.clone(),
             <span class="kw-2">&amp;</span><span class="self">self</span>.options,
-            <span class="self">self</span>.style,
+            <span class="self">self</span>.style.clone(),
         )
     }
 }
@@ -795,7 +829,12 @@
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
     Message: <span class="lifetime">&#39;a</span>,
     Renderer: text::Renderer + <span class="lifetime">&#39;a</span>,
-    Renderer::Theme: StyleSheet,
+    Renderer::Theme: StyleSheet
+        + scrollable::StyleSheet
+        + menu::StyleSheet
+        + container::StyleSheet,
+    &lt;Renderer::Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style:
+        From&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
 {
     <span class="kw">fn </span>from(pick_list: PickList&lt;<span class="lifetime">&#39;a</span>, T, Message, Renderer&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(pick_list)
@@ -1018,7 +1057,12 @@
     </span>T: Clone + ToString,
     Message: <span class="lifetime">&#39;a</span>,
     Renderer: text::Renderer + <span class="lifetime">&#39;a</span>,
-    Renderer::Theme: StyleSheet,
+    Renderer::Theme: StyleSheet
+        + scrollable::StyleSheet
+        + menu::StyleSheet
+        + container::StyleSheet,
+    &lt;Renderer::Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style:
+        From&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
 {
     <span class="kw">if </span>state.is_open {
         <span class="kw">let </span>bounds = layout.bounds();
@@ -1055,7 +1099,7 @@
     font: <span class="kw-2">&amp;</span>Renderer::Font,
     placeholder: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     selected: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;,
-    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: <span class="kw-2">&amp;</span>&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 ) <span class="kw">where
     </span>Renderer: text::Renderer,
     Renderer::Theme: StyleSheet,
@@ -1122,4 +1166,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_native" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (73c9eaf21 2022-11-07)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_native" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (85f4f41de 2022-11-08)" data-search-js="search-39ee4160c7dc16c9.js" data-settings-js="settings-3a0b9947ba1bd99a.js" data-settings-css="settings-a66f7524084a489a.css" ></div></body></html>

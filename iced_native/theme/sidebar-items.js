@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Application",""],["Button",""],["Checkbox",""],["Container",""],["ProgressBar",""],["Rule",""],["Text",""],["Theme",""]],"mod":[["palette",""]],"struct":[["Custom",""],["Palette",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["Application",""],["Button",""],["Checkbox",""],["Container",""],["Menu",""],["PaneGrid",""],["PickList",""],["ProgressBar",""],["Radio",""],["Rule",""],["Scrollable",""],["Slider",""],["Text",""],["TextInput",""],["Theme",""],["Toggler",""]],"mod":[["palette",""]],"struct":[["Custom",""],["Palette",""]]};
