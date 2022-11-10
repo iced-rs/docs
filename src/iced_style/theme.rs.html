@@ -979,7 +979,33 @@
 <span id="978">978</span>
 <span id="979">979</span>
 <span id="980">980</span>
-</pre><pre class="rust"><code><span class="kw">pub mod </span>palette;
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
+<span id="996">996</span>
+<span id="997">997</span>
+<span id="998">998</span>
+<span id="999">999</span>
+<span id="1000">1000</span>
+<span id="1001">1001</span>
+<span id="1002">1002</span>
+<span id="1003">1003</span>
+<span id="1004">1004</span>
+<span id="1005">1005</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Use the built-in theme and styles.
+</span><span class="kw">pub mod </span>palette;
 
 <span class="kw">use </span><span class="self">self</span>::palette::Extended;
 <span class="kw">pub use </span><span class="self">self</span>::palette::Palette;
@@ -1004,20 +1030,26 @@
 
 <span class="kw">use </span>std::rc::Rc;
 
-<span class="attr">#[derive(Debug, Clone, PartialEq, Default)]
+<span class="doccomment">/// A built-in theme.
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Default)]
 </span><span class="kw">pub enum </span>Theme {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The built-in light variant.
+    </span><span class="attr">#[default]
     </span>Light,
-    Dark,
-    Custom(Box&lt;Custom&gt;),
+    <span class="doccomment">/// The built-in dark variant.
+    </span>Dark,
+    <span class="doccomment">/// A [`Theme`] that uses a [`Custom`] palette.
+    </span>Custom(Box&lt;Custom&gt;),
 }
 
 <span class="kw">impl </span>Theme {
-    <span class="kw">pub fn </span>custom(palette: Palette) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a new custom [`Theme`] from the given [`Palette`].
+    </span><span class="kw">pub fn </span>custom(palette: Palette) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Custom(Box::new(Custom::new(palette)))
     }
 
-    <span class="kw">pub fn </span>palette(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Palette {
+    <span class="doccomment">/// Returns the [`Palette`] of the [`Theme`].
+    </span><span class="kw">pub fn </span>palette(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Palette {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Light =&gt; Palette::LIGHT,
             <span class="self">Self</span>::Dark =&gt; Palette::DARK,
@@ -1025,7 +1057,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>extended_palette(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>palette::Extended {
+    <span class="doccomment">/// Returns the [`palette::Extended`] of the [`Theme`].
+    </span><span class="kw">pub fn </span>extended_palette(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>palette::Extended {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Light =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_LIGHT,
             <span class="self">Self</span>::Dark =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_DARK,
@@ -1034,14 +1067,16 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
+<span class="doccomment">/// A [`Theme`] with a customized [`Palette`].
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
 </span><span class="kw">pub struct </span>Custom {
     palette: Palette,
     extended: Extended,
 }
 
 <span class="kw">impl </span>Custom {
-    <span class="kw">pub fn </span>new(palette: Palette) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a [`Custom`] theme from the given [`Palette`].
+    </span><span class="kw">pub fn </span>new(palette: Palette) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             palette,
             extended: Extended::generate(palette),
@@ -1049,11 +1084,14 @@
     }
 }
 
-<span class="attr">#[derive(Default)]
+<span class="doccomment">/// The style of an application.
+</span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>Application {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The default style.
+    </span><span class="attr">#[default]
     </span>Default,
-    Custom(Box&lt;<span class="kw">dyn </span>application::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>application::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>application::StyleSheet <span class="kw">for </span>Theme {
@@ -1086,18 +1124,24 @@
     }
 }
 
-<span class="comment">/*
- * Button
- */
+<span class="doccomment">/// The style of a button.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>Button {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The primary style.
+    </span><span class="attr">#[default]
     </span>Primary,
-    Secondary,
-    Positive,
-    Destructive,
-    Text,
-    Custom(Box&lt;<span class="kw">dyn </span>button::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// The secondary style.
+    </span>Secondary,
+    <span class="doccomment">/// The positive style.
+    </span>Positive,
+    <span class="doccomment">/// The destructive style.
+    </span>Destructive,
+    <span class="doccomment">/// The text style.
+    ///
+    /// Useful for links!
+    </span>Text,
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>button::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>button::StyleSheet <span class="kw">for </span>Theme {
@@ -1188,17 +1232,20 @@
     }
 }
 
-<span class="comment">/*
- * Checkbox
- */
+<span class="doccomment">/// The style of a checkbox.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>Checkbox {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The primary style.
+    </span><span class="attr">#[default]
     </span>Primary,
-    Secondary,
-    Success,
-    Danger,
-    Custom(Box&lt;<span class="kw">dyn </span>checkbox::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// The secondary style.
+    </span>Secondary,
+    <span class="doccomment">/// The success style.
+    </span>Success,
+    <span class="doccomment">/// The danger style.
+    </span>Danger,
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>checkbox::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>checkbox::StyleSheet <span class="kw">for </span>Theme {
@@ -1297,15 +1344,16 @@
     }
 }
 
-<span class="comment">/*
- * Container
- */
+<span class="doccomment">/// The style of a container.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>Container {
-    <span class="attr">#[default]
+    <span class="doccomment">/// No style.
+    </span><span class="attr">#[default]
     </span>Transparent,
-    Box,
-    Custom(Box&lt;<span class="kw">dyn </span>container::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// A simple box.
+    </span>Box,
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>container::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>From&lt;<span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme) -&gt; container::Appearance&gt; <span class="kw">for </span>Container {
@@ -1344,14 +1392,14 @@
     }
 }
 
-<span class="comment">/*
- * Slider
- */
+<span class="doccomment">/// The style of a slider.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>Slider {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The default style.
+    </span><span class="attr">#[default]
     </span>Default,
-    Custom(Box&lt;<span class="kw">dyn </span>slider::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>slider::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>slider::StyleSheet <span class="kw">for </span>Theme {
@@ -1425,14 +1473,14 @@
     }
 }
 
-<span class="comment">/*
- * Menu
- */
+<span class="doccomment">/// The style of a menu.
 </span><span class="attr">#[derive(Clone, Default)]
 </span><span class="kw">pub enum </span>Menu {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The default style.
+    </span><span class="attr">#[default]
     </span>Default,
-    Custom(Rc&lt;<span class="kw">dyn </span>menu::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Rc&lt;<span class="kw">dyn </span>menu::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>menu::StyleSheet <span class="kw">for </span>Theme {
@@ -1467,14 +1515,14 @@
     }
 }
 
-<span class="comment">/*
- * Pick List
- */
+<span class="doccomment">/// The style of a pick list.
 </span><span class="attr">#[derive(Clone, Default)]
 </span><span class="kw">pub enum </span>PickList {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The default style.
+    </span><span class="attr">#[default]
     </span>Default,
-    Custom(
+    <span class="doccomment">/// A custom style.
+    </span>Custom(
         Rc&lt;<span class="kw">dyn </span>pick_list::StyleSheet&lt;Style = Theme&gt;&gt;,
         Rc&lt;<span class="kw">dyn </span>menu::StyleSheet&lt;Style = Theme&gt;&gt;,
     ),
@@ -1522,14 +1570,14 @@
     }
 }
 
-<span class="comment">/*
- * Radio
- */
+<span class="doccomment">/// The style of a radio button.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>Radio {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The default style.
+    </span><span class="attr">#[default]
     </span>Default,
-    Custom(Box&lt;<span class="kw">dyn </span>radio::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>radio::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>radio::StyleSheet <span class="kw">for </span>Theme {
@@ -1577,14 +1625,14 @@
     }
 }
 
-<span class="comment">/*
- * Toggler
- */
+<span class="doccomment">/// The style of a toggler.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>Toggler {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The default style.
+    </span><span class="attr">#[default]
     </span>Default,
-    Custom(Box&lt;<span class="kw">dyn </span>toggler::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>toggler::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>toggler::StyleSheet <span class="kw">for </span>Theme {
@@ -1644,14 +1692,14 @@
     }
 }
 
-<span class="comment">/*
- * Pane Grid
- */
+<span class="doccomment">/// The style of a pane grid.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>PaneGrid {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The default style.
+    </span><span class="attr">#[default]
     </span>Default,
-    Custom(Box&lt;<span class="kw">dyn </span>pane_grid::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>pane_grid::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>pane_grid::StyleSheet <span class="kw">for </span>Theme {
@@ -1686,16 +1734,18 @@
     }
 }
 
-<span class="comment">/*
- * Progress Bar
- */
+<span class="doccomment">/// The style of a progress bar.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>ProgressBar {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The primary style.
+    </span><span class="attr">#[default]
     </span>Primary,
-    Success,
-    Danger,
-    Custom(Box&lt;<span class="kw">dyn </span>progress_bar::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// The success style.
+    </span>Success,
+    <span class="doccomment">/// The danger style.
+    </span>Danger,
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>progress_bar::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>From&lt;<span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme) -&gt; progress_bar::Appearance&gt; <span class="kw">for </span>ProgressBar {
@@ -1737,14 +1787,14 @@
     }
 }
 
-<span class="comment">/*
- * Rule
- */
+<span class="doccomment">/// The style of a rule.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>Rule {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The default style.
+    </span><span class="attr">#[default]
     </span>Default,
-    Custom(Box&lt;<span class="kw">dyn </span>rule::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>rule::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>From&lt;<span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme) -&gt; rule::Appearance&gt; <span class="kw">for </span>Rule {
@@ -1779,14 +1829,14 @@
     }
 }
 
-<span class="comment">/*
- * Scrollable
- */
+<span class="doccomment">/// The style of a scrollable.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>Scrollable {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The default style.
+    </span><span class="attr">#[default]
     </span>Default,
-    Custom(Box&lt;<span class="kw">dyn </span>scrollable::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>scrollable::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>scrollable::StyleSheet <span class="kw">for </span>Theme {
@@ -1844,14 +1894,14 @@
     }
 }
 
-<span class="comment">/*
- * Text
- */
+<span class="doccomment">/// The style of text.
 </span><span class="attr">#[derive(Clone, Copy, Default)]
 </span><span class="kw">pub enum </span>Text {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The default style.
+    </span><span class="attr">#[default]
     </span>Default,
-    Color(Color),
+    <span class="doccomment">/// Colored text.
+    </span>Color(Color),
 }
 
 <span class="kw">impl </span>From&lt;Color&gt; <span class="kw">for </span>Text {
@@ -1871,14 +1921,14 @@
     }
 }
 
-<span class="comment">/*
- * Text Input
- */
+<span class="doccomment">/// The style of a text input.
 </span><span class="attr">#[derive(Default)]
 </span><span class="kw">pub enum </span>TextInput {
-    <span class="attr">#[default]
+    <span class="doccomment">/// The default style.
+    </span><span class="attr">#[default]
     </span>Default,
-    Custom(Box&lt;<span class="kw">dyn </span>text_input::StyleSheet&lt;Style = Theme&gt;&gt;),
+    <span class="doccomment">/// A custom style.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>text_input::StyleSheet&lt;Style = Theme&gt;&gt;),
 }
 
 <span class="kw">impl </span>text_input::StyleSheet <span class="kw">for </span>Theme {

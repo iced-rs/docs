@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of a menu."],["State","The local state of a [`Menu`]."]],"trait":[["StyleSheet",""]],"type":[["Menu","A widget that produces a message when clicked."]]};
+window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of a menu."],["State","The local state of a [`Menu`]."]],"trait":[["StyleSheet","The style sheet of a menu."]],"type":[["Menu","A widget that produces a message when clicked."]]};

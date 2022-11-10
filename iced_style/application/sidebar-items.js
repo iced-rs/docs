@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Appearance",""]],"trait":[["StyleSheet",""]]};
+window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of an application."]],"trait":[["StyleSheet","A set of rules that dictate the style of an application."]]};
