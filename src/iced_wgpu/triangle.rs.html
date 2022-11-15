@@ -302,7 +302,19 @@
 <a href="#301" id="301">301</a>
 <a href="#302" id="302">302</a>
 <a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Draw meshes of triangles.
+</span><span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
 </span><span class="kw">mod </span>gradient;
 <span class="kw">mod </span>msaa;
 <span class="kw">mod </span>solid;
@@ -331,7 +343,9 @@
 <span class="doccomment">/// Supported triangle pipelines for different fills.
 </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct </span>PipelineList {
     solid: solid::Pipeline,
-    gradient: gradient::Pipeline,
+    <span class="doccomment">/// Gradients are currently not supported on WASM targets due to their need of storage buffers.
+    </span><span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+    </span>gradient: gradient::Pipeline,
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>PipelineList {
@@ -344,8 +358,11 @@
     <span class="doccomment">/// Resets each pipeline&#39;s buffers.
     </span><span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.solid.buffer.clear();
-        <span class="self">self</span>.gradient.uniform_buffer.clear();
-        <span class="self">self</span>.gradient.storage_buffer.clear();
+        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+        </span>{
+            <span class="self">self</span>.gradient.uniform_buffer.clear();
+            <span class="self">self</span>.gradient.storage_buffer.clear();
+        }
     }
 
     <span class="doccomment">/// Writes the contents of each pipeline&#39;s CPU buffer to the GPU, resizing the GPU buffer
@@ -357,7 +374,8 @@
         encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
     ) {
         <span class="self">self</span>.solid.write(device, staging_belt, encoder);
-        <span class="self">self</span>.gradient.write(device, staging_belt, encoder);
+        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+        </span><span class="self">self</span>.gradient.write(device, staging_belt, encoder);
     }
 }
 
@@ -383,7 +401,8 @@
             index_strides: Vec::new(),
             pipelines: PipelineList {
                 solid: solid::Pipeline::new(device, format, antialiasing),
-                gradient: gradient::Pipeline::new(device, format, antialiasing),
+                <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+                </span>gradient: gradient::Pipeline::new(device, format, antialiasing),
             },
         }
     }
@@ -449,7 +468,8 @@
                 triangle::Style::Solid(color) =&gt; {
                     <span class="self">self</span>.pipelines.solid.push(transform, color);
                 }
-                triangle::Style::Gradient(gradient) =&gt; {
+                <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+                </span>triangle::Style::Gradient(gradient) =&gt; {
                     <span class="self">self</span>.pipelines.gradient.push(transform, gradient);
                 }
             }
@@ -490,7 +510,8 @@
                 });
 
             <span class="kw">let </span><span class="kw-2">mut </span>num_solids = <span class="number">0</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>num_gradients = <span class="number">0</span>;
+            <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+            </span><span class="kw">let </span><span class="kw-2">mut </span>num_gradients = <span class="number">0</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>last_is_solid = <span class="prelude-val">None</span>;
 
             <span class="kw">for </span>(index, mesh) <span class="kw">in </span>meshes.iter().enumerate() {
@@ -520,7 +541,8 @@
 
                         num_solids += <span class="number">1</span>;
                     }
-                    triangle::Style::Gradient(<span class="kw">_</span>) =&gt; {
+                    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+                    </span>triangle::Style::Gradient(<span class="kw">_</span>) =&gt; {
                         <span class="kw">if </span>last_is_solid.unwrap_or(<span class="bool-val">true</span>) {
                             <span class="self">self</span>.pipelines
                                 .gradient
