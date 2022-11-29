@@ -229,6 +229,19 @@
 <a href="#228" id="228">228</a>
 <a href="#229" id="229">229</a>
 <a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
 </pre><pre class="rust"><code><span class="kw">mod </span>storage;
 
 <span class="kw">use </span>storage::Storage;
@@ -245,6 +258,7 @@
 </span><span class="kw">use </span>iced_graphics::image::vector;
 
 <span class="kw">use </span>iced_graphics::layer;
+<span class="kw">use </span>iced_graphics::Rectangle;
 <span class="kw">use </span>iced_graphics::Size;
 
 <span class="kw">use </span>glow::HasContext;
@@ -372,14 +386,17 @@
     <span class="kw">pub fn </span>draw(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         <span class="kw-2">mut </span>gl: <span class="kw-2">&amp;</span>glow::Context,
+        target_height: u32,
         transformation: Transformation,
         _scale_factor: f32,
         images: <span class="kw-2">&amp;</span>[layer::Image],
+        layer_bounds: Rectangle&lt;u32&gt;,
     ) {
         <span class="kw">unsafe </span>{
             gl.use_program(<span class="prelude-val">Some</span>(<span class="self">self</span>.program));
             gl.bind_vertex_array(<span class="prelude-val">Some</span>(<span class="self">self</span>.vertex_array));
             gl.bind_buffer(glow::ARRAY_BUFFER, <span class="prelude-val">Some</span>(<span class="self">self</span>.vertex_buffer));
+            gl.enable(glow::SCISSOR_TEST);
         }
 
         <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
@@ -418,6 +435,14 @@
             };
 
             <span class="kw">unsafe </span>{
+                gl.scissor(
+                    layer_bounds.x <span class="kw">as </span>i32,
+                    (target_height - (layer_bounds.y + layer_bounds.height))
+                        <span class="kw">as </span>i32,
+                    layer_bounds.width <span class="kw">as </span>i32,
+                    layer_bounds.height <span class="kw">as </span>i32,
+                );
+
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(storage::Entry { texture, .. }) = entry {
                     gl.bind_texture(glow::TEXTURE_2D, <span class="prelude-val">Some</span>(<span class="kw-2">*</span>texture))
                 } <span class="kw">else </span>{
@@ -444,6 +469,7 @@
             gl.bind_buffer(glow::ARRAY_BUFFER, <span class="prelude-val">None</span>);
             gl.bind_vertex_array(<span class="prelude-val">None</span>);
             gl.use_program(<span class="prelude-val">None</span>);
+            gl.disable(glow::SCISSOR_TEST);
         }
     }
 
@@ -460,4 +486,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_glow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (1eb62b123 2022-11-27)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_glow" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (2585bcea0 2022-11-28)" data-search-js="search-df80cc3cb87b6482.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
