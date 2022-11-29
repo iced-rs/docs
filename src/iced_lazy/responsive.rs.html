@@ -388,6 +388,10 @@
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
 <a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
 </pre><pre class="rust"><code><span class="kw">use </span>iced_native::event;
 <span class="kw">use </span>iced_native::layout::{<span class="self">self</span>, Layout};
 <span class="kw">use </span>iced_native::mouse;
@@ -625,18 +629,20 @@
     }
 
     <span class="kw">fn </span>overlay&lt;<span class="lifetime">&#39;b</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="self">self</span>,
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Tree,
         layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;b</span>, Message, Renderer&gt;&gt; {
+        <span class="kw">use </span>std::ops::DerefMut;
+
         <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&gt;();
 
         <span class="kw">let </span>overlay = OverlayBuilder {
             content: <span class="self">self</span>.content.borrow_mut(),
             tree: state.tree.borrow_mut(),
             types: PhantomData,
-            overlay_builder: |content, tree| {
+            overlay_builder: |content: <span class="kw-2">&amp;mut </span>RefMut&lt;Content&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;&gt;, tree| {
                 content.update(
                     tree,
                     renderer,
@@ -644,16 +650,18 @@
                     <span class="kw-2">&amp;</span><span class="self">self</span>.view,
                 );
 
+                <span class="kw">let </span>Content {
+                    element, layout, ..
+                } = content.deref_mut();
+
                 <span class="kw">let </span>content_layout = Layout::with_offset(
-                    layout.position() - Point::ORIGIN,
-                    <span class="kw-2">&amp;</span>content.layout,
+                    layout.bounds().position() - Point::ORIGIN,
+                    layout,
                 );
 
-                content.element.as_widget().overlay(
-                    tree,
-                    content_layout,
-                    renderer,
-                )
+                element
+                    .as_widget_mut()
+                    .overlay(tree, content_layout, renderer)
             },
         }
         .build();

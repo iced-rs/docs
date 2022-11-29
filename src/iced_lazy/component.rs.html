@@ -524,11 +524,6 @@
 <a href="#523" id="523">523</a>
 <a href="#524" id="524">524</a>
 <a href="#525" id="525">525</a>
-<a href="#526" id="526">526</a>
-<a href="#527" id="527">527</a>
-<a href="#528" id="528">528</a>
-<a href="#529" id="529">529</a>
-<a href="#530" id="530">530</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Build and reuse custom widgets using The Elm Architecture.
 </span><span class="kw">use </span>iced_native::event;
 <span class="kw">use </span>iced_native::layout::{<span class="self">self</span>, Layout};
@@ -542,7 +537,7 @@
 };
 
 <span class="kw">use </span>ouroboros::self_referencing;
-<span class="kw">use </span>std::cell::{Ref, RefCell};
+<span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::marker::PhantomData;
 
 <span class="doccomment">/// A reusable, custom widget that uses The Elm Architecture.
@@ -853,25 +848,25 @@
     }
 
     <span class="kw">fn </span>overlay&lt;<span class="lifetime">&#39;b</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="self">self</span>,
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>Tree,
         layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;b</span>, Message, Renderer&gt;&gt; {
         <span class="kw">let </span>overlay = OverlayBuilder {
             instance: <span class="self">self</span>,
-            instance_ref_builder: |instance| instance.state.borrow(),
             tree,
             types: PhantomData,
             overlay_builder: |instance, tree| {
-                instance
-                    .as_ref()
-                    .unwrap()
-                    .borrow_element()
-                    .as_ref()
-                    .unwrap()
-                    .as_widget()
-                    .overlay(<span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>], layout, renderer)
+                instance.state.get_mut().as_mut().unwrap().with_element_mut(
+                    <span class="kw">move </span>|element| {
+                        element.as_mut().unwrap().as_widget_mut().overlay(
+                            <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+                            layout,
+                            renderer,
+                        )
+                    },
+                )
             },
         }
         .build();
@@ -893,15 +888,11 @@
 
 <span class="attr">#[self_referencing]
 </span><span class="kw">struct </span>Overlay&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt; {
-    instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Instance&lt;<span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt;,
+    instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Instance&lt;<span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt;,
     tree: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Tree,
     types: PhantomData&lt;(Message, Event, S)&gt;,
 
-    <span class="attr">#[borrows(instance)]
-    #[covariant]
-    </span>instance_ref: Ref&lt;<span class="lifetime">&#39;this</span>, <span class="prelude-ty">Option</span>&lt;State&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt;&gt;&gt;,
-
-    <span class="attr">#[borrows(instance_ref, <span class="kw-2">mut </span>tree)]
+    <span class="attr">#[borrows(<span class="kw-2">mut </span>instance, <span class="kw-2">mut </span>tree)]
     #[covariant]
     </span>overlay: <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;this</span>, Event, Renderer&gt;&gt;,
 }
@@ -1045,7 +1036,6 @@
             <span class="self">self</span>.overlay = <span class="prelude-val">Some</span>(
                 OverlayBuilder {
                     instance: overlay.instance,
-                    instance_ref_builder: |instance| instance.state.borrow(),
                     tree: overlay.tree,
                     types: PhantomData,
                     overlay_builder: |<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">None</span>,
