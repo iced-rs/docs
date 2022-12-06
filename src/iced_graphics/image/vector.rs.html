@@ -175,8 +175,27 @@
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Vector image loading and caching
 </span><span class="kw">use </span><span class="kw">crate</span>::image::Storage;
+<span class="kw">use </span><span class="kw">crate</span>::Color;
 
 <span class="kw">use </span>iced_native::svg;
 <span class="kw">use </span>iced_native::Size;
@@ -210,10 +229,12 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Cache&lt;T: Storage&gt; {
     svgs: HashMap&lt;u64, Svg&gt;,
-    rasterized: HashMap&lt;(u64, u32, u32), T::Entry&gt;,
+    rasterized: HashMap&lt;(u64, u32, u32, ColorFilter), T::Entry&gt;,
     svg_hits: HashSet&lt;u64&gt;,
-    rasterized_hits: HashSet&lt;(u64, u32, u32)&gt;,
+    rasterized_hits: HashSet&lt;(u64, u32, u32, ColorFilter)&gt;,
 }
+
+<span class="kw">type </span>ColorFilter = <span class="prelude-ty">Option</span>&lt;[u8; <span class="number">4</span>]&gt;;
 
 <span class="kw">impl</span>&lt;T: Storage&gt; Cache&lt;T&gt; {
     <span class="doccomment">/// Load svg
@@ -253,6 +274,7 @@
     </span><span class="kw">pub fn </span>upload(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         handle: <span class="kw-2">&amp;</span>svg::Handle,
+        color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
         [width, height]: [f32; <span class="number">2</span>],
         scale: f32,
         state: <span class="kw-2">&amp;mut </span>T::State&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -265,15 +287,18 @@
             (scale * height).ceil() <span class="kw">as </span>u32,
         );
 
+        <span class="kw">let </span>color = color.map(Color::into_rgba8);
+        <span class="kw">let </span>key = (id, width, height, color);
+
         <span class="comment">// TODO: Optimize!
         // We currently rerasterize the SVG when its size changes. This is slow
         // as heck. A GPU rasterizer like `pathfinder` may perform better.
         // It would be cool to be able to smooth resize the `svg` example.
-        </span><span class="kw">if </span><span class="self">self</span>.rasterized.contains_key(<span class="kw-2">&amp;</span>(id, width, height)) {
+        </span><span class="kw">if </span><span class="self">self</span>.rasterized.contains_key(<span class="kw-2">&amp;</span>key) {
             <span class="kw">let _ </span>= <span class="self">self</span>.svg_hits.insert(id);
-            <span class="kw">let _ </span>= <span class="self">self</span>.rasterized_hits.insert((id, width, height));
+            <span class="kw">let _ </span>= <span class="self">self</span>.rasterized_hits.insert(key);
 
-            <span class="kw">return </span><span class="self">self</span>.rasterized.get(<span class="kw-2">&amp;</span>(id, width, height));
+            <span class="kw">return </span><span class="self">self</span>.rasterized.get(<span class="kw-2">&amp;</span>key);
         }
 
         <span class="kw">match </span><span class="self">self</span>.load(handle) {
@@ -298,15 +323,26 @@
                     img.as_mut(),
                 )<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>allocation =
-                    storage.upload(width, height, img.data(), state)<span class="question-mark">?</span>;
+                <span class="kw">let </span><span class="kw-2">mut </span>rgba = img.take();
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(color) = color {
+                    rgba.chunks_exact_mut(<span class="number">4</span>).for_each(|rgba| {
+                        <span class="kw">if </span>rgba[<span class="number">3</span>] &gt; <span class="number">0 </span>{
+                            rgba[<span class="number">0</span>] = color[<span class="number">0</span>];
+                            rgba[<span class="number">1</span>] = color[<span class="number">1</span>];
+                            rgba[<span class="number">2</span>] = color[<span class="number">2</span>];
+                        }
+                    });
+                }
+
+                <span class="kw">let </span>allocation = storage.upload(width, height, <span class="kw-2">&amp;</span>rgba, state)<span class="question-mark">?</span>;
                 <span class="macro">log::debug!</span>(<span class="string">&quot;allocating {} {}x{}&quot;</span>, id, width, height);
 
                 <span class="kw">let _ </span>= <span class="self">self</span>.svg_hits.insert(id);
-                <span class="kw">let _ </span>= <span class="self">self</span>.rasterized_hits.insert((id, width, height));
-                <span class="kw">let _ </span>= <span class="self">self</span>.rasterized.insert((id, width, height), allocation);
+                <span class="kw">let _ </span>= <span class="self">self</span>.rasterized_hits.insert(key);
+                <span class="kw">let _ </span>= <span class="self">self</span>.rasterized.insert(key, allocation);
 
-                <span class="self">self</span>.rasterized.get(<span class="kw-2">&amp;</span>(id, width, height))
+                <span class="self">self</span>.rasterized.get(<span class="kw-2">&amp;</span>key)
             }
             Svg::NotFound =&gt; <span class="prelude-val">None</span>,
         }
@@ -352,4 +388,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_graphics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (53e4b9dd7 2022-12-04)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_graphics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (e1d819583 2022-12-05)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

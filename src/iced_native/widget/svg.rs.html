@@ -160,6 +160,40 @@
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Display vector graphics in your application.
 </span><span class="kw">use </span><span class="kw">crate</span>::layout;
 <span class="kw">use </span><span class="kw">crate</span>::renderer;
@@ -171,6 +205,7 @@
 
 <span class="kw">use </span>std::path::PathBuf;
 
+<span class="kw">pub use </span>iced_style::svg::{Appearance, StyleSheet};
 <span class="kw">pub use </span>svg::Handle;
 
 <span class="doccomment">/// A vector graphics image.
@@ -179,15 +214,24 @@
 ///
 /// [`Svg`] images can have a considerable rendering cost when resized,
 /// specially when they are complex.
-</span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>Svg {
+</span><span class="attr">#[allow(missing_debug_implementations)]
+</span><span class="kw">pub struct </span>Svg&lt;Renderer&gt;
+<span class="kw">where
+    </span>Renderer: svg::Renderer,
+    Renderer::Theme: StyleSheet,
+{
     handle: Handle,
     width: Length,
     height: Length,
     content_fit: ContentFit,
+    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
 
-<span class="kw">impl </span>Svg {
+<span class="kw">impl</span>&lt;Renderer&gt; Svg&lt;Renderer&gt;
+<span class="kw">where
+    </span>Renderer: svg::Renderer,
+    Renderer::Theme: StyleSheet,
+{
     <span class="doccomment">/// Creates a new [`Svg`] from the given [`Handle`].
     </span><span class="kw">pub fn </span>new(handle: <span class="kw">impl </span>Into&lt;Handle&gt;) -&gt; <span class="self">Self </span>{
         Svg {
@@ -195,22 +239,26 @@
             width: Length::Fill,
             height: Length::Shrink,
             content_fit: ContentFit::Contain,
+            style: Default::default(),
         }
     }
 
     <span class="doccomment">/// Creates a new [`Svg`] that will display the contents of the file at the
     /// provided path.
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>from_path(path: <span class="kw">impl </span>Into&lt;PathBuf&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(Handle::from_path(path))
     }
 
     <span class="doccomment">/// Sets the width of the [`Svg`].
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.width = width;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the height of the [`Svg`].
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: Length) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.height = height;
         <span class="self">self
@@ -219,17 +267,29 @@
     <span class="doccomment">/// Sets the [`ContentFit`] of the [`Svg`].
     ///
     /// Defaults to [`ContentFit::Contain`]
+    </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>content_fit(<span class="self">self</span>, content_fit: ContentFit) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             content_fit,
             ..<span class="self">self
         </span>}
     }
+
+    <span class="doccomment">/// Sets the style variant of this [`Svg`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = style;
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span>&lt;Message, Renderer&gt; Widget&lt;Message, Renderer&gt; <span class="kw">for </span>Svg
+<span class="kw">impl</span>&lt;Message, Renderer&gt; Widget&lt;Message, Renderer&gt; <span class="kw">for </span>Svg&lt;Renderer&gt;
 <span class="kw">where
     </span>Renderer: svg::Renderer,
+    Renderer::Theme: iced_style::svg::StyleSheet,
 {
     <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
         <span class="self">self</span>.width
@@ -276,7 +336,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         _state: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        _theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
         _style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
         _cursor_position: Point,
@@ -300,7 +360,13 @@
                 ..bounds
             };
 
-            renderer.draw(<span class="self">self</span>.handle.clone(), drawing_bounds + offset)
+            <span class="kw">let </span>appearance = theme.appearance(<span class="kw-2">&amp;</span><span class="self">self</span>.style);
+
+            renderer.draw(
+                <span class="self">self</span>.handle.clone(),
+                appearance.color,
+                drawing_bounds + offset,
+            );
         };
 
         <span class="kw">if </span>adjusted_fit.width &gt; bounds.width
@@ -308,18 +374,20 @@
         {
             renderer.with_layer(bounds, render);
         } <span class="kw">else </span>{
-            render(renderer)
+            render(renderer);
         }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; From&lt;Svg&gt; <span class="kw">for </span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; From&lt;Svg&lt;Renderer&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: svg::Renderer,
+    </span>Renderer: svg::Renderer + <span class="lifetime">&#39;a</span>,
+    Renderer::Theme: iced_style::svg::StyleSheet,
 {
-    <span class="kw">fn </span>from(icon: Svg) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
+    <span class="kw">fn </span>from(icon: Svg&lt;Renderer&gt;) -&gt; Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
         Element::new(icon)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_native" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (53e4b9dd7 2022-12-04)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_native" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (e1d819583 2022-12-05)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>
