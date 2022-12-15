@@ -865,13 +865,6 @@
     </span><span class="kw">fn </span>scale_factor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f64 {
         <span class="number">1.0
     </span>}
-
-    <span class="doccomment">/// Returns whether the [`Application`] should be terminated.
-    ///
-    /// By default, it returns `false`.
-    </span><span class="kw">fn </span>should_exit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="bool-val">false
-    </span>}
 }
 
 <span class="doccomment">/// Runs an [`Application`] with an executor, compositor, and the provided
@@ -1027,6 +1020,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>clipboard = Clipboard::connect(<span class="kw-2">&amp;</span>window);
     <span class="kw">let </span><span class="kw-2">mut </span>cache = user_interface::Cache::default();
     <span class="kw">let </span><span class="kw-2">mut </span>surface = compositor.create_surface(<span class="kw-2">&amp;</span>window);
+    <span class="kw">let </span><span class="kw-2">mut </span>should_exit = <span class="bool-val">false</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>state = State::new(<span class="kw-2">&amp;</span>application, <span class="kw-2">&amp;</span>window);
     <span class="kw">let </span><span class="kw-2">mut </span>viewport_version = state.viewport_version();
@@ -1047,6 +1041,7 @@
         init_command,
         <span class="kw-2">&amp;mut </span>runtime,
         <span class="kw-2">&amp;mut </span>clipboard,
+        <span class="kw-2">&amp;mut </span>should_exit,
         <span class="kw-2">&amp;mut </span>proxy,
         <span class="kw-2">&amp;mut </span>debug,
         <span class="kw-2">&amp;</span>window,
@@ -1108,6 +1103,7 @@
                         <span class="kw-2">&amp;mut </span>renderer,
                         <span class="kw-2">&amp;mut </span>runtime,
                         <span class="kw-2">&amp;mut </span>clipboard,
+                        <span class="kw-2">&amp;mut </span>should_exit,
                         <span class="kw-2">&amp;mut </span>proxy,
                         <span class="kw-2">&amp;mut </span>debug,
                         <span class="kw-2">&amp;mut </span>messages,
@@ -1117,8 +1113,6 @@
 
                     <span class="comment">// Update window
                     </span>state.synchronize(<span class="kw-2">&amp;</span>application, <span class="kw-2">&amp;</span>window);
-
-                    <span class="kw">let </span>should_exit = application.should_exit();
 
                     user_interface = ManuallyDrop::new(build_user_interface(
                         <span class="kw-2">&amp;</span>application,
@@ -1327,6 +1321,7 @@
     renderer: <span class="kw-2">&amp;mut </span>A::Renderer,
     runtime: <span class="kw-2">&amp;mut </span>Runtime&lt;E, Proxy&lt;A::Message&gt;, A::Message&gt;,
     clipboard: <span class="kw-2">&amp;mut </span>Clipboard,
+    should_exit: <span class="kw-2">&amp;mut </span>bool,
     proxy: <span class="kw-2">&amp;mut </span>winit::event_loop::EventLoopProxy&lt;A::Message&gt;,
     debug: <span class="kw-2">&amp;mut </span>Debug,
     messages: <span class="kw-2">&amp;mut </span>Vec&lt;A::Message&gt;,
@@ -1350,6 +1345,7 @@
             command,
             runtime,
             clipboard,
+            should_exit,
             proxy,
             debug,
             window,
@@ -1370,6 +1366,7 @@
     command: Command&lt;A::Message&gt;,
     runtime: <span class="kw-2">&amp;mut </span>Runtime&lt;E, Proxy&lt;A::Message&gt;, A::Message&gt;,
     clipboard: <span class="kw-2">&amp;mut </span>Clipboard,
+    should_exit: <span class="kw-2">&amp;mut </span>bool,
     proxy: <span class="kw-2">&amp;mut </span>winit::event_loop::EventLoopProxy&lt;A::Message&gt;,
     debug: <span class="kw-2">&amp;mut </span>Debug,
     window: <span class="kw-2">&amp;</span>winit::window::Window,
@@ -1401,6 +1398,9 @@
                 }
             },
             command::Action::Window(action) =&gt; <span class="kw">match </span>action {
+                window::Action::Close =&gt; {
+                    <span class="kw-2">*</span>should_exit = <span class="bool-val">true</span>;
+                }
                 window::Action::Drag =&gt; {
                     <span class="kw">let </span>_res = window.drag_window();
                 }
