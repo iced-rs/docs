@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Action","An operation to be performed on some window."],["Event","A window-related event."],["Mode","The mode of a window-based application."]]};
+window.SIDEBAR_ITEMS = {"enum":[["Action","An operation to be performed on some window."],["Event","A window-related event."],["Mode","The mode of a window-based application."],["UserAttention","The type of user attention to request."]]};

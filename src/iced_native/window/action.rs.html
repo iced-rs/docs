@@ -93,7 +93,27 @@
 <a href="#92" id="92">92</a>
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
-</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::window::Mode;
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::window::{Mode, UserAttention};
 
 <span class="kw">use </span>iced_futures::MaybeSend;
 <span class="kw">use </span>std::fmt;
@@ -130,6 +150,8 @@
     },
     <span class="doccomment">/// Set the [`Mode`] of the window.
     </span>SetMode(Mode),
+    <span class="doccomment">/// Fetch the current [`Mode`] of the window.
+    </span>FetchMode(Box&lt;<span class="kw">dyn </span>FnOnce(Mode) -&gt; T + <span class="lifetime">&#39;static</span>&gt;),
     <span class="doccomment">/// Sets the window to maximized or back
     </span>ToggleMaximize,
     <span class="doccomment">/// Toggles whether window has decorations
@@ -137,8 +159,20 @@
     /// - **X11:** Not implemented.
     /// - **Web:** Unsupported.
     </span>ToggleDecorations,
-    <span class="doccomment">/// Fetch the current [`Mode`] of the window.
-    </span>FetchMode(Box&lt;<span class="kw">dyn </span>FnOnce(Mode) -&gt; T + <span class="lifetime">&#39;static</span>&gt;),
+    <span class="doccomment">/// Requests user attention to the window, this has no effect if the application
+    /// is already focused. How requesting for user attention manifests is platform dependent,
+    /// see [`UserAttentionType`] for details.
+    ///
+    /// Providing `None` will unset the request for user attention. Unsetting the request for
+    /// user attention might not be done automatically by the WM when the window receives input.
+    ///
+    /// ## Platform-specific
+    ///
+    /// - **iOS / Android / Web:** Unsupported.
+    /// - **macOS:** `None` has no effect.
+    /// - **X11:** Requests for user attention must be manually cleared.
+    /// - **Wayland:** Requires `xdg_activation_v1` protocol, `None` has no effect.
+    </span>RequestUserAttention(<span class="prelude-ty">Option</span>&lt;UserAttention&gt;),
 }
 
 <span class="kw">impl</span>&lt;T&gt; Action&lt;T&gt; {
@@ -158,9 +192,12 @@
             <span class="self">Self</span>::Minimize(bool) =&gt; Action::Minimize(bool),
             <span class="self">Self</span>::Move { x, y } =&gt; Action::Move { x, y },
             <span class="self">Self</span>::SetMode(mode) =&gt; Action::SetMode(mode),
+            <span class="self">Self</span>::FetchMode(o) =&gt; Action::FetchMode(Box::new(<span class="kw">move </span>|s| f(o(s)))),
             <span class="self">Self</span>::ToggleMaximize =&gt; Action::ToggleMaximize,
             <span class="self">Self</span>::ToggleDecorations =&gt; Action::ToggleDecorations,
-            <span class="self">Self</span>::FetchMode(o) =&gt; Action::FetchMode(Box::new(<span class="kw">move </span>|s| f(o(s)))),
+            <span class="self">Self</span>::RequestUserAttention(attention_type) =&gt; {
+                Action::RequestUserAttention(attention_type)
+            }
         }
     }
 }
@@ -181,9 +218,12 @@
                 <span class="macro">write!</span>(f, <span class="string">&quot;Action::Move {{ x: {}, y: {} }}&quot;</span>, x, y)
             }
             <span class="self">Self</span>::SetMode(mode) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::SetMode({:?})&quot;</span>, mode),
+            <span class="self">Self</span>::FetchMode(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::FetchMode&quot;</span>),
             <span class="self">Self</span>::ToggleMaximize =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::ToggleMaximize&quot;</span>),
             <span class="self">Self</span>::ToggleDecorations =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::ToggleDecorations&quot;</span>),
-            <span class="self">Self</span>::FetchMode(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::FetchMode&quot;</span>),
+            <span class="self">Self</span>::RequestUserAttention(<span class="kw">_</span>) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Action::RequestUserAttention&quot;</span>)
+            }
         }
     }
 }
