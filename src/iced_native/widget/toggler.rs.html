@@ -353,9 +353,9 @@
 ///     TogglerToggled(bool),
 /// }
 ///
-/// let is_checked = true;
+/// let is_toggled = true;
 ///
-/// Toggler::new(String::from(&quot;Toggle me!&quot;), is_checked, |b| Message::TogglerToggled(b));
+/// Toggler::new(String::from(&quot;Toggle me!&quot;), is_toggled, |b| Message::TogglerToggled(b));
 /// ```
 </span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Toggler&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;
@@ -363,7 +363,7 @@
     </span>Renderer: text::Renderer,
     Renderer::Theme: StyleSheet,
 {
-    is_checked: bool,
+    is_toggled: bool,
     on_toggle: Box&lt;<span class="kw">dyn </span>Fn(bool) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;,
     label: <span class="prelude-ty">Option</span>&lt;String&gt;,
     width: Length,
@@ -393,14 +393,14 @@
     ///     `Message`.
     </span><span class="kw">pub fn </span>new&lt;F&gt;(
         label: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;String&gt;&gt;,
-        is_checked: bool,
+        is_toggled: bool,
         f: F,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: <span class="lifetime">&#39;a </span>+ Fn(bool) -&gt; Message,
     {
         Toggler {
-            is_checked,
+            is_toggled,
             on_toggle: Box::new(f),
             label: label.into(),
             width: Length::Fill,
@@ -522,7 +522,7 @@
                 <span class="kw">let </span>mouse_over = layout.bounds().contains(cursor_position);
 
                 <span class="kw">if </span>mouse_over {
-                    shell.publish((<span class="self">self</span>.on_toggle)(!<span class="self">self</span>.is_checked));
+                    shell.publish((<span class="self">self</span>.on_toggle)(!<span class="self">self</span>.is_toggled));
 
                     event::Status::Captured
                 } <span class="kw">else </span>{
@@ -589,9 +589,9 @@
         <span class="kw">let </span>is_mouse_over = bounds.contains(cursor_position);
 
         <span class="kw">let </span>style = <span class="kw">if </span>is_mouse_over {
-            theme.hovered(<span class="kw-2">&amp;</span><span class="self">self</span>.style, <span class="self">self</span>.is_checked)
+            theme.hovered(<span class="kw-2">&amp;</span><span class="self">self</span>.style, <span class="self">self</span>.is_toggled)
         } <span class="kw">else </span>{
-            theme.active(<span class="kw-2">&amp;</span><span class="self">self</span>.style, <span class="self">self</span>.is_checked)
+            theme.active(<span class="kw-2">&amp;</span><span class="self">self</span>.style, <span class="self">self</span>.is_toggled)
         };
 
         <span class="kw">let </span>border_radius = bounds.height / BORDER_RADIUS_RATIO;
@@ -618,7 +618,7 @@
 
         <span class="kw">let </span>toggler_foreground_bounds = Rectangle {
             x: bounds.x
-                + <span class="kw">if </span><span class="self">self</span>.is_checked {
+                + <span class="kw">if </span><span class="self">self</span>.is_toggled {
                     bounds.width - <span class="number">2.0 </span>* space - (bounds.height - (<span class="number">4.0 </span>* space))
                 } <span class="kw">else </span>{
                     <span class="number">2.0 </span>* space
