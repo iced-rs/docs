@@ -168,7 +168,10 @@
 <a href="#167" id="167">167</a>
 <a href="#168" id="168">168</a>
 <a href="#169" id="169">169</a>
-</pre><pre class="rust"><code><span class="kw">use crate</span>::{Length, Padding, Size};
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+</pre><pre class="rust"><code><span class="attr">#![allow(clippy::manual_clamp)]
+</span><span class="kw">use crate</span>::{Length, Padding, Size};
 
 <span class="doccomment">/// A set of size constraints for layouting.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
@@ -221,7 +224,7 @@
             }
             Length::Units(units) =&gt; {
                 <span class="kw">let </span>new_width =
-                    (units <span class="kw">as </span>f32).clamp(<span class="self">self</span>.min.width, <span class="self">self</span>.max.width);
+                    (units <span class="kw">as </span>f32).min(<span class="self">self</span>.max.width).max(<span class="self">self</span>.min.width);
 
                 <span class="self">self</span>.min.width = new_width;
                 <span class="self">self</span>.max.width = new_width;
@@ -243,7 +246,7 @@
             }
             Length::Units(units) =&gt; {
                 <span class="kw">let </span>new_height =
-                    (units <span class="kw">as </span>f32).clamp(<span class="self">self</span>.min.height, <span class="self">self</span>.max.height);
+                    (units <span class="kw">as </span>f32).min(<span class="self">self</span>.max.height).max(<span class="self">self</span>.min.height);
 
                 <span class="self">self</span>.min.height = new_height;
                 <span class="self">self</span>.max.height = new_height;
@@ -256,14 +259,16 @@
 
     <span class="doccomment">/// Applies a minimum width constraint to the current [`Limits`].
     </span><span class="kw">pub fn </span>min_width(<span class="kw-2">mut </span><span class="self">self</span>, min_width: u32) -&gt; Limits {
-        <span class="self">self</span>.min.width = <span class="self">self</span>.min.width.clamp(min_width <span class="kw">as </span>f32, <span class="self">self</span>.max.width);
+        <span class="self">self</span>.min.width =
+            <span class="self">self</span>.min.width.max(min_width <span class="kw">as </span>f32).min(<span class="self">self</span>.max.width);
 
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Applies a maximum width constraint to the current [`Limits`].
     </span><span class="kw">pub fn </span>max_width(<span class="kw-2">mut </span><span class="self">self</span>, max_width: u32) -&gt; Limits {
-        <span class="self">self</span>.max.width = <span class="self">self</span>.max.width.clamp(<span class="self">self</span>.min.width, max_width <span class="kw">as </span>f32);
+        <span class="self">self</span>.max.width =
+            <span class="self">self</span>.max.width.min(max_width <span class="kw">as </span>f32).max(<span class="self">self</span>.min.width);
 
         <span class="self">self
     </span>}
@@ -271,7 +276,7 @@
     <span class="doccomment">/// Applies a minimum height constraint to the current [`Limits`].
     </span><span class="kw">pub fn </span>min_height(<span class="kw-2">mut </span><span class="self">self</span>, min_height: u32) -&gt; Limits {
         <span class="self">self</span>.min.height =
-            <span class="self">self</span>.min.height.clamp(min_height <span class="kw">as </span>f32, <span class="self">self</span>.max.height);
+            <span class="self">self</span>.min.height.max(min_height <span class="kw">as </span>f32).min(<span class="self">self</span>.max.height);
 
         <span class="self">self
     </span>}
@@ -279,7 +284,7 @@
     <span class="doccomment">/// Applies a maximum height constraint to the current [`Limits`].
     </span><span class="kw">pub fn </span>max_height(<span class="kw-2">mut </span><span class="self">self</span>, max_height: u32) -&gt; Limits {
         <span class="self">self</span>.max.height =
-            <span class="self">self</span>.max.height.clamp(<span class="self">self</span>.min.height, max_height <span class="kw">as </span>f32);
+            <span class="self">self</span>.max.height.min(max_height <span class="kw">as </span>f32).max(<span class="self">self</span>.min.height);
 
         <span class="self">self
     </span>}
@@ -323,7 +328,6 @@
 
     <span class="doccomment">/// Computes the resulting [`Size`] that fits the [`Limits`] given the
     /// intrinsic size of some content.
-    </span><span class="attr">#[allow(clippy::manual_clamp)]
     </span><span class="kw">pub fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, intrinsic_size: Size) -&gt; Size {
         Size::new(
             intrinsic_size
