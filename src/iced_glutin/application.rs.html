@@ -450,6 +450,63 @@
 <a href="#449" id="449">449</a>
 <a href="#450" id="450">450</a>
 <a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="kw">use </span><span class="kw">crate</span>::mouse;
 <span class="kw">use crate</span>::{Error, Executor, Runtime};
@@ -463,8 +520,9 @@
 <span class="kw">use </span>iced_winit::futures;
 <span class="kw">use </span>iced_winit::futures::channel::mpsc;
 <span class="kw">use </span>iced_winit::renderer;
+<span class="kw">use </span>iced_winit::time::Instant;
 <span class="kw">use </span>iced_winit::user_interface;
-<span class="kw">use </span>iced_winit::{Clipboard, Command, Debug, Proxy, Settings};
+<span class="kw">use </span>iced_winit::{Clipboard, Command, Debug, Event, Proxy, Settings};
 
 <span class="kw">use </span>glutin::window::Window;
 <span class="kw">use </span>std::mem::ManuallyDrop;
@@ -583,7 +641,8 @@
         })<span class="question-mark">?
     </span>};
 
-    <span class="kw">let </span>(<span class="kw-2">mut </span>sender, receiver) = mpsc::unbounded();
+    <span class="kw">let </span>(<span class="kw-2">mut </span>event_sender, event_receiver) = mpsc::unbounded();
+    <span class="kw">let </span>(control_sender, <span class="kw-2">mut </span>control_receiver) = mpsc::unbounded();
 
     <span class="kw">let </span><span class="kw-2">mut </span>instance = Box::pin({
         <span class="kw">let </span>run_instance = run_instance::&lt;A, E, C&gt;(
@@ -593,7 +652,8 @@
             runtime,
             proxy,
             debug,
-            receiver,
+            event_receiver,
+            control_sender,
             context,
             init_command,
             settings.exit_on_close_request,
@@ -631,14 +691,20 @@
         };
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = event {
-            sender.start_send(event).expect(<span class="string">&quot;Send event&quot;</span>);
+            event_sender.start_send(event).expect(<span class="string">&quot;Send event&quot;</span>);
 
             <span class="kw">let </span>poll = instance.as_mut().poll(<span class="kw-2">&amp;mut </span>context);
 
-            <span class="kw-2">*</span>control_flow = <span class="kw">match </span>poll {
-                task::Poll::Pending =&gt; ControlFlow::Wait,
-                task::Poll::Ready(<span class="kw">_</span>) =&gt; ControlFlow::Exit,
-            };
+            <span class="kw">match </span>poll {
+                task::Poll::Pending =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(flow)) = control_receiver.try_next() {
+                        <span class="kw-2">*</span>control_flow = flow;
+                    }
+                }
+                task::Poll::Ready(<span class="kw">_</span>) =&gt; {
+                    <span class="kw-2">*</span>control_flow = ControlFlow::Exit;
+                }
+            }
         }
     });
 
@@ -652,7 +718,10 @@
     <span class="kw-2">mut </span>runtime: Runtime&lt;E, Proxy&lt;A::Message&gt;, A::Message&gt;,
     <span class="kw-2">mut </span>proxy: glutin::event_loop::EventLoopProxy&lt;A::Message&gt;,
     <span class="kw-2">mut </span>debug: Debug,
-    <span class="kw-2">mut </span>receiver: mpsc::UnboundedReceiver&lt;glutin::event::Event&lt;<span class="lifetime">&#39;_</span>, A::Message&gt;&gt;,
+    <span class="kw-2">mut </span>event_receiver: mpsc::UnboundedReceiver&lt;
+        glutin::event::Event&lt;<span class="lifetime">&#39;_</span>, A::Message&gt;,
+    &gt;,
+    <span class="kw-2">mut </span>control_sender: mpsc::UnboundedSender&lt;glutin::event_loop::ControlFlow&gt;,
     <span class="kw-2">mut </span>context: glutin::ContextWrapper&lt;glutin::PossiblyCurrent, Window&gt;,
     init_command: Command&lt;A::Message&gt;,
     exit_on_close_request: bool,
@@ -663,6 +732,7 @@
     &lt;A::Renderer <span class="kw">as </span>iced_native::Renderer&gt;::Theme: StyleSheet,
 {
     <span class="kw">use </span>glutin::event;
+    <span class="kw">use </span>glutin::event_loop::ControlFlow;
     <span class="kw">use </span>iced_winit::futures::stream::StreamExt;
 
     <span class="kw">let </span><span class="kw-2">mut </span>clipboard = Clipboard::connect(context.window());
@@ -699,13 +769,22 @@
     <span class="kw">let </span><span class="kw-2">mut </span>mouse_interaction = mouse::Interaction::default();
     <span class="kw">let </span><span class="kw-2">mut </span>events = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>messages = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>redraw_pending = <span class="bool-val">false</span>;
 
     debug.startup_finished();
 
-    <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = receiver.next().<span class="kw">await </span>{
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = event_receiver.next().<span class="kw">await </span>{
         <span class="kw">match </span>event {
+            event::Event::NewEvents(start_cause) =&gt; {
+                redraw_pending = <span class="macro">matches!</span>(
+                    start_cause,
+                    event::StartCause::Init
+                        | event::StartCause::Poll
+                        | event::StartCause::ResumeTimeReached { .. }
+                );
+            }
             event::Event::MainEventsCleared =&gt; {
-                <span class="kw">if </span>events.is_empty() &amp;&amp; messages.is_empty() {
+                <span class="kw">if </span>!redraw_pending &amp;&amp; events.is_empty() &amp;&amp; messages.is_empty() {
                     <span class="kw">continue</span>;
                 }
 
@@ -767,6 +846,23 @@
                     }
                 }
 
+                <span class="comment">// TODO: Avoid redrawing all the time by forcing widgets to
+                // request redraws on state changes
+                //
+                // Then, we can use the `interface_state` here to decide if a redraw
+                // is needed right away, or simply wait until a specific time.
+                </span><span class="kw">let </span>redraw_event = Event::Window(
+                    <span class="kw">crate</span>::window::Event::RedrawRequested(Instant::now()),
+                );
+
+                <span class="kw">let </span>(interface_state, <span class="kw">_</span>) = user_interface.update(
+                    <span class="kw-2">&amp;</span>[redraw_event.clone()],
+                    state.cursor_position(),
+                    <span class="kw-2">&amp;mut </span>renderer,
+                    <span class="kw-2">&amp;mut </span>clipboard,
+                    <span class="kw-2">&amp;mut </span>messages,
+                );
+
                 debug.draw_started();
                 <span class="kw">let </span>new_mouse_interaction = user_interface.draw(
                     <span class="kw-2">&amp;mut </span>renderer,
@@ -787,6 +883,24 @@
                 }
 
                 context.window().request_redraw();
+                runtime
+                    .broadcast((redraw_event, <span class="kw">crate</span>::event::Status::Ignored));
+
+                <span class="kw">let _ </span>= control_sender.start_send(<span class="kw">match </span>interface_state {
+                    user_interface::State::Updated {
+                        redraw_request: <span class="prelude-val">Some</span>(redraw_request),
+                    } =&gt; <span class="kw">match </span>redraw_request {
+                        <span class="kw">crate</span>::window::RedrawRequest::NextFrame =&gt; {
+                            ControlFlow::Poll
+                        }
+                        <span class="kw">crate</span>::window::RedrawRequest::At(at) =&gt; {
+                            ControlFlow::WaitUntil(at)
+                        }
+                    },
+                    <span class="kw">_ </span>=&gt; ControlFlow::Wait,
+                });
+
+                redraw_pending = <span class="bool-val">false</span>;
             }
             event::Event::PlatformSpecific(event::PlatformSpecific::MacOS(
                 event::MacOS::ReceivedUrl(url),
@@ -902,4 +1016,4 @@
     </span>drop(ManuallyDrop::into_inner(user_interface));
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_glutin" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (1e4f90061 2023-01-11)" data-search-js="search-181581080540673f.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-58836c674e2f7bd2.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_glutin" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (61a415be5 2023-01-12)" data-search-js="search-181581080540673f.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-58836c674e2f7bd2.css" ></div></body></html>

@@ -76,7 +76,35 @@
 <a href="#75" id="75">75</a>
 <a href="#76" id="76">76</a>
 <a href="#77" id="77">77</a>
-</pre><pre class="rust"><code><span class="doccomment">/// A connection to the state of a shell.
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+</pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::window;
+
+<span class="doccomment">/// A connection to the state of a shell.
 ///
 /// A [`Widget`] can leverage a [`Shell`] to trigger changes in an application,
 /// like publishing messages or invalidating the current layout.
@@ -85,6 +113,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Shell&lt;<span class="lifetime">&#39;a</span>, Message&gt; {
     messages: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;Message&gt;,
+    redraw_request: <span class="prelude-ty">Option</span>&lt;window::RedrawRequest&gt;,
     is_layout_invalid: bool,
     are_widgets_invalid: bool,
 }
@@ -94,9 +123,45 @@
     </span><span class="kw">pub fn </span>new(messages: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Vec&lt;Message&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             messages,
+            redraw_request: <span class="prelude-val">None</span>,
             is_layout_invalid: <span class="bool-val">false</span>,
             are_widgets_invalid: <span class="bool-val">false</span>,
         }
+    }
+
+    <span class="doccomment">/// Publish the given `Message` for an application to process it.
+    </span><span class="kw">pub fn </span>publish(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: Message) {
+        <span class="self">self</span>.messages.push(message);
+    }
+
+    <span class="doccomment">/// Requests a new frame to be drawn at the given [`Instant`].
+    </span><span class="kw">pub fn </span>request_redraw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, request: window::RedrawRequest) {
+        <span class="kw">match </span><span class="self">self</span>.redraw_request {
+            <span class="prelude-val">None </span>=&gt; {
+                <span class="self">self</span>.redraw_request = <span class="prelude-val">Some</span>(request);
+            }
+            <span class="prelude-val">Some</span>(current) <span class="kw">if </span>request &lt; current =&gt; {
+                <span class="self">self</span>.redraw_request = <span class="prelude-val">Some</span>(request);
+            }
+            <span class="kw">_ </span>=&gt; {}
+        }
+    }
+
+    <span class="doccomment">/// Returns the requested [`Instant`] a redraw should happen, if any.
+    </span><span class="kw">pub fn </span>redraw_request(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;window::RedrawRequest&gt; {
+        <span class="self">self</span>.redraw_request
+    }
+
+    <span class="doccomment">/// Returns whether the current layout is invalid or not.
+    </span><span class="kw">pub fn </span>is_layout_invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.is_layout_invalid
+    }
+
+    <span class="doccomment">/// Invalidates the current application layout.
+    ///
+    /// The shell will relayout the application widgets.
+    </span><span class="kw">pub fn </span>invalidate_layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.is_layout_invalid = <span class="bool-val">true</span>;
     }
 
     <span class="doccomment">/// Triggers the given function if the layout is invalid, cleaning it in the
@@ -109,21 +174,10 @@
         }
     }
 
-    <span class="doccomment">/// Returns whether the current layout is invalid or not.
-    </span><span class="kw">pub fn </span>is_layout_invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.is_layout_invalid
-    }
-
-    <span class="doccomment">/// Publish the given `Message` for an application to process it.
-    </span><span class="kw">pub fn </span>publish(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: Message) {
-        <span class="self">self</span>.messages.push(message);
-    }
-
-    <span class="doccomment">/// Invalidates the current application layout.
-    ///
-    /// The shell will relayout the application widgets.
-    </span><span class="kw">pub fn </span>invalidate_layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.is_layout_invalid = <span class="bool-val">true</span>;
+    <span class="doccomment">/// Returns whether the widgets of the current application have been
+    /// invalidated.
+    </span><span class="kw">pub fn </span>are_widgets_invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.are_widgets_invalid
     }
 
     <span class="doccomment">/// Invalidates the current application widgets.
@@ -140,18 +194,16 @@
     </span><span class="kw">pub fn </span>merge&lt;B&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: Shell&lt;<span class="lifetime">&#39;_</span>, B&gt;, f: <span class="kw">impl </span>Fn(B) -&gt; Message) {
         <span class="self">self</span>.messages.extend(other.messages.drain(..).map(f));
 
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(at) = other.redraw_request {
+            <span class="self">self</span>.request_redraw(at);
+        }
+
         <span class="self">self</span>.is_layout_invalid =
             <span class="self">self</span>.is_layout_invalid || other.is_layout_invalid;
 
         <span class="self">self</span>.are_widgets_invalid =
             <span class="self">self</span>.are_widgets_invalid || other.are_widgets_invalid;
     }
-
-    <span class="doccomment">/// Returns whether the widgets of the current application have been
-    /// invalidated.
-    </span><span class="kw">pub fn </span>are_widgets_invalid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.are_widgets_invalid
-    }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_native" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (1e4f90061 2023-01-11)" data-search-js="search-181581080540673f.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-58836c674e2f7bd2.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_native" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (61a415be5 2023-01-12)" data-search-js="search-181581080540673f.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-58836c674e2f7bd2.css" ></div></body></html>

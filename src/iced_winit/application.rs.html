@@ -817,6 +817,63 @@
 <a href="#816" id="816">816</a>
 <a href="#817" id="817">817</a>
 <a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
+<a href="#869" id="869">869</a>
+<a href="#870" id="870">870</a>
+<a href="#871" id="871">871</a>
+<a href="#872" id="872">872</a>
+<a href="#873" id="873">873</a>
+<a href="#874" id="874">874</a>
+<a href="#875" id="875">875</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">mod </span>profiler;
@@ -830,7 +887,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::widget::operation;
 <span class="kw">use crate</span>::{
-    Command, Debug, Error, Executor, Proxy, Runtime, Settings, Size,
+    Command, Debug, Error, Event, Executor, Proxy, Runtime, Settings, Size,
     Subscription,
 };
 
@@ -839,6 +896,7 @@
 <span class="kw">use </span>iced_graphics::compositor;
 <span class="kw">use </span>iced_graphics::window;
 <span class="kw">use </span>iced_native::program::Program;
+<span class="kw">use </span>iced_native::time::Instant;
 <span class="kw">use </span>iced_native::user_interface::{<span class="self">self</span>, UserInterface};
 
 <span class="kw">pub use </span>iced_native::application::{Appearance, StyleSheet};
@@ -1005,7 +1063,8 @@
 
     <span class="kw">let </span>(compositor, renderer) = C::new(compositor_settings, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>window))<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>(<span class="kw-2">mut </span>sender, receiver) = mpsc::unbounded();
+    <span class="kw">let </span>(<span class="kw-2">mut </span>event_sender, event_receiver) = mpsc::unbounded();
+    <span class="kw">let </span>(control_sender, <span class="kw-2">mut </span>control_receiver) = mpsc::unbounded();
 
     <span class="kw">let </span><span class="kw-2">mut </span>instance = Box::pin({
         <span class="kw">let </span>run_instance = run_instance::&lt;A, E, C&gt;(
@@ -1015,7 +1074,8 @@
             runtime,
             proxy,
             debug,
-            receiver,
+            event_receiver,
+            control_sender,
             init_command,
             window,
             settings.exit_on_close_request,
@@ -1053,13 +1113,19 @@
         };
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = event {
-            sender.start_send(event).expect(<span class="string">&quot;Send event&quot;</span>);
+            event_sender.start_send(event).expect(<span class="string">&quot;Send event&quot;</span>);
 
             <span class="kw">let </span>poll = instance.as_mut().poll(<span class="kw-2">&amp;mut </span>context);
 
-            <span class="kw-2">*</span>control_flow = <span class="kw">match </span>poll {
-                task::Poll::Pending =&gt; ControlFlow::Wait,
-                task::Poll::Ready(<span class="kw">_</span>) =&gt; ControlFlow::Exit,
+            <span class="kw">match </span>poll {
+                task::Poll::Pending =&gt; {
+                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(flow)) = control_receiver.try_next() {
+                        <span class="kw-2">*</span>control_flow = flow;
+                    }
+                }
+                task::Poll::Ready(<span class="kw">_</span>) =&gt; {
+                    <span class="kw-2">*</span>control_flow = ControlFlow::Exit;
+                }
             };
         }
     })
@@ -1072,7 +1138,10 @@
     <span class="kw-2">mut </span>runtime: Runtime&lt;E, Proxy&lt;A::Message&gt;, A::Message&gt;,
     <span class="kw-2">mut </span>proxy: winit::event_loop::EventLoopProxy&lt;A::Message&gt;,
     <span class="kw-2">mut </span>debug: Debug,
-    <span class="kw-2">mut </span>receiver: mpsc::UnboundedReceiver&lt;winit::event::Event&lt;<span class="lifetime">&#39;_</span>, A::Message&gt;&gt;,
+    <span class="kw-2">mut </span>event_receiver: mpsc::UnboundedReceiver&lt;
+        winit::event::Event&lt;<span class="lifetime">&#39;_</span>, A::Message&gt;,
+    &gt;,
+    <span class="kw-2">mut </span>control_sender: mpsc::UnboundedSender&lt;winit::event_loop::ControlFlow&gt;,
     init_command: Command&lt;A::Message&gt;,
     window: winit::window::Window,
     exit_on_close_request: bool,
@@ -1084,6 +1153,7 @@
 {
     <span class="kw">use </span>iced_futures::futures::stream::StreamExt;
     <span class="kw">use </span>winit::event;
+    <span class="kw">use </span>winit::event_loop::ControlFlow;
 
     <span class="kw">let </span><span class="kw-2">mut </span>clipboard = Clipboard::connect(<span class="kw-2">&amp;</span>window);
     <span class="kw">let </span><span class="kw-2">mut </span>cache = user_interface::Cache::default();
@@ -1128,13 +1198,22 @@
     <span class="kw">let </span><span class="kw-2">mut </span>mouse_interaction = mouse::Interaction::default();
     <span class="kw">let </span><span class="kw-2">mut </span>events = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>messages = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>redraw_pending = <span class="bool-val">false</span>;
 
     debug.startup_finished();
 
-    <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = receiver.next().<span class="kw">await </span>{
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = event_receiver.next().<span class="kw">await </span>{
         <span class="kw">match </span>event {
+            event::Event::NewEvents(start_cause) =&gt; {
+                redraw_pending = <span class="macro">matches!</span>(
+                    start_cause,
+                    event::StartCause::Init
+                        | event::StartCause::Poll
+                        | event::StartCause::ResumeTimeReached { .. }
+                );
+            }
             event::Event::MainEventsCleared =&gt; {
-                <span class="kw">if </span>events.is_empty() &amp;&amp; messages.is_empty() {
+                <span class="kw">if </span>!redraw_pending &amp;&amp; events.is_empty() &amp;&amp; messages.is_empty() {
                     <span class="kw">continue</span>;
                 }
 
@@ -1157,7 +1236,7 @@
                 <span class="kw">if </span>!messages.is_empty()
                     || <span class="macro">matches!</span>(
                         interface_state,
-                        user_interface::State::Outdated,
+                        user_interface::State::Outdated
                     )
                 {
                     <span class="kw">let </span><span class="kw-2">mut </span>cache =
@@ -1195,6 +1274,23 @@
                     }
                 }
 
+                <span class="comment">// TODO: Avoid redrawing all the time by forcing widgets to
+                // request redraws on state changes
+                //
+                // Then, we can use the `interface_state` here to decide if a redraw
+                // is needed right away, or simply wait until a specific time.
+                </span><span class="kw">let </span>redraw_event = Event::Window(
+                    <span class="kw">crate</span>::window::Event::RedrawRequested(Instant::now()),
+                );
+
+                <span class="kw">let </span>(interface_state, <span class="kw">_</span>) = user_interface.update(
+                    <span class="kw-2">&amp;</span>[redraw_event.clone()],
+                    state.cursor_position(),
+                    <span class="kw-2">&amp;mut </span>renderer,
+                    <span class="kw-2">&amp;mut </span>clipboard,
+                    <span class="kw-2">&amp;mut </span>messages,
+                );
+
                 debug.draw_started();
                 <span class="kw">let </span>new_mouse_interaction = user_interface.draw(
                     <span class="kw-2">&amp;mut </span>renderer,
@@ -1215,6 +1311,24 @@
                 }
 
                 window.request_redraw();
+                runtime
+                    .broadcast((redraw_event, <span class="kw">crate</span>::event::Status::Ignored));
+
+                <span class="kw">let _ </span>= control_sender.start_send(<span class="kw">match </span>interface_state {
+                    user_interface::State::Updated {
+                        redraw_request: <span class="prelude-val">Some</span>(redraw_request),
+                    } =&gt; <span class="kw">match </span>redraw_request {
+                        <span class="kw">crate</span>::window::RedrawRequest::NextFrame =&gt; {
+                            ControlFlow::Poll
+                        }
+                        <span class="kw">crate</span>::window::RedrawRequest::At(at) =&gt; {
+                            ControlFlow::WaitUntil(at)
+                        }
+                    },
+                    <span class="kw">_ </span>=&gt; ControlFlow::Wait,
+                });
+
+                redraw_pending = <span class="bool-val">false</span>;
             }
             event::Event::PlatformSpecific(event::PlatformSpecific::MacOS(
                 event::MacOS::ReceivedUrl(url),
@@ -1636,4 +1750,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (1e4f90061 2023-01-11)" data-search-js="search-181581080540673f.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-58836c674e2f7bd2.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (61a415be5 2023-01-12)" data-search-js="search-181581080540673f.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-58836c674e2f7bd2.css" ></div></body></html>
