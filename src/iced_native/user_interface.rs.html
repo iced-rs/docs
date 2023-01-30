@@ -600,6 +600,8 @@
 <a href="#599" id="599">599</a>
 <a href="#600" id="600">600</a>
 <a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Implement your own event loop to drive a user interface.
 </span><span class="kw">use </span><span class="kw">crate</span>::application;
 <span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
@@ -608,7 +610,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::widget;
 <span class="kw">use </span><span class="kw">crate</span>::window;
-<span class="kw">use crate</span>::{Clipboard, Element, Layout, Point, Rectangle, Shell, Size};
+<span class="kw">use crate</span>::{
+    Clipboard, Element, Layout, Point, Rectangle, Shell, Size, Vector,
+};
 
 <span class="doccomment">/// A set of interactive graphical elements with a specific [`Layout`].
 ///
@@ -805,7 +809,7 @@
             <span class="kw">let </span>bounds = <span class="self">self</span>.bounds;
 
             <span class="kw">let </span><span class="kw-2">mut </span>overlay = manual_overlay.as_mut().unwrap();
-            <span class="kw">let </span><span class="kw-2">mut </span>layout = overlay.layout(renderer, bounds);
+            <span class="kw">let </span><span class="kw-2">mut </span>layout = overlay.layout(renderer, bounds, Vector::ZERO);
             <span class="kw">let </span><span class="kw-2">mut </span>event_statuses = Vec::new();
 
             <span class="kw">for </span>event <span class="kw">in </span>events.iter().cloned() {
@@ -854,7 +858,7 @@
                     overlay = manual_overlay.as_mut().unwrap();
 
                     shell.revalidate_layout(|| {
-                        layout = overlay.layout(renderer, bounds);
+                        layout = overlay.layout(renderer, bounds, Vector::ZERO);
                     });
                 }
 
@@ -1036,10 +1040,9 @@
             .as_widget_mut()
             .overlay(<span class="kw-2">&amp;mut </span><span class="self">self</span>.state, Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base), renderer)
         {
-            <span class="kw">let </span>overlay_layout = <span class="self">self
-                </span>.overlay
-                .take()
-                .unwrap_or_else(|| overlay.layout(renderer, <span class="self">self</span>.bounds));
+            <span class="kw">let </span>overlay_layout = <span class="self">self</span>.overlay.take().unwrap_or_else(|| {
+                overlay.layout(renderer, <span class="self">self</span>.bounds, Vector::ZERO)
+            });
 
             <span class="kw">let </span>new_cursor_position =
                 <span class="kw">if </span>overlay_layout.bounds().contains(cursor_position) {
@@ -1140,7 +1143,8 @@
             renderer,
         ) {
             <span class="kw">if </span><span class="self">self</span>.overlay.is_none() {
-                <span class="self">self</span>.overlay = <span class="prelude-val">Some</span>(overlay.layout(renderer, <span class="self">self</span>.bounds));
+                <span class="self">self</span>.overlay =
+                    <span class="prelude-val">Some</span>(overlay.layout(renderer, <span class="self">self</span>.bounds, Vector::ZERO));
             }
 
             overlay.operate(
