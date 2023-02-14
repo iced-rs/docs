@@ -651,6 +651,13 @@
 <a href="#650" id="650">650</a>
 <a href="#651" id="651">651</a>
 <a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of selectable values.
 </span><span class="kw">use </span><span class="kw">crate</span>::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
@@ -673,60 +680,6 @@
 
 <span class="kw">pub use </span>iced_style::pick_list::{Appearance, StyleSheet};
 
-<span class="doccomment">/// The handle to the right side of the [`PickList`].
-</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
-</span><span class="kw">pub enum </span>Handle&lt;Renderer&gt;
-<span class="kw">where
-    </span>Renderer: text::Renderer,
-{
-    <span class="doccomment">/// Displays an arrow icon (▼).
-    ///
-    /// This is the default.
-    </span>Arrow {
-        <span class="doccomment">/// Font size of the content.
-        </span>size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
-    },
-    <span class="doccomment">/// A custom handle.
-    </span>Custom {
-        <span class="doccomment">/// Font that will be used to display the `text`,
-        </span>font: Renderer::Font,
-        <span class="doccomment">/// Text that will be shown.
-        </span>text: String,
-        <span class="doccomment">/// Font size of the content.
-        </span>size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
-    },
-    <span class="doccomment">/// No handle will be shown.
-    </span><span class="prelude-val">None</span>,
-}
-
-<span class="kw">impl</span>&lt;Renderer&gt; Default <span class="kw">for </span>Handle&lt;Renderer&gt;
-<span class="kw">where
-    </span>Renderer: text::Renderer,
-{
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Arrow { size: <span class="prelude-val">None </span>}
-    }
-}
-
-<span class="kw">impl</span>&lt;Renderer&gt; Handle&lt;Renderer&gt;
-<span class="kw">where
-    </span>Renderer: text::Renderer,
-{
-    <span class="kw">fn </span>content(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;(Renderer::Font, String, <span class="prelude-ty">Option</span>&lt;u16&gt;)&gt; {
-        <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Arrow { size } =&gt; <span class="prelude-val">Some</span>((
-                Renderer::ICON_FONT,
-                Renderer::ARROW_DOWN_ICON.to_string(),
-                <span class="kw-2">*</span>size,
-            )),
-            <span class="self">Self</span>::Custom { font, text, size } =&gt; {
-                <span class="prelude-val">Some</span>((font.clone(), text.clone(), <span class="kw-2">*</span>size))
-            }
-            <span class="self">Self</span>::None =&gt; <span class="prelude-val">None</span>,
-        }
-    }
-}
-
 <span class="doccomment">/// A widget for selecting a single value from a list of options.
 </span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>PickList&lt;<span class="lifetime">&#39;a</span>, T, Message, Renderer&gt;
@@ -743,7 +696,7 @@
     padding: Padding,
     text_size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
     font: Renderer::Font,
-    handle: Handle&lt;Renderer&gt;,
+    handle: Handle&lt;Renderer::Font&gt;,
     style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
 
@@ -814,7 +767,7 @@
     </span>}
 
     <span class="doccomment">/// Sets the [`Handle`] of the [`PickList`].
-    </span><span class="kw">pub fn </span>handle(<span class="kw-2">mut </span><span class="self">self</span>, handle: Handle&lt;Renderer&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>handle(<span class="kw-2">mut </span><span class="self">self</span>, handle: Handle&lt;Renderer::Font&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.handle = handle;
         <span class="self">self
     </span>}
@@ -911,7 +864,7 @@
 
     <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _tree: <span class="kw-2">&amp;</span>Tree,
+        tree: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
         theme: <span class="kw-2">&amp;</span>Renderer::Theme,
         _style: <span class="kw-2">&amp;</span>renderer::Style,
@@ -931,6 +884,7 @@
             <span class="self">self</span>.selected.as_ref(),
             <span class="kw-2">&amp;</span><span class="self">self</span>.handle,
             <span class="kw-2">&amp;</span><span class="self">self</span>.style,
+            || tree.state.downcast_ref::&lt;State&lt;T&gt;&gt;(),
         )
     }
 
@@ -1000,6 +954,46 @@
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
+}
+
+<span class="doccomment">/// The handle to the right side of the [`PickList`].
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>Handle&lt;Font&gt; {
+    <span class="doccomment">/// Displays an arrow icon (▼).
+    ///
+    /// This is the default.
+    </span>Arrow {
+        <span class="doccomment">/// Font size of the content.
+        </span>size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    },
+    <span class="doccomment">/// A custom static handle.
+    </span>Static(Icon&lt;Font&gt;),
+    <span class="doccomment">/// A custom dynamic handle.
+    </span>Dynamic {
+        <span class="doccomment">/// The [`Icon`] used when [`PickList`] is closed.
+        </span>closed: Icon&lt;Font&gt;,
+        <span class="doccomment">/// The [`Icon`] used when [`PickList`] is open.
+        </span>open: Icon&lt;Font&gt;,
+    },
+    <span class="doccomment">/// No handle will be shown.
+    </span><span class="prelude-val">None</span>,
+}
+
+<span class="kw">impl</span>&lt;Font&gt; Default <span class="kw">for </span>Handle&lt;Font&gt; {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Arrow { size: <span class="prelude-val">None </span>}
+    }
+}
+
+<span class="doccomment">/// The icon of a [`Handle`].
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Icon&lt;Font&gt; {
+    <span class="doccomment">/// Font that will be used to display the `code_point`,
+    </span><span class="kw">pub </span>font: Font,
+    <span class="doccomment">/// The unicode code point that will be used as the icon.
+    </span><span class="kw">pub </span>code_point: char,
+    <span class="doccomment">/// Font size of the content.
+    </span><span class="kw">pub </span>size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
 }
 
 <span class="doccomment">/// Computes the layout of a [`PickList`].
@@ -1221,7 +1215,7 @@
 }
 
 <span class="doccomment">/// Draws a [`PickList`].
-</span><span class="kw">pub fn </span>draw&lt;T, Renderer&gt;(
+</span><span class="kw">pub fn </span>draw&lt;<span class="lifetime">&#39;a</span>, T, Renderer&gt;(
     renderer: <span class="kw-2">&amp;mut </span>Renderer,
     theme: <span class="kw-2">&amp;</span>Renderer::Theme,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -1231,12 +1225,13 @@
     font: <span class="kw-2">&amp;</span>Renderer::Font,
     placeholder: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     selected: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;,
-    handle: <span class="kw-2">&amp;</span>Handle&lt;Renderer&gt;,
+    handle: <span class="kw-2">&amp;</span>Handle&lt;Renderer::Font&gt;,
     style: <span class="kw-2">&amp;</span>&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    state: <span class="kw">impl </span>FnOnce() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>State&lt;T&gt;,
 ) <span class="kw">where
     </span>Renderer: text::Renderer,
     Renderer::Theme: StyleSheet,
-    T: ToString,
+    T: ToString + <span class="lifetime">&#39;a</span>,
 {
     <span class="kw">let </span>bounds = layout.bounds();
     <span class="kw">let </span>is_mouse_over = bounds.contains(cursor_position);
@@ -1258,11 +1253,30 @@
         style.background,
     );
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>((font, text, size)) = handle.content() {
+    <span class="kw">let </span>handle = <span class="kw">match </span>handle {
+        Handle::Arrow { size } =&gt; {
+            <span class="prelude-val">Some</span>((Renderer::ICON_FONT, Renderer::ARROW_DOWN_ICON, <span class="kw-2">*</span>size))
+        }
+        Handle::Static(Icon {
+            font,
+            code_point,
+            size,
+        }) =&gt; <span class="prelude-val">Some</span>((font.clone(), <span class="kw-2">*</span>code_point, <span class="kw-2">*</span>size)),
+        Handle::Dynamic { open, closed } =&gt; {
+            <span class="kw">if </span>state().is_open {
+                <span class="prelude-val">Some</span>((open.font.clone(), open.code_point, open.size))
+            } <span class="kw">else </span>{
+                <span class="prelude-val">Some</span>((closed.font.clone(), closed.code_point, closed.size))
+            }
+        }
+        Handle::None =&gt; <span class="prelude-val">None</span>,
+    };
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>((font, code_point, size)) = handle {
         <span class="kw">let </span>size = f32::from(size.unwrap_or_else(|| renderer.default_size()));
 
         renderer.fill_text(Text {
-            content: <span class="kw-2">&amp;</span>text,
+            content: <span class="kw-2">&amp;</span>code_point.to_string(),
             size,
             font,
             color: style.handle_color,
