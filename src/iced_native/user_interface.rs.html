@@ -867,16 +867,16 @@
                 }
             }
 
-            <span class="kw">let </span>base_cursor = <span class="kw">if </span>manual_overlay
+            <span class="kw">let </span>base_cursor = manual_overlay
                 .as_ref()
-                .unwrap()
-                .is_over(Layout::new(<span class="kw-2">&amp;</span>layout), cursor_position)
-            {
-                <span class="comment">// TODO: Type-safe cursor availability
-                </span>Point::new(-<span class="number">1.0</span>, -<span class="number">1.0</span>)
-            } <span class="kw">else </span>{
-                cursor_position
-            };
+                .filter(|overlay| {
+                    overlay.is_over(Layout::new(<span class="kw-2">&amp;</span>layout), cursor_position)
+                })
+                .map(|<span class="kw">_</span>| {
+                    <span class="comment">// TODO: Type-safe cursor availability
+                    </span>Point::new(-<span class="number">1.0</span>, -<span class="number">1.0</span>)
+                })
+                .unwrap_or(cursor_position);
 
             <span class="self">self</span>.overlay = <span class="prelude-val">Some</span>(layout);
 
