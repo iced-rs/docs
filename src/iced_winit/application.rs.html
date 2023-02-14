@@ -874,6 +874,16 @@
 <a href="#873" id="873">873</a>
 <a href="#874" id="874">874</a>
 <a href="#875" id="875">875</a>
+<a href="#876" id="876">876</a>
+<a href="#877" id="877">877</a>
+<a href="#878" id="878">878</a>
+<a href="#879" id="879">879</a>
+<a href="#880" id="880">880</a>
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a>
+<a href="#883" id="883">883</a>
+<a href="#884" id="884">884</a>
+<a href="#885" id="885">885</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="attr">#[cfg(feature = <span class="string">&quot;trace&quot;</span>)]
 </span><span class="kw">mod </span>profiler;
@@ -1023,11 +1033,15 @@
     <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
     </span><span class="kw">let </span>target = settings.window.platform_specific.target.clone();
 
-    <span class="kw">let </span>builder = settings.window.into_builder(
-        <span class="kw-2">&amp;</span>application.title(),
-        event_loop.primary_monitor(),
-        settings.id,
-    );
+    <span class="kw">let </span>should_be_visible = settings.window.visible;
+    <span class="kw">let </span>builder = settings
+        .window
+        .into_builder(
+            <span class="kw-2">&amp;</span>application.title(),
+            event_loop.primary_monitor(),
+            settings.id,
+        )
+        .with_visible(<span class="bool-val">false</span>);
 
     <span class="macro">log::info!</span>(<span class="string">&quot;Window builder: {:#?}&quot;</span>, builder);
 
@@ -1078,6 +1092,7 @@
             control_sender,
             init_command,
             window,
+            should_be_visible,
             settings.exit_on_close_request,
         );
 
@@ -1144,6 +1159,7 @@
     <span class="kw-2">mut </span>control_sender: mpsc::UnboundedSender&lt;winit::event_loop::ControlFlow&gt;,
     init_command: Command&lt;A::Message&gt;,
     window: winit::window::Window,
+    should_be_visible: bool,
     exit_on_close_request: bool,
 ) <span class="kw">where
     </span>A: Application + <span class="lifetime">&#39;static</span>,
@@ -1170,6 +1186,10 @@
         physical_size.width,
         physical_size.height,
     );
+
+    <span class="kw">if </span>should_be_visible {
+        window.set_visible(<span class="bool-val">true</span>);
+    }
 
     run_command(
         <span class="kw-2">&amp;</span>application,
