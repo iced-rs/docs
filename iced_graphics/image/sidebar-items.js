@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["raster","Raster image loading and caching."],["storage","Store images."],["vector","Vector image loading and caching"]]};
+window.SIDEBAR_ITEMS = {"mod":["raster","storage","vector"]};

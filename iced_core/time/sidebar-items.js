@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Duration","A `Duration` type to represent a span of time, typically used for system timeouts."],["Instant","A measurement of a monotonically nondecreasing clock. Opaque and useful only with [`Duration`]."]]};
+window.SIDEBAR_ITEMS = {"struct":["Duration","Instant"]};

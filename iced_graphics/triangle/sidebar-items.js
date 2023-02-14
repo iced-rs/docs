@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["ColoredVertex2D","A two-dimensional vertex with a color."],["Mesh2D","A set of [`Vertex2D`] and indices representing a list of triangles."],["Vertex2D","A two-dimensional vertex."]]};
+window.SIDEBAR_ITEMS = {"struct":["ColoredVertex2D","Mesh2D","Vertex2D"]};

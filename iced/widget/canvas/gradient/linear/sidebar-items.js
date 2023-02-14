@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["BuilderError","An error that happened when building a [`Linear`] gradient."]],"struct":[["Builder","A [`Linear`] builder."],["Linear","A linear gradient that can be used in the style of `Fill` or `Stroke`."]]};
+window.SIDEBAR_ITEMS = {"enum":["BuilderError"],"struct":["Builder","Linear"]};

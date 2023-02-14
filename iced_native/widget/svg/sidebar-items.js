@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Appearance","The appearance of an SVG."],["Svg","A vector graphics image."]],"trait":[["StyleSheet","The stylesheet of a svg."]]};
+window.SIDEBAR_ITEMS = {"struct":["Appearance","Svg"],"trait":["StyleSheet"]};

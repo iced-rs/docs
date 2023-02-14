@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Position","The position of the tooltip. Defaults to following the cursor."]],"fn":[["draw","Draws a [`Tooltip`]."]],"struct":[["Tooltip","An element to display a widget over another."]]};
+window.SIDEBAR_ITEMS = {"enum":["Position"],"fn":["draw"],"struct":["Tooltip"]};

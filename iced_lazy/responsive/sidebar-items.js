@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Responsive","A widget that is aware of its dimensions."]]};
+window.SIDEBAR_ITEMS = {"struct":["Responsive"]};

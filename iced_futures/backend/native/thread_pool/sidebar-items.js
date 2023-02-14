@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["time","Listen and react to time."]],"type":[["Executor","A thread pool executor for futures."]]};
+window.SIDEBAR_ITEMS = {"mod":["time"],"type":["Executor"]};

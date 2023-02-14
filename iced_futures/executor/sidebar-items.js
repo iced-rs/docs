@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":[["Executor","A type that can run futures."]]};
+window.SIDEBAR_ITEMS = {"trait":["Executor"]};

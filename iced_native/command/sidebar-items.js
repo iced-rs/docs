@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Action","An action that a `Command` can perform."]],"struct":[["Command","A set of asynchronous actions to be performed by some runtime."]]};
+window.SIDEBAR_ITEMS = {"enum":["Action"],"struct":["Command"]};

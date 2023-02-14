@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Compositor","A window graphics backend for iced powered by `glow`."]]};
+window.SIDEBAR_ITEMS = {"struct":["Compositor"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["draw","Draws text using the same logic as the [`Text`] widget."]],"struct":[["Appearance","The apperance of some text."],["Text","A paragraph of text."]],"trait":[["StyleSheet","The style sheet of some text."]]};
+window.SIDEBAR_ITEMS = {"fn":["draw"],"struct":["Appearance","Text"],"trait":["StyleSheet"]};

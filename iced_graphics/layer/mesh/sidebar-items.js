@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Mesh","A mesh of triangles."]],"fn":[["attribute_count_of","Returns the number of total vertices & total indices of all [`Mesh`]es."]],"struct":[["AttributeCount","The result of counting the attributes of a set of meshes."]]};
+window.SIDEBAR_ITEMS = {"enum":["Mesh"],"fn":["attribute_count_of"],"struct":["AttributeCount"]};

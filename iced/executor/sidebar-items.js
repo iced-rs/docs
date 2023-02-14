@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":[["Executor","A type that can run futures."]],"type":[["Default","A default cross-platform executor."]]};
+window.SIDEBAR_ITEMS = {"trait":["Executor"],"type":["Default"]};

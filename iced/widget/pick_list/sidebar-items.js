@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Handle","The handle to the right side of the [`PickList`]."]],"struct":[["Appearance","The appearance of a pick list."]],"trait":[["StyleSheet","A set of rules that dictate the style of a container."]],"type":[["PickList","A widget allowing the selection of a single value from a list of options."]]};
+window.SIDEBAR_ITEMS = {"enum":["Handle"],"struct":["Appearance"],"trait":["StyleSheet"],"type":["PickList"]};

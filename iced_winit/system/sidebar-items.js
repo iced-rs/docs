@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Action","An operation to be performed on the system."]],"fn":[["fetch_information","Query for available system information."]],"struct":[["Information","Contains informations about the system (e.g. system name, processor, memory, graphics adapter)."]]};
+window.SIDEBAR_ITEMS = {"enum":["Action"],"fn":["fetch_information"],"struct":["Information"]};

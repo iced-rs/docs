@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Data","The data of a raster image."]],"struct":[["Handle","A handle of some image data."]],"trait":[["Renderer","A [`Renderer`] that can render raster graphics."]]};
+window.SIDEBAR_ITEMS = {"enum":["Data"],"struct":["Handle"],"trait":["Renderer"]};

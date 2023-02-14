@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["draw_background","Draws the background of a [`Container`] given its [`Appearance`] and its `bounds`."],["layout","Computes the layout of a [`Container`]."]],"struct":[["Appearance","The appearance of a container."],["Container","An element decorating some content."]],"trait":[["StyleSheet","A set of rules that dictate the [`Appearance`] of a container."]]};
+window.SIDEBAR_ITEMS = {"fn":["draw_background","layout"],"struct":["Appearance","Container"],"trait":["StyleSheet"]};

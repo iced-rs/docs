@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["every","Returns a [`Subscription`] that produces messages at a set interval."]]};
+window.SIDEBAR_ITEMS = {"fn":["every"]};

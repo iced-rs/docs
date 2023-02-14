@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["application","Create interactive, native cross-platform applications."]]};
+window.SIDEBAR_ITEMS = {"mod":["application"]};

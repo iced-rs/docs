@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["canvas","Draw 2D graphics for your users."],["qr_code","Encode and display information in a QR code."]]};
+window.SIDEBAR_ITEMS = {"mod":["canvas","qr_code"]};

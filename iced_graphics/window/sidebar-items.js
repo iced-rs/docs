@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["compositor","A compositor is responsible for initializing a renderer and managing window surfaces."],["gl_compositor","A compositor is responsible for initializing a renderer and managing window surfaces."]]};
+window.SIDEBAR_ITEMS = {"mod":["compositor","gl_compositor"]};

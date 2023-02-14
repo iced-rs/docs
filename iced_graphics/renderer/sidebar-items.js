@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Renderer","A backend-agnostic renderer that supports all the built-in widgets."],["Style","The styling attributes of a [`Renderer`]."]]};
+window.SIDEBAR_ITEMS = {"struct":["Renderer","Style"]};

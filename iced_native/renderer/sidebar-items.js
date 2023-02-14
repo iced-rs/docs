@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["BorderRadius","The border radi for the corners of a graphics primitive in the order: top-left, top-right, bottom-right, bottom-left."],["Null","A renderer that does nothing."],["Quad","A polygon with four sides."],["Style","The styling attributes of a [`Renderer`]."]],"trait":[["Renderer","A component that can be used by widgets to draw themselves on a screen."]]};
+window.SIDEBAR_ITEMS = {"struct":["BorderRadius","Null","Quad","Style"],"trait":["Renderer"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":[["Entry","An entry in some [`Storage`],"],["Storage","Stores cached image data for use in rendering"]]};
+window.SIDEBAR_ITEMS = {"trait":["Entry","Storage"]};

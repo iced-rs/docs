@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["Action","The current action of a `PaneGrid`."]],"struct":[["Internal","The internal state of a `PaneGrid`."],["State","The state of a `PaneGrid`."]]};
+window.SIDEBAR_ITEMS = {"enum":["Action"],"struct":["Internal","State"]};

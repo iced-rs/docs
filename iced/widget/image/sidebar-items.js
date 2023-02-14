@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["viewer","Creates a new [`Viewer`] with the given image `Handle`."]],"mod":[["viewer","Zoom and pan on an image."]],"struct":[["Handle","A handle of some image data."],["Viewer","A frame that displays an image with the ability to zoom in/out and pan."]],"type":[["Image","A frame that displays an image."]]};
+window.SIDEBAR_ITEMS = {"fn":["viewer"],"mod":["viewer"],"struct":["Handle","Viewer"],"type":["Image"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["from_children","Returns a [`Group`] of overlay [`Element`] children."]],"mod":[["menu","Build and show dropdown menus."]],"struct":[["Element","A generic [`Overlay`]."],["Group","An [`Overlay`] container that displays multiple overlay [`overlay::Element`] children."]],"trait":[["Overlay","An interactive component that can be displayed on top of other widgets."]]};
+window.SIDEBAR_ITEMS = {"fn":["from_children"],"mod":["menu"],"struct":["Element","Group"],"trait":["Overlay"]};

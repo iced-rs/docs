@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Subscription","A request to listen to external events."],["Tracker","A registry of subscription streams."]],"trait":[["Recipe","The description of a [`Subscription`]."]]};
+window.SIDEBAR_ITEMS = {"struct":["Subscription","Tracker"],"trait":["Recipe"]};
