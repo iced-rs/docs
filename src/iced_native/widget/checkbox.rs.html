@@ -294,6 +294,36 @@
 <a href="#293" id="293">293</a>
 <a href="#294" id="294">294</a>
 <a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Show toggle controls using checkboxes.
 </span><span class="kw">use </span><span class="kw">crate</span>::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
@@ -309,6 +339,17 @@
 };
 
 <span class="kw">pub use </span>iced_style::checkbox::{Appearance, StyleSheet};
+
+<span class="doccomment">/// The icon in a [`Checkbox`].
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Icon&lt;Font&gt; {
+    <span class="doccomment">/// Font that will be used to display the `code_point`,
+    </span><span class="kw">pub </span>font: Font,
+    <span class="doccomment">/// The unicode code point that will be used as the icon.
+    </span><span class="kw">pub </span>code_point: char,
+    <span class="doccomment">/// Font size of the content.
+    </span><span class="kw">pub </span>size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+}
 
 <span class="doccomment">/// A box that can be checked.
 ///
@@ -341,6 +382,7 @@
     spacing: u16,
     text_size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
     font: Renderer::Font,
+    icon: Icon&lt;Renderer::Font&gt;,
     style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
 
@@ -376,6 +418,11 @@
             spacing: <span class="self">Self</span>::DEFAULT_SPACING,
             text_size: <span class="prelude-val">None</span>,
             font: Renderer::Font::default(),
+            icon: Icon {
+                font: Renderer::ICON_FONT,
+                code_point: Renderer::CHECKMARK_ICON,
+                size: <span class="prelude-val">None</span>,
+            },
             style: Default::default(),
         }
     }
@@ -409,6 +456,12 @@
     /// [`Font`]: crate::text::Renderer::Font
     </span><span class="kw">pub fn </span>font(<span class="kw-2">mut </span><span class="self">self</span>, font: Renderer::Font) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.font = font;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the [`Icon`] of the [`Checkbox`].
+    </span><span class="kw">pub fn </span>icon(<span class="kw-2">mut </span><span class="self">self</span>, icon: Icon&lt;Renderer::Font&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.icon = icon;
         <span class="self">self
     </span>}
 
@@ -539,17 +592,24 @@
                 custom_style.background,
             );
 
+            <span class="kw">let </span>Icon {
+                font,
+                code_point,
+                size,
+            } = <span class="kw-2">&amp;</span><span class="self">self</span>.icon;
+            <span class="kw">let </span>size = size.map(f32::from).unwrap_or(bounds.height * <span class="number">0.7</span>);
+
             <span class="kw">if </span><span class="self">self</span>.is_checked {
                 renderer.fill_text(text::Text {
-                    content: <span class="kw-2">&amp;</span>Renderer::CHECKMARK_ICON.to_string(),
-                    font: Renderer::ICON_FONT,
-                    size: bounds.height * <span class="number">0.7</span>,
+                    content: <span class="kw-2">&amp;</span>code_point.to_string(),
+                    font: font.clone(),
+                    size,
                     bounds: Rectangle {
                         x: bounds.center_x(),
                         y: bounds.center_y(),
                         ..bounds
                     },
-                    color: custom_style.checkmark_color,
+                    color: custom_style.icon_color,
                     horizontal_alignment: alignment::Horizontal::Center,
                     vertical_alignment: alignment::Vertical::Center,
                 });
@@ -590,4 +650,4 @@
     }
 }
 </code></pre></div>
-</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_native" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (2d14db321 2023-02-15)" data-search-js="search-14421e1532aead08.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
+</section></main><div id="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_native" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (9a7cc6c32 2023-02-16)" data-search-js="search-14421e1532aead08.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>
