@@ -126,6 +126,22 @@
 <a href="#125" id="125">125</a>
 <a href="#126" id="126">126</a>
 <a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::window::{Mode, UserAttention};
 
 <span class="kw">use </span>iced_futures::MaybeSend;
@@ -198,6 +214,12 @@
     ///
     /// - **Web / Wayland:** Unsupported.
     </span>GainFocus,
+    <span class="doccomment">/// Change whether or not the window will always be on top of other windows.
+    ///
+    /// ## Platform-specific
+    ///
+    /// - **Web / Wayland:** Unsupported.
+    </span>ChangeAlwaysOnTop(bool),
 }
 
 <span class="kw">impl</span>&lt;T&gt; Action&lt;T&gt; {
@@ -213,8 +235,8 @@
             <span class="self">Self</span>::Close =&gt; Action::Close,
             <span class="self">Self</span>::Drag =&gt; Action::Drag,
             <span class="self">Self</span>::Resize { width, height } =&gt; Action::Resize { width, height },
-            <span class="self">Self</span>::Maximize(bool) =&gt; Action::Maximize(bool),
-            <span class="self">Self</span>::Minimize(bool) =&gt; Action::Minimize(bool),
+            <span class="self">Self</span>::Maximize(maximized) =&gt; Action::Maximize(maximized),
+            <span class="self">Self</span>::Minimize(minimized) =&gt; Action::Minimize(minimized),
             <span class="self">Self</span>::Move { x, y } =&gt; Action::Move { x, y },
             <span class="self">Self</span>::ChangeMode(mode) =&gt; Action::ChangeMode(mode),
             <span class="self">Self</span>::FetchMode(o) =&gt; Action::FetchMode(Box::new(<span class="kw">move </span>|s| f(o(s)))),
@@ -224,6 +246,9 @@
                 Action::RequestUserAttention(attention_type)
             }
             <span class="self">Self</span>::GainFocus =&gt; Action::GainFocus,
+            <span class="self">Self</span>::ChangeAlwaysOnTop(on_top) =&gt; {
+                Action::ChangeAlwaysOnTop(on_top)
+            }
         }
     }
 }
@@ -237,8 +262,12 @@
                 f,
                 <span class="string">&quot;Action::Resize {{ widget: {width}, height: {height} }}&quot;
             </span>),
-            <span class="self">Self</span>::Maximize(value) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::Maximize({value})&quot;</span>),
-            <span class="self">Self</span>::Minimize(value) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::Minimize({value}&quot;</span>),
+            <span class="self">Self</span>::Maximize(maximized) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Action::Maximize({maximized})&quot;</span>)
+            }
+            <span class="self">Self</span>::Minimize(minimized) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Action::Minimize({minimized}&quot;</span>)
+            }
             <span class="self">Self</span>::Move { x, y } =&gt; {
                 <span class="macro">write!</span>(f, <span class="string">&quot;Action::Move {{ x: {x}, y: {y} }}&quot;</span>)
             }
@@ -250,6 +279,9 @@
                 <span class="macro">write!</span>(f, <span class="string">&quot;Action::RequestUserAttention&quot;</span>)
             }
             <span class="self">Self</span>::GainFocus =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::GainFocus&quot;</span>),
+            <span class="self">Self</span>::ChangeAlwaysOnTop(on_top) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Action::AlwaysOnTop({on_top})&quot;</span>)
+            }
         }
     }
 }
