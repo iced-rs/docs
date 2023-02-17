@@ -133,10 +133,49 @@
 <a href="#132" id="132">132</a>
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Load and draw raster graphics.
 </span><span class="kw">use crate</span>::{Hasher, Rectangle, Size};
 
-<span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::hash::{Hash, Hasher <span class="kw">as _</span>};
 <span class="kw">use </span>std::path::PathBuf;
 <span class="kw">use </span>std::sync::Arc;
@@ -145,7 +184,7 @@
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>Handle {
     id: u64,
-    data: Arc&lt;Data&gt;,
+    data: Data,
 }
 
 <span class="kw">impl </span>Handle {
@@ -164,12 +203,12 @@
     </span><span class="kw">pub fn </span>from_pixels(
         width: u32,
         height: u32,
-        pixels: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;&gt;,
+        pixels: <span class="kw">impl </span>AsRef&lt;[u8]&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     ) -&gt; Handle {
         <span class="self">Self</span>::from_data(Data::Rgba {
             width,
             height,
-            pixels: pixels.into(),
+            pixels: Bytes::new(pixels),
         })
     }
 
@@ -179,8 +218,10 @@
     ///
     /// This is useful if you already have your image loaded in-memory, maybe
     /// because you downloaded or generated it procedurally.
-    </span><span class="kw">pub fn </span>from_memory(bytes: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;&gt;) -&gt; Handle {
-        <span class="self">Self</span>::from_data(Data::Bytes(bytes.into()))
+    </span><span class="kw">pub fn </span>from_memory(
+        bytes: <span class="kw">impl </span>AsRef&lt;[u8]&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+    ) -&gt; Handle {
+        <span class="self">Self</span>::from_data(Data::Bytes(Bytes::new(bytes)))
     }
 
     <span class="kw">fn </span>from_data(data: Data) -&gt; Handle {
@@ -189,7 +230,7 @@
 
         Handle {
             id: hasher.finish(),
-            data: Arc::new(data),
+            data,
         }
     }
 
@@ -219,6 +260,45 @@
     }
 }
 
+<span class="doccomment">/// A wrapper around raw image data.
+///
+/// It behaves like a `&amp;[u8]`.
+</span><span class="attr">#[derive(Clone)]
+</span><span class="kw">pub struct </span>Bytes(Arc&lt;<span class="kw">dyn </span>AsRef&lt;[u8]&gt; + Send + Sync + <span class="lifetime">&#39;static</span>&gt;);
+
+<span class="kw">impl </span>Bytes {
+    <span class="doccomment">/// Creates new [`Bytes`] around `data`.
+    </span><span class="kw">pub fn </span>new(data: <span class="kw">impl </span>AsRef&lt;[u8]&gt; + Clone + Send + Sync + <span class="lifetime">&#39;static</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(Arc::new(data))
+    }
+}
+
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Bytes {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
+        <span class="self">self</span>.<span class="number">0</span>.as_ref().as_ref().fmt(f)
+    }
+}
+
+<span class="kw">impl </span>std::hash::Hash <span class="kw">for </span>Bytes {
+    <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="self">self</span>.<span class="number">0</span>.as_ref().as_ref().hash(state);
+    }
+}
+
+<span class="kw">impl </span>AsRef&lt;[u8]&gt; <span class="kw">for </span>Bytes {
+    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.<span class="number">0</span>.as_ref().as_ref()
+    }
+}
+
+<span class="kw">impl </span>std::ops::Deref <span class="kw">for </span>Bytes {
+    <span class="kw">type </span>Target = [u8];
+
+    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+        <span class="self">self</span>.<span class="number">0</span>.as_ref().as_ref()
+    }
+}
+
 <span class="doccomment">/// The data of a raster image.
 </span><span class="attr">#[derive(Clone, Hash)]
 </span><span class="kw">pub enum </span>Data {
@@ -226,7 +306,7 @@
     </span>Path(PathBuf),
 
     <span class="doccomment">/// In-memory data
-    </span>Bytes(Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;),
+    </span>Bytes(Bytes),
 
     <span class="doccomment">/// Decoded image pixels in RGBA format.
     </span>Rgba {
@@ -235,7 +315,7 @@
         <span class="doccomment">/// The height of the image.
         </span>height: u32,
         <span class="doccomment">/// The pixels.
-        </span>pixels: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;,
+        </span>pixels: Bytes,
     },
 }
 
