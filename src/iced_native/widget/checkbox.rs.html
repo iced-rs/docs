@@ -320,10 +320,6 @@
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
 <a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
-<a href="#325" id="325">325</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Show toggle controls using checkboxes.
 </span><span class="kw">use </span><span class="kw">crate</span>::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
@@ -334,21 +330,21 @@
 <span class="kw">use </span><span class="kw">crate</span>::touch;
 <span class="kw">use </span><span class="kw">crate</span>::widget::{<span class="self">self</span>, Row, Text, Tree};
 <span class="kw">use crate</span>::{
-    Alignment, Clipboard, Element, Layout, Length, Point, Rectangle, Shell,
-    Widget,
+    Alignment, Clipboard, Element, Layout, Length, Pixels, Point, Rectangle,
+    Shell, Widget,
 };
 
 <span class="kw">pub use </span>iced_style::checkbox::{Appearance, StyleSheet};
 
 <span class="doccomment">/// The icon in a [`Checkbox`].
-</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Icon&lt;Font&gt; {
     <span class="doccomment">/// Font that will be used to display the `code_point`,
     </span><span class="kw">pub </span>font: Font,
     <span class="doccomment">/// The unicode code point that will be used as the icon.
     </span><span class="kw">pub </span>code_point: char,
     <span class="doccomment">/// Font size of the content.
-    </span><span class="kw">pub </span>size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    </span><span class="kw">pub </span>size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
 }
 
 <span class="doccomment">/// A box that can be checked.
@@ -378,9 +374,9 @@
     on_toggle: Box&lt;<span class="kw">dyn </span>Fn(bool) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;,
     label: String,
     width: Length,
-    size: u16,
-    spacing: u16,
-    text_size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    size: f32,
+    spacing: f32,
+    text_size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     font: Renderer::Font,
     icon: Icon&lt;Renderer::Font&gt;,
     style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
@@ -392,10 +388,10 @@
     Renderer::Theme: StyleSheet + widget::text::StyleSheet,
 {
     <span class="doccomment">/// The default size of a [`Checkbox`].
-    </span><span class="kw">const </span>DEFAULT_SIZE: u16 = <span class="number">20</span>;
+    </span><span class="kw">const </span>DEFAULT_SIZE: f32 = <span class="number">20.0</span>;
 
     <span class="doccomment">/// The default spacing of a [`Checkbox`].
-    </span><span class="kw">const </span>DEFAULT_SPACING: u16 = <span class="number">15</span>;
+    </span><span class="kw">const </span>DEFAULT_SPACING: f32 = <span class="number">15.0</span>;
 
     <span class="doccomment">/// Creates a new [`Checkbox`].
     ///
@@ -428,26 +424,26 @@
     }
 
     <span class="doccomment">/// Sets the size of the [`Checkbox`].
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.size = size;
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.size = size.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the width of the [`Checkbox`].
-    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.width = width;
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width.into();
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the spacing between the [`Checkbox`] and the text.
-    </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, spacing: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.spacing = spacing;
+    </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, spacing: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.spacing = spacing.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the text size of the [`Checkbox`].
-    </span><span class="kw">pub fn </span>text_size(<span class="kw-2">mut </span><span class="self">self</span>, text_size: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.text_size = <span class="prelude-val">Some</span>(text_size);
+    </span><span class="kw">pub fn </span>text_size(<span class="kw-2">mut </span><span class="self">self</span>, text_size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.text_size = <span class="prelude-val">Some</span>(text_size.into().<span class="number">0</span>);
         <span class="self">self
     </span>}
 
@@ -498,11 +494,7 @@
             .width(<span class="self">self</span>.width)
             .spacing(<span class="self">self</span>.spacing)
             .align_items(Alignment::Center)
-            .push(
-                Row::new()
-                    .width(Length::Units(<span class="self">self</span>.size))
-                    .height(Length::Units(<span class="self">self</span>.size)),
-            )
+            .push(Row::new().width(<span class="self">self</span>.size).height(<span class="self">self</span>.size))
             .push(
                 Text::new(<span class="kw-2">&amp;</span><span class="self">self</span>.label)
                     .font(<span class="self">self</span>.font.clone())

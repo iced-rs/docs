@@ -386,8 +386,6 @@
 <a href="#385" id="385">385</a>
 <a href="#386" id="386">386</a>
 <a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Display a widget over another.
 </span><span class="kw">use </span><span class="kw">crate</span>::event;
 <span class="kw">use </span><span class="kw">crate</span>::layout;
@@ -399,8 +397,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::widget::overlay;
 <span class="kw">use </span><span class="kw">crate</span>::widget::{Text, Tree};
 <span class="kw">use crate</span>::{
-    Clipboard, Element, Event, Layout, Length, Padding, Point, Rectangle,
-    Shell, Size, Vector, Widget,
+    Clipboard, Element, Event, Layout, Length, Padding, Pixels, Point,
+    Rectangle, Shell, Size, Vector, Widget,
 };
 
 <span class="kw">use </span>std::borrow::Cow;
@@ -415,8 +413,8 @@
     content: Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
     tooltip: Text&lt;<span class="lifetime">&#39;a</span>, Renderer&gt;,
     position: Position,
-    gap: u16,
-    padding: u16,
+    gap: f32,
+    padding: f32,
     snap_within_viewport: bool,
     style: &lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
 }
@@ -427,7 +425,7 @@
     Renderer::Theme: container::StyleSheet + widget::text::StyleSheet,
 {
     <span class="doccomment">/// The default padding of a [`Tooltip`] drawn by this renderer.
-    </span><span class="kw">const </span>DEFAULT_PADDING: u16 = <span class="number">5</span>;
+    </span><span class="kw">const </span>DEFAULT_PADDING: f32 = <span class="number">5.0</span>;
 
     <span class="doccomment">/// Creates a new [`Tooltip`].
     ///
@@ -441,7 +439,7 @@
             content: content.into(),
             tooltip: Text::new(tooltip),
             position,
-            gap: <span class="number">0</span>,
+            gap: <span class="number">0.0</span>,
             padding: <span class="self">Self</span>::DEFAULT_PADDING,
             snap_within_viewport: <span class="bool-val">true</span>,
             style: Default::default(),
@@ -449,7 +447,7 @@
     }
 
     <span class="doccomment">/// Sets the size of the text of the [`Tooltip`].
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: u16) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.tooltip = <span class="self">self</span>.tooltip.size(size);
         <span class="self">self
     </span>}
@@ -463,14 +461,14 @@
     </span>}
 
     <span class="doccomment">/// Sets the gap between the content and its [`Tooltip`].
-    </span><span class="kw">pub fn </span>gap(<span class="kw-2">mut </span><span class="self">self</span>, gap: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.gap = gap;
+    </span><span class="kw">pub fn </span>gap(<span class="kw-2">mut </span><span class="self">self</span>, gap: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.gap = gap.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the padding of the [`Tooltip`].
-    </span><span class="kw">pub fn </span>padding(<span class="kw-2">mut </span><span class="self">self</span>, padding: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.padding = padding;
+    </span><span class="kw">pub fn </span>padding(<span class="kw-2">mut </span><span class="self">self</span>, padding: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.padding = padding.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
@@ -662,8 +660,8 @@
     cursor_position: Point,
     viewport: <span class="kw-2">&amp;</span>Rectangle,
     position: Position,
-    gap: u16,
-    padding: u16,
+    gap: f32,
+    padding: f32,
     snap_within_viewport: bool,
     style: <span class="kw-2">&amp;</span>&lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
     layout_text: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>Renderer, <span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
@@ -683,7 +681,6 @@
     <span class="kw">let </span>bounds = layout.bounds();
 
     <span class="kw">if </span>bounds.contains(cursor_position) {
-        <span class="kw">let </span>gap = f32::from(gap);
         <span class="kw">let </span>style = theme.appearance(style);
 
         <span class="kw">let </span>defaults = renderer::Style {
@@ -701,7 +698,6 @@
             .pad(Padding::new(padding)),
         );
 
-        <span class="kw">let </span>padding = f32::from(padding);
         <span class="kw">let </span>text_bounds = text_layout.bounds();
         <span class="kw">let </span>x_center = bounds.x + (bounds.width - text_bounds.width) / <span class="number">2.0</span>;
         <span class="kw">let </span>y_center = bounds.y + (bounds.height - text_bounds.height) / <span class="number">2.0</span>;

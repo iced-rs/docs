@@ -1208,10 +1208,6 @@
 <a href="#1207" id="1207">1207</a>
 <a href="#1208" id="1208">1208</a>
 <a href="#1209" id="1209">1209</a>
-<a href="#1210" id="1210">1210</a>
-<a href="#1211" id="1211">1211</a>
-<a href="#1212" id="1212">1212</a>
-<a href="#1213" id="1213">1213</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -1239,7 +1235,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::window;
 <span class="kw">use crate</span>::{
-    Clipboard, Color, Command, Element, Layout, Length, Padding, Point,
+    Clipboard, Color, Command, Element, Layout, Length, Padding, Pixels, Point,
     Rectangle, Shell, Size, Vector, Widget,
 };
 
@@ -1278,7 +1274,7 @@
     font: Renderer::Font,
     width: Length,
     padding: Padding,
-    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     on_change: Box&lt;<span class="kw">dyn </span>Fn(String) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;,
     on_paste: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(String) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
     on_submit: <span class="prelude-ty">Option</span>&lt;Message&gt;,
@@ -1308,7 +1304,7 @@
             is_secure: <span class="bool-val">false</span>,
             font: Default::default(),
             width: Length::Fill,
-            padding: Padding::new(<span class="number">5</span>),
+            padding: Padding::new(<span class="number">5.0</span>),
             size: <span class="prelude-val">None</span>,
             on_change: Box::new(on_change),
             on_paste: <span class="prelude-val">None</span>,
@@ -1347,8 +1343,8 @@
         <span class="self">self
     </span>}
     <span class="doccomment">/// Sets the width of the [`TextInput`].
-    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.width = width;
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width.into();
         <span class="self">self
     </span>}
 
@@ -1359,8 +1355,8 @@
     </span>}
 
     <span class="doccomment">/// Sets the text size of the [`TextInput`].
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.size = <span class="prelude-val">Some</span>(size);
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.size = <span class="prelude-val">Some</span>(size.into().<span class="number">0</span>);
         <span class="self">self
     </span>}
 
@@ -1593,7 +1589,7 @@
     limits: <span class="kw-2">&amp;</span>layout::Limits,
     width: Length,
     padding: Padding,
-    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
 ) -&gt; layout::Node
 <span class="kw">where
     </span>Renderer: text::Renderer,
@@ -1601,14 +1597,10 @@
     <span class="kw">let </span>text_size = size.unwrap_or_else(|| renderer.default_size());
 
     <span class="kw">let </span>padding = padding.fit(Size::ZERO, limits.max());
-
-    <span class="kw">let </span>limits = limits
-        .width(width)
-        .pad(padding)
-        .height(Length::Units(text_size));
+    <span class="kw">let </span>limits = limits.width(width).pad(padding).height(text_size);
 
     <span class="kw">let </span><span class="kw-2">mut </span>text = layout::Node::new(limits.resolve(Size::ZERO));
-    text.move_to(Point::new(padding.left.into(), padding.top.into()));
+    text.move_to(Point::new(padding.left, padding.top));
 
     layout::Node::with_children(text.size().pad(padding), <span class="macro">vec!</span>[text])
 }
@@ -1623,7 +1615,7 @@
     clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
     shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
     value: <span class="kw-2">&amp;mut </span>Value,
-    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     font: <span class="kw-2">&amp;</span>Renderer::Font,
     is_secure: bool,
     on_change: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(String) -&gt; Message,
@@ -2029,7 +2021,7 @@
     state: <span class="kw-2">&amp;</span>State,
     value: <span class="kw-2">&amp;</span>Value,
     placeholder: <span class="kw-2">&amp;</span>str,
-    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     font: <span class="kw-2">&amp;</span>Renderer::Font,
     is_secure: bool,
     style: <span class="kw-2">&amp;</span>&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
@@ -2183,7 +2175,7 @@
                 width: f32::INFINITY,
                 ..text_bounds
             },
-            size: f32::from(size),
+            size,
             horizontal_alignment: alignment::Horizontal::Left,
             vertical_alignment: alignment::Vertical::Center,
         });
@@ -2342,7 +2334,7 @@
     renderer: <span class="kw-2">&amp;</span>Renderer,
     text_bounds: Rectangle,
     font: Renderer::Font,
-    size: u16,
+    size: f32,
     value: <span class="kw-2">&amp;</span>Value,
     state: <span class="kw-2">&amp;</span>State,
 ) -&gt; f32
@@ -2376,7 +2368,7 @@
     renderer: <span class="kw-2">&amp;</span>Renderer,
     text_bounds: Rectangle,
     value: <span class="kw-2">&amp;</span>Value,
-    size: u16,
+    size: f32,
     cursor_index: usize,
     font: Renderer::Font,
 ) -&gt; (f32, f32)
@@ -2399,7 +2391,7 @@
     renderer: <span class="kw-2">&amp;</span>Renderer,
     text_bounds: Rectangle,
     font: Renderer::Font,
-    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     value: <span class="kw-2">&amp;</span>Value,
     state: <span class="kw-2">&amp;</span>State,
     x: f32,
@@ -2415,7 +2407,7 @@
     renderer
         .hit_test(
             <span class="kw-2">&amp;</span>value.to_string(),
-            size.into(),
+            size,
             font,
             Size::INFINITY,
             Point::new(x + offset, text_bounds.height / <span class="number">2.0</span>),

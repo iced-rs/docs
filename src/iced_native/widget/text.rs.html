@@ -264,7 +264,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::text;
 <span class="kw">use </span><span class="kw">crate</span>::widget::Tree;
-<span class="kw">use crate</span>::{Element, Layout, Length, Point, Rectangle, Size, Widget};
+<span class="kw">use crate</span>::{Element, Layout, Length, Pixels, Point, Rectangle, Size, Widget};
 
 <span class="kw">use </span>std::borrow::Cow;
 
@@ -292,7 +292,7 @@
     Renderer::Theme: StyleSheet,
 {
     content: Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;,
-    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     width: Length,
     height: Length,
     horizontal_alignment: alignment::Horizontal,
@@ -321,8 +321,8 @@
     }
 
     <span class="doccomment">/// Sets the size of the [`Text`].
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.size = <span class="prelude-val">Some</span>(size);
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.size = <span class="prelude-val">Some</span>(size.into().<span class="number">0</span>);
         <span class="self">self
     </span>}
 
@@ -344,14 +344,14 @@
     </span>}
 
     <span class="doccomment">/// Sets the width of the [`Text`] boundaries.
-    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.width = width;
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width.into();
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the height of the [`Text`] boundaries.
-    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.height = height;
+    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.height = height.into();
         <span class="self">self
     </span>}
 
@@ -445,7 +445,7 @@
     style: <span class="kw-2">&amp;</span>renderer::Style,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     content: <span class="kw-2">&amp;</span>str,
-    size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     font: Renderer::Font,
     appearance: Appearance,
     horizontal_alignment: alignment::Horizontal,
@@ -469,7 +469,7 @@
 
     renderer.fill_text(<span class="kw">crate</span>::text::Text {
         content,
-        size: f32::from(size.unwrap_or_else(|| renderer.default_size())),
+        size: size.unwrap_or_else(|| renderer.default_size()),
         bounds: Rectangle { x, y, ..bounds },
         color: appearance.color.unwrap_or(style.text_color),
         font,

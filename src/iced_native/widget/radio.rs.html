@@ -298,10 +298,6 @@
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Create choices using radio buttons.
 </span><span class="kw">use </span><span class="kw">crate</span>::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
@@ -312,8 +308,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::touch;
 <span class="kw">use </span><span class="kw">crate</span>::widget::{<span class="self">self</span>, Row, Text, Tree};
 <span class="kw">use crate</span>::{
-    Alignment, Clipboard, Color, Element, Layout, Length, Point, Rectangle,
-    Shell, Widget,
+    Alignment, Clipboard, Color, Element, Layout, Length, Pixels, Point,
+    Rectangle, Shell, Widget,
 };
 
 <span class="kw">pub use </span>iced_style::radio::{Appearance, StyleSheet};
@@ -354,9 +350,9 @@
     on_click: Message,
     label: String,
     width: Length,
-    size: u16,
-    spacing: u16,
-    text_size: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    size: f32,
+    spacing: f32,
+    text_size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     font: Renderer::Font,
     style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
@@ -368,10 +364,10 @@
     Renderer::Theme: StyleSheet,
 {
     <span class="doccomment">/// The default size of a [`Radio`] button.
-    </span><span class="kw">pub const </span>DEFAULT_SIZE: u16 = <span class="number">28</span>;
+    </span><span class="kw">pub const </span>DEFAULT_SIZE: f32 = <span class="number">28.0</span>;
 
     <span class="doccomment">/// The default spacing of a [`Radio`] button.
-    </span><span class="kw">pub const </span>DEFAULT_SPACING: u16 = <span class="number">15</span>;
+    </span><span class="kw">pub const </span>DEFAULT_SPACING: f32 = <span class="number">15.0</span>;
 
     <span class="doccomment">/// Creates a new [`Radio`] button.
     ///
@@ -405,26 +401,26 @@
     }
 
     <span class="doccomment">/// Sets the size of the [`Radio`] button.
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.size = size;
+    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.size = size.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the width of the [`Radio`] button.
-    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.width = width;
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width.into();
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the spacing between the [`Radio`] button and the text.
-    </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, spacing: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.spacing = spacing;
+    </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, spacing: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.spacing = spacing.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the text size of the [`Radio`] button.
-    </span><span class="kw">pub fn </span>text_size(<span class="kw-2">mut </span><span class="self">self</span>, text_size: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.text_size = <span class="prelude-val">Some</span>(text_size);
+    </span><span class="kw">pub fn </span>text_size(<span class="kw-2">mut </span><span class="self">self</span>, text_size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.text_size = <span class="prelude-val">Some</span>(text_size.into().<span class="number">0</span>);
         <span class="self">self
     </span>}
 
@@ -467,11 +463,7 @@
             .width(<span class="self">self</span>.width)
             .spacing(<span class="self">self</span>.spacing)
             .align_items(Alignment::Center)
-            .push(
-                Row::new()
-                    .width(Length::Units(<span class="self">self</span>.size))
-                    .height(Length::Units(<span class="self">self</span>.size)),
-            )
+            .push(Row::new().width(<span class="self">self</span>.size).height(<span class="self">self</span>.size))
             .push(Text::new(<span class="kw-2">&amp;</span><span class="self">self</span>.label).width(<span class="self">self</span>.width).size(
                 <span class="self">self</span>.text_size.unwrap_or_else(|| renderer.default_size()),
             ))

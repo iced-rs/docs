@@ -472,8 +472,6 @@
 <a href="#471" id="471">471</a>
 <a href="#472" id="472">472</a>
 <a href="#473" id="473">473</a>
-<a href="#474" id="474">474</a>
-<a href="#475" id="475">475</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Display an interactive selector of a single value from a range of values.
 //!
 //! A [`Slider`] has some local [`State`].
@@ -484,8 +482,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::touch;
 <span class="kw">use </span><span class="kw">crate</span>::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use crate</span>::{
-    Background, Clipboard, Color, Element, Layout, Length, Point, Rectangle,
-    Shell, Size, Widget,
+    Background, Clipboard, Color, Element, Layout, Length, Pixels, Point,
+    Rectangle, Shell, Size, Widget,
 };
 
 <span class="kw">use </span>std::ops::RangeInclusive;
@@ -530,7 +528,7 @@
     on_change: Box&lt;<span class="kw">dyn </span>Fn(T) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;,
     on_release: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     width: Length,
-    height: u16,
+    height: f32,
     style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
 
@@ -542,7 +540,7 @@
     Renderer::Theme: StyleSheet,
 {
     <span class="doccomment">/// The default height of a [`Slider`].
-    </span><span class="kw">pub const </span>DEFAULT_HEIGHT: u16 = <span class="number">22</span>;
+    </span><span class="kw">pub const </span>DEFAULT_HEIGHT: f32 = <span class="number">22.0</span>;
 
     <span class="doccomment">/// Creates a new [`Slider`].
     ///
@@ -592,14 +590,14 @@
     </span>}
 
     <span class="doccomment">/// Sets the width of the [`Slider`].
-    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.width = width;
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width.into();
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the height of the [`Slider`].
-    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.height = height;
+    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.height = height.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
@@ -648,9 +646,7 @@
         _renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        <span class="kw">let </span>limits =
-            limits.width(<span class="self">self</span>.width).height(Length::Units(<span class="self">self</span>.height));
-
+        <span class="kw">let </span>limits = limits.width(<span class="self">self</span>.width).height(<span class="self">self</span>.height);
         <span class="kw">let </span>size = limits.resolve(Size::ZERO);
 
         layout::Node::new(size)

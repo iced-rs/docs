@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Background","ContentFit","Font","Length"],"macro":["color"],"mod":["alignment","keyboard","mouse","time"],"struct":["Color","Padding","Point","Rectangle","Size","Vector"]};
+window.SIDEBAR_ITEMS = {"enum":["Background","ContentFit","Font","Length"],"macro":["color"],"mod":["alignment","keyboard","mouse","time"],"struct":["Color","Padding","Pixels","Point","Rectangle","Size","Vector"]};

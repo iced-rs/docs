@@ -367,8 +367,6 @@
 <a href="#366" id="366">366</a>
 <a href="#367" id="367">367</a>
 <a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Decorate content and apply alignment.
 </span><span class="kw">use </span><span class="kw">crate</span>::alignment::{<span class="self">self</span>, Alignment};
 <span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
@@ -378,11 +376,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::widget::{<span class="self">self</span>, Operation, Tree};
 <span class="kw">use crate</span>::{
-    Background, Clipboard, Color, Element, Layout, Length, Padding, Point,
-    Rectangle, Shell, Widget,
+    Background, Clipboard, Color, Element, Layout, Length, Padding, Pixels,
+    Point, Rectangle, Shell, Widget,
 };
-
-<span class="kw">use </span>std::u32;
 
 <span class="kw">pub use </span>iced_style::container::{Appearance, StyleSheet};
 
@@ -399,8 +395,8 @@
     padding: Padding,
     width: Length,
     height: Length,
-    max_width: u32,
-    max_height: u32,
+    max_width: f32,
+    max_height: f32,
     horizontal_alignment: alignment::Horizontal,
     vertical_alignment: alignment::Vertical,
     style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
@@ -422,8 +418,8 @@
             padding: Padding::ZERO,
             width: Length::Shrink,
             height: Length::Shrink,
-            max_width: u32::MAX,
-            max_height: u32::MAX,
+            max_width: f32::INFINITY,
+            max_height: f32::INFINITY,
             horizontal_alignment: alignment::Horizontal::Left,
             vertical_alignment: alignment::Vertical::Top,
             style: Default::default(),
@@ -444,26 +440,26 @@
     </span>}
 
     <span class="doccomment">/// Sets the width of the [`Container`].
-    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.width = width;
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width.into();
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the height of the [`Container`].
-    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.height = height;
+    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.height = height.into();
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the maximum width of the [`Container`].
-    </span><span class="kw">pub fn </span>max_width(<span class="kw-2">mut </span><span class="self">self</span>, max_width: u32) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.max_width = max_width;
+    </span><span class="kw">pub fn </span>max_width(<span class="kw-2">mut </span><span class="self">self</span>, max_width: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.max_width = max_width.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the maximum height of the [`Container`] in pixels.
-    </span><span class="kw">pub fn </span>max_height(<span class="kw-2">mut </span><span class="self">self</span>, max_height: u32) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.max_height = max_height;
+    <span class="doccomment">/// Sets the maximum height of the [`Container`].
+    </span><span class="kw">pub fn </span>max_height(<span class="kw-2">mut </span><span class="self">self</span>, max_height: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.max_height = max_height.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
@@ -665,8 +661,8 @@
     limits: <span class="kw-2">&amp;</span>layout::Limits,
     width: Length,
     height: Length,
-    max_width: u32,
-    max_height: u32,
+    max_width: f32,
+    max_height: f32,
     padding: Padding,
     horizontal_alignment: alignment::Horizontal,
     vertical_alignment: alignment::Vertical,
@@ -683,7 +679,7 @@
     <span class="kw">let </span>padding = padding.fit(content.size(), limits.max());
     <span class="kw">let </span>size = limits.pad(padding).resolve(content.size());
 
-    content.move_to(Point::new(padding.left.into(), padding.top.into()));
+    content.move_to(Point::new(padding.left, padding.top));
     content.align(
         Alignment::from(horizontal_alignment),
         Alignment::from(vertical_alignment),

@@ -990,13 +990,6 @@
 <a href="#989" id="989">989</a>
 <a href="#990" id="990">990</a>
 <a href="#991" id="991">991</a>
-<a href="#992" id="992">992</a>
-<a href="#993" id="993">993</a>
-<a href="#994" id="994">994</a>
-<a href="#995" id="995">995</a>
-<a href="#996" id="996">996</a>
-<a href="#997" id="997">997</a>
-<a href="#998" id="998">998</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Let your users split regions of your application and organize layout dynamically.
 //!
 //! [![Pane grid - Iced](https://thumbs.gfycat.com/MixedFlatJellyfish-small.gif)](https://gfycat.com/mixedflatjellyfish)
@@ -1041,8 +1034,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::widget::container;
 <span class="kw">use </span><span class="kw">crate</span>::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use crate</span>::{
-    Clipboard, Color, Element, Layout, Length, Point, Rectangle, Shell, Size,
-    Vector, Widget,
+    Clipboard, Color, Element, Layout, Length, Pixels, Point, Rectangle, Shell,
+    Size, Vector, Widget,
 };
 
 <span class="doccomment">/// A collection of panes distributed using either vertical or horizontal splits
@@ -1103,10 +1096,10 @@
     contents: Contents&lt;<span class="lifetime">&#39;a</span>, Content&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;,
     width: Length,
     height: Length,
-    spacing: u16,
+    spacing: f32,
     on_click: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Pane) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
     on_drag: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(DragEvent) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
-    on_resize: <span class="prelude-ty">Option</span>&lt;(u16, Box&lt;<span class="kw">dyn </span>Fn(ResizeEvent) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;)&gt;,
+    on_resize: <span class="prelude-ty">Option</span>&lt;(f32, Box&lt;<span class="kw">dyn </span>Fn(ResizeEvent) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;)&gt;,
     style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
 
@@ -1149,7 +1142,7 @@
             contents,
             width: Length::Fill,
             height: Length::Fill,
-            spacing: <span class="number">0</span>,
+            spacing: <span class="number">0.0</span>,
             on_click: <span class="prelude-val">None</span>,
             on_drag: <span class="prelude-val">None</span>,
             on_resize: <span class="prelude-val">None</span>,
@@ -1158,20 +1151,20 @@
     }
 
     <span class="doccomment">/// Sets the width of the [`PaneGrid`].
-    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.width = width;
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width.into();
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the height of the [`PaneGrid`].
-    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.height = height;
+    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.height = height.into();
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the spacing _between_ the panes of the [`PaneGrid`].
-    </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, units: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.spacing = units;
+    </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, amount: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.spacing = amount.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
@@ -1204,11 +1197,11 @@
     /// The grabbable area of a split will have a length of `spacing + leeway`,
     /// properly centered. In other words, a length of
     /// `(spacing + leeway) / 2.0` on either side of the split line.
-    </span><span class="kw">pub fn </span>on_resize&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, leeway: u16, f: F) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>on_resize&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, leeway: <span class="kw">impl </span>Into&lt;Pixels&gt;, f: F) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: <span class="lifetime">&#39;a </span>+ Fn(ResizeEvent) -&gt; Message,
     {
-        <span class="self">self</span>.on_resize = <span class="prelude-val">Some</span>((leeway, Box::new(f)));
+        <span class="self">self</span>.on_resize = <span class="prelude-val">Some</span>((leeway.into().<span class="number">0</span>, Box::new(f)));
         <span class="self">self
     </span>}
 
@@ -1484,14 +1477,14 @@
     node: <span class="kw-2">&amp;</span>Node,
     width: Length,
     height: Length,
-    spacing: u16,
+    spacing: f32,
     contents: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
     layout_content: <span class="kw">impl </span>Fn(T, <span class="kw-2">&amp;</span>Renderer, <span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
 ) -&gt; layout::Node {
     <span class="kw">let </span>limits = limits.width(width).height(height);
     <span class="kw">let </span>size = limits.resolve(Size::ZERO);
 
-    <span class="kw">let </span>regions = node.pane_regions(f32::from(spacing), size);
+    <span class="kw">let </span>regions = node.pane_regions(spacing, size);
     <span class="kw">let </span>children = contents
         .filter_map(|(pane, content)| {
             <span class="kw">let </span>region = regions.get(<span class="kw-2">&amp;</span>pane)<span class="question-mark">?</span>;
@@ -1521,11 +1514,11 @@
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     cursor_position: Point,
     shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
-    spacing: u16,
+    spacing: f32,
     contents: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
     on_click: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Pane) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
     on_drag: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(DragEvent) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
-    on_resize: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;(u16, Box&lt;<span class="kw">dyn </span>Fn(ResizeEvent) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;)&gt;,
+    on_resize: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;(f32, Box&lt;<span class="kw">dyn </span>Fn(ResizeEvent) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;)&gt;,
 ) -&gt; event::Status {
     <span class="kw">let </span><span class="kw-2">mut </span>event_status = event::Status::Ignored;
 
@@ -1545,13 +1538,13 @@
                         );
 
                         <span class="kw">let </span>splits = node.split_regions(
-                            f32::from(spacing),
+                            spacing,
                             Size::new(bounds.width, bounds.height),
                         );
 
                         <span class="kw">let </span>clicked_split = hovered_split(
                             splits.iter(),
-                            f32::from(spacing + leeway),
+                            spacing + leeway,
                             relative_cursor,
                         );
 
@@ -1623,7 +1616,7 @@
                     <span class="kw">let </span>bounds = layout.bounds();
 
                     <span class="kw">let </span>splits = node.split_regions(
-                        f32::from(spacing),
+                        spacing,
                         Size::new(bounds.width, bounds.height),
                     );
 
@@ -1697,8 +1690,8 @@
     node: <span class="kw-2">&amp;</span>Node,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     cursor_position: Point,
-    spacing: u16,
-    resize_leeway: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    spacing: f32,
+    resize_leeway: <span class="prelude-ty">Option</span>&lt;f32&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;mouse::Interaction&gt; {
     <span class="kw">if </span>action.picked_pane().is_some() {
         <span class="kw">return </span><span class="prelude-val">Some</span>(mouse::Interaction::Grabbing);
@@ -1709,20 +1702,15 @@
             resize_leeway.and_then(|leeway| {
                 <span class="kw">let </span>bounds = layout.bounds();
 
-                <span class="kw">let </span>splits =
-                    node.split_regions(f32::from(spacing), bounds.size());
+                <span class="kw">let </span>splits = node.split_regions(spacing, bounds.size());
 
                 <span class="kw">let </span>relative_cursor = Point::new(
                     cursor_position.x - bounds.x,
                     cursor_position.y - bounds.y,
                 );
 
-                hovered_split(
-                    splits.iter(),
-                    f32::from(spacing + leeway),
-                    relative_cursor,
-                )
-                .map(|(<span class="kw">_</span>, axis, <span class="kw">_</span>)| axis)
+                hovered_split(splits.iter(), spacing + leeway, relative_cursor)
+                    .map(|(<span class="kw">_</span>, axis, <span class="kw">_</span>)| axis)
             })
         });
 
@@ -1746,8 +1734,8 @@
     theme: <span class="kw-2">&amp;</span>Renderer::Theme,
     default_style: <span class="kw-2">&amp;</span>renderer::Style,
     viewport: <span class="kw-2">&amp;</span>Rectangle,
-    spacing: u16,
-    resize_leeway: <span class="prelude-ty">Option</span>&lt;u16&gt;,
+    spacing: f32,
+    resize_leeway: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     style: <span class="kw-2">&amp;</span>&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
     contents: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
     draw_pane: <span class="kw">impl </span>Fn(
@@ -1769,12 +1757,11 @@
         .and_then(|(split, axis)| {
             <span class="kw">let </span>bounds = layout.bounds();
 
-            <span class="kw">let </span>splits = node.split_regions(f32::from(spacing), bounds.size());
+            <span class="kw">let </span>splits = node.split_regions(spacing, bounds.size());
 
             <span class="kw">let </span>(_axis, region, ratio) = splits.get(<span class="kw-2">&amp;</span>split)<span class="question-mark">?</span>;
 
-            <span class="kw">let </span>region =
-                axis.split_line_bounds(<span class="kw-2">*</span>region, <span class="kw-2">*</span>ratio, f32::from(spacing));
+            <span class="kw">let </span>region = axis.split_line_bounds(<span class="kw-2">*</span>region, <span class="kw-2">*</span>ratio, spacing);
 
             <span class="prelude-val">Some</span>((axis, region + Vector::new(bounds.x, bounds.y), <span class="bool-val">true</span>))
         })
@@ -1787,12 +1774,11 @@
                     cursor_position.y - bounds.y,
                 );
 
-                <span class="kw">let </span>splits =
-                    node.split_regions(f32::from(spacing), bounds.size());
+                <span class="kw">let </span>splits = node.split_regions(spacing, bounds.size());
 
                 <span class="kw">let </span>(_split, axis, region) = hovered_split(
                     splits.iter(),
-                    f32::from(spacing + leeway),
+                    spacing + leeway,
                     relative_cursor,
                 )<span class="question-mark">?</span>;
 

@@ -271,18 +271,18 @@
 <span class="kw">use </span><span class="kw">crate</span>::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::widget::{Operation, Tree};
 <span class="kw">use crate</span>::{
-    Alignment, Clipboard, Element, Layout, Length, Padding, Point, Rectangle,
-    Shell, Widget,
+    Alignment, Clipboard, Element, Layout, Length, Padding, Pixels, Point,
+    Rectangle, Shell, Widget,
 };
 
 <span class="doccomment">/// A container that distributes its contents vertically.
 </span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Column&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; {
-    spacing: u16,
+    spacing: f32,
     padding: Padding,
     width: Length,
     height: Length,
-    max_width: u32,
+    max_width: f32,
     align_items: Alignment,
     children: Vec&lt;Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;,
 }
@@ -298,11 +298,11 @@
         children: Vec&lt;Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
         Column {
-            spacing: <span class="number">0</span>,
+            spacing: <span class="number">0.0</span>,
             padding: Padding::ZERO,
             width: Length::Shrink,
             height: Length::Shrink,
-            max_width: u32::MAX,
+            max_width: f32::INFINITY,
             align_items: Alignment::Start,
             children,
         }
@@ -313,8 +313,8 @@
     /// Custom margins per element do not exist in iced. You should use this
     /// method instead! While less flexible, it helps you keep spacing between
     /// elements consistent.
-    </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, units: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.spacing = units;
+    </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, amount: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.spacing = amount.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
@@ -325,20 +325,20 @@
     </span>}
 
     <span class="doccomment">/// Sets the width of the [`Column`].
-    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.width = width;
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width.into();
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the height of the [`Column`].
-    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.height = height;
+    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.height = height.into();
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the maximum width of the [`Column`].
-    </span><span class="kw">pub fn </span>max_width(<span class="kw-2">mut </span><span class="self">self</span>, max_width: u32) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.max_width = max_width;
+    </span><span class="kw">pub fn </span>max_width(<span class="kw-2">mut </span><span class="self">self</span>, max_width: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.max_width = max_width.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
@@ -400,7 +400,7 @@
             renderer,
             <span class="kw-2">&amp;</span>limits,
             <span class="self">self</span>.padding,
-            <span class="self">self</span>.spacing <span class="kw">as </span>f32,
+            <span class="self">self</span>.spacing,
             <span class="self">self</span>.align_items,
             <span class="kw-2">&amp;</span><span class="self">self</span>.children,
         )

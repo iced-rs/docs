@@ -467,8 +467,6 @@
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
 <a href="#468" id="468">468</a>
-<a href="#469" id="469">469</a>
-<a href="#470" id="470">470</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Display an interactive selector of a single value from a range of values.
 //!
 //! A [`VerticalSlider`] has some local [`State`].
@@ -480,7 +478,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use crate</span>::{
     layout, mouse, renderer, touch, Background, Clipboard, Color, Element,
-    Layout, Length, Point, Rectangle, Shell, Size, Widget,
+    Layout, Length, Pixels, Point, Rectangle, Shell, Size, Widget,
 };
 
 <span class="doccomment">/// An vertical bar and a handle that selects a single value from a range of
@@ -518,7 +516,7 @@
     value: T,
     on_change: Box&lt;<span class="kw">dyn </span>Fn(T) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;,
     on_release: <span class="prelude-ty">Option</span>&lt;Message&gt;,
-    width: u16,
+    width: f32,
     height: Length,
     style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
@@ -531,7 +529,7 @@
     Renderer::Theme: StyleSheet,
 {
     <span class="doccomment">/// The default width of a [`VerticalSlider`].
-    </span><span class="kw">pub const </span>DEFAULT_WIDTH: u16 = <span class="number">22</span>;
+    </span><span class="kw">pub const </span>DEFAULT_WIDTH: f32 = <span class="number">22.0</span>;
 
     <span class="doccomment">/// Creates a new [`VerticalSlider`].
     ///
@@ -581,14 +579,14 @@
     </span>}
 
     <span class="doccomment">/// Sets the width of the [`VerticalSlider`].
-    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.width = width;
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the height of the [`VerticalSlider`].
-    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: Length) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.height = height;
+    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.height = height.into();
         <span class="self">self
     </span>}
 
@@ -637,9 +635,7 @@
         _renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        <span class="kw">let </span>limits =
-            limits.width(Length::Units(<span class="self">self</span>.width)).height(<span class="self">self</span>.height);
-
+        <span class="kw">let </span>limits = limits.width(<span class="self">self</span>.width).height(<span class="self">self</span>.height);
         <span class="kw">let </span>size = limits.resolve(Size::ZERO);
 
         layout::Node::new(size)
