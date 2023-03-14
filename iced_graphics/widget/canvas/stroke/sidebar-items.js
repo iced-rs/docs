@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["LineCap","LineJoin","Style"],"struct":["LineDash","Stroke"]};
+window.SIDEBAR_ITEMS = {"enum":["LineCap","LineJoin"],"struct":["LineDash","Stroke"]};
