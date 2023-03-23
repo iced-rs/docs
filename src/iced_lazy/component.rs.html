@@ -573,6 +573,84 @@
 <a href="#573" id="573">573</a>
 <a href="#574" id="574">574</a>
 <a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Build and reuse custom widgets using The Elm Architecture.
 </span><span class="kw">use </span>iced_native::event;
 <span class="kw">use </span>iced_native::layout::{<span class="self">self</span>, Layout};
@@ -588,6 +666,7 @@
 <span class="kw">use </span>ouroboros::self_referencing;
 <span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::marker::PhantomData;
+<span class="kw">use </span>std::rc::Rc;
 
 <span class="doccomment">/// A reusable, custom widget that uses The Elm Architecture.
 ///
@@ -633,6 +712,8 @@
     }
 }
 
+<span class="kw">struct </span>Tag&lt;T&gt;(T);
+
 <span class="doccomment">/// Turns an implementor of [`Component`] into an [`Element`] that can be
 /// embedded in any application.
 </span><span class="kw">pub fn </span>view&lt;<span class="lifetime">&#39;a</span>, C, Message, Renderer&gt;(
@@ -654,11 +735,13 @@
             }
             .build(),
         )),
+        tree: RefCell::new(Rc::new(RefCell::new(<span class="prelude-val">None</span>))),
     })
 }
 
 <span class="kw">struct </span>Instance&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt; {
     state: RefCell&lt;<span class="prelude-ty">Option</span>&lt;State&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt;&gt;&gt;,
+    tree: RefCell&lt;Rc&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;Tree&gt;&gt;&gt;&gt;,
 }
 
 <span class="attr">#[self_referencing]
@@ -675,40 +758,91 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt; Instance&lt;<span class="lifetime">&#39;a</span>, Message, Renderer, Event, S&gt;
 <span class="kw">where
-    </span>S: Default,
+    </span>S: Default + <span class="lifetime">&#39;static</span>,
+    Renderer: iced_native::Renderer,
 {
-    <span class="kw">fn </span>rebuild_element(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;</span>S) {
-        <span class="kw">let </span>heads = <span class="self">self</span>.state.borrow_mut().take().unwrap().into_heads();
+    <span class="kw">fn </span>diff_self(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="self">self</span>.with_element(|element| {
+            <span class="self">self</span>.tree
+                .borrow_mut()
+                .borrow_mut()
+                .as_mut()
+                .unwrap()
+                .diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span>element));
+        });
+    }
 
-        <span class="kw-2">*</span><span class="self">self</span>.state.borrow_mut() = <span class="prelude-val">Some</span>(
-            StateBuilder {
-                component: heads.component,
-                message: PhantomData,
-                state: PhantomData,
-                element_builder: |component| <span class="prelude-val">Some</span>(component.view(state)),
-            }
-            .build(),
-        );
+    <span class="kw">fn </span>rebuild_element_if_necessary(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let </span>inner = <span class="self">self</span>.state.borrow_mut().take().unwrap();
+        <span class="kw">if </span>inner.borrow_element().is_none() {
+            <span class="kw">let </span>heads = inner.into_heads();
+
+            <span class="kw-2">*</span><span class="self">self</span>.state.borrow_mut() = <span class="prelude-val">Some</span>(
+                StateBuilder {
+                    component: heads.component,
+                    message: PhantomData,
+                    state: PhantomData,
+                    element_builder: |component| {
+                        <span class="prelude-val">Some</span>(
+                            component.view(
+                                <span class="self">self</span>.tree
+                                    .borrow()
+                                    .borrow()
+                                    .as_ref()
+                                    .unwrap()
+                                    .state
+                                    .downcast_ref::&lt;S&gt;(),
+                            ),
+                        )
+                    },
+                }
+                .build(),
+            );
+            <span class="self">self</span>.diff_self();
+        } <span class="kw">else </span>{
+            <span class="kw-2">*</span><span class="self">self</span>.state.borrow_mut() = <span class="prelude-val">Some</span>(inner);
+        }
     }
 
     <span class="kw">fn </span>rebuild_element_with_operation(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        state: <span class="kw-2">&amp;mut </span>S,
         operation: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::Operation&lt;Message&gt;,
     ) {
         <span class="kw">let </span>heads = <span class="self">self</span>.state.borrow_mut().take().unwrap().into_heads();
 
-        heads.component.operate(state, operation);
+        heads.component.operate(
+            <span class="self">self</span>.tree
+                .borrow_mut()
+                .borrow_mut()
+                .as_mut()
+                .unwrap()
+                .state
+                .downcast_mut(),
+            operation,
+        );
 
         <span class="kw-2">*</span><span class="self">self</span>.state.borrow_mut() = <span class="prelude-val">Some</span>(
             StateBuilder {
                 component: heads.component,
                 message: PhantomData,
                 state: PhantomData,
-                element_builder: |component| <span class="prelude-val">Some</span>(component.view(state)),
+                element_builder: |component| {
+                    <span class="prelude-val">Some</span>(
+                        component.view(
+                            <span class="self">self</span>.tree
+                                .borrow()
+                                .borrow()
+                                .as_ref()
+                                .unwrap()
+                                .state
+                                .downcast_ref(),
+                        ),
+                    )
+                },
             }
             .build(),
         );
+        <span class="self">self</span>.diff_self();
     }
 
     <span class="kw">fn </span>with_element&lt;T&gt;(
@@ -722,6 +856,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Element&lt;<span class="lifetime">&#39;_</span>, Event, Renderer&gt;) -&gt; T,
     ) -&gt; T {
+        <span class="self">self</span>.rebuild_element_if_necessary();
         <span class="self">self</span>.state
             .borrow_mut()
             .as_mut()
@@ -737,24 +872,27 @@
     Renderer: iced_native::Renderer,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
-        <span class="kw">struct </span>Tag&lt;T&gt;(T);
         tree::Tag::of::&lt;Tag&lt;S&gt;&gt;()
     }
 
     <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
-        tree::State::new(S::default())
+        <span class="kw">let </span>state = Rc::new(RefCell::new(<span class="prelude-val">Some</span>(Tree {
+            tag: tree::Tag::of::&lt;Tag&lt;S&gt;&gt;(),
+            state: tree::State::new(S::default()),
+            children: <span class="macro">vec!</span>[Tree::empty()],
+        })));
+        <span class="kw-2">*</span><span class="self">self</span>.tree.borrow_mut() = state.clone();
+        tree::State::new(state)
     }
 
     <span class="kw">fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Tree&gt; {
-        <span class="self">self</span>.rebuild_element(<span class="kw-2">&amp;</span>S::default());
-        <span class="self">self</span>.with_element(|element| <span class="macro">vec!</span>[Tree::new(element)])
+        <span class="macro">vec!</span>[]
     }
 
     <span class="kw">fn </span>diff(<span class="kw-2">&amp;</span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree) {
-        <span class="self">self</span>.rebuild_element(tree.state.downcast_ref());
-        <span class="self">self</span>.with_element(|element| {
-            tree.diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span>element))
-        })
+        <span class="kw">let </span>tree = tree.state.downcast_ref::&lt;Rc&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;Tree&gt;&gt;&gt;&gt;();
+        <span class="kw-2">*</span><span class="self">self</span>.tree.borrow_mut() = tree.clone();
+        <span class="self">self</span>.rebuild_element_if_necessary();
     }
 
     <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
@@ -788,9 +926,10 @@
         <span class="kw">let </span><span class="kw-2">mut </span>local_messages = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>local_shell = Shell::new(<span class="kw-2">&amp;mut </span>local_messages);
 
+        <span class="kw">let </span>t = tree.state.downcast_mut::&lt;Rc&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;Tree&gt;&gt;&gt;&gt;();
         <span class="kw">let </span>event_status = <span class="self">self</span>.with_element_mut(|element| {
             element.as_widget_mut().on_event(
-                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+                <span class="kw-2">&amp;mut </span>t.borrow_mut().as_mut().unwrap().children[<span class="number">0</span>],
                 event,
                 layout,
                 cursor_position,
@@ -810,9 +949,10 @@
             <span class="kw">let </span><span class="kw-2">mut </span>heads = <span class="self">self</span>.state.take().unwrap().into_heads();
 
             <span class="kw">for </span>message <span class="kw">in </span>local_messages.into_iter().filter_map(|message| {
-                heads
-                    .component
-                    .update(tree.state.downcast_mut::&lt;S&gt;(), message)
+                heads.component.update(
+                    t.borrow_mut().as_mut().unwrap().state.downcast_mut(),
+                    message,
+                )
             }) {
                 shell.publish(message);
             }
@@ -822,16 +962,10 @@
                     component: heads.component,
                     message: PhantomData,
                     state: PhantomData,
-                    element_builder: |state| {
-                        <span class="prelude-val">Some</span>(state.view(tree.state.downcast_ref::&lt;S&gt;()))
-                    },
+                    element_builder: |<span class="kw">_</span>| <span class="prelude-val">None</span>,
                 }
                 .build(),
             ));
-
-            <span class="self">self</span>.with_element(|element| {
-                tree.diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span>element))
-            });
 
             shell.invalidate_layout();
         }
@@ -846,10 +980,7 @@
         renderer: <span class="kw-2">&amp;</span>Renderer,
         operation: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::Operation&lt;Message&gt;,
     ) {
-        <span class="self">self</span>.rebuild_element_with_operation(
-            tree.state.downcast_mut(),
-            operation,
-        );
+        <span class="self">self</span>.rebuild_element_with_operation(operation);
 
         <span class="kw">struct </span>MapOperation&lt;<span class="lifetime">&#39;a</span>, B&gt; {
             operation: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="kw">dyn </span>widget::Operation&lt;B&gt;,
@@ -885,11 +1016,10 @@
             }
         }
 
+        <span class="kw">let </span>tree = tree.state.downcast_mut::&lt;Rc&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;Tree&gt;&gt;&gt;&gt;();
         <span class="self">self</span>.with_element(|element| {
-            tree.diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span>element));
-
             element.as_widget().operate(
-                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+                <span class="kw-2">&amp;mut </span>tree.borrow_mut().as_mut().unwrap().children[<span class="number">0</span>],
                 layout,
                 renderer,
                 <span class="kw-2">&amp;mut </span>MapOperation { operation },
@@ -907,9 +1037,10 @@
         cursor_position: Point,
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
+        <span class="kw">let </span>tree = tree.state.downcast_ref::&lt;Rc&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;Tree&gt;&gt;&gt;&gt;();
         <span class="self">self</span>.with_element(|element| {
             element.as_widget().draw(
-                <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+                <span class="kw-2">&amp;</span>tree.borrow().as_ref().unwrap().children[<span class="number">0</span>],
                 renderer,
                 theme,
                 style,
@@ -928,9 +1059,10 @@
         viewport: <span class="kw-2">&amp;</span>Rectangle,
         renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; mouse::Interaction {
+        <span class="kw">let </span>tree = tree.state.downcast_ref::&lt;Rc&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;Tree&gt;&gt;&gt;&gt;();
         <span class="self">self</span>.with_element(|element| {
             element.as_widget().mouse_interaction(
-                <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+                <span class="kw-2">&amp;</span>tree.borrow().as_ref().unwrap().children[<span class="number">0</span>],
                 layout,
                 cursor_position,
                 viewport,
@@ -945,25 +1077,34 @@
         layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;b</span>, Message, Renderer&gt;&gt; {
-        <span class="kw">let </span>overlay = OverlayBuilder {
-            instance: <span class="self">self</span>,
-            tree,
-            types: PhantomData,
-            overlay_builder: |instance, tree| {
-                instance.state.get_mut().as_mut().unwrap().with_element_mut(
-                    <span class="kw">move </span>|element| {
-                        element.as_mut().unwrap().as_widget_mut().overlay(
-                            <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
-                            layout,
-                            renderer,
-                        )
-                    },
-                )
-            },
-        }
-        .build();
+        <span class="self">self</span>.rebuild_element_if_necessary();
+        <span class="kw">let </span>tree = tree
+            .state
+            .downcast_mut::&lt;Rc&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;Tree&gt;&gt;&gt;&gt;()
+            .borrow_mut()
+            .take()
+            .unwrap();
+        <span class="kw">let </span>overlay = Overlay(<span class="prelude-val">Some</span>(
+            InnerBuilder {
+                instance: <span class="self">self</span>,
+                tree,
+                types: PhantomData,
+                overlay_builder: |instance, tree| {
+                    instance.state.get_mut().as_mut().unwrap().with_element_mut(
+                        <span class="kw">move </span>|element| {
+                            element.as_mut().unwrap().as_widget_mut().overlay(
+                                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+                                layout,
+                                renderer,
+                            )
+                        },
+                    )
+                },
+            }
+            .build(),
+        ));
 
-        <span class="kw">let </span>has_overlay = overlay.with_overlay(|overlay| {
+        <span class="kw">let </span>has_overlay = overlay.<span class="number">0</span>.as_ref().unwrap().with_overlay(|overlay| {
             overlay.as_ref().map(overlay::Element::position)
         });
 
@@ -978,10 +1119,24 @@
     }
 }
 
+<span class="kw">struct </span>Overlay&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt;(
+    <span class="prelude-ty">Option</span>&lt;Inner&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt;&gt;,
+);
+
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt; Drop
+    <span class="kw">for </span>Overlay&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt;
+{
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(heads) = <span class="self">self</span>.<span class="number">0</span>.take().map(|inner| inner.into_heads()) {
+            <span class="kw-2">*</span>heads.instance.tree.borrow_mut().borrow_mut() = <span class="prelude-val">Some</span>(heads.tree);
+        }
+    }
+}
+
 <span class="attr">#[self_referencing]
-</span><span class="kw">struct </span>Overlay&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt; {
+</span><span class="kw">struct </span>Inner&lt;<span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt; {
     instance: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Instance&lt;<span class="lifetime">&#39;b</span>, Message, Renderer, Event, S&gt;,
-    tree: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>Tree,
+    tree: Tree,
     types: PhantomData&lt;(Message, Event, S)&gt;,
 
     <span class="attr">#[borrows(<span class="kw-2">mut </span>instance, <span class="kw-2">mut </span>tree)]
@@ -1003,6 +1158,9 @@
         <span class="self">self</span>.overlay
             .as_ref()
             .unwrap()
+            .<span class="number">0
+            </span>.as_ref()
+            .unwrap()
             .borrow_overlay()
             .as_ref()
             .map(f)
@@ -1014,6 +1172,9 @@
     ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
         <span class="self">self</span>.overlay
             .as_mut()
+            .unwrap()
+            .<span class="number">0
+            </span>.as_mut()
             .unwrap()
             .with_overlay_mut(|overlay| overlay.as_mut().map(f))
     }
@@ -1098,42 +1259,37 @@
         local_shell.revalidate_layout(|| shell.invalidate_layout());
 
         <span class="kw">if </span>!local_messages.is_empty() {
-            <span class="kw">let </span>overlay = <span class="self">self</span>.overlay.take().unwrap().into_heads();
-            <span class="kw">let </span><span class="kw-2">mut </span>heads = overlay.instance.state.take().unwrap().into_heads();
+            <span class="kw">let </span><span class="kw-2">mut </span>inner =
+                <span class="self">self</span>.overlay.take().unwrap().<span class="number">0</span>.take().unwrap().into_heads();
+            <span class="kw">let </span><span class="kw-2">mut </span>heads = inner.instance.state.take().unwrap().into_heads();
 
             <span class="kw">for </span>message <span class="kw">in </span>local_messages.into_iter().filter_map(|message| {
                 heads
                     .component
-                    .update(overlay.tree.state.downcast_mut::&lt;S&gt;(), message)
+                    .update(inner.tree.state.downcast_mut(), message)
             }) {
                 shell.publish(message);
             }
 
-            <span class="kw-2">*</span>overlay.instance.state.borrow_mut() = <span class="prelude-val">Some</span>(
+            <span class="kw-2">*</span>inner.instance.state.borrow_mut() = <span class="prelude-val">Some</span>(
                 StateBuilder {
                     component: heads.component,
                     message: PhantomData,
                     state: PhantomData,
-                    element_builder: |state| {
-                        <span class="prelude-val">Some</span>(state.view(overlay.tree.state.downcast_ref::&lt;S&gt;()))
-                    },
+                    element_builder: |<span class="kw">_</span>| <span class="prelude-val">None</span>,
                 }
                 .build(),
             );
 
-            overlay.instance.with_element(|element| {
-                overlay.tree.diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span>element))
-            });
-
-            <span class="self">self</span>.overlay = <span class="prelude-val">Some</span>(
-                OverlayBuilder {
-                    instance: overlay.instance,
-                    tree: overlay.tree,
+            <span class="self">self</span>.overlay = <span class="prelude-val">Some</span>(Overlay(<span class="prelude-val">Some</span>(
+                InnerBuilder {
+                    instance: inner.instance,
+                    tree: inner.tree,
                     types: PhantomData,
                     overlay_builder: |<span class="kw">_</span>, <span class="kw">_</span>| <span class="prelude-val">None</span>,
                 }
                 .build(),
-            );
+            )));
 
             shell.invalidate_layout();
         }
