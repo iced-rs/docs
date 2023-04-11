@@ -5,66 +5,8 @@
 ) -&gt; Subscription&lt;Hasher, (<a class="enum" href="../enum.Event.html" title="enum iced::Event">Event</a>, <a class="enum" href="../event/enum.Status.html" title="enum iced::event::Status">Status</a>), Message&gt;<span class="where fmt-newline">where
     I: <a class="trait" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html" title="trait core::hash::Hash">Hash</a> + 'static,
     T: MaybeSend + 'static,
-    Fut: <a class="trait" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html" title="trait core::future::future::Future">Future</a>&lt;Output = (<a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;Message&gt;, T)&gt; + MaybeSend + 'static,
+    Fut: <a class="trait" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html" title="trait core::future::future::Future">Future</a>&lt;Output = <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">(Message, T)</a>&gt; + MaybeSend + 'static,
     Message: 'static + MaybeSend,</span></code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Returns a <a href="../type.Subscription.html" title="type iced::Subscription"><code>Subscription</code></a> that will create and asynchronously run a
 [<code>Stream</code>] that will call the provided closure to produce every <code>Message</code>.</p>
 <p>The <code>id</code> will be used to uniquely identify the <a href="../type.Subscription.html" title="type iced::Subscription"><code>Subscription</code></a>.</p>
-<h2 id="creating-an-asynchronous-worker-with-bidirectional-communication"><a href="#creating-an-asynchronous-worker-with-bidirectional-communication">Creating an asynchronous worker with bidirectional communication</a></h2>
-<p>You can leverage this helper to create a <a href="../type.Subscription.html" title="type iced::Subscription"><code>Subscription</code></a> that spawns
-an asynchronous worker in the background and establish a channel of
-communication with an <code>iced</code> application.</p>
-<p>You can achieve this by creating an <code>mpsc</code> channel inside the closure
-and returning the <code>Sender</code> as a <code>Message</code> for the <code>Application</code>:</p>
-
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>iced_native::subscription::{<span class="self">self</span>, Subscription};
-<span class="kw">use </span>iced_native::futures::channel::mpsc;
-
-<span class="kw">pub enum </span>Event {
-    Ready(mpsc::Sender&lt;Input&gt;),
-    WorkFinished,
-    <span class="comment">// ...
-</span>}
-
-<span class="kw">enum </span>Input {
-    DoSomeWork,
-    <span class="comment">// ...
-</span>}
-
-<span class="kw">enum </span>State {
-    Starting,
-    Ready(mpsc::Receiver&lt;Input&gt;),
-}
-
-<span class="kw">fn </span>some_worker() -&gt; Subscription&lt;Event&gt; {
-    <span class="kw">struct </span>SomeWorker;
-
-    subscription::unfold(std::any::TypeId::of::&lt;SomeWorker&gt;(), State::Starting, |state| <span class="kw">async move </span>{
-        <span class="kw">match </span>state {
-            State::Starting =&gt; {
-                <span class="comment">// Create channel
-                </span><span class="kw">let </span>(sender, receiver) = mpsc::channel(<span class="number">100</span>);
-
-                (<span class="prelude-val">Some</span>(Event::Ready(sender)), State::Ready(receiver))
-            }
-            State::Ready(<span class="kw-2">mut </span>receiver) =&gt; {
-                <span class="kw">use </span>iced_native::futures::StreamExt;
-
-                <span class="comment">// Read next input sent from `Application`
-                </span><span class="kw">let </span>input = receiver.select_next_some().<span class="kw">await</span>;
-
-                <span class="kw">match </span>input {
-                    Input::DoSomeWork =&gt; {
-                        <span class="comment">// Do some async work...
-
-                        // Finally, we can optionally return a message to tell the
-                        // `Application` the work is done
-                        </span>(<span class="prelude-val">Some</span>(Event::WorkFinished), State::Ready(receiver))
-                    }
-                }
-            }
-        }
-    })
-}</code></pre></div>
-<p>Check out the <a href="https://github.com/iced-rs/iced/tree/0.8/examples/websocket"><code>websocket</code></a> example, which showcases this pattern to maintain a WebSocket
-connection open.</p>
 </div></details></section></div></main></body></html>

@@ -246,11 +246,48 @@
 <a href="#246" id="246">246</a>
 <a href="#247" id="247">247</a>
 <a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Listen to external events in your application.
 </span><span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::window;
 <span class="kw">use </span><span class="kw">crate</span>::Hasher;
 
+<span class="kw">use </span>iced_futures::futures::channel::mpsc;
+<span class="kw">use </span>iced_futures::futures::never::Never;
 <span class="kw">use </span>iced_futures::futures::{<span class="self">self</span>, Future, Stream};
 <span class="kw">use </span>iced_futures::{BoxStream, MaybeSend};
 
@@ -381,6 +418,27 @@
 /// [`Stream`] that will call the provided closure to produce every `Message`.
 ///
 /// The `id` will be used to uniquely identify the [`Subscription`].
+</span><span class="kw">pub fn </span>unfold&lt;I, T, Fut, Message&gt;(
+    id: I,
+    initial: T,
+    <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(T) -&gt; Fut + MaybeSend + Sync + <span class="lifetime">&#39;static</span>,
+) -&gt; Subscription&lt;Message&gt;
+<span class="kw">where
+    </span>I: Hash + <span class="lifetime">&#39;static</span>,
+    T: MaybeSend + <span class="lifetime">&#39;static</span>,
+    Fut: Future&lt;Output = (Message, T)&gt; + MaybeSend + <span class="lifetime">&#39;static</span>,
+    Message: <span class="lifetime">&#39;static </span>+ MaybeSend,
+{
+    <span class="kw">use </span>futures::future::FutureExt;
+
+    run_with_id(
+        id,
+        futures::stream::unfold(initial, <span class="kw">move </span>|state| f(state).map(<span class="prelude-val">Some</span>)),
+    )
+}
+
+<span class="doccomment">/// Creates a [`Subscription`] that publishes the events sent from a [`Future`]
+/// to an [`mpsc::Sender`] with the given bounds.
 ///
 /// # Creating an asynchronous worker with bidirectional communication
 /// You can leverage this helper to create a [`Subscription`] that spawns
@@ -393,6 +451,7 @@
 /// ```
 /// use iced_native::subscription::{self, Subscription};
 /// use iced_native::futures::channel::mpsc;
+/// use iced_native::futures::sink::SinkExt;
 ///
 /// pub enum Event {
 ///     Ready(mpsc::Sender&lt;Input&gt;),
@@ -413,27 +472,35 @@
 /// fn some_worker() -&gt; Subscription&lt;Event&gt; {
 ///     struct SomeWorker;
 ///
-///     subscription::unfold(std::any::TypeId::of::&lt;SomeWorker&gt;(), State::Starting, |state| async move {
-///         match state {
-///             State::Starting =&gt; {
-///                 // Create channel
-///                 let (sender, receiver) = mpsc::channel(100);
+///     subscription::channel(std::any::TypeId::of::&lt;SomeWorker&gt;(), 100, |mut output| async move {
+///         let mut state = State::Starting;
 ///
-///                 (Some(Event::Ready(sender)), State::Ready(receiver))
-///             }
-///             State::Ready(mut receiver) =&gt; {
-///                 use iced_native::futures::StreamExt;
+///         loop {
+///             match &amp;mut state {
+///                 State::Starting =&gt; {
+///                     // Create channel
+///                     let (sender, receiver) = mpsc::channel(100);
 ///
-///                 // Read next input sent from `Application`
-///                 let input = receiver.select_next_some().await;
+///                     // Send the sender back to the application
+///                     output.send(Event::Ready(sender)).await;
 ///
-///                 match input {
-///                     Input::DoSomeWork =&gt; {
-///                         // Do some async work...
+///                     // We are ready to receive messages
+///                     state = State::Ready(receiver);
+///                 }
+///                 State::Ready(receiver) =&gt; {
+///                     use iced_native::futures::StreamExt;
 ///
-///                         // Finally, we can optionally return a message to tell the
-///                         // `Application` the work is done
-///                         (Some(Event::WorkFinished), State::Ready(receiver))
+///                     // Read next input sent from `Application`
+///                     let input = receiver.select_next_some().await;
+///
+///                     match input {
+///                         Input::DoSomeWork =&gt; {
+///                             // Do some async work...
+///
+///                             // Finally, we can optionally produce a message to tell the
+///                             // `Application` the work is done
+///                             output.send(Event::WorkFinished).await;
+///                         }
 ///                     }
 ///                 }
 ///             }
@@ -446,25 +513,28 @@
 /// connection open.
 ///
 /// [`websocket`]: https://github.com/iced-rs/iced/tree/0.8/examples/websocket
-</span><span class="kw">pub fn </span>unfold&lt;I, T, Fut, Message&gt;(
+</span><span class="kw">pub fn </span>channel&lt;I, Fut, Message&gt;(
     id: I,
-    initial: T,
-    <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(T) -&gt; Fut + MaybeSend + Sync + <span class="lifetime">&#39;static</span>,
+    size: usize,
+    f: <span class="kw">impl </span>Fn(mpsc::Sender&lt;Message&gt;) -&gt; Fut + MaybeSend + Sync + <span class="lifetime">&#39;static</span>,
 ) -&gt; Subscription&lt;Message&gt;
 <span class="kw">where
     </span>I: Hash + <span class="lifetime">&#39;static</span>,
-    T: MaybeSend + <span class="lifetime">&#39;static</span>,
-    Fut: Future&lt;Output = (<span class="prelude-ty">Option</span>&lt;Message&gt;, T)&gt; + MaybeSend + <span class="lifetime">&#39;static</span>,
+    Fut: Future&lt;Output = Never&gt; + MaybeSend + <span class="lifetime">&#39;static</span>,
     Message: <span class="lifetime">&#39;static </span>+ MaybeSend,
 {
-    <span class="kw">use </span>futures::future::{<span class="self">self</span>, FutureExt};
-    <span class="kw">use </span>futures::stream::StreamExt;
+    <span class="kw">use </span>futures::stream::{<span class="self">self</span>, StreamExt};
 
-    run_with_id(
+    Subscription::from_recipe(Runner {
         id,
-        futures::stream::unfold(initial, <span class="kw">move </span>|state| f(state).map(<span class="prelude-val">Some</span>))
-            .filter_map(future::ready),
-    )
+        spawn: <span class="kw">move </span>|<span class="kw">_</span>| {
+            <span class="kw">let </span>(sender, receiver) = mpsc::channel(size);
+
+            <span class="kw">let </span>runner = stream::once(f(sender)).map(|<span class="kw">_</span>| <span class="macro">unreachable!</span>());
+
+            stream::select(receiver, runner)
+        },
+    })
 }
 
 <span class="kw">struct </span>Runner&lt;I, F, S, Message&gt;
