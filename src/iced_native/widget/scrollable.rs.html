@@ -1378,6 +1378,7 @@
     Renderer::Theme: StyleSheet,
 {
     id: <span class="prelude-ty">Option</span>&lt;Id&gt;,
+    width: Length,
     height: Length,
     vertical: Properties,
     horizontal: <span class="prelude-ty">Option</span>&lt;Properties&gt;,
@@ -1395,6 +1396,7 @@
     </span><span class="kw">pub fn </span>new(content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;&gt;) -&gt; <span class="self">Self </span>{
         Scrollable {
             id: <span class="prelude-val">None</span>,
+            width: Length::Shrink,
             height: Length::Shrink,
             vertical: Properties::default(),
             horizontal: <span class="prelude-val">None</span>,
@@ -1407,6 +1409,12 @@
     <span class="doccomment">/// Sets the [`Id`] of the [`Scrollable`].
     </span><span class="kw">pub fn </span>id(<span class="kw-2">mut </span><span class="self">self</span>, id: Id) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.id = <span class="prelude-val">Some</span>(id);
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the width of the [`Scrollable`].
+    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.width = width.into();
         <span class="self">self
     </span>}
 
@@ -1518,7 +1526,7 @@
     }
 
     <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.content.as_widget().width()
+        <span class="self">self</span>.width
     }
 
     <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
@@ -1533,7 +1541,7 @@
         layout(
             renderer,
             limits,
-            Widget::&lt;Message, Renderer&gt;::width(<span class="self">self</span>),
+            <span class="self">self</span>.width,
             <span class="self">self</span>.height,
             <span class="self">self</span>.horizontal.is_some(),
             |renderer, limits| {
@@ -1742,15 +1750,7 @@
     horizontal_enabled: bool,
     layout_content: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>Renderer, <span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
 ) -&gt; layout::Node {
-    <span class="kw">let </span>limits = limits
-        .max_height(f32::INFINITY)
-        .max_width(<span class="kw">if </span>horizontal_enabled {
-            f32::INFINITY
-        } <span class="kw">else </span>{
-            limits.max().width
-        })
-        .width(width)
-        .height(height);
+    <span class="kw">let </span>limits = limits.width(width).height(height);
 
     <span class="kw">let </span>child_limits = layout::Limits::new(
         Size::new(limits.min().width, <span class="number">0.0</span>),
