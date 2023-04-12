@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["HandleShape"],"struct":["Appearance","Handle"],"trait":["StyleSheet"]};
+window.SIDEBAR_ITEMS = {"enum":["HandleShape"],"struct":["Appearance","Handle","Rail"],"trait":["StyleSheet"]};

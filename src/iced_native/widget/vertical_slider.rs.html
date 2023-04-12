@@ -466,6 +466,18 @@
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
 <a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display an interactive selector of a single value from a range of values.
 //!
 //! A [`VerticalSlider`] has some local [`State`].
@@ -476,8 +488,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use crate</span>::{
-    layout, mouse, renderer, touch, Background, Clipboard, Color, Element,
-    Layout, Length, Pixels, Point, Rectangle, Shell, Size, Widget,
+    layout, mouse, renderer, touch, Clipboard, Color, Element, Layout, Length,
+    Pixels, Point, Rectangle, Shell, Size, Widget,
 };
 
 <span class="doccomment">/// An vertical bar and a handle that selects a single value from a range of
@@ -831,38 +843,6 @@
         style_sheet.active(style)
     };
 
-    <span class="kw">let </span>rail_x = bounds.x + (bounds.width / <span class="number">2.0</span>).round();
-
-    renderer.fill_quad(
-        renderer::Quad {
-            bounds: Rectangle {
-                x: rail_x - <span class="number">1.0</span>,
-                y: bounds.y,
-                width: <span class="number">2.0</span>,
-                height: bounds.height,
-            },
-            border_radius: <span class="number">0.0</span>.into(),
-            border_width: <span class="number">0.0</span>,
-            border_color: Color::TRANSPARENT,
-        },
-        style.rail_colors.<span class="number">0</span>,
-    );
-
-    renderer.fill_quad(
-        renderer::Quad {
-            bounds: Rectangle {
-                x: rail_x + <span class="number">1.0</span>,
-                y: bounds.y,
-                width: <span class="number">2.0</span>,
-                height: bounds.height,
-            },
-            border_radius: <span class="number">0.0</span>.into(),
-            border_width: <span class="number">0.0</span>,
-            border_color: Color::TRANSPARENT,
-        },
-        Background::Color(style.rail_colors.<span class="number">1</span>),
-    );
-
     <span class="kw">let </span>(handle_width, handle_height, handle_border_radius) = <span class="kw">match </span>style
         .handle
         .shape
@@ -881,18 +861,62 @@
         (start.into() <span class="kw">as </span>f32, end.into() <span class="kw">as </span>f32)
     };
 
-    <span class="kw">let </span>handle_offset = <span class="kw">if </span>range_start &gt;= range_end {
+    <span class="kw">let </span>offset = <span class="kw">if </span>range_start &gt;= range_end {
         <span class="number">0.0
     </span>} <span class="kw">else </span>{
         (bounds.height - handle_width) * (value - range_end)
             / (range_start - range_end)
     };
 
+    <span class="kw">let </span>rail_x = bounds.x + bounds.width / <span class="number">2.0</span>;
+
     renderer.fill_quad(
         renderer::Quad {
             bounds: Rectangle {
-                x: rail_x - (handle_height / <span class="number">2.0</span>),
-                y: bounds.y + handle_offset.round(),
+                x: rail_x - style.rail.width / <span class="number">2.0</span>,
+                y: bounds.y,
+                width: style.rail.width,
+                height: offset,
+            },
+            border_radius: [
+                style.rail.border_radius,
+                style.rail.border_radius,
+                <span class="number">0.0</span>,
+                <span class="number">0.0</span>,
+            ]
+            .into(),
+            border_width: <span class="number">0.0</span>,
+            border_color: Color::TRANSPARENT,
+        },
+        style.rail.colors.<span class="number">1</span>,
+    );
+
+    renderer.fill_quad(
+        renderer::Quad {
+            bounds: Rectangle {
+                x: rail_x - style.rail.width / <span class="number">2.0</span>,
+                y: bounds.y + offset,
+                width: style.rail.width,
+                height: bounds.height - offset,
+            },
+            border_radius: [
+                <span class="number">0.0</span>,
+                <span class="number">0.0</span>,
+                style.rail.border_radius,
+                style.rail.border_radius,
+            ]
+            .into(),
+            border_width: <span class="number">0.0</span>,
+            border_color: Color::TRANSPARENT,
+        },
+        style.rail.colors.<span class="number">0</span>,
+    );
+
+    renderer.fill_quad(
+        renderer::Quad {
+            bounds: Rectangle {
+                x: rail_x - handle_height / <span class="number">2.0</span>,
+                y: bounds.y + offset.round(),
                 width: handle_height,
                 height: handle_width,
             },
