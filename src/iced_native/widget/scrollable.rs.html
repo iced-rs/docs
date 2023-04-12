@@ -1325,6 +1325,24 @@
 <a href="#1325" id="1325">1325</a>
 <a href="#1326" id="1326">1326</a>
 <a href="#1327" id="1327">1327</a>
+<a href="#1328" id="1328">1328</a>
+<a href="#1329" id="1329">1329</a>
+<a href="#1330" id="1330">1330</a>
+<a href="#1331" id="1331">1331</a>
+<a href="#1332" id="1332">1332</a>
+<a href="#1333" id="1333">1333</a>
+<a href="#1334" id="1334">1334</a>
+<a href="#1335" id="1335">1335</a>
+<a href="#1336" id="1336">1336</a>
+<a href="#1337" id="1337">1337</a>
+<a href="#1338" id="1338">1338</a>
+<a href="#1339" id="1339">1339</a>
+<a href="#1340" id="1340">1340</a>
+<a href="#1341" id="1341">1341</a>
+<a href="#1342" id="1342">1342</a>
+<a href="#1343" id="1343">1343</a>
+<a href="#1344" id="1344">1344</a>
+<a href="#1345" id="1345">1345</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
 </span><span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::keyboard;
@@ -2222,7 +2240,7 @@
 }
 
 <span class="kw">fn </span>notify_on_scroll&lt;Message&gt;(
-    state: <span class="kw-2">&amp;</span>State,
+    state: <span class="kw-2">&amp;mut </span>State,
     on_scroll: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(RelativeOffset) -&gt; Message + <span class="lifetime">&#39;_</span>&gt;&gt;,
     bounds: Rectangle,
     content_bounds: Rectangle,
@@ -2243,7 +2261,23 @@
             .absolute(bounds.height, content_bounds.height)
             / (content_bounds.height - bounds.height);
 
-        shell.publish(on_scroll(RelativeOffset { x, y }))
+        <span class="kw">let </span>new_offset = RelativeOffset { x, y };
+
+        <span class="comment">// Don&#39;t publish redundant offsets to shell
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(prev_offset) = state.last_notified {
+            <span class="kw">let </span>unchanged = |a: f32, b: f32| {
+                (a - b).abs() &lt;= f32::EPSILON || (a.is_nan() &amp;&amp; b.is_nan())
+            };
+
+            <span class="kw">if </span>unchanged(prev_offset.x, new_offset.x)
+                &amp;&amp; unchanged(prev_offset.y, new_offset.y)
+            {
+                <span class="kw">return</span>;
+            }
+        }
+
+        shell.publish(on_scroll(new_offset));
+        state.last_notified = <span class="prelude-val">Some</span>(new_offset);
     }
 }
 
@@ -2256,6 +2290,7 @@
     offset_x: Offset,
     x_scroller_grabbed_at: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     keyboard_modifiers: keyboard::Modifiers,
+    last_notified: <span class="prelude-ty">Option</span>&lt;RelativeOffset&gt;,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>State {
@@ -2267,6 +2302,7 @@
             offset_x: Offset::Absolute(<span class="number">0.0</span>),
             x_scroller_grabbed_at: <span class="prelude-val">None</span>,
             keyboard_modifiers: keyboard::Modifiers::default(),
+            last_notified: <span class="prelude-val">None</span>,
         }
     }
 }
