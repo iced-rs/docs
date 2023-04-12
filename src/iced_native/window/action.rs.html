@@ -145,7 +145,26 @@
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::window::{Mode, UserAttention};
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::window::{Icon, Mode, UserAttention};
 
 <span class="kw">use </span>iced_futures::MaybeSend;
 <span class="kw">use </span>std::fmt;
@@ -225,6 +244,21 @@
     </span>ChangeAlwaysOnTop(bool),
     <span class="doccomment">/// Fetch an identifier unique to the window.
     </span>FetchId(Box&lt;<span class="kw">dyn </span>FnOnce(u64) -&gt; T + <span class="lifetime">&#39;static</span>&gt;),
+    <span class="doccomment">/// Changes the window [`Icon`].
+    ///
+    /// On Windows and X11, this is typically the small icon in the top-left
+    /// corner of the titlebar.
+    ///
+    /// ## Platform-specific
+    ///
+    /// - **Web / Wayland / macOS:** Unsupported.
+    ///
+    /// - **Windows:** Sets `ICON_SMALL`. The base size for a window icon is 16x16, but it&#39;s
+    ///   recommended to account for screen scaling and pick a multiple of that, i.e. 32x32.
+    ///
+    /// - **X11:** Has no universal guidelines for icon sizes, so you&#39;re at the whims of the WM. That
+    ///   said, it&#39;s usually in the same ballpark as on Windows.
+    </span>ChangeIcon(Icon),
 }
 
 <span class="kw">impl</span>&lt;T&gt; Action&lt;T&gt; {
@@ -255,6 +289,7 @@
                 Action::ChangeAlwaysOnTop(on_top)
             }
             <span class="self">Self</span>::FetchId(o) =&gt; Action::FetchId(Box::new(<span class="kw">move </span>|s| f(o(s)))),
+            <span class="self">Self</span>::ChangeIcon(icon) =&gt; Action::ChangeIcon(icon),
         }
     }
 }
@@ -289,6 +324,9 @@
                 <span class="macro">write!</span>(f, <span class="string">&quot;Action::AlwaysOnTop({on_top})&quot;</span>)
             }
             <span class="self">Self</span>::FetchId(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">&quot;Action::FetchId&quot;</span>),
+            <span class="self">Self</span>::ChangeIcon(_icon) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">&quot;Action::ChangeIcon(icon)&quot;</span>)
+            }
         }
     }
 }

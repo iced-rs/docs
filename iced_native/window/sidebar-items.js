@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Action","Event","Mode","RedrawRequest","UserAttention"],"fn":["frames"]};
+window.SIDEBAR_ITEMS = {"enum":["Action","Event","Mode","RedrawRequest","UserAttention"],"fn":["frames"],"mod":["icon"]};
