@@ -261,6 +261,24 @@
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
 <a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{Backend, Color, Error, Renderer, Settings, Viewport};
 
 <span class="kw">use </span>futures::stream::{<span class="self">self</span>, StreamExt};
@@ -294,7 +312,10 @@
         settings: Settings,
         compatible_window: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>W&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>instance = wgpu::Instance::new(settings.internal_backend);
+        <span class="kw">let </span>instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends: settings.internal_backend,
+            ..Default::default()
+        });
 
         <span class="macro">log::info!</span>(<span class="string">&quot;{:#?}&quot;</span>, settings);
 
@@ -309,7 +330,7 @@
 
         <span class="attr">#[allow(unsafe_code)]
         </span><span class="kw">let </span>compatible_surface = compatible_window
-            .map(|window| <span class="kw">unsafe </span>{ instance.create_surface(window) });
+            .and_then(|window| <span class="kw">unsafe </span>{ instance.create_surface(window).ok() });
 
         <span class="kw">let </span>adapter = instance
             .request_adapter(<span class="kw-2">&amp;</span>wgpu::RequestAdapterOptions {
@@ -326,7 +347,19 @@
         <span class="macro">log::info!</span>(<span class="string">&quot;Selected: {:#?}&quot;</span>, adapter.get_info());
 
         <span class="kw">let </span>format = compatible_surface.as_ref().and_then(|surface| {
-            surface.get_supported_formats(<span class="kw-2">&amp;</span>adapter).first().copied()
+            <span class="kw">let </span>capabilities = surface.get_capabilities(<span class="kw-2">&amp;</span>adapter);
+
+            capabilities
+                .formats
+                .iter()
+                .filter(|format| format.describe().srgb)
+                .copied()
+                .next()
+                .or_else(|| {
+                    <span class="macro">log::warn!</span>(<span class="string">&quot;No sRGB format found!&quot;</span>);
+
+                    capabilities.formats.first().copied()
+                })
         })<span class="question-mark">?</span>;
 
         <span class="macro">log::info!</span>(<span class="string">&quot;Selected format: {:?}&quot;</span>, format);
@@ -407,7 +440,9 @@
     ) -&gt; wgpu::Surface {
         <span class="attr">#[allow(unsafe_code)]
         </span><span class="kw">unsafe </span>{
-            <span class="self">self</span>.instance.create_surface(window)
+            <span class="self">self</span>.instance
+                .create_surface(window)
+                .expect(<span class="string">&quot;Create surface&quot;</span>)
         }
     }
 
@@ -426,6 +461,7 @@
                 width,
                 height,
                 alpha_mode: wgpu::CompositeAlphaMode::Auto,
+                view_formats: <span class="macro">vec!</span>[],
             },
         );
     }
