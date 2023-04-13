@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["button","checkbox","column","container","horizontal_rule","horizontal_space","image","pick_list","progress_bar","radio","row","scrollable","slider","svg","text","text_input","toggler","tooltip","vertical_rule","vertical_slider","vertical_space"]};
+window.SIDEBAR_ITEMS = {"fn":["button","checkbox","column","container","horizontal_rule","horizontal_space","image","mouse_area","pick_list","progress_bar","radio","row","scrollable","slider","svg","text","text_input","toggler","tooltip","vertical_rule","vertical_slider","vertical_space"]};
