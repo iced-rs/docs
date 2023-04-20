@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["snap_to"],"struct":["RelativeOffset"],"trait":["Scrollable"]};
+window.SIDEBAR_ITEMS = {"fn":["scroll_to","snap_to"],"struct":["AbsoluteOffset","RelativeOffset"],"trait":["Scrollable"]};
