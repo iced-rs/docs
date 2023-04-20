@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["draw","layout","mouse_interaction","snap_to","update"],"mod":["style"],"struct":["Id","Properties","Scrollable","State","Viewport"],"trait":["StyleSheet"]};
+window.SIDEBAR_ITEMS = {"fn":["draw","layout","mouse_interaction","scroll_to","snap_to","update"],"mod":["style"],"struct":["Id","Properties","Scrollable","State","Viewport"],"trait":["StyleSheet"]};

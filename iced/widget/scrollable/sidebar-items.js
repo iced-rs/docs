@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["snap_to"],"struct":["AbsoluteOffset","Id","Properties","RelativeOffset","Scrollbar","Scroller","Viewport"],"trait":["StyleSheet"],"type":["Scrollable"]};
+window.SIDEBAR_ITEMS = {"fn":["scroll_to","snap_to"],"struct":["AbsoluteOffset","Id","Properties","RelativeOffset","Scrollbar","Scroller","Viewport"],"trait":["StyleSheet"],"type":["Scrollable"]};
