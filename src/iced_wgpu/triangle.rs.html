@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/triangle.rs`."><title>triangle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (f9a6b7158 2023-05-05)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_wgpu/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/triangle.rs`."><title>triangle.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (cba14074b 2023-05-10)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_wgpu/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -735,66 +735,189 @@
 <a href="#735" id="735">735</a>
 <a href="#736" id="736">736</a>
 <a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Draw meshes of triangles.
 </span><span class="kw">mod </span>msaa;
 
 <span class="kw">use </span><span class="kw">crate</span>::buffer::r#static::Buffer;
-<span class="kw">use </span><span class="kw">crate</span>::settings;
-<span class="kw">use </span><span class="kw">crate</span>::Transformation;
+<span class="kw">use </span><span class="kw">crate</span>::core::Size;
+<span class="kw">use </span><span class="kw">crate</span>::graphics::{Antialiasing, Transformation};
+<span class="kw">use </span><span class="kw">crate</span>::layer::mesh::{<span class="self">self</span>, Mesh};
 
-<span class="kw">use </span>iced_graphics::layer::mesh::{<span class="self">self</span>, Mesh};
-<span class="kw">use </span>iced_graphics::triangle::ColoredVertex2D;
-<span class="kw">use </span>iced_graphics::Size;
+<span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+</span><span class="kw">use </span><span class="kw">crate</span>::core::Gradient;
+
 <span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
 </span><span class="kw">use </span>tracing::info_span;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Pipeline {
     blit: <span class="prelude-ty">Option</span>&lt;msaa::Blit&gt;,
-    index_buffer: Buffer&lt;u32&gt;,
-    index_strides: Vec&lt;u32&gt;,
     solid: solid::Pipeline,
 
     <span class="doccomment">/// Gradients are currently not supported on WASM targets due to their need of storage buffers.
     </span><span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
     </span>gradient: gradient::Pipeline,
+
+    layers: Vec&lt;Layer&gt;,
+    prepare_layer: usize,
 }
 
-<span class="kw">impl </span>Pipeline {
-    <span class="kw">pub fn </span>new(
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">struct </span>Layer {
+    index_buffer: Buffer&lt;u32&gt;,
+    index_strides: Vec&lt;u32&gt;,
+    solid: solid::Layer,
+
+    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+    </span>gradient: gradient::Layer,
+}
+
+<span class="kw">impl </span>Layer {
+    <span class="kw">fn </span>new(
         device: <span class="kw-2">&amp;</span>wgpu::Device,
-        format: wgpu::TextureFormat,
-        antialiasing: <span class="prelude-ty">Option</span>&lt;settings::Antialiasing&gt;,
-    ) -&gt; Pipeline {
-        Pipeline {
-            blit: antialiasing.map(|a| msaa::Blit::new(device, format, a)),
+        solid: <span class="kw-2">&amp;</span>solid::Pipeline,
+        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))] </span>gradient: <span class="kw-2">&amp;</span>gradient::Pipeline,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
             index_buffer: Buffer::new(
                 device,
-                <span class="string">&quot;iced_wgpu::triangle vertex buffer&quot;</span>,
+                <span class="string">&quot;iced_wgpu::triangle index buffer&quot;</span>,
                 wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
             ),
             index_strides: Vec::new(),
-            solid: solid::Pipeline::new(device, format, antialiasing),
+            solid: solid::Layer::new(device, <span class="kw-2">&amp;</span>solid.constants_layout),
 
             <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
-            </span>gradient: gradient::Pipeline::new(device, format, antialiasing),
+            </span>gradient: gradient::Layer::new(device, <span class="kw-2">&amp;</span>gradient.constants_layout),
         }
     }
 
-    <span class="kw">pub fn </span>draw(
+    <span class="kw">fn </span>prepare(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
-        staging_belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
-        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
-        target: <span class="kw-2">&amp;</span>wgpu::TextureView,
-        target_size: Size&lt;u32&gt;,
-        transformation: Transformation,
-        scale_factor: f32,
+        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+        solid: <span class="kw-2">&amp;</span>solid::Pipeline,
+        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))] </span>gradient: <span class="kw-2">&amp;</span>gradient::Pipeline,
         meshes: <span class="kw-2">&amp;</span>[Mesh&lt;<span class="lifetime">&#39;_</span>&gt;],
+        transformation: Transformation,
     ) {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
-        </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">&quot;Wgpu::Triangle&quot;</span>, <span class="string">&quot;DRAW&quot;</span>).entered();
-
         <span class="comment">// Count the total amount of vertices &amp; indices we need to handle
         </span><span class="kw">let </span>count = mesh::attribute_count_of(meshes);
 
@@ -812,7 +935,8 @@
             .resize(device, count.gradient_vertices);
 
         <span class="comment">// Prepare dynamic buffers &amp; data store for writing
-        </span><span class="self">self</span>.index_strides.clear();
+        </span><span class="self">self</span>.index_buffer.clear();
+        <span class="self">self</span>.index_strides.clear();
         <span class="self">self</span>.solid.vertices.clear();
         <span class="self">self</span>.solid.uniforms.clear();
 
@@ -836,13 +960,8 @@
             <span class="kw">let </span>transform =
                 transformation * Transformation::translate(origin.x, origin.y);
 
-            <span class="kw">let </span>new_index_offset = <span class="self">self</span>.index_buffer.write(
-                device,
-                staging_belt,
-                encoder,
-                index_offset,
-                indices,
-            );
+            <span class="kw">let </span>new_index_offset =
+                <span class="self">self</span>.index_buffer.write(queue, index_offset, indices);
 
             index_offset += new_index_offset;
             <span class="self">self</span>.index_strides.push(indices.len() <span class="kw">as </span>u32);
@@ -853,9 +972,7 @@
                     <span class="self">self</span>.solid.uniforms.push(<span class="kw-2">&amp;</span>solid::Uniforms::new(transform));
 
                     <span class="kw">let </span>written_bytes = <span class="self">self</span>.solid.vertices.write(
-                        device,
-                        staging_belt,
-                        encoder,
+                        queue,
                         solid_vertex_offset,
                         <span class="kw-2">&amp;</span>buffers.vertices,
                     );
@@ -867,9 +984,7 @@
                     buffers, gradient, ..
                 } =&gt; {
                     <span class="kw">let </span>written_bytes = <span class="self">self</span>.gradient.vertices.write(
-                        device,
-                        staging_belt,
-                        encoder,
+                        queue,
                         gradient_vertex_offset,
                         <span class="kw-2">&amp;</span>buffers.vertices,
                     );
@@ -877,7 +992,7 @@
                     gradient_vertex_offset += written_bytes;
 
                     <span class="kw">match </span>gradient {
-                        iced_graphics::Gradient::Linear(linear) =&gt; {
+                        Gradient::Linear(linear) =&gt; {
                             <span class="kw">use </span>glam::{IVec4, Vec4};
 
                             <span class="kw">let </span>start_offset = <span class="self">self</span>.gradient.color_stop_offset;
@@ -933,14 +1048,14 @@
             <span class="kw">let </span>uniforms_resized = <span class="self">self</span>.solid.uniforms.resize(device);
 
             <span class="kw">if </span>uniforms_resized {
-                <span class="self">self</span>.solid.bind_group = solid::Pipeline::bind_group(
+                <span class="self">self</span>.solid.constants = solid::Layer::bind_group(
                     device,
                     <span class="self">self</span>.solid.uniforms.raw(),
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.solid.bind_group_layout,
+                    <span class="kw-2">&amp;</span>solid.constants_layout,
                 )
             }
 
-            <span class="self">self</span>.solid.uniforms.write(device, staging_belt, encoder);
+            <span class="self">self</span>.solid.uniforms.write(queue);
         }
 
         <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
@@ -955,22 +1070,169 @@
             <span class="kw">let </span>storage_resized = <span class="self">self</span>.gradient.storage.resize(device);
 
             <span class="kw">if </span>uniforms_resized || storage_resized {
-                <span class="self">self</span>.gradient.bind_group = gradient::Pipeline::bind_group(
+                <span class="self">self</span>.gradient.constants = gradient::Layer::bind_group(
                     device,
                     <span class="self">self</span>.gradient.uniforms.raw(),
                     <span class="self">self</span>.gradient.storage.raw(),
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.gradient.bind_group_layout,
+                    <span class="kw-2">&amp;</span>gradient.constants_layout,
                 );
             }
 
             <span class="comment">// Write to GPU
-            </span><span class="self">self</span>.gradient.uniforms.write(device, staging_belt, encoder);
-            <span class="self">self</span>.gradient.storage.write(device, staging_belt, encoder);
+            </span><span class="self">self</span>.gradient.uniforms.write(queue);
+            <span class="self">self</span>.gradient.storage.write(queue);
 
             <span class="comment">// Cleanup
             </span><span class="self">self</span>.gradient.color_stop_offset = <span class="number">0</span>;
             <span class="self">self</span>.gradient.color_stops_pending_write.color_stops.clear();
         }
+    }
+
+    <span class="kw">fn </span>render&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+        solid: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>solid::Pipeline,
+        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))] </span>gradient: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>gradient::Pipeline,
+        meshes: <span class="kw-2">&amp;</span>[Mesh&lt;<span class="lifetime">&#39;_</span>&gt;],
+        scale_factor: f32,
+        render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">&#39;a</span>&gt;,
+    ) {
+        <span class="kw">let </span><span class="kw-2">mut </span>num_solids = <span class="number">0</span>;
+        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+        </span><span class="kw">let </span><span class="kw-2">mut </span>num_gradients = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_is_solid = <span class="prelude-val">None</span>;
+
+        <span class="kw">for </span>(index, mesh) <span class="kw">in </span>meshes.iter().enumerate() {
+            <span class="kw">let </span>clip_bounds = (mesh.clip_bounds() * scale_factor).snap();
+
+            render_pass.set_scissor_rect(
+                clip_bounds.x,
+                clip_bounds.y,
+                clip_bounds.width,
+                clip_bounds.height,
+            );
+
+            <span class="kw">match </span>mesh {
+                Mesh::Solid { .. } =&gt; {
+                    <span class="kw">if </span>!last_is_solid.unwrap_or(<span class="bool-val">false</span>) {
+                        render_pass.set_pipeline(<span class="kw-2">&amp;</span>solid.pipeline);
+
+                        last_is_solid = <span class="prelude-val">Some</span>(<span class="bool-val">true</span>);
+                    }
+
+                    render_pass.set_bind_group(
+                        <span class="number">0</span>,
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.solid.constants,
+                        <span class="kw-2">&amp;</span>[<span class="self">self</span>.solid.uniforms.offset_at_index(num_solids)],
+                    );
+
+                    render_pass.set_vertex_buffer(
+                        <span class="number">0</span>,
+                        <span class="self">self</span>.solid.vertices.slice_from_index(num_solids),
+                    );
+
+                    num_solids += <span class="number">1</span>;
+                }
+                <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+                </span>Mesh::Gradient { .. } =&gt; {
+                    <span class="kw">if </span>last_is_solid.unwrap_or(<span class="bool-val">true</span>) {
+                        render_pass.set_pipeline(<span class="kw-2">&amp;</span>gradient.pipeline);
+
+                        last_is_solid = <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
+                    }
+
+                    render_pass.set_bind_group(
+                        <span class="number">0</span>,
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.gradient.constants,
+                        <span class="kw-2">&amp;</span>[<span class="self">self
+                            </span>.gradient
+                            .uniforms
+                            .offset_at_index(num_gradients)],
+                    );
+
+                    render_pass.set_vertex_buffer(
+                        <span class="number">0</span>,
+                        <span class="self">self</span>.gradient.vertices.slice_from_index(num_gradients),
+                    );
+
+                    num_gradients += <span class="number">1</span>;
+                }
+                <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
+                </span>Mesh::Gradient { .. } =&gt; {}
+            };
+
+            render_pass.set_index_buffer(
+                <span class="self">self</span>.index_buffer.slice_from_index(index),
+                wgpu::IndexFormat::Uint32,
+            );
+
+            render_pass.draw_indexed(<span class="number">0</span>..<span class="self">self</span>.index_strides[index], <span class="number">0</span>, <span class="number">0</span>..<span class="number">1</span>);
+        }
+    }
+}
+
+<span class="kw">impl </span>Pipeline {
+    <span class="kw">pub fn </span>new(
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        format: wgpu::TextureFormat,
+        antialiasing: <span class="prelude-ty">Option</span>&lt;Antialiasing&gt;,
+    ) -&gt; Pipeline {
+        Pipeline {
+            blit: antialiasing.map(|a| msaa::Blit::new(device, format, a)),
+            solid: solid::Pipeline::new(device, format, antialiasing),
+
+            <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+            </span>gradient: gradient::Pipeline::new(device, format, antialiasing),
+
+            layers: Vec::new(),
+            prepare_layer: <span class="number">0</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>prepare(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+        meshes: <span class="kw-2">&amp;</span>[Mesh&lt;<span class="lifetime">&#39;_</span>&gt;],
+        transformation: Transformation,
+    ) {
+        <span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
+        </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">&quot;Wgpu::Triangle&quot;</span>, <span class="string">&quot;PREPARE&quot;</span>).entered();
+
+        <span class="kw">if </span><span class="self">self</span>.layers.len() &lt;= <span class="self">self</span>.prepare_layer {
+            <span class="self">self</span>.layers.push(Layer::new(
+                device,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.solid,
+                <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+                </span><span class="kw-2">&amp;</span><span class="self">self</span>.gradient,
+            ));
+        }
+
+        <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span><span class="self">self</span>.layers[<span class="self">self</span>.prepare_layer];
+        layer.prepare(
+            device,
+            queue,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.solid,
+            <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+            </span><span class="kw-2">&amp;</span><span class="self">self</span>.gradient,
+            meshes,
+            transformation,
+        );
+
+        <span class="self">self</span>.prepare_layer += <span class="number">1</span>;
+    }
+
+    <span class="kw">pub fn </span>render(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        target: <span class="kw-2">&amp;</span>wgpu::TextureView,
+        layer: usize,
+        target_size: Size&lt;u32&gt;,
+        meshes: <span class="kw-2">&amp;</span>[Mesh&lt;<span class="lifetime">&#39;_</span>&gt;],
+        scale_factor: f32,
+    ) {
+        <span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
+        </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">&quot;Wgpu::Triangle&quot;</span>, <span class="string">&quot;DRAW&quot;</span>).entered();
 
         <span class="comment">// Configure render pass
         </span>{
@@ -1005,86 +1267,25 @@
                     depth_stencil_attachment: <span class="prelude-val">None</span>,
                 });
 
-            <span class="kw">let </span><span class="kw-2">mut </span>num_solids = <span class="number">0</span>;
-            <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
-            </span><span class="kw">let </span><span class="kw-2">mut </span>num_gradients = <span class="number">0</span>;
-            <span class="kw">let </span><span class="kw-2">mut </span>last_is_solid = <span class="prelude-val">None</span>;
+            <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span><span class="self">self</span>.layers[layer];
 
-            <span class="kw">for </span>(index, mesh) <span class="kw">in </span>meshes.iter().enumerate() {
-                <span class="kw">let </span>clip_bounds = (mesh.clip_bounds() * scale_factor).snap();
-
-                render_pass.set_scissor_rect(
-                    clip_bounds.x,
-                    clip_bounds.y,
-                    clip_bounds.width,
-                    clip_bounds.height,
-                );
-
-                <span class="kw">match </span>mesh {
-                    Mesh::Solid { .. } =&gt; {
-                        <span class="kw">if </span>!last_is_solid.unwrap_or(<span class="bool-val">false</span>) {
-                            render_pass.set_pipeline(<span class="kw-2">&amp;</span><span class="self">self</span>.solid.pipeline);
-
-                            last_is_solid = <span class="prelude-val">Some</span>(<span class="bool-val">true</span>);
-                        }
-
-                        render_pass.set_bind_group(
-                            <span class="number">0</span>,
-                            <span class="kw-2">&amp;</span><span class="self">self</span>.solid.bind_group,
-                            <span class="kw-2">&amp;</span>[<span class="self">self</span>.solid.uniforms.offset_at_index(num_solids)],
-                        );
-
-                        render_pass.set_vertex_buffer(
-                            <span class="number">0</span>,
-                            <span class="self">self</span>.solid.vertices.slice_from_index(num_solids),
-                        );
-
-                        num_solids += <span class="number">1</span>;
-                    }
-                    <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
-                    </span>Mesh::Gradient { .. } =&gt; {
-                        <span class="kw">if </span>last_is_solid.unwrap_or(<span class="bool-val">true</span>) {
-                            render_pass.set_pipeline(<span class="kw-2">&amp;</span><span class="self">self</span>.gradient.pipeline);
-
-                            last_is_solid = <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
-                        }
-
-                        render_pass.set_bind_group(
-                            <span class="number">0</span>,
-                            <span class="kw-2">&amp;</span><span class="self">self</span>.gradient.bind_group,
-                            <span class="kw-2">&amp;</span>[<span class="self">self
-                                </span>.gradient
-                                .uniforms
-                                .offset_at_index(num_gradients)],
-                        );
-
-                        render_pass.set_vertex_buffer(
-                            <span class="number">0</span>,
-                            <span class="self">self</span>.gradient
-                                .vertices
-                                .slice_from_index(num_gradients),
-                        );
-
-                        num_gradients += <span class="number">1</span>;
-                    }
-                    <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
-                    </span>Mesh::Gradient { .. } =&gt; {}
-                };
-
-                render_pass.set_index_buffer(
-                    <span class="self">self</span>.index_buffer.slice_from_index(index),
-                    wgpu::IndexFormat::Uint32,
-                );
-
-                render_pass.draw_indexed(<span class="number">0</span>..<span class="self">self</span>.index_strides[index], <span class="number">0</span>, <span class="number">0</span>..<span class="number">1</span>);
-            }
+            layer.render(
+                <span class="kw-2">&amp;</span><span class="self">self</span>.solid,
+                <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+                </span><span class="kw-2">&amp;</span><span class="self">self</span>.gradient,
+                meshes,
+                scale_factor,
+                <span class="kw-2">&amp;mut </span>render_pass,
+            );
         }
-
-        <span class="self">self</span>.index_buffer.clear();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(blit) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.blit {
             blit.draw(encoder, target);
         }
+    }
+
+    <span class="kw">pub fn </span>end_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.prepare_layer = <span class="number">0</span>;
     }
 }
 
@@ -1107,7 +1308,7 @@
 }
 
 <span class="kw">fn </span>multisample_state(
-    antialiasing: <span class="prelude-ty">Option</span>&lt;settings::Antialiasing&gt;,
+    antialiasing: <span class="prelude-ty">Option</span>&lt;Antialiasing&gt;,
 ) -&gt; wgpu::MultisampleState {
     wgpu::MultisampleState {
         count: antialiasing.map(|a| a.sample_count()).unwrap_or(<span class="number">1</span>),
@@ -1119,18 +1320,71 @@
 <span class="kw">mod </span>solid {
     <span class="kw">use </span><span class="kw">crate</span>::buffer::dynamic;
     <span class="kw">use </span><span class="kw">crate</span>::buffer::r#static::Buffer;
-    <span class="kw">use </span><span class="kw">crate</span>::settings;
+    <span class="kw">use </span><span class="kw">crate</span>::graphics::primitive;
+    <span class="kw">use </span><span class="kw">crate</span>::graphics::{Antialiasing, Transformation};
     <span class="kw">use </span><span class="kw">crate</span>::triangle;
+
     <span class="kw">use </span>encase::ShaderType;
-    <span class="kw">use </span>iced_graphics::Transformation;
 
     <span class="attr">#[derive(Debug)]
     </span><span class="kw">pub struct </span>Pipeline {
         <span class="kw">pub </span>pipeline: wgpu::RenderPipeline,
-        <span class="kw">pub </span>vertices: Buffer&lt;triangle::ColoredVertex2D&gt;,
+        <span class="kw">pub </span>constants_layout: wgpu::BindGroupLayout,
+    }
+
+    <span class="attr">#[derive(Debug)]
+    </span><span class="kw">pub struct </span>Layer {
+        <span class="kw">pub </span>vertices: Buffer&lt;primitive::ColoredVertex2D&gt;,
         <span class="kw">pub </span>uniforms: dynamic::Buffer&lt;Uniforms&gt;,
-        <span class="kw">pub </span>bind_group_layout: wgpu::BindGroupLayout,
-        <span class="kw">pub </span>bind_group: wgpu::BindGroup,
+        <span class="kw">pub </span>constants: wgpu::BindGroup,
+    }
+
+    <span class="kw">impl </span>Layer {
+        <span class="kw">pub fn </span>new(
+            device: <span class="kw-2">&amp;</span>wgpu::Device,
+            constants_layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
+        ) -&gt; <span class="self">Self </span>{
+            <span class="kw">let </span>vertices = Buffer::new(
+                device,
+                <span class="string">&quot;iced_wgpu::triangle::solid vertex buffer&quot;</span>,
+                wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            );
+
+            <span class="kw">let </span>uniforms = dynamic::Buffer::uniform(
+                device,
+                <span class="string">&quot;iced_wgpu::triangle::solid uniforms&quot;</span>,
+            );
+
+            <span class="kw">let </span>constants =
+                <span class="self">Self</span>::bind_group(device, uniforms.raw(), constants_layout);
+
+            <span class="self">Self </span>{
+                vertices,
+                uniforms,
+                constants,
+            }
+        }
+
+        <span class="kw">pub fn </span>bind_group(
+            device: <span class="kw-2">&amp;</span>wgpu::Device,
+            buffer: <span class="kw-2">&amp;</span>wgpu::Buffer,
+            layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
+        ) -&gt; wgpu::BindGroup {
+            device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::solid bind group&quot;</span>),
+                layout,
+                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
+                    binding: <span class="number">0</span>,
+                    resource: wgpu::BindingResource::Buffer(
+                        wgpu::BufferBinding {
+                            buffer,
+                            offset: <span class="number">0</span>,
+                            size: <span class="prelude-val">Some</span>(Uniforms::min_size()),
+                        },
+                    ),
+                }],
+            })
+        }
     }
 
     <span class="attr">#[derive(Debug, Clone, Copy, ShaderType)]
@@ -1151,20 +1405,9 @@
         </span><span class="kw">pub fn </span>new(
             device: <span class="kw-2">&amp;</span>wgpu::Device,
             format: wgpu::TextureFormat,
-            antialiasing: <span class="prelude-ty">Option</span>&lt;settings::Antialiasing&gt;,
+            antialiasing: <span class="prelude-ty">Option</span>&lt;Antialiasing&gt;,
         ) -&gt; <span class="self">Self </span>{
-            <span class="kw">let </span>vertices = Buffer::new(
-                device,
-                <span class="string">&quot;iced_wgpu::triangle::solid vertex buffer&quot;</span>,
-                wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            );
-
-            <span class="kw">let </span>uniforms = dynamic::Buffer::uniform(
-                device,
-                <span class="string">&quot;iced_wgpu::triangle::solid uniforms&quot;</span>,
-            );
-
-            <span class="kw">let </span>bind_group_layout = device.create_bind_group_layout(
+            <span class="kw">let </span>constants_layout = device.create_bind_group_layout(
                 <span class="kw-2">&amp;</span>wgpu::BindGroupLayoutDescriptor {
                     label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::solid bind group layout&quot;</span>),
                     entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupLayoutEntry {
@@ -1180,13 +1423,10 @@
                 },
             );
 
-            <span class="kw">let </span>bind_group =
-                <span class="self">Self</span>::bind_group(device, uniforms.raw(), <span class="kw-2">&amp;</span>bind_group_layout);
-
             <span class="kw">let </span>layout = device.create_pipeline_layout(
                 <span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
                     label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::solid pipeline layout&quot;</span>),
-                    bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>bind_group_layout],
+                    bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>constants_layout],
                     push_constant_ranges: <span class="kw-2">&amp;</span>[],
                 },
             );
@@ -1212,7 +1452,7 @@
                         entry_point: <span class="string">&quot;vs_main&quot;</span>,
                         buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
                             array_stride: std::mem::size_of::&lt;
-                                triangle::ColoredVertex2D,
+                                primitive::ColoredVertex2D,
                             &gt;()
                                 <span class="kw">as </span>u64,
                             step_mode: wgpu::VertexStepMode::Vertex,
@@ -1238,32 +1478,8 @@
 
             <span class="self">Self </span>{
                 pipeline,
-                vertices,
-                uniforms,
-                bind_group_layout,
-                bind_group,
+                constants_layout,
             }
-        }
-
-        <span class="kw">pub fn </span>bind_group(
-            device: <span class="kw-2">&amp;</span>wgpu::Device,
-            buffer: <span class="kw-2">&amp;</span>wgpu::Buffer,
-            layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
-        ) -&gt; wgpu::BindGroup {
-            device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::solid bind group&quot;</span>),
-                layout,
-                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
-                    binding: <span class="number">0</span>,
-                    resource: wgpu::BindingResource::Buffer(
-                        wgpu::BufferBinding {
-                            buffer,
-                            offset: <span class="number">0</span>,
-                            size: <span class="prelude-val">Some</span>(Uniforms::min_size()),
-                        },
-                    ),
-                }],
-            })
         }
     }
 }
@@ -1272,25 +1488,100 @@
 </span><span class="kw">mod </span>gradient {
     <span class="kw">use </span><span class="kw">crate</span>::buffer::dynamic;
     <span class="kw">use </span><span class="kw">crate</span>::buffer::r#static::Buffer;
-    <span class="kw">use </span><span class="kw">crate</span>::settings;
+    <span class="kw">use </span><span class="kw">crate</span>::graphics::Antialiasing;
     <span class="kw">use </span><span class="kw">crate</span>::triangle;
 
     <span class="kw">use </span>encase::ShaderType;
     <span class="kw">use </span>glam::{IVec4, Vec4};
-    <span class="kw">use </span>iced_graphics::triangle::Vertex2D;
+    <span class="kw">use </span>iced_graphics::primitive;
 
     <span class="attr">#[derive(Debug)]
     </span><span class="kw">pub struct </span>Pipeline {
         <span class="kw">pub </span>pipeline: wgpu::RenderPipeline,
-        <span class="kw">pub </span>vertices: Buffer&lt;Vertex2D&gt;,
+        <span class="kw">pub </span>constants_layout: wgpu::BindGroupLayout,
+    }
+
+    <span class="attr">#[derive(Debug)]
+    </span><span class="kw">pub struct </span>Layer {
+        <span class="kw">pub </span>vertices: Buffer&lt;primitive::Vertex2D&gt;,
         <span class="kw">pub </span>uniforms: dynamic::Buffer&lt;Uniforms&gt;,
         <span class="kw">pub </span>storage: dynamic::Buffer&lt;Storage&gt;,
+        <span class="kw">pub </span>constants: wgpu::BindGroup,
         <span class="kw">pub </span>color_stop_offset: i32,
         <span class="comment">//Need to store these and then write them all at once
         //or else they will be padded to 256 and cause gaps in the storage buffer
         </span><span class="kw">pub </span>color_stops_pending_write: Storage,
-        <span class="kw">pub </span>bind_group_layout: wgpu::BindGroupLayout,
-        <span class="kw">pub </span>bind_group: wgpu::BindGroup,
+    }
+
+    <span class="kw">impl </span>Layer {
+        <span class="kw">pub fn </span>new(
+            device: <span class="kw-2">&amp;</span>wgpu::Device,
+            constants_layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
+        ) -&gt; <span class="self">Self </span>{
+            <span class="kw">let </span>vertices = Buffer::new(
+                device,
+                <span class="string">&quot;iced_wgpu::triangle::gradient vertex buffer&quot;</span>,
+                wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            );
+
+            <span class="kw">let </span>uniforms = dynamic::Buffer::uniform(
+                device,
+                <span class="string">&quot;iced_wgpu::triangle::gradient uniforms&quot;</span>,
+            );
+
+            <span class="comment">// Note: with a WASM target storage buffers are not supported. Will need to use UBOs &amp; static
+            // sized array (eg like the 32-sized array on OpenGL side right now) to make gradients work
+            </span><span class="kw">let </span>storage = dynamic::Buffer::storage(
+                device,
+                <span class="string">&quot;iced_wgpu::triangle::gradient storage&quot;</span>,
+            );
+
+            <span class="kw">let </span>constants = <span class="self">Self</span>::bind_group(
+                device,
+                uniforms.raw(),
+                storage.raw(),
+                constants_layout,
+            );
+
+            <span class="self">Self </span>{
+                vertices,
+                uniforms,
+                storage,
+                constants,
+                color_stop_offset: <span class="number">0</span>,
+                color_stops_pending_write: Storage {
+                    color_stops: <span class="macro">vec!</span>[],
+                },
+            }
+        }
+
+        <span class="kw">pub fn </span>bind_group(
+            device: <span class="kw-2">&amp;</span>wgpu::Device,
+            uniform_buffer: <span class="kw-2">&amp;</span>wgpu::Buffer,
+            storage_buffer: <span class="kw-2">&amp;</span>wgpu::Buffer,
+            layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
+        ) -&gt; wgpu::BindGroup {
+            device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::gradient bind group&quot;</span>),
+                layout,
+                entries: <span class="kw-2">&amp;</span>[
+                    wgpu::BindGroupEntry {
+                        binding: <span class="number">0</span>,
+                        resource: wgpu::BindingResource::Buffer(
+                            wgpu::BufferBinding {
+                                buffer: uniform_buffer,
+                                offset: <span class="number">0</span>,
+                                size: <span class="prelude-val">Some</span>(Uniforms::min_size()),
+                            },
+                        ),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: <span class="number">1</span>,
+                        resource: storage_buffer.as_entire_binding(),
+                    },
+                ],
+            })
+        }
     }
 
     <span class="attr">#[derive(Debug, ShaderType)]
@@ -1319,27 +1610,9 @@
         </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>new(
             device: <span class="kw-2">&amp;</span>wgpu::Device,
             format: wgpu::TextureFormat,
-            antialiasing: <span class="prelude-ty">Option</span>&lt;settings::Antialiasing&gt;,
+            antialiasing: <span class="prelude-ty">Option</span>&lt;Antialiasing&gt;,
         ) -&gt; <span class="self">Self </span>{
-            <span class="kw">let </span>vertices = Buffer::new(
-                device,
-                <span class="string">&quot;iced_wgpu::triangle::gradient vertex buffer&quot;</span>,
-                wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            );
-
-            <span class="kw">let </span>uniforms = dynamic::Buffer::uniform(
-                device,
-                <span class="string">&quot;iced_wgpu::triangle::gradient uniforms&quot;</span>,
-            );
-
-            <span class="comment">//Note: with a WASM target storage buffers are not supported. Will need to use UBOs &amp; static
-            // sized array (eg like the 32-sized array on OpenGL side right now) to make gradients work
-            </span><span class="kw">let </span>storage = dynamic::Buffer::storage(
-                device,
-                <span class="string">&quot;iced_wgpu::triangle::gradient storage&quot;</span>,
-            );
-
-            <span class="kw">let </span>bind_group_layout = device.create_bind_group_layout(
+            <span class="kw">let </span>constants_layout = device.create_bind_group_layout(
                 <span class="kw-2">&amp;</span>wgpu::BindGroupLayoutDescriptor {
                     label: <span class="prelude-val">Some</span>(
                         <span class="string">&quot;iced_wgpu::triangle::gradient bind group layout&quot;</span>,
@@ -1371,19 +1644,12 @@
                 },
             );
 
-            <span class="kw">let </span>bind_group = Pipeline::bind_group(
-                device,
-                uniforms.raw(),
-                storage.raw(),
-                <span class="kw-2">&amp;</span>bind_group_layout,
-            );
-
             <span class="kw">let </span>layout = device.create_pipeline_layout(
                 <span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
                     label: <span class="prelude-val">Some</span>(
                         <span class="string">&quot;iced_wgpu::triangle::gradient pipeline layout&quot;</span>,
                     ),
-                    bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>bind_group_layout],
+                    bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>constants_layout],
                     push_constant_ranges: <span class="kw-2">&amp;</span>[],
                 },
             );
@@ -1391,7 +1657,7 @@
             <span class="kw">let </span>shader =
                 device.create_shader_module(wgpu::ShaderModuleDescriptor {
                     label: <span class="prelude-val">Some</span>(
-                        <span class="string">&quot;iced_wgpu triangle gradient create shader module&quot;</span>,
+                        <span class="string">&quot;iced_wgpu::triangle::gradient create shader module&quot;</span>,
                     ),
                     source: wgpu::ShaderSource::Wgsl(
                         std::borrow::Cow::Borrowed(<span class="macro">include_str!</span>(
@@ -1400,75 +1666,43 @@
                     ),
                 });
 
-            <span class="kw">let </span>pipeline = device.create_render_pipeline(
-                <span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
-                    label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::gradient pipeline&quot;</span>),
-                    layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
-                    vertex: wgpu::VertexState {
-                        module: <span class="kw-2">&amp;</span>shader,
-                        entry_point: <span class="string">&quot;vs_main&quot;</span>,
-                        buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
-                            array_stride: std::mem::size_of::&lt;Vertex2D&gt;()
-                                <span class="kw">as </span>u64,
-                            step_mode: wgpu::VertexStepMode::Vertex,
-                            attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
-                                <span class="comment">// Position
-                                </span><span class="number">0 </span>=&gt; Float32x2,
-                            ),
-                        }],
+            <span class="kw">let </span>pipeline =
+                device.create_render_pipeline(
+                    <span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
+                        label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::gradient pipeline&quot;</span>),
+                        layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
+                        vertex: wgpu::VertexState {
+                            module: <span class="kw-2">&amp;</span>shader,
+                            entry_point: <span class="string">&quot;vs_main&quot;</span>,
+                            buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
+                                array_stride: std::mem::size_of::&lt;
+                                    primitive::Vertex2D,
+                                &gt;(
+                                )
+                                    <span class="kw">as </span>u64,
+                                step_mode: wgpu::VertexStepMode::Vertex,
+                                attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
+                                    <span class="comment">// Position
+                                    </span><span class="number">0 </span>=&gt; Float32x2,
+                                ),
+                            }],
+                        },
+                        fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
+                            module: <span class="kw-2">&amp;</span>shader,
+                            entry_point: <span class="string">&quot;fs_main&quot;</span>,
+                            targets: <span class="kw-2">&amp;</span>[triangle::fragment_target(format)],
+                        }),
+                        primitive: triangle::primitive_state(),
+                        depth_stencil: <span class="prelude-val">None</span>,
+                        multisample: triangle::multisample_state(antialiasing),
+                        multiview: <span class="prelude-val">None</span>,
                     },
-                    fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
-                        module: <span class="kw-2">&amp;</span>shader,
-                        entry_point: <span class="string">&quot;fs_main&quot;</span>,
-                        targets: <span class="kw-2">&amp;</span>[triangle::fragment_target(format)],
-                    }),
-                    primitive: triangle::primitive_state(),
-                    depth_stencil: <span class="prelude-val">None</span>,
-                    multisample: triangle::multisample_state(antialiasing),
-                    multiview: <span class="prelude-val">None</span>,
-                },
-            );
+                );
 
             <span class="self">Self </span>{
                 pipeline,
-                vertices,
-                uniforms,
-                storage,
-                color_stop_offset: <span class="number">0</span>,
-                color_stops_pending_write: Storage {
-                    color_stops: <span class="macro">vec!</span>[],
-                },
-                bind_group_layout,
-                bind_group,
+                constants_layout,
             }
-        }
-
-        <span class="kw">pub fn </span>bind_group(
-            device: <span class="kw-2">&amp;</span>wgpu::Device,
-            uniform_buffer: <span class="kw-2">&amp;</span>wgpu::Buffer,
-            storage_buffer: <span class="kw-2">&amp;</span>wgpu::Buffer,
-            layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
-        ) -&gt; wgpu::BindGroup {
-            device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::triangle::gradient bind group&quot;</span>),
-                layout,
-                entries: <span class="kw-2">&amp;</span>[
-                    wgpu::BindGroupEntry {
-                        binding: <span class="number">0</span>,
-                        resource: wgpu::BindingResource::Buffer(
-                            wgpu::BufferBinding {
-                                buffer: uniform_buffer,
-                                offset: <span class="number">0</span>,
-                                size: <span class="prelude-val">Some</span>(Uniforms::min_size()),
-                            },
-                        ),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: <span class="number">1</span>,
-                        resource: storage_buffer.as_entire_binding(),
-                    },
-                ],
-            })
         }
     }
 }

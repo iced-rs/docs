@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Primitive"],"struct":["ColoredVertex2D","Mesh2D","Vertex2D"]};

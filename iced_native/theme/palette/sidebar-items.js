@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"static":["EXTENDED_DARK","EXTENDED_LIGHT"],"struct":["Background","Danger","Extended","Pair","Palette","Primary","Secondary","Success"]};

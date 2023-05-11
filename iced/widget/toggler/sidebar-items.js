@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Appearance"],"trait":["StyleSheet"],"type":["Toggler"]};
+window.SIDEBAR_ITEMS = {"struct":["Appearance","Toggler"],"trait":["StyleSheet"]};

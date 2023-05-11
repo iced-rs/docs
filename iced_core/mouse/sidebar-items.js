@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Button","Event","Interaction","ScrollDelta"]};
+window.SIDEBAR_ITEMS = {"enum":["Button","Event","Interaction","ScrollDelta"],"mod":["click"]};

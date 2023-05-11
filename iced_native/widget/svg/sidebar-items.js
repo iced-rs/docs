@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["Appearance","Svg"],"trait":["StyleSheet"]};

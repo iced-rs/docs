@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"iced_native":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html\" title=\"trait core::ops::deref::Deref\">Deref</a> for <a class=\"struct\" href=\"iced_native/image/struct.Bytes.html\" title=\"struct iced_native::image::Bytes\">Bytes</a>"]]
+"iced_core":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html\" title=\"trait core::ops::deref::Deref\">Deref</a> for <a class=\"struct\" href=\"iced_core/image/struct.Bytes.html\" title=\"struct iced_core::image::Bytes\">Bytes</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

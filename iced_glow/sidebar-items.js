@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Alignment","Background","Error","Length","Theme"],"mod":["alignment","settings","window"],"struct":["Backend","Color","Command","Vector","Viewport"],"type":["Renderer"]};

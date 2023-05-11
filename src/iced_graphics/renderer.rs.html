@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `graphics/src/renderer.rs`."><title>renderer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_graphics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (f9a6b7158 2023-05-05)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_graphics/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `graphics/src/renderer.rs`."><title>renderer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_graphics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (cba14074b 2023-05-10)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_graphics/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -212,18 +212,48 @@
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create a renderer from a [`Backend`].
 </span><span class="kw">use </span><span class="kw">crate</span>::backend::{<span class="self">self</span>, Backend};
-<span class="kw">use crate</span>::{Primitive, Vector};
-<span class="kw">use </span>iced_native::image;
-<span class="kw">use </span>iced_native::layout;
-<span class="kw">use </span>iced_native::renderer;
-<span class="kw">use </span>iced_native::svg;
-<span class="kw">use </span>iced_native::text::{<span class="self">self</span>, Text};
-<span class="kw">use </span>iced_native::{Background, Color, Element, Font, Point, Rectangle, Size};
+<span class="kw">use </span><span class="kw">crate</span>::Primitive;
 
-<span class="kw">pub use </span>iced_native::renderer::Style;
+<span class="kw">use </span>iced_core::image;
+<span class="kw">use </span>iced_core::layout;
+<span class="kw">use </span>iced_core::renderer;
+<span class="kw">use </span>iced_core::svg;
+<span class="kw">use </span>iced_core::text::{<span class="self">self</span>, Text};
+<span class="kw">use </span>iced_core::{
+    Background, Color, Element, Font, Point, Rectangle, Size, Vector,
+};
 
+<span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::marker::PhantomData;
 
 <span class="doccomment">/// A backend-agnostic renderer that supports all the built-in widgets.
@@ -244,7 +274,7 @@
         }
     }
 
-    <span class="doccomment">/// Returns the [`Backend`] of the [`Renderer`].
+    <span class="doccomment">/// Returns a reference to the [`Backend`] of the [`Renderer`].
     </span><span class="kw">pub fn </span>backend(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>B {
         <span class="kw-2">&amp;</span><span class="self">self</span>.backend
     }
@@ -256,12 +286,15 @@
 
     <span class="doccomment">/// Runs the given closure with the [`Backend`] and the recorded primitives
     /// of the [`Renderer`].
-    </span><span class="kw">pub fn </span>with_primitives(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>B, <span class="kw-2">&amp;</span>[Primitive])) {
-        f(<span class="kw-2">&amp;mut </span><span class="self">self</span>.backend, <span class="kw-2">&amp;</span><span class="self">self</span>.primitives);
+    </span><span class="kw">pub fn </span>with_primitives&lt;O&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>B, <span class="kw-2">&amp;</span>[Primitive]) -&gt; O,
+    ) -&gt; O {
+        f(<span class="kw-2">&amp;mut </span><span class="self">self</span>.backend, <span class="kw-2">&amp;</span><span class="self">self</span>.primitives)
     }
 }
 
-<span class="kw">impl</span>&lt;B, T&gt; iced_native::Renderer <span class="kw">for </span>Renderer&lt;B, T&gt;
+<span class="kw">impl</span>&lt;B, T&gt; iced_core::Renderer <span class="kw">for </span>Renderer&lt;B, T&gt;
 <span class="kw">where
     </span>B: Backend,
 {
@@ -280,19 +313,13 @@
     }
 
     <span class="kw">fn </span>with_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>)) {
-        <span class="kw">let </span>current_primitives = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives);
+        <span class="kw">let </span>current = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives);
 
         f(<span class="self">self</span>);
 
-        <span class="kw">let </span>layer_primitives =
-            std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives, current_primitives);
+        <span class="kw">let </span>layer = std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives, current);
 
-        <span class="self">self</span>.primitives.push(Primitive::Clip {
-            bounds,
-            content: Box::new(Primitive::Group {
-                primitives: layer_primitives,
-            }),
-        });
+        <span class="self">self</span>.primitives.push(Primitive::group(layer).clip(bounds));
     }
 
     <span class="kw">fn </span>with_translation(
@@ -300,19 +327,14 @@
         translation: Vector,
         f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>),
     ) {
-        <span class="kw">let </span>current_primitives = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives);
+        <span class="kw">let </span>current = std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives);
 
         f(<span class="self">self</span>);
 
-        <span class="kw">let </span>layer_primitives =
-            std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives, current_primitives);
+        <span class="kw">let </span>layer = std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives, current);
 
-        <span class="self">self</span>.primitives.push(Primitive::Translate {
-            translation,
-            content: Box::new(Primitive::Group {
-                primitives: layer_primitives,
-            }),
-        });
+        <span class="self">self</span>.primitives
+            .push(Primitive::group(layer).translate(translation));
     }
 
     <span class="kw">fn </span>fill_quad(
@@ -344,6 +366,10 @@
     <span class="kw">const </span>CHECKMARK_ICON: char = B::CHECKMARK_ICON;
     <span class="kw">const </span>ARROW_DOWN_ICON: char = B::ARROW_DOWN_ICON;
 
+    <span class="kw">fn </span>default_font(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Font {
+        <span class="self">self</span>.backend().default_font()
+    }
+
     <span class="kw">fn </span>default_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
         <span class="self">self</span>.backend().default_size()
     }
@@ -352,29 +378,46 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         content: <span class="kw-2">&amp;</span>str,
         size: f32,
+        line_height: text::LineHeight,
         font: Font,
         bounds: Size,
+        shaping: text::Shaping,
     ) -&gt; (f32, f32) {
-        <span class="self">self</span>.backend().measure(content, size, font, bounds)
+        <span class="self">self</span>.backend().measure(
+            content,
+            size,
+            line_height,
+            font,
+            bounds,
+            shaping,
+        )
     }
 
     <span class="kw">fn </span>hit_test(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         content: <span class="kw-2">&amp;</span>str,
         size: f32,
+        line_height: text::LineHeight,
         font: Font,
         bounds: Size,
+        shaping: text::Shaping,
         point: Point,
         nearest_only: bool,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;text::Hit&gt; {
         <span class="self">self</span>.backend().hit_test(
             content,
             size,
+            line_height,
             font,
             bounds,
+            shaping,
             point,
             nearest_only,
         )
+    }
+
+    <span class="kw">fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {
+        <span class="self">self</span>.backend.load_font(bytes);
     }
 
     <span class="kw">fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: Text&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>::Font&gt;) {
@@ -382,10 +425,12 @@
             content: text.content.to_string(),
             bounds: text.bounds,
             size: text.size,
+            line_height: text.line_height,
             color: text.color,
             font: text.font,
             horizontal_alignment: text.horizontal_alignment,
             vertical_alignment: text.vertical_alignment,
+            shaping: text.shaping,
         });
     }
 }
@@ -401,7 +446,7 @@
     }
 
     <span class="kw">fn </span>draw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: image::Handle, bounds: Rectangle) {
-        <span class="self">self</span>.draw_primitive(Primitive::Image { handle, bounds })
+        <span class="self">self</span>.primitives.push(Primitive::Image { handle, bounds })
     }
 }
 
@@ -419,11 +464,22 @@
         color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
         bounds: Rectangle,
     ) {
-        <span class="self">self</span>.draw_primitive(Primitive::Svg {
+        <span class="self">self</span>.primitives.push(Primitive::Svg {
             handle,
             color,
             bounds,
         })
+    }
+}
+
+<span class="attr">#[cfg(feature = <span class="string">&quot;geometry&quot;</span>)]
+</span><span class="kw">impl</span>&lt;B, T&gt; <span class="kw">crate</span>::geometry::Renderer <span class="kw">for </span>Renderer&lt;B, T&gt;
+<span class="kw">where
+    </span>B: Backend,
+{
+    <span class="kw">fn </span>draw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, layers: Vec&lt;<span class="kw">crate</span>::Geometry&gt;) {
+        <span class="self">self</span>.primitives
+            .extend(layers.into_iter().map(<span class="kw">crate</span>::Geometry::into));
     }
 }
 </code></pre></div></section></main></body></html>

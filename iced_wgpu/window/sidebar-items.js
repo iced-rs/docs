@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Compositor"]};
+window.SIDEBAR_ITEMS = {"mod":["compositor"],"struct":["Surface"]};

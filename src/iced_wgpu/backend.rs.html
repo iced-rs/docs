@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/backend.rs`."><title>backend.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (f9a6b7158 2023-05-05)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_wgpu/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/backend.rs`."><title>backend.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (cba14074b 2023-05-10)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_wgpu/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -315,17 +315,107 @@
 <a href="#315" id="315">315</a>
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::quad;
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core;
+<span class="kw">use </span><span class="kw">crate</span>::core::{Color, Font, Point, Size};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::backend;
+<span class="kw">use </span><span class="kw">crate</span>::graphics::{Primitive, Transformation, Viewport};
+<span class="kw">use </span><span class="kw">crate</span>::quad;
 <span class="kw">use </span><span class="kw">crate</span>::text;
 <span class="kw">use </span><span class="kw">crate</span>::triangle;
-<span class="kw">use crate</span>::{Settings, Transformation};
-
-<span class="kw">use </span>iced_graphics::backend;
-<span class="kw">use </span>iced_graphics::font;
-<span class="kw">use </span>iced_graphics::layer::Layer;
-<span class="kw">use </span>iced_graphics::{Primitive, Viewport};
-<span class="kw">use </span>iced_native::alignment;
-<span class="kw">use </span>iced_native::{Font, Size};
+<span class="kw">use crate</span>::{Layer, Settings};
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
 </span><span class="kw">use </span>tracing::info_span;
@@ -333,11 +423,13 @@
 <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
 </span><span class="kw">use </span><span class="kw">crate</span>::image;
 
+<span class="kw">use </span>std::borrow::Cow;
+
 <span class="doccomment">/// A [`wgpu`] graphics backend for [`iced`].
 ///
 /// [`wgpu`]: https://github.com/gfx-rs/wgpu-rs
 /// [`iced`]: https://github.com/iced-rs/iced
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Backend {
     quad_pipeline: quad::Pipeline,
     text_pipeline: text::Pipeline,
@@ -346,6 +438,7 @@
     <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
     </span>image_pipeline: image::Pipeline,
 
+    default_font: Font,
     default_text_size: f32,
 }
 
@@ -353,16 +446,11 @@
     <span class="doccomment">/// Creates a new [`Backend`].
     </span><span class="kw">pub fn </span>new(
         device: <span class="kw-2">&amp;</span>wgpu::Device,
+        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
         settings: Settings,
         format: wgpu::TextureFormat,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>text_pipeline = text::Pipeline::new(
-            device,
-            format,
-            settings.default_font,
-            settings.text_multithreading,
-        );
-
+        <span class="kw">let </span>text_pipeline = text::Pipeline::new(device, queue, format);
         <span class="kw">let </span>quad_pipeline = quad::Pipeline::new(device, format);
         <span class="kw">let </span>triangle_pipeline =
             triangle::Pipeline::new(device, format, settings.antialiasing);
@@ -378,6 +466,7 @@
             <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
             </span>image_pipeline,
 
+            default_font: settings.default_font,
             default_text_size: settings.default_text_size,
         }
     }
@@ -389,8 +478,9 @@
     </span><span class="kw">pub fn </span>present&lt;T: AsRef&lt;str&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
-        staging_belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
+        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
         encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        clear_color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
         frame: <span class="kw-2">&amp;</span>wgpu::TextureView,
         primitives: <span class="kw-2">&amp;</span>[Primitive],
         viewport: <span class="kw-2">&amp;</span>Viewport,
@@ -407,167 +497,245 @@
         <span class="kw">let </span><span class="kw-2">mut </span>layers = Layer::generate(primitives, viewport);
         layers.push(Layer::overlay(overlay_text, viewport));
 
-        <span class="kw">for </span>layer <span class="kw">in </span>layers {
-            <span class="self">self</span>.flush(
-                device,
-                scale_factor,
-                transformation,
-                <span class="kw-2">&amp;</span>layer,
-                staging_belt,
-                encoder,
-                frame,
-                target_size,
-            );
-        }
+        <span class="self">self</span>.prepare(
+            device,
+            queue,
+            encoder,
+            scale_factor,
+            transformation,
+            <span class="kw-2">&amp;</span>layers,
+        );
+
+        <span class="kw">while </span>!<span class="self">self</span>.prepare_text(
+            device,
+            queue,
+            scale_factor,
+            target_size,
+            <span class="kw-2">&amp;</span>layers,
+        ) {}
+
+        <span class="self">self</span>.render(
+            device,
+            encoder,
+            frame,
+            clear_color,
+            scale_factor,
+            target_size,
+            <span class="kw-2">&amp;</span>layers,
+        );
+
+        <span class="self">self</span>.quad_pipeline.end_frame();
+        <span class="self">self</span>.text_pipeline.end_frame();
+        <span class="self">self</span>.triangle_pipeline.end_frame();
 
         <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
-        </span><span class="self">self</span>.image_pipeline.trim_cache(device, encoder);
+        </span><span class="self">self</span>.image_pipeline.end_frame();
     }
 
-    <span class="kw">fn </span>flush(
+    <span class="kw">fn </span>prepare_text(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
+        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+        scale_factor: f32,
+        target_size: Size&lt;u32&gt;,
+        layers: <span class="kw-2">&amp;</span>[Layer&lt;<span class="lifetime">&#39;_</span>&gt;],
+    ) -&gt; bool {
+        <span class="kw">for </span>layer <span class="kw">in </span>layers {
+            <span class="kw">let </span>bounds = (layer.bounds * scale_factor).snap();
+
+            <span class="kw">if </span>bounds.width &lt; <span class="number">1 </span>|| bounds.height &lt; <span class="number">1 </span>{
+                <span class="kw">continue</span>;
+            }
+
+            <span class="kw">if </span>!layer.text.is_empty()
+                &amp;&amp; !<span class="self">self</span>.text_pipeline.prepare(
+                    device,
+                    queue,
+                    <span class="kw-2">&amp;</span>layer.text,
+                    layer.bounds,
+                    scale_factor,
+                    target_size,
+                )
+            {
+                <span class="kw">return </span><span class="bool-val">false</span>;
+            }
+        }
+
+        <span class="bool-val">true
+    </span>}
+
+    <span class="kw">fn </span>prepare(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+        _encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
         scale_factor: f32,
         transformation: Transformation,
-        layer: <span class="kw-2">&amp;</span>Layer&lt;<span class="lifetime">&#39;_</span>&gt;,
-        staging_belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
-        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
-        target: <span class="kw-2">&amp;</span>wgpu::TextureView,
-        target_size: Size&lt;u32&gt;,
+        layers: <span class="kw-2">&amp;</span>[Layer&lt;<span class="lifetime">&#39;_</span>&gt;],
     ) {
-        <span class="kw">let </span>bounds = (layer.bounds * scale_factor).snap();
+        <span class="kw">for </span>layer <span class="kw">in </span>layers {
+            <span class="kw">let </span>bounds = (layer.bounds * scale_factor).snap();
 
-        <span class="kw">if </span>bounds.width &lt; <span class="number">1 </span>|| bounds.height &lt; <span class="number">1 </span>{
-            <span class="kw">return</span>;
-        }
+            <span class="kw">if </span>bounds.width &lt; <span class="number">1 </span>|| bounds.height &lt; <span class="number">1 </span>{
+                <span class="kw">continue</span>;
+            }
 
-        <span class="kw">if </span>!layer.quads.is_empty() {
-            <span class="self">self</span>.quad_pipeline.draw(
-                device,
-                staging_belt,
-                encoder,
-                <span class="kw-2">&amp;</span>layer.quads,
-                transformation,
-                scale_factor,
-                bounds,
-                target,
-            );
-        }
-
-        <span class="kw">if </span>!layer.meshes.is_empty() {
-            <span class="kw">let </span>scaled = transformation
-                * Transformation::scale(scale_factor, scale_factor);
-
-            <span class="self">self</span>.triangle_pipeline.draw(
-                device,
-                staging_belt,
-                encoder,
-                target,
-                target_size,
-                scaled,
-                scale_factor,
-                <span class="kw-2">&amp;</span>layer.meshes,
-            );
-        }
-
-        <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
-        </span>{
-            <span class="kw">if </span>!layer.images.is_empty() {
-                <span class="kw">let </span>scaled = transformation
-                    * Transformation::scale(scale_factor, scale_factor);
-
-                <span class="self">self</span>.image_pipeline.draw(
+            <span class="kw">if </span>!layer.quads.is_empty() {
+                <span class="self">self</span>.quad_pipeline.prepare(
                     device,
-                    staging_belt,
-                    encoder,
-                    <span class="kw-2">&amp;</span>layer.images,
-                    scaled,
-                    bounds,
-                    target,
+                    queue,
+                    <span class="kw-2">&amp;</span>layer.quads,
+                    transformation,
                     scale_factor,
                 );
             }
-        }
 
-        <span class="kw">if </span>!layer.text.is_empty() {
-            <span class="kw">for </span>text <span class="kw">in </span>layer.text.iter() {
-                <span class="comment">// Target physical coordinates directly to avoid blurry text
-                </span><span class="kw">let </span>text = wgpu_glyph::Section {
-                    <span class="comment">// TODO: We `round` here to avoid rerasterizing text when
-                    // its position changes slightly. This can make text feel a
-                    // bit &quot;jumpy&quot;. We may be able to do better once we improve
-                    // our text rendering/caching pipeline.
-                    </span>screen_position: (
-                        (text.bounds.x * scale_factor).round(),
-                        (text.bounds.y * scale_factor).round(),
-                    ),
-                    <span class="comment">// TODO: Fix precision issues with some scale factors.
-                    //
-                    // The `ceil` here can cause some words to render on the
-                    // same line when they should not.
-                    //
-                    // Ideally, `wgpu_glyph` should be able to compute layout
-                    // using logical positions, and then apply the proper
-                    // scaling when rendering. This would ensure that both
-                    // measuring and rendering follow the same layout rules.
-                    </span>bounds: (
-                        (text.bounds.width * scale_factor).ceil(),
-                        (text.bounds.height * scale_factor).ceil(),
-                    ),
-                    text: <span class="macro">vec!</span>[wgpu_glyph::Text {
-                        text: text.content,
-                        scale: wgpu_glyph::ab_glyph::PxScale {
-                            x: text.size * scale_factor,
-                            y: text.size * scale_factor,
-                        },
-                        font_id: <span class="self">self</span>.text_pipeline.find_font(text.font),
-                        extra: wgpu_glyph::Extra {
-                            color: text.color,
-                            z: <span class="number">0.0</span>,
-                        },
-                    }],
-                    layout: wgpu_glyph::Layout::default()
-                        .h_align(<span class="kw">match </span>text.horizontal_alignment {
-                            alignment::Horizontal::Left =&gt; {
-                                wgpu_glyph::HorizontalAlign::Left
-                            }
-                            alignment::Horizontal::Center =&gt; {
-                                wgpu_glyph::HorizontalAlign::Center
-                            }
-                            alignment::Horizontal::Right =&gt; {
-                                wgpu_glyph::HorizontalAlign::Right
-                            }
-                        })
-                        .v_align(<span class="kw">match </span>text.vertical_alignment {
-                            alignment::Vertical::Top =&gt; {
-                                wgpu_glyph::VerticalAlign::Top
-                            }
-                            alignment::Vertical::Center =&gt; {
-                                wgpu_glyph::VerticalAlign::Center
-                            }
-                            alignment::Vertical::Bottom =&gt; {
-                                wgpu_glyph::VerticalAlign::Bottom
-                            }
-                        }),
-                };
+            <span class="kw">if </span>!layer.meshes.is_empty() {
+                <span class="kw">let </span>scaled = transformation
+                    * Transformation::scale(scale_factor, scale_factor);
 
-                <span class="self">self</span>.text_pipeline.queue(text);
+                <span class="self">self</span>.triangle_pipeline.prepare(
+                    device,
+                    queue,
+                    <span class="kw-2">&amp;</span>layer.meshes,
+                    scaled,
+                );
             }
 
-            <span class="self">self</span>.text_pipeline.draw_queued(
-                device,
-                staging_belt,
-                encoder,
-                target,
-                transformation,
-                wgpu_glyph::Region {
-                    x: bounds.x,
-                    y: bounds.y,
-                    width: bounds.width,
-                    height: bounds.height,
-                },
-            );
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+            </span>{
+                <span class="kw">if </span>!layer.images.is_empty() {
+                    <span class="kw">let </span>scaled = transformation
+                        * Transformation::scale(scale_factor, scale_factor);
+
+                    <span class="self">self</span>.image_pipeline.prepare(
+                        device,
+                        queue,
+                        _encoder,
+                        <span class="kw-2">&amp;</span>layer.images,
+                        scaled,
+                        scale_factor,
+                    );
+                }
+            }
         }
+    }
+
+    <span class="kw">fn </span>render(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        target: <span class="kw-2">&amp;</span>wgpu::TextureView,
+        clear_color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
+        scale_factor: f32,
+        target_size: Size&lt;u32&gt;,
+        layers: <span class="kw-2">&amp;</span>[Layer&lt;<span class="lifetime">&#39;_</span>&gt;],
+    ) {
+        <span class="kw">use </span>std::mem::ManuallyDrop;
+
+        <span class="kw">let </span><span class="kw-2">mut </span>quad_layer = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>triangle_layer = <span class="number">0</span>;
+        <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+        </span><span class="kw">let </span><span class="kw-2">mut </span>image_layer = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>text_layer = <span class="number">0</span>;
+
+        <span class="kw">let </span><span class="kw-2">mut </span>render_pass = ManuallyDrop::new(encoder.begin_render_pass(
+            <span class="kw-2">&amp;</span>wgpu::RenderPassDescriptor {
+                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::quad render pass&quot;</span>),
+                color_attachments: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(wgpu::RenderPassColorAttachment {
+                    view: target,
+                    resolve_target: <span class="prelude-val">None</span>,
+                    ops: wgpu::Operations {
+                        load: <span class="kw">match </span>clear_color {
+                            <span class="prelude-val">Some</span>(background_color) =&gt; wgpu::LoadOp::Clear({
+                                <span class="kw">let </span>[r, g, b, a] =
+                                    background_color.into_linear();
+
+                                wgpu::Color {
+                                    r: f64::from(r),
+                                    g: f64::from(g),
+                                    b: f64::from(b),
+                                    a: f64::from(a),
+                                }
+                            }),
+                            <span class="prelude-val">None </span>=&gt; wgpu::LoadOp::Load,
+                        },
+                        store: <span class="bool-val">true</span>,
+                    },
+                })],
+                depth_stencil_attachment: <span class="prelude-val">None</span>,
+            },
+        ));
+
+        <span class="kw">for </span>layer <span class="kw">in </span>layers {
+            <span class="kw">let </span>bounds = (layer.bounds * scale_factor).snap();
+
+            <span class="kw">if </span>bounds.width &lt; <span class="number">1 </span>|| bounds.height &lt; <span class="number">1 </span>{
+                <span class="kw">return</span>;
+            }
+
+            <span class="kw">if </span>!layer.quads.is_empty() {
+                <span class="self">self</span>.quad_pipeline
+                    .render(quad_layer, bounds, <span class="kw-2">&amp;mut </span>render_pass);
+
+                quad_layer += <span class="number">1</span>;
+            }
+
+            <span class="kw">if </span>!layer.meshes.is_empty() {
+                <span class="kw">let _ </span>= ManuallyDrop::into_inner(render_pass);
+
+                <span class="self">self</span>.triangle_pipeline.render(
+                    device,
+                    encoder,
+                    target,
+                    triangle_layer,
+                    target_size,
+                    <span class="kw-2">&amp;</span>layer.meshes,
+                    scale_factor,
+                );
+
+                triangle_layer += <span class="number">1</span>;
+
+                render_pass = ManuallyDrop::new(encoder.begin_render_pass(
+                    <span class="kw-2">&amp;</span>wgpu::RenderPassDescriptor {
+                        label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::quad render pass&quot;</span>),
+                        color_attachments: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(
+                            wgpu::RenderPassColorAttachment {
+                                view: target,
+                                resolve_target: <span class="prelude-val">None</span>,
+                                ops: wgpu::Operations {
+                                    load: wgpu::LoadOp::Load,
+                                    store: <span class="bool-val">true</span>,
+                                },
+                            },
+                        )],
+                        depth_stencil_attachment: <span class="prelude-val">None</span>,
+                    },
+                ));
+            }
+
+            <span class="attr">#[cfg(any(feature = <span class="string">&quot;image&quot;</span>, feature = <span class="string">&quot;svg&quot;</span>))]
+            </span>{
+                <span class="kw">if </span>!layer.images.is_empty() {
+                    <span class="self">self</span>.image_pipeline.render(
+                        image_layer,
+                        bounds,
+                        <span class="kw-2">&amp;mut </span>render_pass,
+                    );
+
+                    image_layer += <span class="number">1</span>;
+                }
+            }
+
+            <span class="kw">if </span>!layer.text.is_empty() {
+                <span class="self">self</span>.text_pipeline
+                    .render(text_layer, bounds, <span class="kw-2">&amp;mut </span>render_pass);
+
+                text_layer += <span class="number">1</span>;
+            }
+        }
+
+        <span class="kw">let _ </span>= ManuallyDrop::into_inner(render_pass);
     }
 }
 
@@ -578,9 +746,13 @@
 }
 
 <span class="kw">impl </span>backend::Text <span class="kw">for </span>Backend {
-    <span class="kw">const </span>ICON_FONT: Font = font::ICONS;
-    <span class="kw">const </span>CHECKMARK_ICON: char = font::CHECKMARK_ICON;
-    <span class="kw">const </span>ARROW_DOWN_ICON: char = font::ARROW_DOWN_ICON;
+    <span class="kw">const </span>ICON_FONT: Font = Font::with_name(<span class="string">&quot;Iced-Icons&quot;</span>);
+    <span class="kw">const </span>CHECKMARK_ICON: char = <span class="string">&#39;\u{f00c}&#39;</span>;
+    <span class="kw">const </span>ARROW_DOWN_ICON: char = <span class="string">&#39;\u{e800}&#39;</span>;
+
+    <span class="kw">fn </span>default_font(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Font {
+        <span class="self">self</span>.default_font
+    }
 
     <span class="kw">fn </span>default_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
         <span class="self">self</span>.default_text_size
@@ -590,45 +762,59 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         contents: <span class="kw-2">&amp;</span>str,
         size: f32,
+        line_height: core::text::LineHeight,
         font: Font,
         bounds: Size,
+        shaping: core::text::Shaping,
     ) -&gt; (f32, f32) {
-        <span class="self">self</span>.text_pipeline.measure(contents, size, font, bounds)
+        <span class="self">self</span>.text_pipeline.measure(
+            contents,
+            size,
+            line_height,
+            font,
+            bounds,
+            shaping,
+        )
     }
 
     <span class="kw">fn </span>hit_test(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         contents: <span class="kw-2">&amp;</span>str,
         size: f32,
+        line_height: core::text::LineHeight,
         font: Font,
         bounds: Size,
-        point: iced_native::Point,
+        shaping: core::text::Shaping,
+        point: Point,
         nearest_only: bool,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;text::Hit&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;core::text::Hit&gt; {
         <span class="self">self</span>.text_pipeline.hit_test(
             contents,
             size,
+            line_height,
             font,
             bounds,
+            shaping,
             point,
             nearest_only,
         )
+    }
+
+    <span class="kw">fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, font: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {
+        <span class="self">self</span>.text_pipeline.load_font(font);
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
 </span><span class="kw">impl </span>backend::Image <span class="kw">for </span>Backend {
-    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>iced_native::image::Handle) -&gt; Size&lt;u32&gt; {
+    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>core::image::Handle) -&gt; Size&lt;u32&gt; {
         <span class="self">self</span>.image_pipeline.dimensions(handle)
     }
 }
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
 </span><span class="kw">impl </span>backend::Svg <span class="kw">for </span>Backend {
-    <span class="kw">fn </span>viewport_dimensions(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        handle: <span class="kw-2">&amp;</span>iced_native::svg::Handle,
-    ) -&gt; Size&lt;u32&gt; {
+    <span class="kw">fn </span>viewport_dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>core::svg::Handle) -&gt; Size&lt;u32&gt; {
         <span class="self">self</span>.image_pipeline.viewport_dimensions(handle)
     }
 }

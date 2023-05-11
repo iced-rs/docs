@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Background"],"mod":["application","button","checkbox","container","menu","pane_grid","pick_list","progress_bar","radio","rule","scrollable","slider","svg","text","text_input","theme","toggler"],"struct":["Color"]};
+window.SIDEBAR_ITEMS = {"mod":["application","button","checkbox","container","menu","pane_grid","pick_list","progress_bar","radio","rule","scrollable","slider","svg","text_input","theme","toggler"]};

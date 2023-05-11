@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Gradient","Style"],"mod":["fill","gradient","path","stroke"],"struct":["Geometry","Text"],"trait":["Renderer"]};

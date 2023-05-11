@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Appearance"],"trait":["StyleSheet"],"type":["Radio"]};
+window.SIDEBAR_ITEMS = {"struct":["Appearance","Radio"],"trait":["StyleSheet"]};

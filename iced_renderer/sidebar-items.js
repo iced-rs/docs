@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Backend"],"mod":["compositor","geometry"],"struct":["Settings"],"type":["Renderer"]};

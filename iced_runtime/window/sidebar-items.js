@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Action"],"fn":["change_always_on_top","change_icon","change_mode","close","drag","fetch_id","fetch_mode","frames","gain_focus","maximize","minimize","move_to","request_user_attention","resize","toggle_decorations","toggle_maximize"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Axis","Configuration","Direction","DragEvent","Node"],"struct":["Line","Pane","ResizeEvent","Split","State"],"trait":["StyleSheet"],"type":["Content","PaneGrid","TitleBar"]};
+window.SIDEBAR_ITEMS = {"enum":["Axis","Configuration","Contents","Direction","DragEvent","Node"],"fn":["draw","layout","mouse_interaction","update"],"mod":["state"],"struct":["Content","Line","Pane","PaneGrid","ResizeEvent","Split","State","TitleBar"],"trait":["Draggable","StyleSheet"]};

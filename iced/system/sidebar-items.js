@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Action"],"fn":["fetch_information"],"struct":["Information"]};
+window.SIDEBAR_ITEMS = {"fn":["fetch_information"],"struct":["Information"]};

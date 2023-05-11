@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/quad.rs`."><title>quad.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (f9a6b7158 2023-05-05)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_wgpu/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/quad.rs`."><title>quad.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-f3501f0f5ae15dfb.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.71.0-nightly (cba14074b 2023-05-10)" data-search-js="search-4926e5fc22a5646a.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-6f6ffb5395b17c6e.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-f0540c1d82cde29b.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_wgpu/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -316,9 +316,23 @@
 <a href="#316" id="316">316</a>
 <a href="#317" id="317">317</a>
 <a href="#318" id="318">318</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::Transformation;
-<span class="kw">use </span>iced_graphics::layer;
-<span class="kw">use </span>iced_native::Rectangle;
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::Rectangle;
+<span class="kw">use </span><span class="kw">crate</span>::graphics::Transformation;
+<span class="kw">use </span><span class="kw">crate</span>::layer;
+<span class="kw">use </span><span class="kw">crate</span>::Buffer;
 
 <span class="kw">use </span>bytemuck::{Pod, Zeroable};
 <span class="kw">use </span>std::mem;
@@ -330,11 +344,11 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Pipeline {
     pipeline: wgpu::RenderPipeline,
-    constants: wgpu::BindGroup,
-    constants_buffer: wgpu::Buffer,
+    constant_layout: wgpu::BindGroupLayout,
     vertices: wgpu::Buffer,
     indices: wgpu::Buffer,
-    instances: wgpu::Buffer,
+    layers: Vec&lt;Layer&gt;,
+    prepare_layer: usize,
 }
 
 <span class="kw">impl </span>Pipeline {
@@ -355,22 +369,6 @@
                     count: <span class="prelude-val">None</span>,
                 }],
             });
-
-        <span class="kw">let </span>constants_buffer = device.create_buffer(<span class="kw-2">&amp;</span>wgpu::BufferDescriptor {
-            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::quad uniforms buffer&quot;</span>),
-            size: mem::size_of::&lt;Uniforms&gt;() <span class="kw">as </span>wgpu::BufferAddress,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: <span class="bool-val">false</span>,
-        });
-
-        <span class="kw">let </span>constants = device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
-            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::quad uniforms bind group&quot;</span>),
-            layout: <span class="kw-2">&amp;</span>constant_layout,
-            entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
-                binding: <span class="number">0</span>,
-                resource: constants_buffer.as_entire_binding(),
-            }],
-        });
 
         <span class="kw">let </span>layout =
             device.create_pipeline_layout(<span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
@@ -466,117 +464,145 @@
                 usage: wgpu::BufferUsages::INDEX,
             });
 
-        <span class="kw">let </span>instances = device.create_buffer(<span class="kw-2">&amp;</span>wgpu::BufferDescriptor {
-            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::quad instance buffer&quot;</span>),
-            size: mem::size_of::&lt;layer::Quad&gt;() <span class="kw">as </span>u64 * MAX_INSTANCES <span class="kw">as </span>u64,
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: <span class="bool-val">false</span>,
-        });
-
         Pipeline {
             pipeline,
-            constants,
-            constants_buffer,
+            constant_layout,
             vertices,
             indices,
-            instances,
+            layers: Vec::new(),
+            prepare_layer: <span class="number">0</span>,
         }
     }
 
-    <span class="kw">pub fn </span>draw(
+    <span class="kw">pub fn </span>prepare(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
-        staging_belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
-        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
         instances: <span class="kw-2">&amp;</span>[layer::Quad],
         transformation: Transformation,
         scale: f32,
+    ) {
+        <span class="kw">if </span><span class="self">self</span>.layers.len() &lt;= <span class="self">self</span>.prepare_layer {
+            <span class="self">self</span>.layers.push(Layer::new(device, <span class="kw-2">&amp;</span><span class="self">self</span>.constant_layout));
+        }
+
+        <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span><span class="self">self</span>.layers[<span class="self">self</span>.prepare_layer];
+        layer.prepare(device, queue, instances, transformation, scale);
+
+        <span class="self">self</span>.prepare_layer += <span class="number">1</span>;
+    }
+
+    <span class="kw">pub fn </span>render&lt;<span class="lifetime">&#39;a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+        layer: usize,
         bounds: Rectangle&lt;u32&gt;,
-        target: <span class="kw-2">&amp;</span>wgpu::TextureView,
+        render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">&#39;a</span>&gt;,
+    ) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(layer) = <span class="self">self</span>.layers.get(layer) {
+            render_pass.set_pipeline(<span class="kw-2">&amp;</span><span class="self">self</span>.pipeline);
+
+            render_pass.set_scissor_rect(
+                bounds.x,
+                bounds.y,
+                bounds.width,
+                bounds.height,
+            );
+
+            render_pass.set_index_buffer(
+                <span class="self">self</span>.indices.slice(..),
+                wgpu::IndexFormat::Uint16,
+            );
+            render_pass.set_vertex_buffer(<span class="number">0</span>, <span class="self">self</span>.vertices.slice(..));
+
+            layer.draw(render_pass);
+        }
+    }
+
+    <span class="kw">pub fn </span>end_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.prepare_layer = <span class="number">0</span>;
+    }
+}
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">struct </span>Layer {
+    constants: wgpu::BindGroup,
+    constants_buffer: wgpu::Buffer,
+    instances: Buffer&lt;layer::Quad&gt;,
+    instance_count: usize,
+}
+
+<span class="kw">impl </span>Layer {
+    <span class="kw">pub fn </span>new(
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        constant_layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>constants_buffer = device.create_buffer(<span class="kw-2">&amp;</span>wgpu::BufferDescriptor {
+            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::quad uniforms buffer&quot;</span>),
+            size: mem::size_of::&lt;Uniforms&gt;() <span class="kw">as </span>wgpu::BufferAddress,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: <span class="bool-val">false</span>,
+        });
+
+        <span class="kw">let </span>constants = device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
+            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::quad uniforms bind group&quot;</span>),
+            layout: constant_layout,
+            entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
+                binding: <span class="number">0</span>,
+                resource: constants_buffer.as_entire_binding(),
+            }],
+        });
+
+        <span class="kw">let </span>instances = Buffer::new(
+            device,
+            <span class="string">&quot;iced_wgpu::quad instance buffer&quot;</span>,
+            INITIAL_INSTANCES,
+            wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+        );
+
+        <span class="self">Self </span>{
+            constants,
+            constants_buffer,
+            instances,
+            instance_count: <span class="number">0</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>prepare(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+        instances: <span class="kw-2">&amp;</span>[layer::Quad],
+        transformation: Transformation,
+        scale: f32,
     ) {
         <span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
-        </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">&quot;Wgpu::Quad&quot;</span>, <span class="string">&quot;DRAW&quot;</span>).entered();
+        </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">&quot;Wgpu::Quad&quot;</span>, <span class="string">&quot;PREPARE&quot;</span>).entered();
 
         <span class="kw">let </span>uniforms = Uniforms::new(transformation, scale);
 
-        {
-            <span class="kw">let </span><span class="kw-2">mut </span>constants_buffer = staging_belt.write_buffer(
-                encoder,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.constants_buffer,
-                <span class="number">0</span>,
-                wgpu::BufferSize::new(mem::size_of::&lt;Uniforms&gt;() <span class="kw">as </span>u64)
-                    .unwrap(),
-                device,
-            );
+        queue.write_buffer(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.constants_buffer,
+            <span class="number">0</span>,
+            bytemuck::bytes_of(<span class="kw-2">&amp;</span>uniforms),
+        );
 
-            constants_buffer.copy_from_slice(bytemuck::bytes_of(<span class="kw-2">&amp;</span>uniforms));
-        }
+        <span class="kw">let _ </span>= <span class="self">self</span>.instances.resize(device, instances.len());
+        <span class="self">self</span>.instances.write(queue, <span class="number">0</span>, instances);
+        <span class="self">self</span>.instance_count = instances.len();
+    }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
-        <span class="kw">let </span>total = instances.len();
+    <span class="kw">pub fn </span>draw&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">&#39;a</span>&gt;) {
+        <span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
+        </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">&quot;Wgpu::Quad&quot;</span>, <span class="string">&quot;DRAW&quot;</span>).entered();
 
-        <span class="kw">while </span>i &lt; total {
-            <span class="kw">let </span>end = (i + MAX_INSTANCES).min(total);
-            <span class="kw">let </span>amount = end - i;
+        render_pass.set_bind_group(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.constants, <span class="kw-2">&amp;</span>[]);
+        render_pass.set_vertex_buffer(<span class="number">1</span>, <span class="self">self</span>.instances.slice(..));
 
-            <span class="kw">let </span>instance_bytes = bytemuck::cast_slice(<span class="kw-2">&amp;</span>instances[i..end]);
-
-            <span class="kw">let </span><span class="kw-2">mut </span>instance_buffer = staging_belt.write_buffer(
-                encoder,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.instances,
-                <span class="number">0</span>,
-                wgpu::BufferSize::new(instance_bytes.len() <span class="kw">as </span>u64).unwrap(),
-                device,
-            );
-
-            instance_buffer.copy_from_slice(instance_bytes);
-
-            <span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
-            </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">&quot;Wgpu::Quad&quot;</span>, <span class="string">&quot;BEGIN_RENDER_PASS&quot;</span>).enter();
-
-            {
-                <span class="kw">let </span><span class="kw-2">mut </span>render_pass =
-                    encoder.begin_render_pass(<span class="kw-2">&amp;</span>wgpu::RenderPassDescriptor {
-                        label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::quad render pass&quot;</span>),
-                        color_attachments: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(
-                            wgpu::RenderPassColorAttachment {
-                                view: target,
-                                resolve_target: <span class="prelude-val">None</span>,
-                                ops: wgpu::Operations {
-                                    load: wgpu::LoadOp::Load,
-                                    store: <span class="bool-val">true</span>,
-                                },
-                            },
-                        )],
-                        depth_stencil_attachment: <span class="prelude-val">None</span>,
-                    });
-
-                render_pass.set_pipeline(<span class="kw-2">&amp;</span><span class="self">self</span>.pipeline);
-                render_pass.set_bind_group(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.constants, <span class="kw-2">&amp;</span>[]);
-                render_pass.set_index_buffer(
-                    <span class="self">self</span>.indices.slice(..),
-                    wgpu::IndexFormat::Uint16,
-                );
-                render_pass.set_vertex_buffer(<span class="number">0</span>, <span class="self">self</span>.vertices.slice(..));
-                render_pass.set_vertex_buffer(<span class="number">1</span>, <span class="self">self</span>.instances.slice(..));
-
-                render_pass.set_scissor_rect(
-                    bounds.x,
-                    bounds.y,
-                    bounds.width,
-                    <span class="comment">// TODO: Address anti-aliasing adjustments properly
-                    </span>bounds.height,
-                );
-
-                render_pass.draw_indexed(
-                    <span class="number">0</span>..QUAD_INDICES.len() <span class="kw">as </span>u32,
-                    <span class="number">0</span>,
-                    <span class="number">0</span>..amount <span class="kw">as </span>u32,
-                );
-            }
-
-            i += MAX_INSTANCES;
-        }
+        render_pass.draw_indexed(
+            <span class="number">0</span>..QUAD_INDICES.len() <span class="kw">as </span>u32,
+            <span class="number">0</span>,
+            <span class="number">0</span>..<span class="self">self</span>.instance_count <span class="kw">as </span>u32,
+        );
     }
 }
 
@@ -603,7 +629,7 @@
     },
 ];
 
-<span class="kw">const </span>MAX_INSTANCES: usize = <span class="number">100_000</span>;
+<span class="kw">const </span>INITIAL_INSTANCES: usize = <span class="number">10_000</span>;
 
 <span class="attr">#[repr(C)]
 #[derive(Debug, Clone, Copy, Zeroable, Pod)]

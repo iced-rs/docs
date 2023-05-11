@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Antialiasing"],"struct":["Settings"]};
+window.SIDEBAR_ITEMS = {"struct":["Settings"]};

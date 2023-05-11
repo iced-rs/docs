@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["from_children"],"mod":["menu"],"struct":["Element","Group"],"trait":["Overlay"]};

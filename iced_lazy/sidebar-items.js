@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["component","lazy","responsive"],"mod":["component","responsive"],"struct":["Lazy"]};

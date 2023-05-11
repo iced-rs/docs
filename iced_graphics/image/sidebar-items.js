@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["raster","storage","vector"]};
+window.SIDEBAR_ITEMS = {"fn":["load"]};

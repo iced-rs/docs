@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["viewer"],"mod":["viewer"],"struct":["Handle","Viewer"],"type":["Image"]};
+window.SIDEBAR_ITEMS = {"fn":["draw","layout","viewer"],"mod":["viewer"],"struct":["Handle","Image","Viewer"]};

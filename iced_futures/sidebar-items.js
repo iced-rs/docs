@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["boxed_stream"],"mod":["backend","executor","subscription"],"struct":["Command","Runtime"],"trait":["MaybeSend"],"type":["BoxFuture","BoxStream"]};
+window.SIDEBAR_ITEMS = {"fn":["boxed_stream"],"mod":["backend","executor","subscription"],"struct":["Runtime"],"trait":["MaybeSend"],"type":["BoxFuture","BoxStream"]};

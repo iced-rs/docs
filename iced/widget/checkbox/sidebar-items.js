@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Appearance","Icon"],"trait":["StyleSheet"],"type":["Checkbox"]};
+window.SIDEBAR_ITEMS = {"struct":["Appearance","Checkbox","Icon"],"trait":["StyleSheet"]};
