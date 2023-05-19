@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Gradient","Location","Position"],"mod":["linear"],"struct":["ColorStop","Linear"]};

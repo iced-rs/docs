@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Primitive"],"struct":["ColoredVertex2D","Mesh2D","Vertex2D"]};
+window.SIDEBAR_ITEMS = {"enum":["Primitive"],"struct":["ColoredVertex2D","GradientVertex2D","Mesh2D"]};
