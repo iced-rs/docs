@@ -271,63 +271,21 @@
 <a href="#271" id="271">271</a>
 <a href="#272" id="272">272</a>
 <a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Organize rendering primitives into a flattened list of layers.
 </span><span class="kw">mod </span>image;
 <span class="kw">mod </span>text;
 
 <span class="kw">pub mod </span>mesh;
-<span class="kw">pub mod </span>quad;
 
 <span class="kw">pub use </span>image::Image;
 <span class="kw">pub use </span>mesh::Mesh;
-<span class="kw">pub use </span>quad::Quad;
 <span class="kw">pub use </span>text::Text;
 
 <span class="kw">use </span><span class="kw">crate</span>::core;
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
-<span class="kw">use </span><span class="kw">crate</span>::core::{Background, Color, Font, Point, Rectangle, Size, Vector};
-<span class="kw">use </span><span class="kw">crate</span>::graphics::gradient;
+<span class="kw">use </span><span class="kw">crate</span>::core::{Color, Font, Point, Rectangle, Size, Vector};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::{Primitive, Viewport};
+<span class="kw">use </span><span class="kw">crate</span>::quad::{<span class="self">self</span>, Quad};
 
 <span class="doccomment">/// A group of primitives that should be clipped together.
 </span><span class="attr">#[derive(Debug)]
@@ -336,7 +294,7 @@
     </span><span class="kw">pub </span>bounds: Rectangle,
 
     <span class="doccomment">/// The quads of the [`Layer`].
-    </span><span class="kw">pub </span>quads: Quads,
+    </span><span class="kw">pub </span>quads: quad::Batch,
 
     <span class="doccomment">/// The triangle meshes of the [`Layer`].
     </span><span class="kw">pub </span>meshes: Vec&lt;Mesh&lt;<span class="lifetime">&#39;a</span>&gt;&gt;,
@@ -348,29 +306,12 @@
     </span><span class="kw">pub </span>images: Vec&lt;Image&gt;,
 }
 
-<span class="doccomment">/// The quads of the [`Layer`].
-</span><span class="attr">#[derive(Default, Debug)]
-</span><span class="kw">pub struct </span>Quads {
-    <span class="doccomment">/// The solid quads of the [`Layer`].
-    </span><span class="kw">pub </span>solids: Vec&lt;quad::Solid&gt;,
-
-    <span class="doccomment">/// The gradient quads of the [`Layer`].
-    </span><span class="kw">pub </span>gradients: Vec&lt;quad::Gradient&gt;,
-}
-
-<span class="kw">impl </span>Quads {
-    <span class="doccomment">/// Returns true if there are no quads of any type in [`Quads`].
-    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.solids.is_empty() &amp;&amp; <span class="self">self</span>.gradients.is_empty()
-    }
-}
-
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; Layer&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="doccomment">/// Creates a new [`Layer`] with the given clipping bounds.
     </span><span class="kw">pub fn </span>new(bounds: Rectangle) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             bounds,
-            quads: Quads::default(),
+            quads: quad::Batch::default(),
             meshes: Vec::new(),
             text: Vec::new(),
             images: Vec::new(),
@@ -487,28 +428,7 @@
                     border_width: <span class="kw-2">*</span>border_width,
                 };
 
-                <span class="kw">match </span>background {
-                    Background::Color(color) =&gt; {
-                        layer.quads.solids.push(quad::Solid {
-                            color: color.into_linear(),
-                            quad,
-                        });
-                    }
-                    Background::Gradient(gradient) =&gt; {
-                        <span class="kw">let </span>quad = quad::Gradient {
-                            gradient: gradient::pack(
-                                gradient,
-                                Rectangle::new(
-                                    quad.position.into(),
-                                    quad.size.into(),
-                                ),
-                            ),
-                            quad,
-                        };
-
-                        layer.quads.gradients.push(quad);
-                    }
-                };
+                layer.quads.add(quad, background);
             }
             Primitive::Image { handle, bounds } =&gt; {
                 <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Image"],"mod":["mesh","quad"],"struct":["Layer","Quads","Text"]};
+window.SIDEBAR_ITEMS = {"enum":["Image"],"mod":["mesh"],"struct":["Layer","Text"]};
