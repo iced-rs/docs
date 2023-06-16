@@ -443,11 +443,6 @@
 <a href="#443" id="443">443</a>
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
-<a href="#446" id="446">446</a>
-<a href="#447" id="447">447</a>
-<a href="#448" id="448">448</a>
-<a href="#449" id="449">449</a>
-<a href="#450" id="450">450</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::font::{<span class="self">self</span>, Font};
 <span class="kw">use </span><span class="kw">crate</span>::core::text::{Hit, LineHeight, Shaping};
@@ -503,7 +498,7 @@
     }
 
     <span class="kw">pub fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {
-        <span class="self">self</span>.font_system.get_mut().db_mut().load_font_source(
+        <span class="kw">let _ </span>= <span class="self">self</span>.font_system.get_mut().db_mut().load_font_source(
             glyphon::fontdb::Source::Binary(Arc::new(bytes.into_owned())),
         );
     }
@@ -566,15 +561,7 @@
                     <span class="kw">let </span>buffer =
                         <span class="self">self</span>.render_cache.get(key).expect(<span class="string">&quot;Get cached buffer&quot;</span>);
 
-                    <span class="kw">let </span>(total_lines, max_width) = buffer
-                        .layout_runs()
-                        .enumerate()
-                        .fold((<span class="number">0</span>, <span class="number">0.0</span>), |(<span class="kw">_</span>, max), (i, buffer)| {
-                            (i + <span class="number">1</span>, buffer.line_w.max(max))
-                        });
-
-                    <span class="kw">let </span>total_height =
-                        total_lines <span class="kw">as </span>f32 * buffer.metrics().line_height;
+                    <span class="kw">let </span>(max_width, total_height) = measure(buffer);
 
                     <span class="kw">let </span>x = section.bounds.x * scale_factor;
                     <span class="kw">let </span>y = section.bounds.y * scale_factor;
@@ -715,14 +702,7 @@
             },
         );
 
-        <span class="kw">let </span>(total_lines, max_width) = paragraph
-            .layout_runs()
-            .enumerate()
-            .fold((<span class="number">0</span>, <span class="number">0.0</span>), |(<span class="kw">_</span>, max), (i, buffer)| {
-                (i + <span class="number">1</span>, buffer.line_w.max(max))
-            });
-
-        (max_width, line_height * total_lines <span class="kw">as </span>f32)
+        measure(paragraph)
     }
 
     <span class="kw">pub fn </span>hit_test(
@@ -760,6 +740,16 @@
     <span class="kw">pub fn </span>trim_measurement_cache(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.measurement_cache.borrow_mut().trim();
     }
+}
+
+<span class="kw">fn </span>measure(buffer: <span class="kw-2">&amp;</span>glyphon::Buffer) -&gt; (f32, f32) {
+    <span class="kw">let </span>(width, total_lines) = buffer
+        .layout_runs()
+        .fold((<span class="number">0.0</span>, <span class="number">0usize</span>), |(width, total_lines), run| {
+            (run.line_w.max(width), total_lines + <span class="number">1</span>)
+        });
+
+    (width, total_lines <span class="kw">as </span>f32 * buffer.metrics().line_height)
 }
 
 <span class="kw">fn </span>to_family(family: font::Family) -&gt; glyphon::Family&lt;<span class="lifetime">&#39;static</span>&gt; {
