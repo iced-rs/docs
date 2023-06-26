@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["Backend","Image","Svg","Text"]};
+window.SIDEBAR_ITEMS = {"trait":["Image","Svg","Text"]};
