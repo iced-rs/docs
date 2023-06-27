@@ -438,6 +438,37 @@
 <a href="#438" id="438">438</a>
 <a href="#439" id="439">439</a>
 <a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
+<a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
+<a href="#459" id="459">459</a>
+<a href="#460" id="460">460</a>
+<a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::font::{<span class="self">self</span>, Font};
 <span class="kw">use </span><span class="kw">crate</span>::core::text::{Hit, LineHeight, Shaping};
@@ -553,15 +584,13 @@
                 .iter()
                 .zip(keys.iter())
                 .filter_map(|(section, key)| {
-                    <span class="kw">let </span>buffer = cache.get(key).expect(<span class="string">&quot;Get cached buffer&quot;</span>);
+                    <span class="kw">let </span>entry = cache.get(key).expect(<span class="string">&quot;Get cached buffer&quot;</span>);
 
                     <span class="kw">let </span>x = section.bounds.x * scale_factor;
                     <span class="kw">let </span>y = section.bounds.y * scale_factor;
 
-                    <span class="kw">let </span>(max_width, total_height) = measure(buffer);
-
-                    <span class="kw">let </span>max_width = max_width * scale_factor;
-                    <span class="kw">let </span>total_height = total_height * scale_factor;
+                    <span class="kw">let </span>max_width = entry.bounds.width * scale_factor;
+                    <span class="kw">let </span>total_height = entry.bounds.height * scale_factor;
 
                     <span class="kw">let </span>left = <span class="kw">match </span>section.horizontal_alignment {
                         alignment::Horizontal::Left =&gt; x,
@@ -585,7 +614,7 @@
                     <span class="kw">let </span>clip_bounds = bounds.intersection(<span class="kw-2">&amp;</span>section_bounds)<span class="question-mark">?</span>;
 
                     <span class="prelude-val">Some</span>(glyphon::TextArea {
-                        buffer,
+                        buffer: <span class="kw-2">&amp;</span>entry.buffer,
                         left,
                         top,
                         scale: scale_factor,
@@ -679,12 +708,12 @@
         font: Font,
         bounds: Size,
         shaping: Shaping,
-    ) -&gt; (f32, f32) {
+    ) -&gt; Size {
         <span class="kw">let </span><span class="kw-2">mut </span>measurement_cache = <span class="self">self</span>.cache.borrow_mut();
 
         <span class="kw">let </span>line_height = f32::from(line_height.to_absolute(Pixels(size)));
 
-        <span class="kw">let </span>(<span class="kw">_</span>, paragraph) = measurement_cache.allocate(
+        <span class="kw">let </span>(<span class="kw">_</span>, entry) = measurement_cache.allocate(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>.font_system.borrow_mut(),
             Key {
                 content,
@@ -696,7 +725,7 @@
             },
         );
 
-        measure(paragraph)
+        entry.bounds
     }
 
     <span class="kw">pub fn </span>hit_test(
@@ -714,7 +743,7 @@
 
         <span class="kw">let </span>line_height = f32::from(line_height.to_absolute(Pixels(size)));
 
-        <span class="kw">let </span>(<span class="kw">_</span>, paragraph) = measurement_cache.allocate(
+        <span class="kw">let </span>(<span class="kw">_</span>, entry) = measurement_cache.allocate(
             <span class="kw-2">&amp;mut </span><span class="self">self</span>.font_system.borrow_mut(),
             Key {
                 content,
@@ -726,20 +755,20 @@
             },
         );
 
-        <span class="kw">let </span>cursor = paragraph.hit(point.x, point.y)<span class="question-mark">?</span>;
+        <span class="kw">let </span>cursor = entry.buffer.hit(point.x, point.y)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Some</span>(Hit::CharOffset(cursor.index))
     }
 }
 
-<span class="kw">fn </span>measure(buffer: <span class="kw-2">&amp;</span>glyphon::Buffer) -&gt; (f32, f32) {
+<span class="kw">fn </span>measure(buffer: <span class="kw-2">&amp;</span>glyphon::Buffer) -&gt; Size {
     <span class="kw">let </span>(width, total_lines) = buffer
         .layout_runs()
         .fold((<span class="number">0.0</span>, <span class="number">0usize</span>), |(width, total_lines), run| {
             (run.line_w.max(width), total_lines + <span class="number">1</span>)
         });
 
-    (width, total_lines <span class="kw">as </span>f32 * buffer.metrics().line_height)
+    Size::new(width, total_lines <span class="kw">as </span>f32 * buffer.metrics().line_height)
 }
 
 <span class="kw">fn </span>to_family(family: font::Family) -&gt; glyphon::Family&lt;<span class="lifetime">&#39;static</span>&gt; {
@@ -789,9 +818,15 @@
 }
 
 <span class="kw">struct </span>Cache {
-    entries: FxHashMap&lt;KeyHash, glyphon::Buffer&gt;,
+    entries: FxHashMap&lt;KeyHash, Entry&gt;,
+    measurements: FxHashMap&lt;KeyHash, KeyHash&gt;,
     recently_used: FxHashSet&lt;KeyHash&gt;,
     hasher: HashBuilder,
+}
+
+<span class="kw">struct </span>Entry {
+    buffer: glyphon::Buffer,
+    bounds: Size,
 }
 
 <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
@@ -804,12 +839,13 @@
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             entries: FxHashMap::default(),
+            measurements: FxHashMap::default(),
             recently_used: FxHashSet::default(),
             hasher: HashBuilder::default(),
         }
     }
 
-    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>KeyHash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>glyphon::Buffer&gt; {
+    <span class="kw">fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>KeyHash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Entry&gt; {
         <span class="self">self</span>.entries.get(key)
     }
 
@@ -817,20 +853,14 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         font_system: <span class="kw-2">&amp;mut </span>glyphon::FontSystem,
         key: Key&lt;<span class="lifetime">&#39;_</span>&gt;,
-    ) -&gt; (KeyHash, <span class="kw-2">&amp;mut </span>glyphon::Buffer) {
-        <span class="kw">let </span>hash = {
-            <span class="kw">let </span><span class="kw-2">mut </span>hasher = <span class="self">self</span>.hasher.build_hasher();
+    ) -&gt; (KeyHash, <span class="kw-2">&amp;mut </span>Entry) {
+        <span class="kw">let </span>hash = key.hash(<span class="self">self</span>.hasher.build_hasher());
 
-            key.content.hash(<span class="kw-2">&amp;mut </span>hasher);
-            key.size.to_bits().hash(<span class="kw-2">&amp;mut </span>hasher);
-            key.line_height.to_bits().hash(<span class="kw-2">&amp;mut </span>hasher);
-            key.font.hash(<span class="kw-2">&amp;mut </span>hasher);
-            key.bounds.width.to_bits().hash(<span class="kw-2">&amp;mut </span>hasher);
-            key.bounds.height.to_bits().hash(<span class="kw-2">&amp;mut </span>hasher);
-            key.shaping.hash(<span class="kw-2">&amp;mut </span>hasher);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(hash) = <span class="self">self</span>.measurements.get(<span class="kw-2">&amp;</span>hash) {
+            <span class="kw">let _ </span>= <span class="self">self</span>.recently_used.insert(<span class="kw-2">*</span>hash);
 
-            hasher.finish()
-        };
+            <span class="kw">return </span>(<span class="kw-2">*</span>hash, <span class="self">self</span>.entries.get_mut(hash).unwrap());
+        }
 
         <span class="kw">if let </span>hash_map::Entry::Vacant(entry) = <span class="self">self</span>.entries.entry(hash) {
             <span class="kw">let </span>metrics = glyphon::Metrics::new(key.size, key.line_height);
@@ -851,7 +881,23 @@
                 to_shaping(key.shaping),
             );
 
-            <span class="kw">let _ </span>= entry.insert(buffer);
+            <span class="kw">let </span>bounds = measure(<span class="kw-2">&amp;</span>buffer);
+            <span class="kw">let _ </span>= entry.insert(Entry { buffer, bounds });
+
+            <span class="kw">for </span>bounds <span class="kw">in </span>[
+                bounds,
+                Size {
+                    width: key.bounds.width,
+                    ..bounds
+                },
+            ] {
+                <span class="kw">if </span>key.bounds != bounds {
+                    <span class="kw">let _ </span>= <span class="self">self</span>.measurements.insert(
+                        Key { bounds, ..key }.hash(<span class="self">self</span>.hasher.build_hasher()),
+                        hash,
+                    );
+                }
+            }
         }
 
         <span class="kw">let _ </span>= <span class="self">self</span>.recently_used.insert(hash);
@@ -862,6 +908,8 @@
     <span class="kw">fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.entries
             .retain(|key, <span class="kw">_</span>| <span class="self">self</span>.recently_used.contains(key));
+        <span class="self">self</span>.measurements
+            .retain(|<span class="kw">_</span>, value| <span class="self">self</span>.recently_used.contains(value));
 
         <span class="self">self</span>.recently_used.clear();
     }
@@ -875,6 +923,20 @@
     font: Font,
     bounds: Size,
     shaping: Shaping,
+}
+
+<span class="kw">impl </span>Key&lt;<span class="lifetime">&#39;_</span>&gt; {
+    <span class="kw">fn </span>hash&lt;H: Hasher&gt;(<span class="self">self</span>, <span class="kw-2">mut </span>hasher: H) -&gt; KeyHash {
+        <span class="self">self</span>.content.hash(<span class="kw-2">&amp;mut </span>hasher);
+        <span class="self">self</span>.size.to_bits().hash(<span class="kw-2">&amp;mut </span>hasher);
+        <span class="self">self</span>.line_height.to_bits().hash(<span class="kw-2">&amp;mut </span>hasher);
+        <span class="self">self</span>.font.hash(<span class="kw-2">&amp;mut </span>hasher);
+        <span class="self">self</span>.bounds.width.to_bits().hash(<span class="kw-2">&amp;mut </span>hasher);
+        <span class="self">self</span>.bounds.height.to_bits().hash(<span class="kw-2">&amp;mut </span>hasher);
+        <span class="self">self</span>.shaping.hash(<span class="kw-2">&amp;mut </span>hasher);
+
+        hasher.finish()
+    }
 }
 
 <span class="kw">type </span>KeyHash = u64;
