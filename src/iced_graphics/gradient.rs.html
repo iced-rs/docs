@@ -157,6 +157,42 @@
 <a href="#157" id="157">157</a>
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A gradient that can be used as a [`Fill`] for some geometry.
 //!
 //! For a gradient that you can use as a background variant for a widget, see [`Gradient`].
@@ -166,6 +202,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::gradient::ColorStop;
 <span class="kw">use </span><span class="kw">crate</span>::core::{<span class="self">self</span>, Color, Point, Rectangle};
 
+<span class="kw">use </span>half::f16;
 <span class="kw">use </span>std::cmp::Ordering;
 
 <span class="attr">#[derive(Debug, Clone, PartialEq)]
@@ -258,62 +295,97 @@
 
     <span class="doccomment">/// Packs the [`Gradient`] for use in shader code.
     </span><span class="kw">pub fn </span>pack(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Packed {
-        <span class="kw">let </span><span class="kw-2">mut </span>data: [f32; <span class="number">44</span>] = [<span class="number">0.0</span>; <span class="number">44</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>colors = [[<span class="number">0u32</span>; <span class="number">2</span>]; <span class="number">8</span>];
+        <span class="kw">let </span><span class="kw-2">mut </span>offsets = [f16::from(<span class="number">0u8</span>); <span class="number">8</span>];
 
         <span class="kw">for </span>(index, stop) <span class="kw">in </span><span class="self">self</span>.stops.iter().enumerate() {
             <span class="kw">let </span>[r, g, b, a] =
                 color::pack(stop.map_or(Color::default(), |s| s.color))
                     .components();
 
-            data[index * <span class="number">4</span>] = r;
-            data[(index * <span class="number">4</span>) + <span class="number">1</span>] = g;
-            data[(index * <span class="number">4</span>) + <span class="number">2</span>] = b;
-            data[(index * <span class="number">4</span>) + <span class="number">3</span>] = a;
+            colors[index] = [
+                pack_f16s([f16::from_f32(r), f16::from_f32(g)]),
+                pack_f16s([f16::from_f32(b), f16::from_f32(a)]),
+            ];
 
-            data[<span class="number">32 </span>+ index] = stop.map_or(<span class="number">2.0</span>, |s| s.offset);
+            offsets[index] =
+                stop.map_or(f16::from_f32(<span class="number">2.0</span>), |s| f16::from_f32(s.offset));
         }
 
-        data[<span class="number">40</span>] = <span class="self">self</span>.start.x;
-        data[<span class="number">41</span>] = <span class="self">self</span>.start.y;
-        data[<span class="number">42</span>] = <span class="self">self</span>.end.x;
-        data[<span class="number">43</span>] = <span class="self">self</span>.end.y;
+        <span class="kw">let </span>offsets = [
+            pack_f16s([offsets[<span class="number">0</span>], offsets[<span class="number">1</span>]]),
+            pack_f16s([offsets[<span class="number">2</span>], offsets[<span class="number">3</span>]]),
+            pack_f16s([offsets[<span class="number">4</span>], offsets[<span class="number">5</span>]]),
+            pack_f16s([offsets[<span class="number">6</span>], offsets[<span class="number">7</span>]]),
+        ];
 
-        Packed(data)
+        <span class="kw">let </span>direction = [<span class="self">self</span>.start.x, <span class="self">self</span>.start.y, <span class="self">self</span>.end.x, <span class="self">self</span>.end.y];
+
+        Packed {
+            colors,
+            offsets,
+            direction,
+        }
     }
 }
 
 <span class="doccomment">/// Packed [`Gradient`] data for use in shader code.
 </span><span class="attr">#[derive(Debug, Copy, Clone, PartialEq)]
 #[repr(C)]
-</span><span class="kw">pub struct </span>Packed([f32; <span class="number">44</span>]);
+</span><span class="kw">pub struct </span>Packed {
+    <span class="comment">// 8 colors, each channel = 16 bit float, 2 colors packed into 1 u32
+    </span>colors: [[u32; <span class="number">2</span>]; <span class="number">8</span>],
+    <span class="comment">// 8 offsets, 8x 16 bit floats packed into 4 u32s
+    </span>offsets: [u32; <span class="number">4</span>],
+    direction: [f32; <span class="number">4</span>],
+}
 
 <span class="doccomment">/// Creates a new [`Packed`] gradient for use in shader code.
 </span><span class="kw">pub fn </span>pack(gradient: <span class="kw-2">&amp;</span>core::Gradient, bounds: Rectangle) -&gt; Packed {
     <span class="kw">match </span>gradient {
         core::Gradient::Linear(linear) =&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>data: [f32; <span class="number">44</span>] = [<span class="number">0.0</span>; <span class="number">44</span>];
+            <span class="kw">let </span><span class="kw-2">mut </span>colors = [[<span class="number">0u32</span>; <span class="number">2</span>]; <span class="number">8</span>];
+            <span class="kw">let </span><span class="kw-2">mut </span>offsets = [f16::from(<span class="number">0u8</span>); <span class="number">8</span>];
 
             <span class="kw">for </span>(index, stop) <span class="kw">in </span>linear.stops.iter().enumerate() {
                 <span class="kw">let </span>[r, g, b, a] =
                     color::pack(stop.map_or(Color::default(), |s| s.color))
                         .components();
 
-                data[index * <span class="number">4</span>] = r;
-                data[(index * <span class="number">4</span>) + <span class="number">1</span>] = g;
-                data[(index * <span class="number">4</span>) + <span class="number">2</span>] = b;
-                data[(index * <span class="number">4</span>) + <span class="number">3</span>] = a;
-                data[<span class="number">32 </span>+ index] = stop.map_or(<span class="number">2.0</span>, |s| s.offset);
+                colors[index] = [
+                    pack_f16s([f16::from_f32(r), f16::from_f32(g)]),
+                    pack_f16s([f16::from_f32(b), f16::from_f32(a)]),
+                ];
+
+                offsets[index] = stop
+                    .map_or(f16::from_f32(<span class="number">2.0</span>), |s| f16::from_f32(s.offset));
             }
+
+            <span class="kw">let </span>offsets = [
+                pack_f16s([offsets[<span class="number">0</span>], offsets[<span class="number">1</span>]]),
+                pack_f16s([offsets[<span class="number">2</span>], offsets[<span class="number">3</span>]]),
+                pack_f16s([offsets[<span class="number">4</span>], offsets[<span class="number">5</span>]]),
+                pack_f16s([offsets[<span class="number">6</span>], offsets[<span class="number">7</span>]]),
+            ];
 
             <span class="kw">let </span>(start, end) = linear.angle.to_distance(<span class="kw-2">&amp;</span>bounds);
 
-            data[<span class="number">40</span>] = start.x;
-            data[<span class="number">41</span>] = start.y;
-            data[<span class="number">42</span>] = end.x;
-            data[<span class="number">43</span>] = end.y;
+            <span class="kw">let </span>direction = [start.x, start.y, end.x, end.y];
 
-            Packed(data)
+            Packed {
+                colors,
+                offsets,
+                direction,
+            }
         }
     }
+}
+
+<span class="doccomment">/// Packs two f16s into one u32.
+</span><span class="kw">fn </span>pack_f16s(f: [f16; <span class="number">2</span>]) -&gt; u32 {
+    <span class="kw">let </span>one = (f[<span class="number">0</span>].to_bits() <span class="kw">as </span>u32) &lt;&lt; <span class="number">16</span>;
+    <span class="kw">let </span>two = f[<span class="number">1</span>].to_bits() <span class="kw">as </span>u32;
+
+    one | two
 }
 </code></pre></div></section></main></body></html>
