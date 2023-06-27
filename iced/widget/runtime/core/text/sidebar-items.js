@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Hit","LineHeight","Shaping"],"struct":["Text"],"trait":["Renderer"]};

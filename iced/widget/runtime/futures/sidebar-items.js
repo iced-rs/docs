@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["boxed_stream"],"mod":["backend","executor","futures","subscription"],"struct":["Runtime","Subscription"],"trait":["Executor","MaybeSend"],"type":["BoxFuture","BoxStream"]};

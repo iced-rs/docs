@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["channel","events","events_with","raw_events","run","run_with_id","unfold"],"struct":["Subscription","Tracker"],"trait":["Recipe"],"type":["EventStream"]};
