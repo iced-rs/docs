@@ -1414,6 +1414,44 @@
 <a href="#1414" id="1414">1414</a>
 <a href="#1415" id="1415">1415</a>
 <a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
+<a href="#1421" id="1421">1421</a>
+<a href="#1422" id="1422">1422</a>
+<a href="#1423" id="1423">1423</a>
+<a href="#1424" id="1424">1424</a>
+<a href="#1425" id="1425">1425</a>
+<a href="#1426" id="1426">1426</a>
+<a href="#1427" id="1427">1427</a>
+<a href="#1428" id="1428">1428</a>
+<a href="#1429" id="1429">1429</a>
+<a href="#1430" id="1430">1430</a>
+<a href="#1431" id="1431">1431</a>
+<a href="#1432" id="1432">1432</a>
+<a href="#1433" id="1433">1433</a>
+<a href="#1434" id="1434">1434</a>
+<a href="#1435" id="1435">1435</a>
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -1445,8 +1483,7 @@
     id: <span class="prelude-ty">Option</span>&lt;Id&gt;,
     width: Length,
     height: Length,
-    vertical: Properties,
-    horizontal: <span class="prelude-ty">Option</span>&lt;Properties&gt;,
+    direction: Direction,
     content: Element&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt;,
     on_scroll: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Viewport) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
     style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
@@ -1463,8 +1500,7 @@
             id: <span class="prelude-val">None</span>,
             width: Length::Shrink,
             height: Length::Shrink,
-            vertical: Properties::default(),
-            horizontal: <span class="prelude-val">None</span>,
+            direction: Default::default(),
             content: content.into(),
             on_scroll: <span class="prelude-val">None</span>,
             style: Default::default(),
@@ -1489,15 +1525,9 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Configures the vertical scrollbar of the [`Scrollable`] .
-    </span><span class="kw">pub fn </span>vertical_scroll(<span class="kw-2">mut </span><span class="self">self</span>, properties: Properties) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.vertical = properties;
-        <span class="self">self
-    </span>}
-
-    <span class="doccomment">/// Configures the horizontal scrollbar of the [`Scrollable`] .
-    </span><span class="kw">pub fn </span>horizontal_scroll(<span class="kw-2">mut </span><span class="self">self</span>, properties: Properties) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.horizontal = <span class="prelude-val">Some</span>(properties);
+    <span class="doccomment">/// Sets the [`Direction`] of the [`Scrollable`] .
+    </span><span class="kw">pub fn </span>direction(<span class="kw-2">mut </span><span class="self">self</span>, direction: Direction) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.direction = direction;
         <span class="self">self
     </span>}
 
@@ -1519,8 +1549,50 @@
     </span>}
 }
 
+<span class="doccomment">/// The direction of [`Scrollable`].
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub enum </span>Direction {
+    <span class="doccomment">/// Vertical scrolling
+    </span>Vertical(Properties),
+    <span class="doccomment">/// Horizontal scrolling
+    </span>Horizontal(Properties),
+    <span class="doccomment">/// Both vertical and horizontal scrolling
+    </span>Both {
+        <span class="doccomment">/// The properties of the vertical scrollbar.
+        </span>vertical: Properties,
+        <span class="doccomment">/// The properties of the horizontal scrollbar.
+        </span>horizontal: Properties,
+    },
+}
+
+<span class="kw">impl </span>Direction {
+    <span class="doccomment">/// Returns the [`Properties`] of the horizontal scrollbar, if any.
+    </span><span class="kw">pub fn </span>horizontal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Properties&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Horizontal(properties) =&gt; <span class="prelude-val">Some</span>(properties),
+            <span class="self">Self</span>::Both { horizontal, .. } =&gt; <span class="prelude-val">Some</span>(horizontal),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Returns the [`Properties`] of the vertical scrollbar, if any.
+    </span><span class="kw">pub fn </span>vertical(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Properties&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Vertical(properties) =&gt; <span class="prelude-val">Some</span>(properties),
+            <span class="self">Self</span>::Both { vertical, .. } =&gt; <span class="prelude-val">Some</span>(vertical),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>Direction {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Vertical(Properties::default())
+    }
+}
+
 <span class="doccomment">/// Properties of a scrollbar within a [`Scrollable`].
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
 </span><span class="kw">pub struct </span>Properties {
     width: f32,
     margin: f32,
@@ -1602,7 +1674,7 @@
             limits,
             <span class="self">self</span>.width,
             <span class="self">self</span>.height,
-            <span class="self">self</span>.horizontal.is_some(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.direction,
             |renderer, limits| {
                 <span class="self">self</span>.content.as_widget().layout(renderer, limits)
             },
@@ -1650,8 +1722,7 @@
             cursor,
             clipboard,
             shell,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.vertical,
-            <span class="self">self</span>.horizontal.as_ref(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.direction,
             <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
             |event, layout, cursor, clipboard, shell| {
                 <span class="self">self</span>.content.as_widget_mut().on_event(
@@ -1683,8 +1754,7 @@
             theme,
             layout,
             cursor,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.vertical,
-            <span class="self">self</span>.horizontal.as_ref(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.direction,
             <span class="kw-2">&amp;</span><span class="self">self</span>.style,
             |renderer, layout, cursor, viewport| {
                 <span class="self">self</span>.content.as_widget().draw(
@@ -1712,8 +1782,7 @@
             tree.state.downcast_ref::&lt;State&gt;(),
             layout,
             cursor,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.vertical,
-            <span class="self">self</span>.horizontal.as_ref(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.direction,
             |layout, cursor, viewport| {
                 <span class="self">self</span>.content.as_widget().mouse_interaction(
                     <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
@@ -1743,10 +1812,11 @@
                 <span class="kw">let </span>bounds = layout.bounds();
                 <span class="kw">let </span>content_layout = layout.children().next().unwrap();
                 <span class="kw">let </span>content_bounds = content_layout.bounds();
-                <span class="kw">let </span>offset = tree
-                    .state
-                    .downcast_ref::&lt;State&gt;()
-                    .offset(bounds, content_bounds);
+                <span class="kw">let </span>offset = tree.state.downcast_ref::&lt;State&gt;().offset(
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.direction,
+                    bounds,
+                    content_bounds,
+                );
 
                 overlay.translate(Vector::new(-offset.x, -offset.y))
             })
@@ -1815,20 +1885,24 @@
     limits: <span class="kw-2">&amp;</span>layout::Limits,
     width: Length,
     height: Length,
-    horizontal_enabled: bool,
+    direction: <span class="kw-2">&amp;</span>Direction,
     layout_content: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>Renderer, <span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
 ) -&gt; layout::Node {
     <span class="kw">let </span>limits = limits.width(width).height(height);
 
     <span class="kw">let </span>child_limits = layout::Limits::new(
-        Size::new(limits.min().width, <span class="number">0.0</span>),
+        Size::new(limits.min().width, limits.min().height),
         Size::new(
-            <span class="kw">if </span>horizontal_enabled {
+            <span class="kw">if </span>direction.horizontal().is_some() {
                 f32::INFINITY
             } <span class="kw">else </span>{
                 limits.max().width
             },
-            f32::MAX,
+            <span class="kw">if </span>direction.vertical().is_some() {
+                f32::MAX
+            } <span class="kw">else </span>{
+                limits.max().height
+            },
         ),
     );
 
@@ -1847,8 +1921,7 @@
     cursor: mouse::Cursor,
     clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
     shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
-    vertical: <span class="kw-2">&amp;</span>Properties,
-    horizontal: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Properties&gt;,
+    direction: <span class="kw-2">&amp;</span>Direction,
     on_scroll: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Viewport) -&gt; Message + <span class="lifetime">&#39;_</span>&gt;&gt;,
     update_content: <span class="kw">impl </span>FnOnce(
         Event,
@@ -1864,8 +1937,7 @@
     <span class="kw">let </span>content = layout.children().next().unwrap();
     <span class="kw">let </span>content_bounds = content.bounds();
 
-    <span class="kw">let </span>scrollbars =
-        Scrollbars::new(state, vertical, horizontal, bounds, content_bounds);
+    <span class="kw">let </span>scrollbars = Scrollbars::new(state, direction, bounds, content_bounds);
 
     <span class="kw">let </span>(mouse_over_y_scrollbar, mouse_over_x_scrollbar) =
         scrollbars.is_mouse_over(cursor);
@@ -1876,7 +1948,8 @@
                 <span class="kw">if </span>!(mouse_over_x_scrollbar || mouse_over_y_scrollbar) =&gt;
             {
                 mouse::Cursor::Available(
-                    cursor_position + state.offset(bounds, content_bounds),
+                    cursor_position
+                        + state.offset(direction, bounds, content_bounds),
                 )
             }
             <span class="kw">_ </span>=&gt; mouse::Cursor::Unavailable,
@@ -2129,8 +2202,7 @@
     state: <span class="kw-2">&amp;</span>State,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     cursor: mouse::Cursor,
-    vertical: <span class="kw-2">&amp;</span>Properties,
-    horizontal: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Properties&gt;,
+    direction: <span class="kw-2">&amp;</span>Direction,
     content_interaction: <span class="kw">impl </span>FnOnce(
         Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
         mouse::Cursor,
@@ -2143,8 +2215,7 @@
     <span class="kw">let </span>content_layout = layout.children().next().unwrap();
     <span class="kw">let </span>content_bounds = content_layout.bounds();
 
-    <span class="kw">let </span>scrollbars =
-        Scrollbars::new(state, vertical, horizontal, bounds, content_bounds);
+    <span class="kw">let </span>scrollbars = Scrollbars::new(state, direction, bounds, content_bounds);
 
     <span class="kw">let </span>(mouse_over_y_scrollbar, mouse_over_x_scrollbar) =
         scrollbars.is_mouse_over(cursor);
@@ -2154,7 +2225,7 @@
     {
         mouse::Interaction::Idle
     } <span class="kw">else </span>{
-        <span class="kw">let </span>offset = state.offset(bounds, content_bounds);
+        <span class="kw">let </span>offset = state.offset(direction, bounds, content_bounds);
 
         <span class="kw">let </span>cursor = <span class="kw">match </span>cursor_over_scrollable {
             <span class="prelude-val">Some</span>(cursor_position)
@@ -2184,8 +2255,7 @@
     theme: <span class="kw-2">&amp;</span>Renderer::Theme,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     cursor: mouse::Cursor,
-    vertical: <span class="kw-2">&amp;</span>Properties,
-    horizontal: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Properties&gt;,
+    direction: <span class="kw-2">&amp;</span>Direction,
     style: <span class="kw-2">&amp;</span>&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
     draw_content: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Renderer, Layout&lt;<span class="lifetime">&#39;_</span>&gt;, mouse::Cursor, <span class="kw-2">&amp;</span>Rectangle),
 ) <span class="kw">where
@@ -2196,14 +2266,13 @@
     <span class="kw">let </span>content_layout = layout.children().next().unwrap();
     <span class="kw">let </span>content_bounds = content_layout.bounds();
 
-    <span class="kw">let </span>scrollbars =
-        Scrollbars::new(state, vertical, horizontal, bounds, content_bounds);
+    <span class="kw">let </span>scrollbars = Scrollbars::new(state, direction, bounds, content_bounds);
 
     <span class="kw">let </span>cursor_over_scrollable = cursor.position_over(bounds);
     <span class="kw">let </span>(mouse_over_y_scrollbar, mouse_over_x_scrollbar) =
         scrollbars.is_mouse_over(cursor);
 
-    <span class="kw">let </span>offset = state.offset(bounds, content_bounds);
+    <span class="kw">let </span>offset = state.offset(direction, bounds, content_bounds);
 
     <span class="kw">let </span>cursor = <span class="kw">match </span>cursor_over_scrollable {
         <span class="prelude-val">Some</span>(cursor_position)
@@ -2542,16 +2611,25 @@
         );
     }
 
-    <span class="doccomment">/// Returns the scrolling offset of the [`State`], given the bounds of the
-    /// [`Scrollable`] and its contents.
+    <span class="doccomment">/// Returns the scrolling offset of the [`State`], given a [`Direction`],
+    /// the bounds of the [`Scrollable`] and its contents.
     </span><span class="kw">pub fn </span>offset(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        direction: <span class="kw-2">&amp;</span>Direction,
         bounds: Rectangle,
         content_bounds: Rectangle,
     ) -&gt; Vector {
         Vector::new(
-            <span class="self">self</span>.offset_x.absolute(bounds.width, content_bounds.width),
-            <span class="self">self</span>.offset_y.absolute(bounds.height, content_bounds.height),
+            <span class="kw">if </span>direction.horizontal().is_some() {
+                <span class="self">self</span>.offset_x.absolute(bounds.width, content_bounds.width)
+            } <span class="kw">else </span>{
+                <span class="number">0.0
+            </span>},
+            <span class="kw">if </span>direction.vertical().is_some() {
+                <span class="self">self</span>.offset_y.absolute(bounds.height, content_bounds.height)
+            } <span class="kw">else </span>{
+                <span class="number">0.0
+            </span>},
         )
     }
 
@@ -2573,22 +2651,21 @@
     <span class="doccomment">/// Create y and/or x scrollbar(s) if content is overflowing the [`Scrollable`] bounds.
     </span><span class="kw">fn </span>new(
         state: <span class="kw-2">&amp;</span>State,
-        vertical: <span class="kw-2">&amp;</span>Properties,
-        horizontal: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Properties&gt;,
+        direction: <span class="kw-2">&amp;</span>Direction,
         bounds: Rectangle,
         content_bounds: Rectangle,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>offset = state.offset(bounds, content_bounds);
+        <span class="kw">let </span>offset = state.offset(direction, bounds, content_bounds);
 
-        <span class="kw">let </span>show_scrollbar_x = horizontal.and_then(|h| {
-            <span class="kw">if </span>content_bounds.width &gt; bounds.width {
-                <span class="prelude-val">Some</span>(h)
-            } <span class="kw">else </span>{
-                <span class="prelude-val">None
-            </span>}
-        });
+        <span class="kw">let </span>show_scrollbar_x = direction
+            .horizontal()
+            .filter(|<span class="kw">_</span>| content_bounds.width &gt; bounds.width);
 
-        <span class="kw">let </span>y_scrollbar = <span class="kw">if </span>content_bounds.height &gt; bounds.height {
+        <span class="kw">let </span>show_scrollbar_y = direction
+            .vertical()
+            .filter(|<span class="kw">_</span>| content_bounds.height &gt; bounds.height);
+
+        <span class="kw">let </span>y_scrollbar = <span class="kw">if let </span><span class="prelude-val">Some</span>(vertical) = show_scrollbar_y {
             <span class="kw">let </span>Properties {
                 width,
                 margin,
@@ -2656,9 +2733,8 @@
 
             <span class="comment">// Need to adjust the width of the horizontal scrollbar if the vertical scrollbar
             // is present
-            </span><span class="kw">let </span>scrollbar_y_width = y_scrollbar.map_or(<span class="number">0.0</span>, |<span class="kw">_</span>| {
-                vertical.width.max(vertical.scroller_width) + vertical.margin
-            });
+            </span><span class="kw">let </span>scrollbar_y_width = show_scrollbar_y
+                .map_or(<span class="number">0.0</span>, |v| v.width.max(v.scroller_width) + v.margin);
 
             <span class="kw">let </span>total_scrollbar_height =
                 width.max(scroller_width) + <span class="number">2.0 </span>* margin;
