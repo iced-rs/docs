@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Frame"],"struct":["Cache"]};
+window.SIDEBAR_ITEMS = {"enum":["Frame","Geometry"],"struct":["Cache"]};

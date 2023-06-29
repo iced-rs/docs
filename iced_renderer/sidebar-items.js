@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Backend"],"mod":["compositor","geometry"],"struct":["Settings"],"type":["Renderer"]};
+window.SIDEBAR_ITEMS = {"enum":["Renderer"],"mod":["compositor","geometry"],"struct":["Settings"]};

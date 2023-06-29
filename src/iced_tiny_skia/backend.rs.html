@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tiny_skia/src/backend.rs`."><title>backend.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-8092eaa720ad3b6f.css" id="mainThemeStyle"><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_tiny_skia" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.0-nightly (36fb58e43 2023-06-26)" data-channel="nightly" data-search-js="search-c507e026dd61038c.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ></div><script src="../../static.files/storage-62ce34ea385b278a.js"></script><script defer src="../../static.files/source-script-11255107d0a65077.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_tiny_skia/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tiny_skia/src/backend.rs`."><title>backend.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-a2c9cd1067f8b328.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-8092eaa720ad3b6f.css" id="mainThemeStyle"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_tiny_skia" data-themes="" data-resource-suffix="" data-rustdoc-version="1.72.0-nightly (5bd28f5ea 2023-06-28)" data-channel="nightly" data-search-js="search-c507e026dd61038c.js" data-settings-js="settings-de11bff964e9d4e5.js" data-settings-css="settings-8c76f75bfb6bd192.css" data-theme-light-css="light-0f8c037637f9eb3e.css" data-theme-dark-css="dark-1097f8e92a01e3cf.css" data-theme-ayu-css="ayu-614652228113ac93.css" ><script src="../../static.files/storage-59fd9b8ccb335783.js"></script><script defer src="../../static.files/source-script-106908c7a7964ba4.js"></script><script defer src="../../source-files.js"></script><script defer src="../../static.files/main-0795b7d26be81095.js"></script><noscript><link rel="stylesheet" media="(prefers-color-scheme:light)" href="../../static.files/light-0f8c037637f9eb3e.css"><link rel="stylesheet" media="(prefers-color-scheme:dark)" href="../../static.files/dark-1097f8e92a01e3cf.css"><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_tiny_skia/index.html"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -842,11 +842,16 @@
 <a href="#842" id="842">842</a>
 <a href="#843" id="843">843</a>
 <a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::text;
 <span class="kw">use </span><span class="kw">crate</span>::core::Gradient;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Background, Color, Font, Point, Rectangle, Size, Vector};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::backend;
-<span class="kw">use </span><span class="kw">crate</span>::graphics::{Primitive, Viewport};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::{Damage, Viewport};
+<span class="kw">use </span><span class="kw">crate</span>::primitive::{<span class="self">self</span>, Primitive};
 <span class="kw">use </span><span class="kw">crate</span>::Settings;
 
 <span class="kw">use </span>std::borrow::Cow;
@@ -1263,6 +1268,13 @@
                 <span class="self">self</span>.raster_pipeline
                     .draw(handle, <span class="kw-2">*</span>bounds, pixels, transform, clip_mask);
             }
+            <span class="attr">#[cfg(not(feature = <span class="string">&quot;image&quot;</span>))]
+            </span>Primitive::Image { .. } =&gt; {
+                <span class="macro">log::warn!</span>(
+                    <span class="string">&quot;Unsupported primitive in `iced_tiny_skia`: {:?}&quot;</span>,
+                    primitive
+                );
+            }
             <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
             </span>Primitive::Svg {
                 handle,
@@ -1286,12 +1298,19 @@
                     clip_mask,
                 );
             }
-            Primitive::Fill {
+            <span class="attr">#[cfg(not(feature = <span class="string">&quot;svg&quot;</span>))]
+            </span>Primitive::Svg { .. } =&gt; {
+                <span class="macro">log::warn!</span>(
+                    <span class="string">&quot;Unsupported primitive in `iced_tiny_skia`: {:?}&quot;</span>,
+                    primitive
+                );
+            }
+            Primitive::Custom(primitive::Custom::Fill {
                 path,
                 paint,
                 rule,
                 transform,
-            } =&gt; {
+            }) =&gt; {
                 <span class="kw">let </span>bounds = path.bounds();
 
                 <span class="kw">let </span>physical_bounds = (Rectangle {
@@ -1319,12 +1338,12 @@
                     clip_mask,
                 );
             }
-            Primitive::Stroke {
+            Primitive::Custom(primitive::Custom::Stroke {
                 path,
                 paint,
                 stroke,
                 transform,
-            } =&gt; {
+            }) =&gt; {
                 <span class="kw">let </span>bounds = path.bounds();
 
                 <span class="kw">let </span>physical_bounds = (Rectangle {
@@ -1422,21 +1441,6 @@
                     clip_bounds,
                     scale_factor,
                     translation,
-                );
-            }
-            Primitive::SolidMesh { .. } | Primitive::GradientMesh { .. } =&gt; {
-                <span class="comment">// Not supported!
-                // TODO: Draw a placeholder (?)
-                </span><span class="macro">log::warn!</span>(
-                    <span class="string">&quot;Unsupported primitive in `iced_tiny_skia`: {:?}&quot;</span>,
-                    primitive
-                );
-            }
-            <span class="kw">_ </span>=&gt; {
-                <span class="comment">// Not supported!
-                </span><span class="macro">log::warn!</span>(
-                    <span class="string">&quot;Unsupported primitive in `iced_tiny_skia`: {:?}&quot;</span>,
-                    primitive
                 );
             }
         }
@@ -1608,6 +1612,10 @@
         <span class="bool-val">false</span>,
         tiny_skia::Transform::default(),
     );
+}
+
+<span class="kw">impl </span>iced_graphics::Backend <span class="kw">for </span>Backend {
+    <span class="kw">type </span>Primitive = primitive::Custom;
 }
 
 <span class="kw">impl </span>backend::Text <span class="kw">for </span>Backend {

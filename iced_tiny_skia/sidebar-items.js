@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["geometry","window"],"struct":["Backend","Settings"],"type":["Renderer"]};
+window.SIDEBAR_ITEMS = {"mod":["geometry","window"],"struct":["Backend","Settings"],"type":["Primitive","Renderer"]};

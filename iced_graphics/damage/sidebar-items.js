@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["group","list","regions"]};
+window.SIDEBAR_ITEMS = {"fn":["group","list"],"trait":["Damage"]};
