@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Direction"],"fn":["draw","layout","mouse_interaction","scroll_to","snap_to","update"],"struct":["AbsoluteOffset","Id","Properties","RelativeOffset","Scrollable","Scrollbar","Scroller","State","Viewport"],"trait":["StyleSheet"]};
+window.SIDEBAR_ITEMS = {"enum":["Alignment","Direction"],"fn":["draw","layout","mouse_interaction","scroll_to","snap_to","update"],"struct":["AbsoluteOffset","Id","Properties","RelativeOffset","Scrollable","Scrollbar","Scroller","State","Viewport"],"trait":["StyleSheet"]};

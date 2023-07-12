@@ -1452,6 +1452,66 @@
 <a href="#1452" id="1452">1452</a>
 <a href="#1453" id="1453">1453</a>
 <a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a>
+<a href="#1463" id="1463">1463</a>
+<a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
+<a href="#1481" id="1481">1481</a>
+<a href="#1482" id="1482">1482</a>
+<a href="#1483" id="1483">1483</a>
+<a href="#1484" id="1484">1484</a>
+<a href="#1485" id="1485">1485</a>
+<a href="#1486" id="1486">1486</a>
+<a href="#1487" id="1487">1487</a>
+<a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
+<a href="#1498" id="1498">1498</a>
+<a href="#1499" id="1499">1499</a>
+<a href="#1500" id="1500">1500</a>
+<a href="#1501" id="1501">1501</a>
+<a href="#1502" id="1502">1502</a>
+<a href="#1503" id="1503">1503</a>
+<a href="#1504" id="1504">1504</a>
+<a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -1597,6 +1657,7 @@
     width: f32,
     margin: f32,
     scroller_width: f32,
+    alignment: Alignment,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Properties {
@@ -1605,6 +1666,7 @@
             width: <span class="number">10.0</span>,
             margin: <span class="number">0.0</span>,
             scroller_width: <span class="number">10.0</span>,
+            alignment: Alignment::Start,
         }
     }
 }
@@ -1632,6 +1694,22 @@
         <span class="self">self</span>.scroller_width = scroller_width.into().<span class="number">0</span>.max(<span class="number">0.0</span>);
         <span class="self">self
     </span>}
+
+    <span class="doccomment">/// Sets the alignment of the [`Scrollable`] .
+    </span><span class="kw">pub fn </span>alignment(<span class="kw-2">mut </span><span class="self">self</span>, alignment: Alignment) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.alignment = alignment;
+        <span class="self">self
+    </span>}
+}
+
+<span class="doccomment">/// Alignment of the scrollable&#39;s content relative to it&#39;s [`Viewport`] in one direction.
+</span><span class="attr">#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>Alignment {
+    <span class="doccomment">/// Content is aligned to the start of the [`Viewport`].
+    </span><span class="attr">#[default]
+    </span>Start,
+    <span class="doccomment">/// Content is aligned to the end of the [`Viewport`]
+    </span>End,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Widget&lt;Message, Renderer&gt;
@@ -1722,7 +1800,7 @@
             cursor,
             clipboard,
             shell,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.direction,
+            <span class="self">self</span>.direction,
             <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
             |event, layout, cursor, clipboard, shell| {
                 <span class="self">self</span>.content.as_widget_mut().on_event(
@@ -1754,7 +1832,7 @@
             theme,
             layout,
             cursor,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.direction,
+            <span class="self">self</span>.direction,
             <span class="kw-2">&amp;</span><span class="self">self</span>.style,
             |renderer, layout, cursor, viewport| {
                 <span class="self">self</span>.content.as_widget().draw(
@@ -1782,7 +1860,7 @@
             tree.state.downcast_ref::&lt;State&gt;(),
             layout,
             cursor,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.direction,
+            <span class="self">self</span>.direction,
             |layout, cursor, viewport| {
                 <span class="self">self</span>.content.as_widget().mouse_interaction(
                     <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
@@ -1812,13 +1890,12 @@
                 <span class="kw">let </span>bounds = layout.bounds();
                 <span class="kw">let </span>content_layout = layout.children().next().unwrap();
                 <span class="kw">let </span>content_bounds = content_layout.bounds();
-                <span class="kw">let </span>offset = tree.state.downcast_ref::&lt;State&gt;().offset(
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.direction,
-                    bounds,
-                    content_bounds,
-                );
+                <span class="kw">let </span>translation = tree
+                    .state
+                    .downcast_ref::&lt;State&gt;()
+                    .translation(<span class="self">self</span>.direction, bounds, content_bounds);
 
-                overlay.translate(Vector::new(-offset.x, -offset.y))
+                overlay.translate(Vector::new(-translation.x, -translation.y))
             })
     }
 }
@@ -1921,7 +1998,7 @@
     cursor: mouse::Cursor,
     clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
     shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
-    direction: <span class="kw-2">&amp;</span>Direction,
+    direction: Direction,
     on_scroll: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Viewport) -&gt; Message + <span class="lifetime">&#39;_</span>&gt;&gt;,
     update_content: <span class="kw">impl </span>FnOnce(
         Event,
@@ -1949,7 +2026,7 @@
             {
                 mouse::Cursor::Available(
                     cursor_position
-                        + state.offset(direction, bounds, content_bounds),
+                        + state.translation(direction, bounds, content_bounds),
                 )
             }
             <span class="kw">_ </span>=&gt; mouse::Cursor::Unavailable,
@@ -1989,7 +2066,7 @@
                 mouse::ScrollDelta::Pixels { x, y } =&gt; Vector::new(x, y),
             };
 
-            state.scroll(delta, bounds, content_bounds);
+            state.scroll(delta, direction, bounds, content_bounds);
 
             notify_on_scroll(state, on_scroll, bounds, content_bounds, shell);
 
@@ -2020,7 +2097,7 @@
                             cursor_position.y - scroll_box_touched_at.y,
                         );
 
-                        state.scroll(delta, bounds, content_bounds);
+                        state.scroll(delta, direction, bounds, content_bounds);
 
                         state.scroll_area_touched_at = <span class="prelude-val">Some</span>(cursor_position);
 
@@ -2202,7 +2279,7 @@
     state: <span class="kw-2">&amp;</span>State,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     cursor: mouse::Cursor,
-    direction: <span class="kw-2">&amp;</span>Direction,
+    direction: Direction,
     content_interaction: <span class="kw">impl </span>FnOnce(
         Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
         mouse::Cursor,
@@ -2225,13 +2302,13 @@
     {
         mouse::Interaction::Idle
     } <span class="kw">else </span>{
-        <span class="kw">let </span>offset = state.offset(direction, bounds, content_bounds);
+        <span class="kw">let </span>translation = state.translation(direction, bounds, content_bounds);
 
         <span class="kw">let </span>cursor = <span class="kw">match </span>cursor_over_scrollable {
             <span class="prelude-val">Some</span>(cursor_position)
                 <span class="kw">if </span>!(mouse_over_x_scrollbar || mouse_over_y_scrollbar) =&gt;
             {
-                mouse::Cursor::Available(cursor_position + offset)
+                mouse::Cursor::Available(cursor_position + translation)
             }
             <span class="kw">_ </span>=&gt; mouse::Cursor::Unavailable,
         };
@@ -2240,8 +2317,8 @@
             content_layout,
             cursor,
             <span class="kw-2">&amp;</span>Rectangle {
-                y: bounds.y + offset.y,
-                x: bounds.x + offset.x,
+                y: bounds.y + translation.y,
+                x: bounds.x + translation.x,
                 ..bounds
             },
         )
@@ -2255,7 +2332,7 @@
     theme: <span class="kw-2">&amp;</span>Renderer::Theme,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     cursor: mouse::Cursor,
-    direction: <span class="kw-2">&amp;</span>Direction,
+    direction: Direction,
     style: <span class="kw-2">&amp;</span>&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
     draw_content: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Renderer, Layout&lt;<span class="lifetime">&#39;_</span>&gt;, mouse::Cursor, <span class="kw-2">&amp;</span>Rectangle),
 ) <span class="kw">where
@@ -2272,13 +2349,13 @@
     <span class="kw">let </span>(mouse_over_y_scrollbar, mouse_over_x_scrollbar) =
         scrollbars.is_mouse_over(cursor);
 
-    <span class="kw">let </span>offset = state.offset(direction, bounds, content_bounds);
+    <span class="kw">let </span>translation = state.translation(direction, bounds, content_bounds);
 
     <span class="kw">let </span>cursor = <span class="kw">match </span>cursor_over_scrollable {
         <span class="prelude-val">Some</span>(cursor_position)
             <span class="kw">if </span>!(mouse_over_x_scrollbar || mouse_over_y_scrollbar) =&gt;
         {
-            mouse::Cursor::Available(cursor_position + offset)
+            mouse::Cursor::Available(cursor_position + translation)
         }
         <span class="kw">_ </span>=&gt; mouse::Cursor::Unavailable,
     };
@@ -2287,15 +2364,15 @@
     </span><span class="kw">if </span>scrollbars.active() {
         renderer.with_layer(bounds, |renderer| {
             renderer.with_translation(
-                Vector::new(-offset.x, -offset.y),
+                Vector::new(-translation.x, -translation.y),
                 |renderer| {
                     draw_content(
                         renderer,
                         content_layout,
                         cursor,
                         <span class="kw-2">&amp;</span>Rectangle {
-                            y: bounds.y + offset.y,
-                            x: bounds.x + offset.x,
+                            y: bounds.y + translation.y,
+                            x: bounds.x + translation.x,
                             ..bounds
                         },
                     );
@@ -2386,8 +2463,8 @@
             content_layout,
             cursor,
             <span class="kw-2">&amp;</span>Rectangle {
-                x: bounds.x + offset.x,
-                y: bounds.y + offset.y,
+                x: bounds.x + translation.x,
+                y: bounds.y + translation.y,
                 ..bounds
             },
         );
@@ -2494,6 +2571,20 @@
             }
         }
     }
+
+    <span class="kw">fn </span>translation(
+        <span class="self">self</span>,
+        viewport: f32,
+        content: f32,
+        alignment: Alignment,
+    ) -&gt; f32 {
+        <span class="kw">let </span>offset = <span class="self">self</span>.absolute(viewport, content);
+
+        <span class="kw">match </span>alignment {
+            Alignment::Start =&gt; offset,
+            Alignment::End =&gt; ((content - viewport).max(<span class="number">0.0</span>) - offset).max(<span class="number">0.0</span>),
+        }
+    }
 }
 
 <span class="doccomment">/// The current [`Viewport`] of the [`Scrollable`].
@@ -2540,9 +2631,30 @@
     </span><span class="kw">pub fn </span>scroll(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         delta: Vector&lt;f32&gt;,
+        direction: Direction,
         bounds: Rectangle,
         content_bounds: Rectangle,
     ) {
+        <span class="kw">let </span>horizontal_alignment = direction
+            .horizontal()
+            .map(|p| p.alignment)
+            .unwrap_or_default();
+
+        <span class="kw">let </span>vertical_alignment = direction
+            .vertical()
+            .map(|p| p.alignment)
+            .unwrap_or_default();
+
+        <span class="kw">let </span>align = |alignment: Alignment, delta: f32| <span class="kw">match </span>alignment {
+            Alignment::Start =&gt; delta,
+            Alignment::End =&gt; -delta,
+        };
+
+        <span class="kw">let </span>delta = Vector::new(
+            align(horizontal_alignment, delta.x),
+            align(vertical_alignment, delta.y),
+        );
+
         <span class="kw">if </span>bounds.height &lt; content_bounds.height {
             <span class="self">self</span>.offset_y = Offset::Absolute(
                 (<span class="self">self</span>.offset_y.absolute(bounds.height, content_bounds.height)
@@ -2611,22 +2723,30 @@
         );
     }
 
-    <span class="doccomment">/// Returns the scrolling offset of the [`State`], given a [`Direction`],
+    <span class="doccomment">/// Returns the scrolling translation of the [`State`], given a [`Direction`],
     /// the bounds of the [`Scrollable`] and its contents.
-    </span><span class="kw">pub fn </span>offset(
+    </span><span class="kw">fn </span>translation(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        direction: <span class="kw-2">&amp;</span>Direction,
+        direction: Direction,
         bounds: Rectangle,
         content_bounds: Rectangle,
     ) -&gt; Vector {
         Vector::new(
-            <span class="kw">if </span>direction.horizontal().is_some() {
-                <span class="self">self</span>.offset_x.absolute(bounds.width, content_bounds.width)
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(horizontal) = direction.horizontal() {
+                <span class="self">self</span>.offset_x.translation(
+                    bounds.width,
+                    content_bounds.width,
+                    horizontal.alignment,
+                )
             } <span class="kw">else </span>{
                 <span class="number">0.0
             </span>},
-            <span class="kw">if </span>direction.vertical().is_some() {
-                <span class="self">self</span>.offset_y.absolute(bounds.height, content_bounds.height)
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(vertical) = direction.vertical() {
+                <span class="self">self</span>.offset_y.translation(
+                    bounds.height,
+                    content_bounds.height,
+                    vertical.alignment,
+                )
             } <span class="kw">else </span>{
                 <span class="number">0.0
             </span>},
@@ -2651,11 +2771,11 @@
     <span class="doccomment">/// Create y and/or x scrollbar(s) if content is overflowing the [`Scrollable`] bounds.
     </span><span class="kw">fn </span>new(
         state: <span class="kw-2">&amp;</span>State,
-        direction: <span class="kw-2">&amp;</span>Direction,
+        direction: Direction,
         bounds: Rectangle,
         content_bounds: Rectangle,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>offset = state.offset(direction, bounds, content_bounds);
+        <span class="kw">let </span>translation = state.translation(direction, bounds, content_bounds);
 
         <span class="kw">let </span>show_scrollbar_x = direction
             .horizontal()
@@ -2670,6 +2790,7 @@
                 width,
                 margin,
                 scroller_width,
+                ..
             } = <span class="kw-2">*</span>vertical;
 
             <span class="comment">// Adjust the height of the vertical scrollbar if the horizontal scrollbar
@@ -2701,7 +2822,7 @@
             <span class="kw">let </span>ratio = bounds.height / content_bounds.height;
             <span class="comment">// min height for easier grabbing with super tall content
             </span><span class="kw">let </span>scroller_height = (bounds.height * ratio).max(<span class="number">2.0</span>);
-            <span class="kw">let </span>scroller_offset = offset.y * ratio;
+            <span class="kw">let </span>scroller_offset = translation.y * ratio;
 
             <span class="kw">let </span>scroller_bounds = Rectangle {
                 x: bounds.x + bounds.width
@@ -2719,6 +2840,7 @@
                 scroller: internals::Scroller {
                     bounds: scroller_bounds,
                 },
+                alignment: vertical.alignment,
             })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -2729,6 +2851,7 @@
                 width,
                 margin,
                 scroller_width,
+                ..
             } = <span class="kw-2">*</span>horizontal;
 
             <span class="comment">// Need to adjust the width of the horizontal scrollbar if the vertical scrollbar
@@ -2760,7 +2883,7 @@
             <span class="kw">let </span>ratio = bounds.width / content_bounds.width;
             <span class="comment">// min width for easier grabbing with extra wide content
             </span><span class="kw">let </span>scroller_length = (bounds.width * ratio).max(<span class="number">2.0</span>);
-            <span class="kw">let </span>scroller_offset = offset.x * ratio;
+            <span class="kw">let </span>scroller_offset = translation.x * ratio;
 
             <span class="kw">let </span>scroller_bounds = Rectangle {
                 x: (scrollbar_bounds.x + scroller_offset - scrollbar_y_width)
@@ -2778,6 +2901,7 @@
                 scroller: internals::Scroller {
                     bounds: scroller_bounds,
                 },
+                alignment: horizontal.alignment,
             })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -2844,18 +2968,14 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>internals {
     <span class="kw">use </span><span class="kw">crate</span>::core::{Point, Rectangle};
 
-    <span class="doccomment">/// The scrollbar of a [`Scrollable`].
-    </span><span class="attr">#[derive(Debug, Copy, Clone)]
+    <span class="kw">use </span><span class="kw">super</span>::Alignment;
+
+    <span class="attr">#[derive(Debug, Copy, Clone)]
     </span><span class="kw">pub struct </span>Scrollbar {
-        <span class="doccomment">/// The total bounds of the [`Scrollbar`], including the scrollbar, the scroller,
-        /// and the scrollbar margin.
-        </span><span class="kw">pub </span>total_bounds: Rectangle,
-
-        <span class="doccomment">/// The bounds of just the [`Scrollbar`].
-        </span><span class="kw">pub </span>bounds: Rectangle,
-
-        <span class="doccomment">/// The state of this scrollbar&#39;s [`Scroller`].
-        </span><span class="kw">pub </span>scroller: Scroller,
+        <span class="kw">pub </span>total_bounds: Rectangle,
+        <span class="kw">pub </span>bounds: Rectangle,
+        <span class="kw">pub </span>scroller: Scroller,
+        <span class="kw">pub </span>alignment: Alignment,
     }
 
     <span class="kw">impl </span>Scrollbar {
@@ -2870,15 +2990,14 @@
             grabbed_at: f32,
             cursor_position: Point,
         ) -&gt; f32 {
-            <span class="kw">if </span>cursor_position.x &lt; <span class="number">0.0 </span>&amp;&amp; cursor_position.y &lt; <span class="number">0.0 </span>{
-                <span class="comment">// cursor position is unavailable! Set to either end or beginning of scrollbar depending
-                // on where the thumb currently is in the track
-                </span>(<span class="self">self</span>.scroller.bounds.y / <span class="self">self</span>.total_bounds.height).round()
-            } <span class="kw">else </span>{
-                (cursor_position.y
-                    - <span class="self">self</span>.bounds.y
-                    - <span class="self">self</span>.scroller.bounds.height * grabbed_at)
-                    / (<span class="self">self</span>.bounds.height - <span class="self">self</span>.scroller.bounds.height)
+            <span class="kw">let </span>percentage = (cursor_position.y
+                - <span class="self">self</span>.bounds.y
+                - <span class="self">self</span>.scroller.bounds.height * grabbed_at)
+                / (<span class="self">self</span>.bounds.height - <span class="self">self</span>.scroller.bounds.height);
+
+            <span class="kw">match </span><span class="self">self</span>.alignment {
+                Alignment::Start =&gt; percentage,
+                Alignment::End =&gt; <span class="number">1.0 </span>- percentage,
             }
         }
 
@@ -2888,13 +3007,14 @@
             grabbed_at: f32,
             cursor_position: Point,
         ) -&gt; f32 {
-            <span class="kw">if </span>cursor_position.x &lt; <span class="number">0.0 </span>&amp;&amp; cursor_position.y &lt; <span class="number">0.0 </span>{
-                (<span class="self">self</span>.scroller.bounds.x / <span class="self">self</span>.total_bounds.width).round()
-            } <span class="kw">else </span>{
-                (cursor_position.x
-                    - <span class="self">self</span>.bounds.x
-                    - <span class="self">self</span>.scroller.bounds.width * grabbed_at)
-                    / (<span class="self">self</span>.bounds.width - <span class="self">self</span>.scroller.bounds.width)
+            <span class="kw">let </span>percentage = (cursor_position.x
+                - <span class="self">self</span>.bounds.x
+                - <span class="self">self</span>.scroller.bounds.width * grabbed_at)
+                / (<span class="self">self</span>.bounds.width - <span class="self">self</span>.scroller.bounds.width);
+
+            <span class="kw">match </span><span class="self">self</span>.alignment {
+                Alignment::Start =&gt; percentage,
+                Alignment::End =&gt; <span class="number">1.0 </span>- percentage,
             }
         }
     }
