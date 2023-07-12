@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Position"],"fn":["draw"],"struct":["Tooltip"]};
+window.SIDEBAR_ITEMS = {"enum":["Position"],"struct":["Tooltip"]};
