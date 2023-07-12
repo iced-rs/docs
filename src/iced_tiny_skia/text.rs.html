@@ -479,6 +479,8 @@
 <a href="#479" id="479">479</a>
 <a href="#480" id="480">480</a>
 <a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::font::{<span class="self">self</span>, Font};
 <span class="kw">use </span><span class="kw">crate</span>::core::text::{Hit, LineHeight, Shaping};
@@ -769,14 +771,15 @@
 
                     </span><span class="kw">for </span>_y <span class="kw">in </span><span class="number">0</span>..image.placement.height {
                         <span class="kw">for </span>_x <span class="kw">in </span><span class="number">0</span>..image.placement.width {
-                            buffer[i] = tiny_skia::ColorU8::from_rgba(
-                                b,
-                                g,
-                                r,
-                                image.data[i],
-                            )
-                            .premultiply()
-                            .get();
+                            buffer[i] = bytemuck::cast(
+                                tiny_skia::ColorU8::from_rgba(
+                                    b,
+                                    g,
+                                    r,
+                                    image.data[i],
+                                )
+                                .premultiply(),
+                            );
 
                             i += <span class="number">1</span>;
                         }
@@ -788,14 +791,15 @@
                     <span class="kw">for </span>_y <span class="kw">in </span><span class="number">0</span>..image.placement.height {
                         <span class="kw">for </span>_x <span class="kw">in </span><span class="number">0</span>..image.placement.width {
                             <span class="comment">// TODO: Blend alpha
-                            </span>buffer[i &gt;&gt; <span class="number">2</span>] = tiny_skia::ColorU8::from_rgba(
-                                image.data[i + <span class="number">2</span>],
-                                image.data[i + <span class="number">1</span>],
-                                image.data[i],
-                                image.data[i + <span class="number">3</span>],
-                            )
-                            .premultiply()
-                            .get();
+                            </span>buffer[i &gt;&gt; <span class="number">2</span>] = bytemuck::cast(
+                                tiny_skia::ColorU8::from_rgba(
+                                    image.data[i + <span class="number">2</span>],
+                                    image.data[i + <span class="number">1</span>],
+                                    image.data[i],
+                                    image.data[i + <span class="number">3</span>],
+                                )
+                                .premultiply(),
+                            );
 
                             i += <span class="number">4</span>;
                         }

@@ -181,6 +181,18 @@
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
 <a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::svg::{Data, Handle};
 <span class="kw">use </span><span class="kw">crate</span>::core::{Color, Rectangle, Size};
 
@@ -313,30 +325,42 @@
 
             <span class="kw">let </span><span class="kw-2">mut </span>image = tiny_skia::Pixmap::new(size.width, size.height)<span class="question-mark">?</span>;
 
-            resvg::render(
-                tree,
-                <span class="kw">if </span>size.width &gt; size.height {
-                    resvg::FitTo::Width(size.width)
-                } <span class="kw">else </span>{
-                    resvg::FitTo::Height(size.height)
-                },
-                tiny_skia::Transform::default(),
-                image.as_mut(),
-            )<span class="question-mark">?</span>;
+            <span class="kw">let </span>tree_size = tree.size.to_int_size();
+
+            <span class="kw">let </span>target_size = <span class="kw">if </span>size.width &gt; size.height {
+                tree_size.scale_to_width(size.width)
+            } <span class="kw">else </span>{
+                tree_size.scale_to_height(size.height)
+            };
+
+            <span class="kw">let </span>transform = <span class="kw">if let </span><span class="prelude-val">Some</span>(target_size) = target_size {
+                <span class="kw">let </span>tree_size = tree_size.to_size();
+                <span class="kw">let </span>target_size = target_size.to_size();
+
+                tiny_skia::Transform::from_scale(
+                    target_size.width() / tree_size.width(),
+                    target_size.height() / tree_size.height(),
+                )
+            } <span class="kw">else </span>{
+                tiny_skia::Transform::default()
+            };
+
+            resvg::Tree::from_usvg(tree).render(transform, <span class="kw-2">&amp;mut </span>image.as_mut());
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>([r, g, b, <span class="kw">_</span>]) = key.color {
                 <span class="comment">// Apply color filter
                 </span><span class="kw">for </span>pixel <span class="kw">in
                     </span>bytemuck::cast_slice_mut::&lt;u8, u32&gt;(image.data_mut())
                 {
-                    <span class="kw-2">*</span>pixel = tiny_skia::ColorU8::from_rgba(
-                        b,
-                        g,
-                        r,
-                        (<span class="kw-2">*</span>pixel &gt;&gt; <span class="number">24</span>) <span class="kw">as </span>u8,
-                    )
-                    .premultiply()
-                    .get();
+                    <span class="kw-2">*</span>pixel = bytemuck::cast(
+                        tiny_skia::ColorU8::from_rgba(
+                            b,
+                            g,
+                            r,
+                            (<span class="kw-2">*</span>pixel &gt;&gt; <span class="number">24</span>) <span class="kw">as </span>u8,
+                        )
+                        .premultiply(),
+                    );
                 }
             } <span class="kw">else </span>{
                 <span class="comment">// Swap R and B channels for `softbuffer` presentation

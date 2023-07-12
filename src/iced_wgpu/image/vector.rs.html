@@ -180,6 +180,18 @@
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::svg;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Color, Size};
 <span class="kw">use </span><span class="kw">crate</span>::image::atlas::{<span class="self">self</span>, Atlas};
@@ -296,16 +308,28 @@
                 // It would be cool to be able to smooth resize the `svg` example.
                 </span><span class="kw">let </span><span class="kw-2">mut </span>img = tiny_skia::Pixmap::new(width, height)<span class="question-mark">?</span>;
 
-                resvg::render(
-                    tree,
-                    <span class="kw">if </span>width &gt; height {
-                        resvg::FitTo::Width(width)
-                    } <span class="kw">else </span>{
-                        resvg::FitTo::Height(height)
-                    },
-                    tiny_skia::Transform::default(),
-                    img.as_mut(),
-                )<span class="question-mark">?</span>;
+                <span class="kw">let </span>tree_size = tree.size.to_int_size();
+
+                <span class="kw">let </span>target_size = <span class="kw">if </span>width &gt; height {
+                    tree_size.scale_to_width(width)
+                } <span class="kw">else </span>{
+                    tree_size.scale_to_height(height)
+                };
+
+                <span class="kw">let </span>transform = <span class="kw">if let </span><span class="prelude-val">Some</span>(target_size) = target_size {
+                    <span class="kw">let </span>tree_size = tree_size.to_size();
+                    <span class="kw">let </span>target_size = target_size.to_size();
+
+                    tiny_skia::Transform::from_scale(
+                        target_size.width() / tree_size.width(),
+                        target_size.height() / tree_size.height(),
+                    )
+                } <span class="kw">else </span>{
+                    tiny_skia::Transform::default()
+                };
+
+                resvg::Tree::from_usvg(tree)
+                    .render(transform, <span class="kw-2">&amp;mut </span>img.as_mut());
 
                 <span class="kw">let </span><span class="kw-2">mut </span>rgba = img.take();
 
