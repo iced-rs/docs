@@ -543,6 +543,25 @@
 <a href="#543" id="543">543</a>
 <a href="#544" id="544">544</a>
 <a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and show dropdown menus.
 </span><span class="kw">use </span><span class="kw">crate</span>::container::{<span class="self">self</span>, Container};
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
@@ -573,6 +592,7 @@
     options: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T],
     hovered_option: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;usize&gt;,
     on_selected: Box&lt;<span class="kw">dyn </span>FnMut(T) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;,
+    on_option_hovered: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">dyn </span>Fn(T) -&gt; Message&gt;,
     width: f32,
     padding: Padding,
     text_size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
@@ -597,12 +617,14 @@
         options: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T],
         hovered_option: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;usize&gt;,
         on_selected: <span class="kw">impl </span>FnMut(T) -&gt; Message + <span class="lifetime">&#39;a</span>,
+        on_option_hovered: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">dyn </span>Fn(T) -&gt; Message&gt;,
     ) -&gt; <span class="self">Self </span>{
         Menu {
             state,
             options,
             hovered_option,
             on_selected: Box::new(on_selected),
+            on_option_hovered,
             width: <span class="number">0.0</span>,
             padding: Padding::ZERO,
             text_size: <span class="prelude-val">None</span>,
@@ -732,6 +754,7 @@
             options,
             hovered_option,
             on_selected,
+            on_option_hovered,
             width,
             padding,
             font,
@@ -745,6 +768,7 @@
             options,
             hovered_option,
             on_selected,
+            on_option_hovered,
             font,
             text_size,
             text_line_height,
@@ -866,6 +890,7 @@
     options: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[T],
     hovered_option: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;usize&gt;,
     on_selected: Box&lt;<span class="kw">dyn </span>FnMut(T) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;,
+    on_option_hovered: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">dyn </span>Fn(T) -&gt; Message&gt;,
     padding: Padding,
     text_size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
     text_line_height: text::LineHeight,
@@ -950,8 +975,21 @@
                         <span class="self">self</span>.text_line_height.to_absolute(Pixels(text_size)),
                     ) + <span class="self">self</span>.padding.vertical();
 
-                    <span class="kw-2">*</span><span class="self">self</span>.hovered_option =
-                        <span class="prelude-val">Some</span>((cursor_position.y / option_height) <span class="kw">as </span>usize);
+                    <span class="kw">let </span>new_hovered_option =
+                        (cursor_position.y / option_height) <span class="kw">as </span>usize;
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(on_option_hovered) = <span class="self">self</span>.on_option_hovered {
+                        <span class="kw">if </span><span class="kw-2">*</span><span class="self">self</span>.hovered_option != <span class="prelude-val">Some</span>(new_hovered_option) {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(option) =
+                                <span class="self">self</span>.options.get(new_hovered_option)
+                            {
+                                shell
+                                    .publish(on_option_hovered(option.clone()));
+                            }
+                        }
+                    }
+
+                    <span class="kw-2">*</span><span class="self">self</span>.hovered_option = <span class="prelude-val">Some</span>(new_hovered_option);
                 }
             }
             Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
