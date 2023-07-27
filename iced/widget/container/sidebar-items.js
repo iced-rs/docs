@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["draw_background","layout"],"struct":["Appearance","Container","Id"],"trait":["StyleSheet"]};
+window.SIDEBAR_ITEMS = {"fn":["draw_background","layout","visible_bounds"],"struct":["Appearance","Container","Id"],"trait":["StyleSheet"]};

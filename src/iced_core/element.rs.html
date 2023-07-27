@@ -579,6 +579,11 @@
 <a href="#579" id="579">579</a>
 <a href="#580" id="580">580</a>
 <a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::layout;
 <span class="kw">use </span><span class="kw">crate</span>::mouse;
@@ -586,7 +591,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::widget;
 <span class="kw">use </span><span class="kw">crate</span>::widget::tree::{<span class="self">self</span>, Tree};
-<span class="kw">use crate</span>::{Clipboard, Color, Layout, Length, Rectangle, Shell, Widget};
+<span class="kw">use crate</span>::{
+    Clipboard, Color, Layout, Length, Rectangle, Shell, Vector, Widget,
+};
 
 <span class="kw">use </span>std::any::Any;
 <span class="kw">use </span>std::borrow::Borrow;
@@ -906,11 +913,12 @@
             <span class="kw">fn </span>container(
                 <span class="kw-2">&amp;mut </span><span class="self">self</span>,
                 id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>widget::Id&gt;,
+                bounds: Rectangle,
                 operate_on_children: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>FnMut(
                     <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::Operation&lt;T&gt;,
                 ),
             ) {
-                <span class="self">self</span>.operation.container(id, <span class="kw-2">&amp;mut </span>|operation| {
+                <span class="self">self</span>.operation.container(id, bounds, <span class="kw-2">&amp;mut </span>|operation| {
                     operate_on_children(<span class="kw-2">&amp;mut </span>MapOperation { operation });
                 });
             }
@@ -927,8 +935,10 @@
                 <span class="kw-2">&amp;mut </span><span class="self">self</span>,
                 state: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::operation::Scrollable,
                 id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>widget::Id&gt;,
+                bounds: Rectangle,
+                translation: Vector,
             ) {
-                <span class="self">self</span>.operation.scrollable(state, id);
+                <span class="self">self</span>.operation.scrollable(state, id, bounds, translation);
             }
 
             <span class="kw">fn </span>text_input(
