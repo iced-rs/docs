@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Family","Stretch","Weight"],"struct":["Font"]};
+window.SIDEBAR_ITEMS = {"enum":["Family","Stretch","Style","Weight"],"struct":["Font"]};
