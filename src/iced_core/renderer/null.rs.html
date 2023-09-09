@@ -84,9 +84,58 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::renderer::{<span class="self">self</span>, Renderer};
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::alignment;
+<span class="kw">use </span><span class="kw">crate</span>::renderer::{<span class="self">self</span>, Renderer};
 <span class="kw">use </span><span class="kw">crate</span>::text::{<span class="self">self</span>, Text};
-<span class="kw">use crate</span>::{Background, Font, Point, Rectangle, Size, Vector};
+<span class="kw">use crate</span>::{Background, Color, Font, Pixels, Point, Rectangle, Size, Vector};
 
 <span class="kw">use </span>std::borrow::Cow;
 
@@ -127,6 +176,7 @@
 
 <span class="kw">impl </span>text::Renderer <span class="kw">for </span>Null {
     <span class="kw">type </span>Font = Font;
+    <span class="kw">type </span>Paragraph = ();
 
     <span class="kw">const </span>ICON_FONT: Font = Font::DEFAULT;
     <span class="kw">const </span>CHECKMARK_ICON: char = <span class="string">&#39;0&#39;</span>;
@@ -136,38 +186,84 @@
         Font::default()
     }
 
-    <span class="kw">fn </span>default_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
-        <span class="number">16.0
-    </span>}
+    <span class="kw">fn </span>default_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pixels {
+        Pixels(<span class="number">16.0</span>)
+    }
 
     <span class="kw">fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _font: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {}
 
-    <span class="kw">fn </span>measure(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _content: <span class="kw-2">&amp;</span>str,
-        _size: f32,
-        _line_height: text::LineHeight,
-        _font: Font,
-        _bounds: Size,
-        _shaping: text::Shaping,
-    ) -&gt; Size {
-        Size::new(<span class="number">0.0</span>, <span class="number">20.0</span>)
+    <span class="kw">fn </span>create_paragraph(<span class="kw-2">&amp;</span><span class="self">self</span>, _text: Text&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>::Font&gt;) -&gt; <span class="self">Self</span>::Paragraph {
     }
 
-    <span class="kw">fn </span>hit_test(
+    <span class="kw">fn </span>resize_paragraph(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _contents: <span class="kw-2">&amp;</span>str,
-        _size: f32,
-        _line_height: text::LineHeight,
-        _font: <span class="self">Self</span>::Font,
-        _bounds: Size,
-        _shaping: text::Shaping,
-        _point: Point,
-        _nearest_only: bool,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;text::Hit&gt; {
+        _paragraph: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Paragraph,
+        _new_bounds: Size,
+    ) {
+    }
+
+    <span class="kw">fn </span>fill_paragraph(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _paragraph: <span class="kw-2">&amp;</span><span class="self">Self</span>::Paragraph,
+        _position: Point,
+        _color: Color,
+    ) {
+    }
+
+    <span class="kw">fn </span>fill_text(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _paragraph: Text&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>::Font&gt;,
+        _position: Point,
+        _color: Color,
+    ) {
+    }
+}
+
+<span class="kw">impl </span>text::Paragraph <span class="kw">for </span>() {
+    <span class="kw">type </span>Font = Font;
+
+    <span class="kw">fn </span>content(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="string">&quot;&quot;
+    </span>}
+
+    <span class="kw">fn </span>text_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pixels {
+        Pixels(<span class="number">16.0</span>)
+    }
+
+    <span class="kw">fn </span>font(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Font {
+        Font::default()
+    }
+
+    <span class="kw">fn </span>line_height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; text::LineHeight {
+        text::LineHeight::default()
+    }
+
+    <span class="kw">fn </span>shaping(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; text::Shaping {
+        text::Shaping::default()
+    }
+
+    <span class="kw">fn </span>horizontal_alignment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; alignment::Horizontal {
+        alignment::Horizontal::Left
+    }
+
+    <span class="kw">fn </span>vertical_alignment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; alignment::Vertical {
+        alignment::Vertical::Top
+    }
+
+    <span class="kw">fn </span>grapheme_position(<span class="kw-2">&amp;</span><span class="self">self</span>, _line: usize, _index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;Point&gt; {
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _text: Text&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>::Font&gt;) {}
+    <span class="kw">fn </span>bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size {
+        Size::ZERO
+    }
+
+    <span class="kw">fn </span>min_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size {
+        Size::ZERO
+    }
+
+    <span class="kw">fn </span>hit_test(<span class="kw-2">&amp;</span><span class="self">self</span>, _point: Point) -&gt; <span class="prelude-ty">Option</span>&lt;text::Hit&gt; {
+        <span class="prelude-val">None
+    </span>}
 }
 </code></pre></div></section></main></body></html>

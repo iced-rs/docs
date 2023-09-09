@@ -833,40 +833,15 @@
 <a href="#833" id="833">833</a>
 <a href="#834" id="834">834</a>
 <a href="#835" id="835">835</a>
-<a href="#836" id="836">836</a>
-<a href="#837" id="837">837</a>
-<a href="#838" id="838">838</a>
-<a href="#839" id="839">839</a>
-<a href="#840" id="840">840</a>
-<a href="#841" id="841">841</a>
-<a href="#842" id="842">842</a>
-<a href="#843" id="843">843</a>
-<a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a>
-<a href="#846" id="846">846</a>
-<a href="#847" id="847">847</a>
-<a href="#848" id="848">848</a>
-<a href="#849" id="849">849</a>
-<a href="#850" id="850">850</a>
-<a href="#851" id="851">851</a>
-<a href="#852" id="852">852</a>
-<a href="#853" id="853">853</a>
-<a href="#854" id="854">854</a>
-<a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::text;
-<span class="kw">use </span><span class="kw">crate</span>::core::Gradient;
-<span class="kw">use </span><span class="kw">crate</span>::core::{Background, Color, Font, Point, Rectangle, Size, Vector};
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{Background, Color, Gradient, Rectangle, Vector};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::backend;
+<span class="kw">use </span><span class="kw">crate</span>::graphics::text;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::{Damage, Viewport};
 <span class="kw">use </span><span class="kw">crate</span>::primitive::{<span class="self">self</span>, Primitive};
-<span class="kw">use </span><span class="kw">crate</span>::Settings;
 
 <span class="kw">use </span>std::borrow::Cow;
 
 <span class="kw">pub struct </span>Backend {
-    default_font: Font,
-    default_text_size: f32,
     text_pipeline: <span class="kw">crate</span>::text::Pipeline,
 
     <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
@@ -877,10 +852,8 @@
 }
 
 <span class="kw">impl </span>Backend {
-    <span class="kw">pub fn </span>new(settings: Settings) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            default_font: settings.default_font,
-            default_text_size: settings.default_text_size,
             text_pipeline: <span class="kw">crate</span>::text::Pipeline::new(),
 
             <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
@@ -1220,6 +1193,32 @@
                     }
                 }
             }
+            Primitive::Paragraph {
+                paragraph,
+                position,
+                color,
+            } =&gt; {
+                <span class="kw">let </span>physical_bounds =
+                    (Rectangle::new(<span class="kw-2">*</span>position, paragraph.min_bounds)
+                        + translation)
+                        * scale_factor;
+
+                <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
+                    <span class="kw">return</span>;
+                }
+
+                <span class="kw">let </span>clip_mask = (!physical_bounds.is_within(<span class="kw-2">&amp;</span>clip_bounds))
+                    .then_some(clip_mask <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">_</span>);
+
+                <span class="self">self</span>.text_pipeline.draw_paragraph(
+                    paragraph,
+                    <span class="kw-2">*</span>position + translation,
+                    <span class="kw-2">*</span>color,
+                    scale_factor,
+                    pixels,
+                    clip_mask,
+                );
+            }
             Primitive::Text {
                 content,
                 bounds,
@@ -1241,7 +1240,7 @@
                 <span class="kw">let </span>clip_mask = (!physical_bounds.is_within(<span class="kw-2">&amp;</span>clip_bounds))
                     .then_some(clip_mask <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">_</span>);
 
-                <span class="self">self</span>.text_pipeline.draw(
+                <span class="self">self</span>.text_pipeline.draw_cached(
                     content,
                     <span class="kw-2">*</span>bounds + translation,
                     <span class="kw-2">*</span>color,
@@ -1455,6 +1454,12 @@
     }
 }
 
+<span class="kw">impl </span>Default <span class="kw">for </span>Backend {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::new()
+    }
+}
+
 <span class="kw">fn </span>into_color(color: Color) -&gt; tiny_skia::Color {
     tiny_skia::Color::from_rgba(color.b, color.g, color.r, color.a)
         .expect(<span class="string">&quot;Convert color from iced to tiny_skia&quot;</span>)
@@ -1635,58 +1640,8 @@
 }
 
 <span class="kw">impl </span>backend::Text <span class="kw">for </span>Backend {
-    <span class="kw">const </span>ICON_FONT: Font = Font::with_name(<span class="string">&quot;Iced-Icons&quot;</span>);
-    <span class="kw">const </span>CHECKMARK_ICON: char = <span class="string">&#39;\u{f00c}&#39;</span>;
-    <span class="kw">const </span>ARROW_DOWN_ICON: char = <span class="string">&#39;\u{e800}&#39;</span>;
-
-    <span class="kw">fn </span>default_font(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Font {
-        <span class="self">self</span>.default_font
-    }
-
-    <span class="kw">fn </span>default_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
-        <span class="self">self</span>.default_text_size
-    }
-
-    <span class="kw">fn </span>measure(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        contents: <span class="kw-2">&amp;</span>str,
-        size: f32,
-        line_height: text::LineHeight,
-        font: Font,
-        bounds: Size,
-        shaping: text::Shaping,
-    ) -&gt; Size {
-        <span class="self">self</span>.text_pipeline.measure(
-            contents,
-            size,
-            line_height,
-            font,
-            bounds,
-            shaping,
-        )
-    }
-
-    <span class="kw">fn </span>hit_test(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        contents: <span class="kw-2">&amp;</span>str,
-        size: f32,
-        line_height: text::LineHeight,
-        font: Font,
-        bounds: Size,
-        shaping: text::Shaping,
-        point: Point,
-        nearest_only: bool,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;text::Hit&gt; {
-        <span class="self">self</span>.text_pipeline.hit_test(
-            contents,
-            size,
-            line_height,
-            font,
-            bounds,
-            shaping,
-            point,
-            nearest_only,
-        )
+    <span class="kw">fn </span>font_system(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>text::FontSystem {
+        <span class="self">self</span>.text_pipeline.font_system()
     }
 
     <span class="kw">fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, font: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {
@@ -1696,7 +1651,10 @@
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
 </span><span class="kw">impl </span>backend::Image <span class="kw">for </span>Backend {
-    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::core::image::Handle) -&gt; Size&lt;u32&gt; {
+    <span class="kw">fn </span>dimensions(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::core::image::Handle,
+    ) -&gt; <span class="kw">crate</span>::core::Size&lt;u32&gt; {
         <span class="self">self</span>.raster_pipeline.dimensions(handle)
     }
 }
@@ -1706,7 +1664,7 @@
     <span class="kw">fn </span>viewport_dimensions(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::core::svg::Handle,
-    ) -&gt; Size&lt;u32&gt; {
+    ) -&gt; <span class="kw">crate</span>::core::Size&lt;u32&gt; {
         <span class="self">self</span>.vector_pipeline.viewport_dimensions(handle)
     }
 }

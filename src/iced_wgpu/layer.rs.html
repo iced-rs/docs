@@ -281,6 +281,19 @@
 <a href="#281" id="281">281</a>
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Organize rendering primitives into a flattened list of layers.
 </span><span class="kw">mod </span>image;
 <span class="kw">mod </span>text;
@@ -293,7 +306,7 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::core;
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
-<span class="kw">use </span><span class="kw">crate</span>::core::{Color, Font, Point, Rectangle, Size, Vector};
+<span class="kw">use </span><span class="kw">crate</span>::core::{Color, Font, Pixels, Point, Rectangle, Size, Vector};
 <span class="kw">use </span><span class="kw">crate</span>::graphics;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::Viewport;
@@ -339,14 +352,14 @@
             Layer::new(Rectangle::with_size(viewport.logical_size()));
 
         <span class="kw">for </span>(i, line) <span class="kw">in </span>lines.iter().enumerate() {
-            <span class="kw">let </span>text = Text {
+            <span class="kw">let </span>text = text::Cached {
                 content: line.as_ref(),
                 bounds: Rectangle::new(
                     Point::new(<span class="number">11.0</span>, <span class="number">11.0 </span>+ <span class="number">25.0 </span>* i <span class="kw">as </span>f32),
                     Size::INFINITY,
                 ),
                 color: Color::new(<span class="number">0.9</span>, <span class="number">0.9</span>, <span class="number">0.9</span>, <span class="number">1.0</span>),
-                size: <span class="number">20.0</span>,
+                size: Pixels(<span class="number">20.0</span>),
                 line_height: core::text::LineHeight::default(),
                 font: Font::MONOSPACE,
                 horizontal_alignment: alignment::Horizontal::Left,
@@ -354,13 +367,13 @@
                 shaping: core::text::Shaping::Basic,
             };
 
-            overlay.text.push(text);
+            overlay.text.push(Text::Cached(text.clone()));
 
-            overlay.text.push(Text {
+            overlay.text.push(Text::Cached(text::Cached {
                 bounds: text.bounds + Vector::new(-<span class="number">1.0</span>, -<span class="number">1.0</span>),
                 color: Color::BLACK,
                 ..text
-            });
+            }));
         }
 
         overlay
@@ -396,6 +409,19 @@
         current_layer: usize,
     ) {
         <span class="kw">match </span>primitive {
+            Primitive::Paragraph {
+                paragraph,
+                position,
+                color,
+            } =&gt; {
+                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
+
+                layer.text.push(Text::Managed {
+                    paragraph: paragraph.clone(),
+                    position: <span class="kw-2">*</span>position + translation,
+                    color: <span class="kw-2">*</span>color,
+                });
+            }
             Primitive::Text {
                 content,
                 bounds,
@@ -409,7 +435,7 @@
             } =&gt; {
                 <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
 
-                layer.text.push(Text {
+                layer.text.push(Text::Cached(text::Cached {
                     content,
                     bounds: <span class="kw-2">*</span>bounds + translation,
                     size: <span class="kw-2">*</span>size,
@@ -419,7 +445,7 @@
                     horizontal_alignment: <span class="kw-2">*</span>horizontal_alignment,
                     vertical_alignment: <span class="kw-2">*</span>vertical_alignment,
                     shaping: <span class="kw-2">*</span>shaping,
-                });
+                }));
             }
             Primitive::Quad {
                 bounds,

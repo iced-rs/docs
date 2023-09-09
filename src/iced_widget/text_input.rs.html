@@ -1439,6 +1439,15 @@
 <a href="#1439" id="1439">1439</a>
 <a href="#1440" id="1440">1440</a>
 <a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -1458,7 +1467,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse::{<span class="self">self</span>, click};
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
-<span class="kw">use </span><span class="kw">crate</span>::core::text::{<span class="self">self</span>, Text};
+<span class="kw">use </span><span class="kw">crate</span>::core::text::{<span class="self">self</span>, Paragraph <span class="kw">as _</span>, Text};
 <span class="kw">use </span><span class="kw">crate</span>::core::time::{Duration, Instant};
 <span class="kw">use </span><span class="kw">crate</span>::core::touch;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget;
@@ -1508,7 +1517,7 @@
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
     width: Length,
     padding: Padding,
-    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
     line_height: text::LineHeight,
     on_input: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(String) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
     on_paste: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(String) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;&gt;,
@@ -1619,7 +1628,7 @@
 
     <span class="doccomment">/// Sets the text size of the [`TextInput`].
     </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.size = <span class="prelude-val">Some</span>(size.into().<span class="number">0</span>);
+        <span class="self">self</span>.size = <span class="prelude-val">Some</span>(size.into());
         <span class="self">self
     </span>}
 
@@ -1659,12 +1668,8 @@
             theme,
             layout,
             cursor,
-            tree.state.downcast_ref::&lt;State&gt;(),
+            tree.state.downcast_ref::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
             value.unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.placeholder,
-            <span class="self">self</span>.size,
-            <span class="self">self</span>.line_height,
-            <span class="self">self</span>.font,
             <span class="self">self</span>.on_input.is_none(),
             <span class="self">self</span>.is_secure,
             <span class="self">self</span>.icon.as_ref(),
@@ -1681,15 +1686,15 @@
     Renderer::Theme: StyleSheet,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
-        tree::Tag::of::&lt;State&gt;()
+        tree::Tag::of::&lt;State&lt;Renderer::Paragraph&gt;&gt;()
     }
 
     <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
-        tree::State::new(State::new())
+        tree::State::new(State::&lt;Renderer::Paragraph&gt;::new())
     }
 
     <span class="kw">fn </span>diff(<span class="kw-2">&amp;</span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree) {
-        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&gt;();
+        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
 
         <span class="comment">// Unfocus text input if it becomes disabled
         </span><span class="kw">if </span><span class="self">self</span>.on_input.is_none() {
@@ -1710,6 +1715,7 @@
 
     <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
@@ -1719,8 +1725,13 @@
             <span class="self">self</span>.width,
             <span class="self">self</span>.padding,
             <span class="self">self</span>.size,
+            <span class="self">self</span>.font,
             <span class="self">self</span>.line_height,
             <span class="self">self</span>.icon.as_ref(),
+            tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.value,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.placeholder,
+            <span class="self">self</span>.is_secure,
         )
     }
 
@@ -1731,7 +1742,7 @@
         _renderer: <span class="kw-2">&amp;</span>Renderer,
         operation: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Operation&lt;Message&gt;,
     ) {
-        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&gt;();
+        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
 
         operation.focusable(state, <span class="self">self</span>.id.as_ref().map(|id| <span class="kw-2">&amp;</span>id.<span class="number">0</span>));
         operation.text_input(state, <span class="self">self</span>.id.as_ref().map(|id| <span class="kw-2">&amp;</span>id.<span class="number">0</span>));
@@ -1763,7 +1774,7 @@
             <span class="self">self</span>.on_input.as_deref(),
             <span class="self">self</span>.on_paste.as_deref(),
             <span class="kw-2">&amp;</span><span class="self">self</span>.on_submit,
-            || tree.state.downcast_mut::&lt;State&gt;(),
+            || tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
         )
     }
 
@@ -1782,12 +1793,8 @@
             theme,
             layout,
             cursor,
-            tree.state.downcast_ref::&lt;State&gt;(),
+            tree.state.downcast_ref::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
             <span class="kw-2">&amp;</span><span class="self">self</span>.value,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.placeholder,
-            <span class="self">self</span>.size,
-            <span class="self">self</span>.line_height,
-            <span class="self">self</span>.font,
             <span class="self">self</span>.on_input.is_none(),
             <span class="self">self</span>.is_secure,
             <span class="self">self</span>.icon.as_ref(),
@@ -1829,7 +1836,7 @@
     <span class="doccomment">/// The unicode code point that will be used as the icon.
     </span><span class="kw">pub </span>code_point: char,
     <span class="doccomment">/// The font size of the content.
-    </span><span class="kw">pub </span>size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    </span><span class="kw">pub </span>size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
     <span class="doccomment">/// The spacing between the [`Icon`] and the text in a [`TextInput`].
     </span><span class="kw">pub </span>spacing: f32,
     <span class="doccomment">/// The side of a [`TextInput`] where to display the [`Icon`].
@@ -1906,29 +1913,68 @@
     limits: <span class="kw-2">&amp;</span>layout::Limits,
     width: Length,
     padding: Padding,
-    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
+    font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
     line_height: text::LineHeight,
     icon: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Icon&lt;Renderer::Font&gt;&gt;,
+    state: <span class="kw-2">&amp;mut </span>State&lt;Renderer::Paragraph&gt;,
+    value: <span class="kw-2">&amp;</span>Value,
+    placeholder: <span class="kw-2">&amp;</span>str,
+    is_secure: bool,
 ) -&gt; layout::Node
 <span class="kw">where
     </span>Renderer: text::Renderer,
 {
+    <span class="kw">let </span>font = font.unwrap_or_else(|| renderer.default_font());
     <span class="kw">let </span>text_size = size.unwrap_or_else(|| renderer.default_size());
+
     <span class="kw">let </span>padding = padding.fit(Size::ZERO, limits.max());
     <span class="kw">let </span>limits = limits
         .width(width)
         .pad(padding)
-        .height(line_height.to_absolute(Pixels(text_size)));
+        .height(line_height.to_absolute(text_size));
 
     <span class="kw">let </span>text_bounds = limits.resolve(Size::ZERO);
 
+    <span class="kw">let </span>placeholder_text = Text {
+        font,
+        line_height,
+        content: placeholder,
+        bounds: Size::new(f32::INFINITY, text_bounds.height),
+        size: text_size,
+        horizontal_alignment: alignment::Horizontal::Left,
+        vertical_alignment: alignment::Vertical::Center,
+        shaping: text::Shaping::Advanced,
+    };
+
+    renderer.update_paragraph(<span class="kw-2">&amp;mut </span>state.placeholder, placeholder_text);
+
+    <span class="kw">let </span>secure_value = is_secure.then(|| value.secure());
+    <span class="kw">let </span>value = secure_value.as_ref().unwrap_or(value);
+
+    renderer.update_paragraph(
+        <span class="kw-2">&amp;mut </span>state.value,
+        Text {
+            content: <span class="kw-2">&amp;</span>value.to_string(),
+            ..placeholder_text
+        },
+    );
+
     <span class="kw">if let </span><span class="prelude-val">Some</span>(icon) = icon {
-        <span class="kw">let </span>icon_width = renderer.measure_width(
-            <span class="kw-2">&amp;</span>icon.code_point.to_string(),
-            icon.size.unwrap_or_else(|| renderer.default_size()),
-            icon.font,
-            text::Shaping::Advanced,
-        );
+        <span class="kw">let </span>icon_text = Text {
+            line_height,
+            content: <span class="kw-2">&amp;</span>icon.code_point.to_string(),
+            font: icon.font,
+            size: icon.size.unwrap_or_else(|| renderer.default_size()),
+            bounds: Size::new(f32::INFINITY, text_bounds.height),
+            horizontal_alignment: alignment::Horizontal::Center,
+            vertical_alignment: alignment::Vertical::Center,
+            shaping: text::Shaping::Advanced,
+        };
+
+        renderer.update_paragraph(<span class="kw-2">&amp;mut </span>state.icon, icon_text);
+
+        <span class="kw">let </span>icon_width = state.icon.min_width();
 
         <span class="kw">let </span><span class="kw-2">mut </span>text_node = layout::Node::new(
             text_bounds - Size::new(icon_width + icon.spacing, <span class="number">0.0</span>),
@@ -1978,19 +2024,31 @@
     clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
     shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">&#39;_</span>, Message&gt;,
     value: <span class="kw-2">&amp;mut </span>Value,
-    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
     line_height: text::LineHeight,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
     is_secure: bool,
     on_input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(String) -&gt; Message&gt;,
     on_paste: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(String) -&gt; Message&gt;,
     on_submit: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Message&gt;,
-    state: <span class="kw">impl </span>FnOnce() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>State,
+    state: <span class="kw">impl </span>FnOnce() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>State&lt;Renderer::Paragraph&gt;,
 ) -&gt; event::Status
 <span class="kw">where
     </span>Message: Clone,
     Renderer: text::Renderer,
 {
+    <span class="kw">let </span>update_cache = |state, value| {
+        replace_paragraph(
+            renderer,
+            state,
+            layout,
+            value,
+            font,
+            size,
+            line_height,
+        )
+    };
+
     <span class="kw">match </span>event {
         Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
         | Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
@@ -2033,11 +2091,7 @@
                             };
 
                             find_cursor_position(
-                                renderer,
                                 text_layout.bounds(),
-                                font,
-                                size,
-                                line_height,
                                 <span class="kw-2">&amp;</span>value,
                                 state,
                                 target,
@@ -2062,11 +2116,7 @@
                             state.cursor.select_all(value);
                         } <span class="kw">else </span>{
                             <span class="kw">let </span>position = find_cursor_position(
-                                renderer,
                                 text_layout.bounds(),
-                                font,
-                                size,
-                                line_height,
                                 value,
                                 state,
                                 target,
@@ -2112,11 +2162,7 @@
                 };
 
                 <span class="kw">let </span>position = find_cursor_position(
-                    renderer,
                     text_layout.bounds(),
-                    font,
-                    size,
-                    line_height,
                     <span class="kw-2">&amp;</span>value,
                     state,
                     target,
@@ -2150,6 +2196,8 @@
                     shell.publish(message);
 
                     focus.updated_at = Instant::now();
+
+                    update_cache(state, value);
 
                     <span class="kw">return </span>event::Status::Captured;
                 }
@@ -2190,6 +2238,8 @@
 
                         <span class="kw">let </span>message = (on_input)(editor.contents());
                         shell.publish(message);
+
+                        update_cache(state, value);
                     }
                     keyboard::KeyCode::Delete =&gt; {
                         <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
@@ -2210,6 +2260,8 @@
 
                         <span class="kw">let </span>message = (on_input)(editor.contents());
                         shell.publish(message);
+
+                        update_cache(state, value);
                     }
                     keyboard::KeyCode::Left =&gt; {
                         <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
@@ -2285,6 +2337,8 @@
 
                         <span class="kw">let </span>message = (on_input)(editor.contents());
                         shell.publish(message);
+
+                        update_cache(state, value);
                     }
                     keyboard::KeyCode::V =&gt; {
                         <span class="kw">if </span>state.keyboard_modifiers.command()
@@ -2317,6 +2371,8 @@
                             shell.publish(message);
 
                             state.is_pasting = <span class="prelude-val">Some</span>(content);
+
+                            update_cache(state, value);
                         } <span class="kw">else </span>{
                             state.is_pasting = <span class="prelude-val">None</span>;
                         }
@@ -2420,12 +2476,8 @@
     theme: <span class="kw-2">&amp;</span>Renderer::Theme,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     cursor: mouse::Cursor,
-    state: <span class="kw-2">&amp;</span>State,
+    state: <span class="kw-2">&amp;</span>State&lt;Renderer::Paragraph&gt;,
     value: <span class="kw-2">&amp;</span>Value,
-    placeholder: <span class="kw-2">&amp;</span>str,
-    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
-    line_height: text::LineHeight,
-    font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
     is_disabled: bool,
     is_secure: bool,
     icon: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Icon&lt;Renderer::Font&gt;&gt;,
@@ -2464,28 +2516,17 @@
         appearance.background,
     );
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(icon) = icon {
+    <span class="kw">if </span>icon.is_some() {
         <span class="kw">let </span>icon_layout = children_layout.next().unwrap();
 
-        renderer.fill_text(Text {
-            content: <span class="kw-2">&amp;</span>icon.code_point.to_string(),
-            size: icon.size.unwrap_or_else(|| renderer.default_size()),
-            line_height: text::LineHeight::default(),
-            font: icon.font,
-            color: appearance.icon_color,
-            bounds: Rectangle {
-                y: text_bounds.center_y(),
-                ..icon_layout.bounds()
-            },
-            horizontal_alignment: alignment::Horizontal::Left,
-            vertical_alignment: alignment::Vertical::Center,
-            shaping: text::Shaping::Advanced,
-        });
+        renderer.fill_paragraph(
+            <span class="kw-2">&amp;</span>state.icon,
+            icon_layout.bounds().center(),
+            appearance.icon_color,
+        );
     }
 
     <span class="kw">let </span>text = value.to_string();
-    <span class="kw">let </span>font = font.unwrap_or_else(|| renderer.default_font());
-    <span class="kw">let </span>size = size.unwrap_or_else(|| renderer.default_size());
 
     <span class="kw">let </span>(cursor, offset) = <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = state
         .is_focused
@@ -2496,12 +2537,9 @@
             cursor::State::Index(position) =&gt; {
                 <span class="kw">let </span>(text_value_width, offset) =
                     measure_cursor_and_scroll_offset(
-                        renderer,
+                        <span class="kw-2">&amp;</span>state.value,
                         text_bounds,
-                        value,
-                        size,
                         position,
-                        font,
                     );
 
                 <span class="kw">let </span>is_cursor_visible = ((focus.now - focus.updated_at)
@@ -2537,22 +2575,16 @@
 
                 <span class="kw">let </span>(left_position, left_offset) =
                     measure_cursor_and_scroll_offset(
-                        renderer,
+                        <span class="kw-2">&amp;</span>state.value,
                         text_bounds,
-                        value,
-                        size,
                         left,
-                        font,
                     );
 
                 <span class="kw">let </span>(right_position, right_offset) =
                     measure_cursor_and_scroll_offset(
-                        renderer,
+                        <span class="kw-2">&amp;</span>state.value,
                         text_bounds,
-                        value,
-                        size,
                         right,
-                        font,
                     );
 
                 <span class="kw">let </span>width = right_position - left_position;
@@ -2584,12 +2616,7 @@
         (<span class="prelude-val">None</span>, <span class="number">0.0</span>)
     };
 
-    <span class="kw">let </span>text_width = renderer.measure_width(
-        <span class="kw">if </span>text.is_empty() { placeholder } <span class="kw">else </span>{ <span class="kw-2">&amp;</span>text },
-        size,
-        font,
-        text::Shaping::Advanced,
-    );
+    <span class="kw">let </span>text_width = state.value.min_width();
 
     <span class="kw">let </span>render = |renderer: <span class="kw-2">&amp;mut </span>Renderer| {
         <span class="kw">if let </span><span class="prelude-val">Some</span>((cursor, color)) = cursor {
@@ -2598,27 +2625,21 @@
             renderer.with_translation(Vector::ZERO, |<span class="kw">_</span>| {});
         }
 
-        renderer.fill_text(Text {
-            content: <span class="kw">if </span>text.is_empty() { placeholder } <span class="kw">else </span>{ <span class="kw-2">&amp;</span>text },
-            color: <span class="kw">if </span>text.is_empty() {
+        renderer.fill_paragraph(
+            <span class="kw">if </span>text.is_empty() {
+                <span class="kw-2">&amp;</span>state.placeholder
+            } <span class="kw">else </span>{
+                <span class="kw-2">&amp;</span>state.value
+            },
+            Point::new(text_bounds.x, text_bounds.center_y()),
+            <span class="kw">if </span>text.is_empty() {
                 theme.placeholder_color(style)
             } <span class="kw">else if </span>is_disabled {
                 theme.disabled_color(style)
             } <span class="kw">else </span>{
                 theme.value_color(style)
             },
-            font,
-            bounds: Rectangle {
-                y: text_bounds.center_y(),
-                width: f32::INFINITY,
-                ..text_bounds
-            },
-            size,
-            line_height,
-            horizontal_alignment: alignment::Horizontal::Left,
-            vertical_alignment: alignment::Vertical::Center,
-            shaping: text::Shaping::Advanced,
-        });
+        );
     };
 
     <span class="kw">if </span>text_width &gt; text_bounds.width {
@@ -2649,7 +2670,10 @@
 
 <span class="doccomment">/// The state of a [`TextInput`].
 </span><span class="attr">#[derive(Debug, Default, Clone)]
-</span><span class="kw">pub struct </span>State {
+</span><span class="kw">pub struct </span>State&lt;P: text::Paragraph&gt; {
+    value: P,
+    placeholder: P,
+    icon: P,
     is_focused: <span class="prelude-ty">Option</span>&lt;Focus&gt;,
     is_dragging: bool,
     is_pasting: <span class="prelude-ty">Option</span>&lt;Value&gt;,
@@ -2666,7 +2690,7 @@
     is_window_focused: bool,
 }
 
-<span class="kw">impl </span>State {
+<span class="kw">impl</span>&lt;P: text::Paragraph&gt; State&lt;P&gt; {
     <span class="doccomment">/// Creates a new [`State`], representing an unfocused [`TextInput`].
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default()
@@ -2675,6 +2699,9 @@
     <span class="doccomment">/// Creates a new [`State`], representing a focused [`TextInput`].
     </span><span class="kw">pub fn </span>focused() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
+            value: P::default(),
+            placeholder: P::default(),
+            icon: P::default(),
             is_focused: <span class="prelude-val">None</span>,
             is_dragging: <span class="bool-val">false</span>,
             is_pasting: <span class="prelude-val">None</span>,
@@ -2733,7 +2760,7 @@
     }
 }
 
-<span class="kw">impl </span>operation::Focusable <span class="kw">for </span>State {
+<span class="kw">impl</span>&lt;P: text::Paragraph&gt; operation::Focusable <span class="kw">for </span>State&lt;P&gt; {
     <span class="kw">fn </span>is_focused(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         State::is_focused(<span class="self">self</span>)
     }
@@ -2747,7 +2774,7 @@
     }
 }
 
-<span class="kw">impl </span>operation::TextInput <span class="kw">for </span>State {
+<span class="kw">impl</span>&lt;P: text::Paragraph&gt; operation::TextInput <span class="kw">for </span>State&lt;P&gt; {
     <span class="kw">fn </span>move_cursor_to_front(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         State::move_cursor_to_front(<span class="self">self</span>)
     }
@@ -2777,17 +2804,11 @@
     }
 }
 
-<span class="kw">fn </span>offset&lt;Renderer&gt;(
-    renderer: <span class="kw-2">&amp;</span>Renderer,
+<span class="kw">fn </span>offset&lt;P: text::Paragraph&gt;(
     text_bounds: Rectangle,
-    font: Renderer::Font,
-    size: f32,
     value: <span class="kw-2">&amp;</span>Value,
-    state: <span class="kw-2">&amp;</span>State,
-) -&gt; f32
-<span class="kw">where
-    </span>Renderer: text::Renderer,
-{
+    state: <span class="kw-2">&amp;</span>State&lt;P&gt;,
+) -&gt; f32 {
     <span class="kw">if </span>state.is_focused() {
         <span class="kw">let </span>cursor = state.cursor();
 
@@ -2797,12 +2818,9 @@
         };
 
         <span class="kw">let </span>(<span class="kw">_</span>, offset) = measure_cursor_and_scroll_offset(
-            renderer,
+            <span class="kw-2">&amp;</span>state.value,
             text_bounds,
-            value,
-            size,
             focus_position,
-            font,
         );
 
         offset
@@ -2811,63 +2829,34 @@
     </span>}
 }
 
-<span class="kw">fn </span>measure_cursor_and_scroll_offset&lt;Renderer&gt;(
-    renderer: <span class="kw-2">&amp;</span>Renderer,
+<span class="kw">fn </span>measure_cursor_and_scroll_offset(
+    paragraph: <span class="kw-2">&amp;</span><span class="kw">impl </span>text::Paragraph,
     text_bounds: Rectangle,
-    value: <span class="kw-2">&amp;</span>Value,
-    size: f32,
     cursor_index: usize,
-    font: Renderer::Font,
-) -&gt; (f32, f32)
-<span class="kw">where
-    </span>Renderer: text::Renderer,
-{
-    <span class="kw">let </span>text_before_cursor = value.until(cursor_index).to_string();
+) -&gt; (f32, f32) {
+    <span class="kw">let </span>grapheme_position = paragraph
+        .grapheme_position(<span class="number">0</span>, cursor_index)
+        .unwrap_or(Point::ORIGIN);
 
-    <span class="kw">let </span>text_value_width = renderer.measure_width(
-        <span class="kw-2">&amp;</span>text_before_cursor,
-        size,
-        font,
-        text::Shaping::Advanced,
-    );
+    <span class="kw">let </span>offset = ((grapheme_position.x + <span class="number">5.0</span>) - text_bounds.width).max(<span class="number">0.0</span>);
 
-    <span class="kw">let </span>offset = ((text_value_width + <span class="number">5.0</span>) - text_bounds.width).max(<span class="number">0.0</span>);
-
-    (text_value_width, offset)
+    (grapheme_position.x, offset)
 }
 
 <span class="doccomment">/// Computes the position of the text cursor at the given X coordinate of
 /// a [`TextInput`].
-</span><span class="kw">fn </span>find_cursor_position&lt;Renderer&gt;(
-    renderer: <span class="kw-2">&amp;</span>Renderer,
+</span><span class="kw">fn </span>find_cursor_position&lt;P: text::Paragraph&gt;(
     text_bounds: Rectangle,
-    font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
-    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
-    line_height: text::LineHeight,
     value: <span class="kw-2">&amp;</span>Value,
-    state: <span class="kw-2">&amp;</span>State,
+    state: <span class="kw-2">&amp;</span>State&lt;P&gt;,
     x: f32,
-) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;
-<span class="kw">where
-    </span>Renderer: text::Renderer,
-{
-    <span class="kw">let </span>font = font.unwrap_or_else(|| renderer.default_font());
-    <span class="kw">let </span>size = size.unwrap_or_else(|| renderer.default_size());
-
-    <span class="kw">let </span>offset = offset(renderer, text_bounds, font, size, value, state);
+) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+    <span class="kw">let </span>offset = offset(text_bounds, value, state);
     <span class="kw">let </span>value = value.to_string();
 
-    <span class="kw">let </span>char_offset = renderer
-        .hit_test(
-            <span class="kw-2">&amp;</span>value,
-            size,
-            line_height,
-            font,
-            Size::INFINITY,
-            text::Shaping::Advanced,
-            Point::new(x + offset, text_bounds.height / <span class="number">2.0</span>),
-            <span class="bool-val">true</span>,
-        )
+    <span class="kw">let </span>char_offset = state
+        .value
+        .hit_test(Point::new(x + offset, text_bounds.height / <span class="number">2.0</span>))
         .map(text::Hit::cursor)<span class="question-mark">?</span>;
 
     <span class="prelude-val">Some</span>(
@@ -2877,6 +2866,35 @@
         )
         .count(),
     )
+}
+
+<span class="kw">fn </span>replace_paragraph&lt;Renderer&gt;(
+    renderer: <span class="kw-2">&amp;</span>Renderer,
+    state: <span class="kw-2">&amp;mut </span>State&lt;Renderer::Paragraph&gt;,
+    layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
+    value: <span class="kw-2">&amp;</span>Value,
+    font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
+    text_size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
+    line_height: text::LineHeight,
+) <span class="kw">where
+    </span>Renderer: text::Renderer,
+{
+    <span class="kw">let </span>font = font.unwrap_or_else(|| renderer.default_font());
+    <span class="kw">let </span>text_size = text_size.unwrap_or_else(|| renderer.default_size());
+
+    <span class="kw">let </span><span class="kw-2">mut </span>children_layout = layout.children();
+    <span class="kw">let </span>text_bounds = children_layout.next().unwrap().bounds();
+
+    state.value = renderer.create_paragraph(Text {
+        font,
+        line_height,
+        content: <span class="kw-2">&amp;</span>value.to_string(),
+        bounds: Size::new(f32::INFINITY, text_bounds.height),
+        size: text_size,
+        horizontal_alignment: alignment::Horizontal::Left,
+        vertical_alignment: alignment::Vertical::Top,
+        shaping: text::Shaping::Advanced,
+    });
 }
 
 <span class="kw">const </span>CURSOR_BLINK_INTERVAL_MILLIS: u128 = <span class="number">500</span>;

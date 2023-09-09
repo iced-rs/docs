@@ -380,6 +380,15 @@
 <a href="#380" id="380">380</a>
 <a href="#381" id="381">381</a>
 <a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -532,18 +541,23 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="kw-2">&amp;</span><span class="self">self</span>.title_bar {
             <span class="kw">let </span>max_size = limits.max();
 
-            <span class="kw">let </span>title_bar_layout = title_bar
-                .layout(renderer, <span class="kw-2">&amp;</span>layout::Limits::new(Size::ZERO, max_size));
+            <span class="kw">let </span>title_bar_layout = title_bar.layout(
+                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">1</span>],
+                renderer,
+                <span class="kw-2">&amp;</span>layout::Limits::new(Size::ZERO, max_size),
+            );
 
             <span class="kw">let </span>title_bar_size = title_bar_layout.size();
 
             <span class="kw">let </span><span class="kw-2">mut </span>body_layout = <span class="self">self</span>.body.as_widget().layout(
+                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
                 renderer,
                 <span class="kw-2">&amp;</span>layout::Limits::new(
                     Size::ZERO,
@@ -561,7 +575,11 @@
                 <span class="macro">vec!</span>[title_bar_layout, body_layout],
             )
         } <span class="kw">else </span>{
-            <span class="self">self</span>.body.as_widget().layout(renderer, limits)
+            <span class="self">self</span>.body.as_widget().layout(
+                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+                renderer,
+                limits,
+            )
         }
     }
 

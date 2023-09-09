@@ -179,6 +179,10 @@
 <a href="#179" id="179">179</a>
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Distribute elements using a flex-based layout.
 </span><span class="comment">// This code is heavily inspired by the [`druid`] codebase.
 //
@@ -200,6 +204,7 @@
 </span><span class="kw">use </span><span class="kw">crate</span>::Element;
 
 <span class="kw">use </span><span class="kw">crate</span>::layout::{Limits, Node};
+<span class="kw">use </span><span class="kw">crate</span>::widget;
 <span class="kw">use crate</span>::{Alignment, Padding, Point, Size};
 
 <span class="doccomment">/// The main axis of a flex layout.
@@ -247,6 +252,7 @@
     spacing: f32,
     align_items: Alignment,
     items: <span class="kw-2">&amp;</span>[Element&lt;<span class="lifetime">&#39;_</span>, Message, Renderer&gt;],
+    trees: <span class="kw-2">&amp;mut </span>[widget::Tree],
 ) -&gt; Node
 <span class="kw">where
     </span>Renderer: <span class="kw">crate</span>::Renderer,
@@ -262,7 +268,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>nodes: Vec&lt;Node&gt; = Vec::with_capacity(items.len());
     nodes.resize(items.len(), Node::default());
 
-    <span class="kw">for </span>(i, child) <span class="kw">in </span>items.iter().enumerate() {
+    <span class="kw">for </span>(i, (child, tree)) <span class="kw">in </span>items.iter().zip(trees.iter_mut()).enumerate() {
         <span class="kw">let </span>fill_factor = <span class="kw">match </span>axis {
             Axis::Horizontal =&gt; child.as_widget().width(),
             Axis::Vertical =&gt; child.as_widget().height(),
@@ -275,7 +281,8 @@
             <span class="kw">let </span>child_limits =
                 Limits::new(Size::ZERO, Size::new(max_width, max_height));
 
-            <span class="kw">let </span>layout = child.as_widget().layout(renderer, <span class="kw-2">&amp;</span>child_limits);
+            <span class="kw">let </span>layout =
+                child.as_widget().layout(tree, renderer, <span class="kw-2">&amp;</span>child_limits);
             <span class="kw">let </span>size = layout.size();
 
             available -= axis.main(size);
@@ -289,7 +296,7 @@
 
     <span class="kw">let </span>remaining = available.max(<span class="number">0.0</span>);
 
-    <span class="kw">for </span>(i, child) <span class="kw">in </span>items.iter().enumerate() {
+    <span class="kw">for </span>(i, (child, tree)) <span class="kw">in </span>items.iter().zip(trees).enumerate() {
         <span class="kw">let </span>fill_factor = <span class="kw">match </span>axis {
             Axis::Horizontal =&gt; child.as_widget().width(),
             Axis::Vertical =&gt; child.as_widget().height(),
@@ -314,7 +321,8 @@
                 Size::new(max_width, max_height),
             );
 
-            <span class="kw">let </span>layout = child.as_widget().layout(renderer, <span class="kw-2">&amp;</span>child_limits);
+            <span class="kw">let </span>layout =
+                child.as_widget().layout(tree, renderer, <span class="kw-2">&amp;</span>child_limits);
             cross = cross.max(axis.cross(layout.size()));
 
             nodes[i] = layout;

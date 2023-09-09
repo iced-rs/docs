@@ -747,23 +747,6 @@
 <a href="#747" id="747">747</a>
 <a href="#748" id="748">748</a>
 <a href="#749" id="749">749</a>
-<a href="#750" id="750">750</a>
-<a href="#751" id="751">751</a>
-<a href="#752" id="752">752</a>
-<a href="#753" id="753">753</a>
-<a href="#754" id="754">754</a>
-<a href="#755" id="755">755</a>
-<a href="#756" id="756">756</a>
-<a href="#757" id="757">757</a>
-<a href="#758" id="758">758</a>
-<a href="#759" id="759">759</a>
-<a href="#760" id="760">760</a>
-<a href="#761" id="761">761</a>
-<a href="#762" id="762">762</a>
-<a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a>
-<a href="#766" id="766">766</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of searchable and selectable options.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -912,11 +895,6 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Returns whether the [`ComboBox`] is currently focused or not.
-    </span><span class="kw">pub fn </span>is_focused(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="self">self</span>.state.is_focused()
-    }
-
     <span class="doccomment">/// Sets the text sixe of the [`ComboBox`].
     </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: f32) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.text_input = <span class="self">self</span>.text_input.size(size);
@@ -947,7 +925,6 @@
 
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">struct </span>Inner&lt;T&gt; {
-    text_input: text_input::State,
     value: String,
     options: Vec&lt;T&gt;,
     option_matchers: Vec&lt;String&gt;,
@@ -984,7 +961,6 @@
         );
 
         <span class="self">Self</span>(RefCell::new(Inner {
-            text_input: text_input::State::new(),
             value,
             options,
             option_matchers,
@@ -992,49 +968,10 @@
         }))
     }
 
-    <span class="doccomment">/// Focuses the [`ComboBox`].
-    </span><span class="kw">pub fn </span>focused(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.focus();
-        <span class="self">self
-    </span>}
-
-    <span class="doccomment">/// Focuses the [`ComboBox`].
-    </span><span class="kw">pub fn </span>focus(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.<span class="number">0</span>.borrow_mut();
-
-        inner.text_input.focus();
-    }
-
-    <span class="doccomment">/// Unfocuses the [`ComboBox`].
-    </span><span class="kw">pub fn </span>unfocus(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.<span class="number">0</span>.borrow_mut();
-
-        inner.text_input.unfocus();
-    }
-
-    <span class="doccomment">/// Returns whether the [`ComboBox`] is currently focused or not.
-    </span><span class="kw">pub fn </span>is_focused(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.borrow();
-
-        inner.text_input.is_focused()
-    }
-
     <span class="kw">fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.borrow();
 
         inner.value.clone()
-    }
-
-    <span class="kw">fn </span>text_input_tree(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; widget::Tree {
-        <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.borrow();
-
-        inner.text_input_tree()
-    }
-
-    <span class="kw">fn </span>update_text_input(<span class="kw-2">&amp;</span><span class="self">self</span>, tree: widget::Tree) {
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.<span class="number">0</span>.borrow_mut();
-
-        inner.update_text_input(tree)
     }
 
     <span class="kw">fn </span>with_inner&lt;O&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>Inner&lt;T&gt;) -&gt; O) -&gt; O {
@@ -1053,21 +990,6 @@
         <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.borrow();
 
         inner.filtered_options.sync(options);
-    }
-}
-
-<span class="kw">impl</span>&lt;T&gt; Inner&lt;T&gt; {
-    <span class="kw">fn </span>text_input_tree(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; widget::Tree {
-        widget::Tree {
-            tag: widget::tree::Tag::of::&lt;text_input::State&gt;(),
-            state: widget::tree::State::new(<span class="self">self</span>.text_input.clone()),
-            children: <span class="macro">vec!</span>[],
-        }
-    }
-
-    <span class="kw">fn </span>update_text_input(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tree: widget::Tree) {
-        <span class="self">self</span>.text_input =
-            tree.state.downcast_ref::&lt;text_input::State&gt;().clone();
     }
 }
 
@@ -1134,10 +1056,11 @@
 
     <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>widget::Tree,
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        <span class="self">self</span>.text_input.layout(renderer, limits)
+        <span class="self">self</span>.text_input.layout(tree, renderer, limits)
     }
 
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; widget::tree::Tag {
@@ -1153,6 +1076,10 @@
         })
     }
 
+    <span class="kw">fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;widget::Tree&gt; {
+        <span class="macro">vec!</span>[widget::Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.text_input <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Widget&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;)]
+    }
+
     <span class="kw">fn </span>on_event(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;mut </span>widget::Tree,
@@ -1166,7 +1093,13 @@
     ) -&gt; event::Status {
         <span class="kw">let </span>menu = tree.state.downcast_mut::&lt;Menu&lt;T&gt;&gt;();
 
-        <span class="kw">let </span>started_focused = <span class="self">self</span>.state.is_focused();
+        <span class="kw">let </span>started_focused = {
+            <span class="kw">let </span>text_input_state = tree.children[<span class="number">0</span>]
+                .state
+                .downcast_ref::&lt;text_input::State&lt;Renderer::Paragraph&gt;&gt;();
+
+            text_input_state.is_focused()
+        };
         <span class="comment">// This is intended to check whether or not the message buffer was empty,
         // since `Shell` does not expose such functionality.
         </span><span class="kw">let </span><span class="kw-2">mut </span>published_message_to_shell = <span class="bool-val">false</span>;
@@ -1176,9 +1109,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>local_shell = Shell::new(<span class="kw-2">&amp;mut </span>local_messages);
 
         <span class="comment">// Provide it to the widget
-        </span><span class="kw">let </span><span class="kw-2">mut </span>tree = <span class="self">self</span>.state.text_input_tree();
-        <span class="kw">let </span><span class="kw-2">mut </span>event_status = <span class="self">self</span>.text_input.on_event(
-            <span class="kw-2">&amp;mut </span>tree,
+        </span><span class="kw">let </span><span class="kw-2">mut </span>event_status = <span class="self">self</span>.text_input.on_event(
+            <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
             event.clone(),
             layout,
             cursor,
@@ -1187,7 +1119,6 @@
             <span class="kw-2">&amp;mut </span>local_shell,
             viewport,
         );
-        <span class="self">self</span>.state.update_text_input(tree);
 
         <span class="comment">// Then finally react to them here
         </span><span class="kw">for </span>message <span class="kw">in </span>local_messages {
@@ -1218,7 +1149,15 @@
             shell.invalidate_layout();
         }
 
-        <span class="kw">if </span><span class="self">self</span>.state.is_focused() {
+        <span class="kw">let </span>is_focused = {
+            <span class="kw">let </span>text_input_state = tree.children[<span class="number">0</span>]
+                .state
+                .downcast_ref::&lt;text_input::State&lt;Renderer::Paragraph&gt;&gt;();
+
+            text_input_state.is_focused()
+        };
+
+        <span class="kw">if </span>is_focused {
             <span class="self">self</span>.state.with_inner(|state| {
                 <span class="kw">if </span>!started_focused {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(on_option_hovered) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.on_option_hovered
@@ -1357,9 +1296,8 @@
                 published_message_to_shell = <span class="bool-val">true</span>;
 
                 <span class="comment">// Unfocus the input
-                </span><span class="kw">let </span><span class="kw-2">mut </span>tree = state.text_input_tree();
-                <span class="kw">let _ </span>= <span class="self">self</span>.text_input.on_event(
-                    <span class="kw-2">&amp;mut </span>tree,
+                </span><span class="kw">let _ </span>= <span class="self">self</span>.text_input.on_event(
+                    <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
                     Event::Mouse(mouse::Event::ButtonPressed(
                         mouse::Button::Left,
                     )),
@@ -1370,21 +1308,25 @@
                     <span class="kw-2">&amp;mut </span>Shell::new(<span class="kw-2">&amp;mut </span><span class="macro">vec!</span>[]),
                     viewport,
                 );
-                state.update_text_input(tree);
             }
         });
 
-        <span class="kw">if </span>started_focused
-            &amp;&amp; !<span class="self">self</span>.state.is_focused()
-            &amp;&amp; !published_message_to_shell
-        {
+        <span class="kw">let </span>is_focused = {
+            <span class="kw">let </span>text_input_state = tree.children[<span class="number">0</span>]
+                .state
+                .downcast_ref::&lt;text_input::State&lt;Renderer::Paragraph&gt;&gt;();
+
+            text_input_state.is_focused()
+        };
+
+        <span class="kw">if </span>started_focused &amp;&amp; !is_focused &amp;&amp; !published_message_to_shell {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = <span class="self">self</span>.on_close.take() {
                 shell.publish(message);
             }
         }
 
         <span class="comment">// Focus changed, invalidate widget tree to force a fresh `view`
-        </span><span class="kw">if </span>started_focused != <span class="self">self</span>.state.is_focused() {
+        </span><span class="kw">if </span>started_focused != is_focused {
             shell.invalidate_widgets();
         }
 
@@ -1393,20 +1335,24 @@
 
     <span class="kw">fn </span>mouse_interaction(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _tree: <span class="kw-2">&amp;</span>widget::Tree,
+        tree: <span class="kw-2">&amp;</span>widget::Tree,
         layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
         cursor: mouse::Cursor,
         viewport: <span class="kw-2">&amp;</span>Rectangle,
         renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; mouse::Interaction {
-        <span class="kw">let </span>tree = <span class="self">self</span>.state.text_input_tree();
-        <span class="self">self</span>.text_input
-            .mouse_interaction(<span class="kw-2">&amp;</span>tree, layout, cursor, viewport, renderer)
+        <span class="self">self</span>.text_input.mouse_interaction(
+            <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+            layout,
+            cursor,
+            viewport,
+            renderer,
+        )
     }
 
     <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _tree: <span class="kw-2">&amp;</span>widget::Tree,
+        tree: <span class="kw-2">&amp;</span>widget::Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
         theme: <span class="kw-2">&amp;</span>Renderer::Theme,
         _style: <span class="kw-2">&amp;</span>renderer::Style,
@@ -1414,16 +1360,28 @@
         cursor: mouse::Cursor,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="kw">let </span>selection = <span class="kw">if </span><span class="self">self</span>.state.is_focused() || <span class="self">self</span>.selection.is_empty()
-        {
+        <span class="kw">let </span>is_focused = {
+            <span class="kw">let </span>text_input_state = tree.children[<span class="number">0</span>]
+                .state
+                .downcast_ref::&lt;text_input::State&lt;Renderer::Paragraph&gt;&gt;();
+
+            text_input_state.is_focused()
+        };
+
+        <span class="kw">let </span>selection = <span class="kw">if </span>is_focused || <span class="self">self</span>.selection.is_empty() {
             <span class="prelude-val">None
         </span>} <span class="kw">else </span>{
             <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.selection)
         };
 
-        <span class="kw">let </span>tree = <span class="self">self</span>.state.text_input_tree();
-        <span class="self">self</span>.text_input
-            .draw(<span class="kw-2">&amp;</span>tree, renderer, theme, layout, cursor, selection);
+        <span class="self">self</span>.text_input.draw(
+            <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+            renderer,
+            theme,
+            layout,
+            cursor,
+            selection,
+        );
     }
 
     <span class="kw">fn </span>overlay&lt;<span class="lifetime">&#39;b</span>&gt;(
@@ -1432,14 +1390,22 @@
         layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
         _renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;b</span>, Message, Renderer&gt;&gt; {
-        <span class="kw">let </span>Menu {
-            menu,
-            filtered_options,
-            hovered_option,
-            ..
-        } = tree.state.downcast_mut::&lt;Menu&lt;T&gt;&gt;();
+        <span class="kw">let </span>is_focused = {
+            <span class="kw">let </span>text_input_state = tree.children[<span class="number">0</span>]
+                .state
+                .downcast_ref::&lt;text_input::State&lt;Renderer::Paragraph&gt;&gt;();
 
-        <span class="kw">if </span><span class="self">self</span>.state.is_focused() {
+            text_input_state.is_focused()
+        };
+
+        <span class="kw">if </span>is_focused {
+            <span class="kw">let </span>Menu {
+                menu,
+                filtered_options,
+                hovered_option,
+                ..
+            } = tree.state.downcast_mut::&lt;Menu&lt;T&gt;&gt;();
+
             <span class="kw">let </span>bounds = layout.bounds();
 
             <span class="self">self</span>.state.sync_filtered_options(filtered_options);

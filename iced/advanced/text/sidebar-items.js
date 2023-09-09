@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Hit","LineHeight","Shaping"],"struct":["Text"],"trait":["Renderer"]};
+window.SIDEBAR_ITEMS = {"enum":["Difference","Hit","LineHeight","Shaping"],"fn":["compare"],"struct":["Text"],"trait":["Paragraph","Renderer"]};

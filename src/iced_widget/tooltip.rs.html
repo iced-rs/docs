@@ -444,6 +444,15 @@
 <a href="#444" id="444">444</a>
 <a href="#445" id="445">445</a>
 <a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a widget over another.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -553,11 +562,14 @@
     Renderer::Theme: container::StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
 {
     <span class="kw">fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;widget::Tree&gt; {
-        <span class="macro">vec!</span>[widget::Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.content)]
+        <span class="macro">vec!</span>[
+            widget::Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.content),
+            widget::Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.tooltip <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Widget&lt;Message, <span class="kw">_</span>&gt;),
+        ]
     }
 
     <span class="kw">fn </span>diff(<span class="kw-2">&amp;</span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>widget::Tree) {
-        tree.diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span><span class="self">self</span>.content))
+        tree.diff_children(<span class="kw-2">&amp;</span>[<span class="self">self</span>.content.as_widget(), <span class="kw-2">&amp;</span><span class="self">self</span>.tooltip])
     }
 
     <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; widget::tree::State {
@@ -578,10 +590,11 @@
 
     <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>widget::Tree,
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        <span class="self">self</span>.content.as_widget().layout(renderer, limits)
+        <span class="self">self</span>.content.as_widget().layout(tree, renderer, limits)
     }
 
     <span class="kw">fn </span>on_event(
@@ -660,8 +673,10 @@
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;b</span>, Message, Renderer&gt;&gt; {
         <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&gt;();
 
+        <span class="kw">let </span><span class="kw-2">mut </span>children = tree.children.iter_mut();
+
         <span class="kw">let </span>content = <span class="self">self</span>.content.as_widget_mut().overlay(
-            <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+            children.next().unwrap(),
             layout,
             renderer,
         );
@@ -671,6 +686,7 @@
                 layout.position(),
                 Box::new(Overlay {
                     tooltip: <span class="kw-2">&amp;</span><span class="self">self</span>.tooltip,
+                    state: children.next().unwrap(),
                     cursor_position,
                     content_bounds: layout.bounds(),
                     snap_within_viewport: <span class="self">self</span>.snap_within_viewport,
@@ -741,6 +757,7 @@
     Renderer::Theme: container::StyleSheet + widget::text::StyleSheet,
 {
     tooltip: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span>Text&lt;<span class="lifetime">&#39;a</span>, Renderer&gt;,
+    state: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b </span><span class="kw-2">mut </span>widget::Tree,
     cursor_position: Point,
     content_bounds: Rectangle,
     snap_within_viewport: bool,
@@ -757,7 +774,7 @@
     Renderer::Theme: container::StyleSheet + widget::text::StyleSheet,
 {
     <span class="kw">fn </span>layout(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         renderer: <span class="kw-2">&amp;</span>Renderer,
         bounds: Size,
         position: Point,
@@ -766,6 +783,7 @@
 
         <span class="kw">let </span>text_layout = Widget::&lt;(), Renderer&gt;::layout(
             <span class="self">self</span>.tooltip,
+            <span class="self">self</span>.state,
             renderer,
             <span class="kw-2">&amp;</span>layout::Limits::new(
                 Size::ZERO,

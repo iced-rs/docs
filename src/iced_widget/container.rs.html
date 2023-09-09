@@ -459,6 +459,12 @@
 <a href="#459" id="459">459</a>
 <a href="#460" id="460">460</a>
 <a href="#461" id="461">461</a>
+<a href="#462" id="462">462</a>
+<a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Decorate content and apply alignment.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment::{<span class="self">self</span>, Alignment};
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -466,7 +472,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::core::overlay;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
-<span class="kw">use </span><span class="kw">crate</span>::core::widget::{<span class="self">self</span>, Operation, Tree};
+<span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
+<span class="kw">use </span><span class="kw">crate</span>::core::widget::{<span class="self">self</span>, Operation};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
     Background, Clipboard, Color, Element, Layout, Length, Padding, Pixels,
     Point, Rectangle, Shell, Size, Vector, Widget,
@@ -596,12 +603,20 @@
     </span>Renderer: <span class="kw">crate</span>::core::Renderer,
     Renderer::Theme: StyleSheet,
 {
+    <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
+        <span class="self">self</span>.content.as_widget().tag()
+    }
+
+    <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
+        <span class="self">self</span>.content.as_widget().state()
+    }
+
     <span class="kw">fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;Tree&gt; {
-        <span class="macro">vec!</span>[Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.content)]
+        <span class="self">self</span>.content.as_widget().children()
     }
 
     <span class="kw">fn </span>diff(<span class="kw-2">&amp;</span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree) {
-        tree.diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span><span class="self">self</span>.content))
+        <span class="self">self</span>.content.as_widget().diff(tree);
     }
 
     <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
@@ -614,11 +629,11 @@
 
     <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
         layout(
-            renderer,
             limits,
             <span class="self">self</span>.width,
             <span class="self">self</span>.height,
@@ -627,9 +642,7 @@
             <span class="self">self</span>.padding,
             <span class="self">self</span>.horizontal_alignment,
             <span class="self">self</span>.vertical_alignment,
-            |renderer, limits| {
-                <span class="self">self</span>.content.as_widget().layout(renderer, limits)
-            },
+            |limits| <span class="self">self</span>.content.as_widget().layout(tree, renderer, limits),
         )
     }
 
@@ -645,7 +658,7 @@
             layout.bounds(),
             <span class="kw-2">&amp;mut </span>|operation| {
                 <span class="self">self</span>.content.as_widget().operate(
-                    <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+                    tree,
                     layout.children().next().unwrap(),
                     renderer,
                     operation,
@@ -666,7 +679,7 @@
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) -&gt; event::Status {
         <span class="self">self</span>.content.as_widget_mut().on_event(
-            <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+            tree,
             event,
             layout.children().next().unwrap(),
             cursor,
@@ -686,7 +699,7 @@
         renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; mouse::Interaction {
         <span class="self">self</span>.content.as_widget().mouse_interaction(
-            <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+            tree,
             layout.children().next().unwrap(),
             cursor,
             viewport,
@@ -709,7 +722,7 @@
         draw_background(renderer, <span class="kw-2">&amp;</span>style, layout.bounds());
 
         <span class="self">self</span>.content.as_widget().draw(
-            <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
+            tree,
             renderer,
             theme,
             <span class="kw-2">&amp;</span>renderer::Style {
@@ -730,7 +743,7 @@
         renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">&#39;b</span>, Message, Renderer&gt;&gt; {
         <span class="self">self</span>.content.as_widget_mut().overlay(
-            <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+            tree,
             layout.children().next().unwrap(),
             renderer,
         )
@@ -752,8 +765,7 @@
 }
 
 <span class="doccomment">/// Computes the layout of a [`Container`].
-</span><span class="kw">pub fn </span>layout&lt;Renderer&gt;(
-    renderer: <span class="kw-2">&amp;</span>Renderer,
+</span><span class="kw">pub fn </span>layout(
     limits: <span class="kw-2">&amp;</span>layout::Limits,
     width: Length,
     height: Length,
@@ -762,7 +774,7 @@
     padding: Padding,
     horizontal_alignment: alignment::Horizontal,
     vertical_alignment: alignment::Vertical,
-    layout_content: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>Renderer, <span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
+    layout_content: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
 ) -&gt; layout::Node {
     <span class="kw">let </span>limits = limits
         .loose()
@@ -771,7 +783,7 @@
         .width(width)
         .height(height);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>content = layout_content(renderer, <span class="kw-2">&amp;</span>limits.pad(padding).loose());
+    <span class="kw">let </span><span class="kw-2">mut </span>content = layout_content(<span class="kw-2">&amp;</span>limits.pad(padding).loose());
     <span class="kw">let </span>padding = padding.fit(content.size(), limits.max());
     <span class="kw">let </span>size = limits.pad(padding).resolve(content.size());
 

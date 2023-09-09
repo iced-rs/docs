@@ -560,8 +560,6 @@
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
 <a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and show dropdown menus.
 </span><span class="kw">use </span><span class="kw">crate</span>::container::{<span class="self">self</span>, Container};
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
@@ -595,7 +593,7 @@
     on_option_hovered: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">dyn </span>Fn(T) -&gt; Message&gt;,
     width: f32,
     padding: Padding,
-    text_size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    text_size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
     text_line_height: text::LineHeight,
     text_shaping: text::Shaping,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
@@ -649,7 +647,7 @@
 
     <span class="doccomment">/// Sets the text size of the [`Menu`].
     </span><span class="kw">pub fn </span>text_size(<span class="kw-2">mut </span><span class="self">self</span>, text_size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.text_size = <span class="prelude-val">Some</span>(text_size.into().<span class="number">0</span>);
+        <span class="self">self</span>.text_size = <span class="prelude-val">Some</span>(text_size.into());
         <span class="self">self
     </span>}
 
@@ -796,7 +794,7 @@
     Renderer::Theme: StyleSheet + container::StyleSheet,
 {
     <span class="kw">fn </span>layout(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         renderer: <span class="kw-2">&amp;</span>Renderer,
         bounds: Size,
         position: Point,
@@ -817,7 +815,7 @@
         )
         .width(<span class="self">self</span>.width);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>node = <span class="self">self</span>.container.layout(renderer, <span class="kw-2">&amp;</span>limits);
+        <span class="kw">let </span><span class="kw-2">mut </span>node = <span class="self">self</span>.container.layout(<span class="self">self</span>.state, renderer, <span class="kw-2">&amp;</span>limits);
 
         node.move_to(<span class="kw">if </span>space_below &gt; space_above {
             position + Vector::new(<span class="number">0.0</span>, <span class="self">self</span>.target_height)
@@ -892,7 +890,7 @@
     on_selected: Box&lt;<span class="kw">dyn </span>FnMut(T) -&gt; Message + <span class="lifetime">&#39;a</span>&gt;,
     on_option_hovered: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw">dyn </span>Fn(T) -&gt; Message&gt;,
     padding: Padding,
-    text_size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    text_size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
     text_line_height: text::LineHeight,
     text_shaping: text::Shaping,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
@@ -916,6 +914,7 @@
 
     <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        _tree: <span class="kw-2">&amp;mut </span>Tree,
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
@@ -925,8 +924,7 @@
         <span class="kw">let </span>text_size =
             <span class="self">self</span>.text_size.unwrap_or_else(|| renderer.default_size());
 
-        <span class="kw">let </span>text_line_height =
-            <span class="self">self</span>.text_line_height.to_absolute(Pixels(text_size));
+        <span class="kw">let </span>text_line_height = <span class="self">self</span>.text_line_height.to_absolute(text_size);
 
         <span class="kw">let </span>size = {
             <span class="kw">let </span>intrinsic = Size::new(
@@ -971,9 +969,9 @@
                         </span>.text_size
                         .unwrap_or_else(|| renderer.default_size());
 
-                    <span class="kw">let </span>option_height = f32::from(
-                        <span class="self">self</span>.text_line_height.to_absolute(Pixels(text_size)),
-                    ) + <span class="self">self</span>.padding.vertical();
+                    <span class="kw">let </span>option_height =
+                        f32::from(<span class="self">self</span>.text_line_height.to_absolute(text_size))
+                            + <span class="self">self</span>.padding.vertical();
 
                     <span class="kw">let </span>new_hovered_option =
                         (cursor_position.y / option_height) <span class="kw">as </span>usize;
@@ -1000,9 +998,9 @@
                         </span>.text_size
                         .unwrap_or_else(|| renderer.default_size());
 
-                    <span class="kw">let </span>option_height = f32::from(
-                        <span class="self">self</span>.text_line_height.to_absolute(Pixels(text_size)),
-                    ) + <span class="self">self</span>.padding.vertical();
+                    <span class="kw">let </span>option_height =
+                        f32::from(<span class="self">self</span>.text_line_height.to_absolute(text_size))
+                            + <span class="self">self</span>.padding.vertical();
 
                     <span class="kw-2">*</span><span class="self">self</span>.hovered_option =
                         <span class="prelude-val">Some</span>((cursor_position.y / option_height) <span class="kw">as </span>usize);
@@ -1054,7 +1052,7 @@
         <span class="kw">let </span>text_size =
             <span class="self">self</span>.text_size.unwrap_or_else(|| renderer.default_size());
         <span class="kw">let </span>option_height =
-            f32::from(<span class="self">self</span>.text_line_height.to_absolute(Pixels(text_size)))
+            f32::from(<span class="self">self</span>.text_line_height.to_absolute(text_size))
                 + <span class="self">self</span>.padding.vertical();
 
         <span class="kw">let </span>offset = viewport.y - bounds.y;
@@ -1090,26 +1088,24 @@
                 );
             }
 
-            renderer.fill_text(Text {
-                content: <span class="kw-2">&amp;</span>option.to_string(),
-                bounds: Rectangle {
-                    x: bounds.x + <span class="self">self</span>.padding.left,
-                    y: bounds.center_y(),
-                    width: f32::INFINITY,
-                    ..bounds
+            renderer.fill_text(
+                Text {
+                    content: <span class="kw-2">&amp;</span>option.to_string(),
+                    bounds: Size::new(f32::INFINITY, bounds.height),
+                    size: text_size,
+                    line_height: <span class="self">self</span>.text_line_height,
+                    font: <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font()),
+                    horizontal_alignment: alignment::Horizontal::Left,
+                    vertical_alignment: alignment::Vertical::Center,
+                    shaping: <span class="self">self</span>.text_shaping,
                 },
-                size: text_size,
-                line_height: <span class="self">self</span>.text_line_height,
-                font: <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font()),
-                color: <span class="kw">if </span>is_selected {
+                Point::new(bounds.x + <span class="self">self</span>.padding.left, bounds.center_y()),
+                <span class="kw">if </span>is_selected {
                     appearance.selected_text_color
                 } <span class="kw">else </span>{
                     appearance.text_color
                 },
-                horizontal_alignment: alignment::Horizontal::Left,
-                vertical_alignment: alignment::Vertical::Center,
-                shaping: <span class="self">self</span>.text_shaping,
-            });
+            );
         }
     }
 }

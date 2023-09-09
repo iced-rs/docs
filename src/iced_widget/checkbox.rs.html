@@ -354,6 +354,15 @@
 <a href="#354" id="354">354</a>
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Show toggle controls using checkboxes.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -362,12 +371,11 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::text;
 <span class="kw">use </span><span class="kw">crate</span>::core::touch;
-<span class="kw">use </span><span class="kw">crate</span>::core::widget::Tree;
+<span class="kw">use </span><span class="kw">crate</span>::core::widget;
+<span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Alignment, Clipboard, Element, Layout, Length, Pixels, Rectangle, Shell,
-    Widget,
+    Clipboard, Element, Layout, Length, Pixels, Rectangle, Shell, Size, Widget,
 };
-<span class="kw">use crate</span>::{Row, Text};
 
 <span class="kw">pub use </span>iced_style::checkbox::{Appearance, StyleSheet};
 
@@ -401,7 +409,7 @@
     width: Length,
     size: f32,
     spacing: f32,
-    text_size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    text_size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
     text_line_height: text::LineHeight,
     text_shaping: text::Shaping,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
@@ -418,7 +426,7 @@
     </span><span class="kw">const </span>DEFAULT_SIZE: f32 = <span class="number">20.0</span>;
 
     <span class="doccomment">/// The default spacing of a [`Checkbox`].
-    </span><span class="kw">const </span>DEFAULT_SPACING: f32 = <span class="number">15.0</span>;
+    </span><span class="kw">const </span>DEFAULT_SPACING: f32 = <span class="number">10.0</span>;
 
     <span class="doccomment">/// Creates a new [`Checkbox`].
     ///
@@ -474,7 +482,7 @@
 
     <span class="doccomment">/// Sets the text size of the [`Checkbox`].
     </span><span class="kw">pub fn </span>text_size(<span class="kw-2">mut </span><span class="self">self</span>, text_size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.text_size = <span class="prelude-val">Some</span>(text_size.into().<span class="number">0</span>);
+        <span class="self">self</span>.text_size = <span class="prelude-val">Some</span>(text_size.into());
         <span class="self">self
     </span>}
 
@@ -523,6 +531,14 @@
     </span>Renderer: text::Renderer,
     Renderer::Theme: StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
 {
+    <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
+        tree::Tag::of::&lt;widget::text::State&lt;Renderer::Paragraph&gt;&gt;()
+    }
+
+    <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
+        tree::State::new(widget::text::State::&lt;Renderer::Paragraph&gt;::default())
+    }
+
     <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
         <span class="self">self</span>.width
     }
@@ -533,26 +549,35 @@
 
     <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        Row::&lt;(), Renderer&gt;::new()
-            .width(<span class="self">self</span>.width)
-            .spacing(<span class="self">self</span>.spacing)
-            .align_items(Alignment::Center)
-            .push(Row::new().width(<span class="self">self</span>.size).height(<span class="self">self</span>.size))
-            .push(
-                Text::new(<span class="kw-2">&amp;</span><span class="self">self</span>.label)
-                    .font(<span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font()))
-                    .width(<span class="self">self</span>.width)
-                    .size(
-                        <span class="self">self</span>.text_size
-                            .unwrap_or_else(|| renderer.default_size()),
-                    )
-                    .line_height(<span class="self">self</span>.text_line_height)
-                    .shaping(<span class="self">self</span>.text_shaping),
-            )
-            .layout(renderer, limits)
+        layout::next_to_each_other(
+            <span class="kw-2">&amp;</span>limits.width(<span class="self">self</span>.width),
+            <span class="self">self</span>.spacing,
+            |<span class="kw">_</span>| layout::Node::new(Size::new(<span class="self">self</span>.size, <span class="self">self</span>.size)),
+            |limits| {
+                <span class="kw">let </span>state = tree
+                    .state
+                    .downcast_mut::&lt;widget::text::State&lt;Renderer::Paragraph&gt;&gt;();
+
+                widget::text::layout(
+                    state,
+                    renderer,
+                    limits,
+                    <span class="self">self</span>.width,
+                    Length::Shrink,
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.label,
+                    <span class="self">self</span>.text_line_height,
+                    <span class="self">self</span>.text_size,
+                    <span class="self">self</span>.font,
+                    alignment::Horizontal::Left,
+                    alignment::Vertical::Top,
+                    <span class="self">self</span>.text_shaping,
+                )
+            },
+        )
     }
 
     <span class="kw">fn </span>on_event(
@@ -600,7 +625,7 @@
 
     <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _tree: <span class="kw-2">&amp;</span>Tree,
+        tree: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
         theme: <span class="kw-2">&amp;</span>Renderer::Theme,
         style: <span class="kw-2">&amp;</span>renderer::Style,
@@ -639,24 +664,23 @@
                 line_height,
                 shaping,
             } = <span class="kw-2">&amp;</span><span class="self">self</span>.icon;
-            <span class="kw">let </span>size = size.unwrap_or(bounds.height * <span class="number">0.7</span>);
+            <span class="kw">let </span>size = size.unwrap_or(Pixels(bounds.height * <span class="number">0.7</span>));
 
             <span class="kw">if </span><span class="self">self</span>.is_checked {
-                renderer.fill_text(text::Text {
-                    content: <span class="kw-2">&amp;</span>code_point.to_string(),
-                    font: <span class="kw-2">*</span>font,
-                    size,
-                    line_height: <span class="kw-2">*</span>line_height,
-                    bounds: Rectangle {
-                        x: bounds.center_x(),
-                        y: bounds.center_y(),
-                        ..bounds
+                renderer.fill_text(
+                    text::Text {
+                        content: <span class="kw-2">&amp;</span>code_point.to_string(),
+                        font: <span class="kw-2">*</span>font,
+                        size,
+                        line_height: <span class="kw-2">*</span>line_height,
+                        bounds: bounds.size(),
+                        horizontal_alignment: alignment::Horizontal::Center,
+                        vertical_alignment: alignment::Vertical::Center,
+                        shaping: <span class="kw-2">*</span>shaping,
                     },
-                    color: custom_style.icon_color,
-                    horizontal_alignment: alignment::Horizontal::Center,
-                    vertical_alignment: alignment::Vertical::Center,
-                    shaping: <span class="kw-2">*</span>shaping,
-                });
+                    bounds.center(),
+                    custom_style.icon_color,
+                );
             }
         }
 
@@ -667,16 +691,10 @@
                 renderer,
                 style,
                 label_layout,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.label,
-                <span class="self">self</span>.text_size,
-                <span class="self">self</span>.text_line_height,
-                <span class="self">self</span>.font,
+                tree.state.downcast_ref(),
                 <span class="kw">crate</span>::text::Appearance {
                     color: custom_style.text_color,
                 },
-                alignment::Horizontal::Left,
-                alignment::Vertical::Center,
-                <span class="self">self</span>.text_shaping,
             );
         }
     }
@@ -704,7 +722,7 @@
     <span class="doccomment">/// The unicode code point that will be used as the icon.
     </span><span class="kw">pub </span>code_point: char,
     <span class="doccomment">/// Font size of the content.
-    </span><span class="kw">pub </span>size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    </span><span class="kw">pub </span>size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
     <span class="doccomment">/// The line height of the icon.
     </span><span class="kw">pub </span>line_height: text::LineHeight,
     <span class="doccomment">/// The shaping strategy of the icon.

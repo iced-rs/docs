@@ -275,11 +275,6 @@
 <a href="#275" id="275">275</a>
 <a href="#276" id="276">276</a>
 <a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
 </pre></div><pre class="rust"><code><span class="attr">#![forbid(rust_2018_idioms)]
 #![deny(
     unsafe_code,
@@ -311,7 +306,10 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::text::{<span class="self">self</span>, Text};
-<span class="kw">use </span><span class="kw">crate</span>::core::{Background, Font, Point, Rectangle, Size, Vector};
+<span class="kw">use </span><span class="kw">crate</span>::core::{
+    Background, Color, Font, Pixels, Point, Rectangle, Size, Vector,
+};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::text::Paragraph;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::Mesh;
 
 <span class="kw">use </span>std::borrow::Cow;
@@ -437,6 +435,7 @@
 
 <span class="kw">impl</span>&lt;T&gt; text::Renderer <span class="kw">for </span>Renderer&lt;T&gt; {
     <span class="kw">type </span>Font = Font;
+    <span class="kw">type </span>Paragraph = Paragraph;
 
     <span class="kw">const </span>ICON_FONT: Font = iced_tiny_skia::Renderer::&lt;T&gt;::ICON_FONT;
     <span class="kw">const </span>CHECKMARK_ICON: char = iced_tiny_skia::Renderer::&lt;T&gt;::CHECKMARK_ICON;
@@ -447,59 +446,50 @@
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.default_font())
     }
 
-    <span class="kw">fn </span>default_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
+    <span class="kw">fn </span>default_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pixels {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.default_size())
     }
 
-    <span class="kw">fn </span>measure(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        content: <span class="kw-2">&amp;</span>str,
-        size: f32,
-        line_height: text::LineHeight,
-        font: Font,
-        bounds: Size,
-        shaping: text::Shaping,
-    ) -&gt; Size {
-        <span class="macro">delegate!</span>(
-            <span class="self">self</span>,
-            renderer,
-            renderer.measure(content, size, line_height, font, bounds, shaping)
-        )
+    <span class="kw">fn </span>create_paragraph(<span class="kw-2">&amp;</span><span class="self">self</span>, text: Text&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>::Font&gt;) -&gt; <span class="self">Self</span>::Paragraph {
+        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.create_paragraph(text))
     }
 
-    <span class="kw">fn </span>hit_test(
+    <span class="kw">fn </span>resize_paragraph(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        content: <span class="kw-2">&amp;</span>str,
-        size: f32,
-        line_height: text::LineHeight,
-        font: Font,
-        bounds: Size,
-        shaping: text::Shaping,
-        point: Point,
-        nearest_only: bool,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;text::Hit&gt; {
+        paragraph: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Paragraph,
+        new_bounds: Size,
+    ) {
         <span class="macro">delegate!</span>(
             <span class="self">self</span>,
             renderer,
-            renderer.hit_test(
-                content,
-                size,
-                line_height,
-                font,
-                bounds,
-                shaping,
-                point,
-                nearest_only
-            )
-        )
+            renderer.resize_paragraph(paragraph, new_bounds)
+        );
     }
 
     <span class="kw">fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.load_font(bytes));
     }
 
-    <span class="kw">fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: Text&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>::Font&gt;) {
-        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.fill_text(text));
+    <span class="kw">fn </span>fill_paragraph(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        text: <span class="kw-2">&amp;</span><span class="self">Self</span>::Paragraph,
+        position: Point,
+        color: Color,
+    ) {
+        <span class="macro">delegate!</span>(
+            <span class="self">self</span>,
+            renderer,
+            renderer.fill_paragraph(text, position, color)
+        );
+    }
+
+    <span class="kw">fn </span>fill_text(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        text: Text&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>::Font&gt;,
+        position: Point,
+        color: Color,
+    ) {
+        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.fill_text(text, position, color));
     }
 }
 

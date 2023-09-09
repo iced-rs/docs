@@ -302,14 +302,53 @@
 <a href="#302" id="302">302</a>
 <a href="#303" id="303">303</a>
 <a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Write some text for your users to read.
 </span><span class="kw">use </span><span class="kw">crate</span>::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::layout;
 <span class="kw">use </span><span class="kw">crate</span>::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::renderer;
-<span class="kw">use </span><span class="kw">crate</span>::text;
-<span class="kw">use </span><span class="kw">crate</span>::widget::Tree;
-<span class="kw">use crate</span>::{Color, Element, Layout, Length, Pixels, Rectangle, Widget};
+<span class="kw">use </span><span class="kw">crate</span>::text::{<span class="self">self</span>, Paragraph};
+<span class="kw">use </span><span class="kw">crate</span>::widget::tree::{<span class="self">self</span>, Tree};
+<span class="kw">use crate</span>::{Color, Element, Layout, Length, Pixels, Point, Rectangle, Widget};
 
 <span class="kw">use </span>std::borrow::Cow;
 
@@ -323,7 +362,7 @@
     Renderer::Theme: StyleSheet,
 {
     content: Cow&lt;<span class="lifetime">&#39;a</span>, str&gt;,
-    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
     line_height: LineHeight,
     width: Length,
     height: Length,
@@ -357,7 +396,7 @@
 
     <span class="doccomment">/// Sets the size of the [`Text`].
     </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.size = <span class="prelude-val">Some</span>(size.into().<span class="number">0</span>);
+        <span class="self">self</span>.size = <span class="prelude-val">Some</span>(size.into());
         <span class="self">self
     </span>}
 
@@ -421,11 +460,23 @@
     </span>}
 }
 
+<span class="doccomment">/// The internal state of a [`Text`] widget.
+</span><span class="attr">#[derive(Debug, Default)]
+</span><span class="kw">pub struct </span>State&lt;P: Paragraph&gt;(P);
+
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; Widget&lt;Message, Renderer&gt; <span class="kw">for </span>Text&lt;<span class="lifetime">&#39;a</span>, Renderer&gt;
 <span class="kw">where
     </span>Renderer: text::Renderer,
     Renderer::Theme: StyleSheet,
 {
+    <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
+        tree::Tag::of::&lt;State&lt;Renderer::Paragraph&gt;&gt;()
+    }
+
+    <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
+        tree::State::new(State(Renderer::Paragraph::default()))
+    }
+
     <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
         <span class="self">self</span>.width
     }
@@ -436,30 +487,29 @@
 
     <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
+        tree: <span class="kw-2">&amp;mut </span>Tree,
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        <span class="kw">let </span>limits = limits.width(<span class="self">self</span>.width).height(<span class="self">self</span>.height);
-
-        <span class="kw">let </span>size = <span class="self">self</span>.size.unwrap_or_else(|| renderer.default_size());
-
-        <span class="kw">let </span>bounds = renderer.measure(
+        layout(
+            tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
+            renderer,
+            limits,
+            <span class="self">self</span>.width,
+            <span class="self">self</span>.height,
             <span class="kw-2">&amp;</span><span class="self">self</span>.content,
-            size,
             <span class="self">self</span>.line_height,
-            <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font()),
-            limits.max(),
+            <span class="self">self</span>.size,
+            <span class="self">self</span>.font,
+            <span class="self">self</span>.horizontal_alignment,
+            <span class="self">self</span>.vertical_alignment,
             <span class="self">self</span>.shaping,
-        );
-
-        <span class="kw">let </span>size = limits.resolve(bounds);
-
-        layout::Node::new(size)
+        )
     }
 
     <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _state: <span class="kw-2">&amp;</span>Tree,
+        tree: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
         theme: <span class="kw-2">&amp;</span>Renderer::Theme,
         style: <span class="kw-2">&amp;</span>renderer::Style,
@@ -467,20 +517,61 @@
         _cursor_position: mouse::Cursor,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
+        <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
+
         draw(
             renderer,
             style,
             layout,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.content,
-            <span class="self">self</span>.size,
-            <span class="self">self</span>.line_height,
-            <span class="self">self</span>.font,
+            state,
             theme.appearance(<span class="self">self</span>.style.clone()),
-            <span class="self">self</span>.horizontal_alignment,
-            <span class="self">self</span>.vertical_alignment,
-            <span class="self">self</span>.shaping,
         );
     }
+}
+
+<span class="doccomment">/// Produces the [`layout::Node`] of a [`Text`] widget.
+</span><span class="kw">pub fn </span>layout&lt;Renderer&gt;(
+    state: <span class="kw-2">&amp;mut </span>State&lt;Renderer::Paragraph&gt;,
+    renderer: <span class="kw-2">&amp;</span>Renderer,
+    limits: <span class="kw-2">&amp;</span>layout::Limits,
+    width: Length,
+    height: Length,
+    content: <span class="kw-2">&amp;</span>str,
+    line_height: LineHeight,
+    size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
+    font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
+    horizontal_alignment: alignment::Horizontal,
+    vertical_alignment: alignment::Vertical,
+    shaping: Shaping,
+) -&gt; layout::Node
+<span class="kw">where
+    </span>Renderer: text::Renderer,
+{
+    <span class="kw">let </span>limits = limits.width(width).height(height);
+    <span class="kw">let </span>bounds = limits.max();
+
+    <span class="kw">let </span>size = size.unwrap_or_else(|| renderer.default_size());
+    <span class="kw">let </span>font = font.unwrap_or_else(|| renderer.default_font());
+
+    <span class="kw">let </span>State(<span class="kw-2">ref mut </span>paragraph) = state;
+
+    renderer.update_paragraph(
+        paragraph,
+        text::Text {
+            content,
+            bounds,
+            size,
+            line_height,
+            font,
+            shaping,
+            horizontal_alignment,
+            vertical_alignment,
+        },
+    );
+
+    <span class="kw">let </span>size = limits.resolve(paragraph.min_bounds());
+
+    layout::Node::new(size)
 }
 
 <span class="doccomment">/// Draws text using the same logic as the [`Text`] widget.
@@ -497,44 +588,31 @@
     renderer: <span class="kw-2">&amp;mut </span>Renderer,
     style: <span class="kw-2">&amp;</span>renderer::Style,
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
-    content: <span class="kw-2">&amp;</span>str,
-    size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
-    line_height: LineHeight,
-    font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
+    state: <span class="kw-2">&amp;</span>State&lt;Renderer::Paragraph&gt;,
     appearance: Appearance,
-    horizontal_alignment: alignment::Horizontal,
-    vertical_alignment: alignment::Vertical,
-    shaping: Shaping,
 ) <span class="kw">where
     </span>Renderer: text::Renderer,
 {
+    <span class="kw">let </span>State(<span class="kw-2">ref </span>paragraph) = state;
     <span class="kw">let </span>bounds = layout.bounds();
 
-    <span class="kw">let </span>x = <span class="kw">match </span>horizontal_alignment {
+    <span class="kw">let </span>x = <span class="kw">match </span>paragraph.horizontal_alignment() {
         alignment::Horizontal::Left =&gt; bounds.x,
         alignment::Horizontal::Center =&gt; bounds.center_x(),
         alignment::Horizontal::Right =&gt; bounds.x + bounds.width,
     };
 
-    <span class="kw">let </span>y = <span class="kw">match </span>vertical_alignment {
+    <span class="kw">let </span>y = <span class="kw">match </span>paragraph.vertical_alignment() {
         alignment::Vertical::Top =&gt; bounds.y,
         alignment::Vertical::Center =&gt; bounds.center_y(),
         alignment::Vertical::Bottom =&gt; bounds.y + bounds.height,
     };
 
-    <span class="kw">let </span>size = size.unwrap_or_else(|| renderer.default_size());
-
-    renderer.fill_text(<span class="kw">crate</span>::Text {
-        content,
-        size,
-        line_height,
-        bounds: Rectangle { x, y, ..bounds },
-        color: appearance.color.unwrap_or(style.text_color),
-        font: font.unwrap_or_else(|| renderer.default_font()),
-        horizontal_alignment,
-        vertical_alignment,
-        shaping,
-    });
+    renderer.fill_paragraph(
+        paragraph,
+        Point::new(x, y),
+        appearance.color.unwrap_or(style.text_color),
+    );
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>, Message, Renderer&gt; From&lt;Text&lt;<span class="lifetime">&#39;a</span>, Renderer&gt;&gt;
