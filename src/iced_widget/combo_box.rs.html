@@ -747,6 +747,27 @@
 <a href="#747" id="747">747</a>
 <a href="#748" id="748">748</a>
 <a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of searchable and selectable options.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -1060,7 +1081,20 @@
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        <span class="self">self</span>.text_input.layout(tree, renderer, limits)
+        <span class="kw">let </span>is_focused = {
+            <span class="kw">let </span>text_input_state = tree.children[<span class="number">0</span>]
+                .state
+                .downcast_ref::&lt;text_input::State&lt;Renderer::Paragraph&gt;&gt;();
+
+            text_input_state.is_focused()
+        };
+
+        <span class="self">self</span>.text_input.layout(
+            <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+            renderer,
+            limits,
+            (!is_focused).then_some(<span class="kw-2">&amp;</span><span class="self">self</span>.selection),
+        )
     }
 
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; widget::tree::Tag {
@@ -1414,7 +1448,15 @@
                 menu,
                 <span class="kw-2">&amp;</span>filtered_options.options,
                 hovered_option,
-                |x| (<span class="self">self</span>.on_selected)(x),
+                |x| {
+                    tree.children[<span class="number">0</span>]
+                        .state
+                        .downcast_mut::&lt;text_input::State&lt;Renderer::Paragraph&gt;&gt;(
+                        )
+                        .unfocus();
+
+                    (<span class="self">self</span>.on_selected)(x)
+                },
                 <span class="self">self</span>.on_option_hovered.as_deref(),
             )
             .width(bounds.width)
