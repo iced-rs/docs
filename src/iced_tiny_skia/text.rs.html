@@ -290,12 +290,65 @@
 <a href="#290" id="290">290</a>
 <a href="#291" id="291">291</a>
 <a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::text::{LineHeight, Shaping};
 <span class="kw">use </span><span class="kw">crate</span>::core::{Color, Font, Pixels, Point, Rectangle};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::cache::{<span class="self">self</span>, Cache};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::text::editor;
+<span class="kw">use </span><span class="kw">crate</span>::graphics::text::font_system;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::paragraph;
-<span class="kw">use </span><span class="kw">crate</span>::graphics::text::FontSystem;
 
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::borrow::Cow;
@@ -304,7 +357,6 @@
 
 <span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Pipeline {
-    font_system: FontSystem,
     glyph_cache: GlyphCache,
     cache: RefCell&lt;Cache&gt;,
 }
@@ -312,18 +364,16 @@
 <span class="kw">impl </span>Pipeline {
     <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         Pipeline {
-            font_system: FontSystem::new(),
             glyph_cache: GlyphCache::new(),
             cache: RefCell::new(Cache::new()),
         }
     }
 
-    <span class="kw">pub fn </span>font_system(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FontSystem {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.font_system
-    }
-
     <span class="kw">pub fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {
-        <span class="self">self</span>.font_system.load_font(bytes);
+        font_system()
+            .write()
+            .expect(<span class="string">&quot;Write font system&quot;</span>)
+            .load_font(bytes);
 
         <span class="self">self</span>.cache = RefCell::new(Cache::new());
     }
@@ -343,14 +393,47 @@
             <span class="kw">return</span>;
         };
 
+        <span class="kw">let </span><span class="kw-2">mut </span>font_system = font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
+
         draw(
-            <span class="self">self</span>.font_system.get_mut(),
+            font_system.raw(),
             <span class="kw-2">&amp;mut </span><span class="self">self</span>.glyph_cache,
             paragraph.buffer(),
             Rectangle::new(position, paragraph.min_bounds()),
             color,
             paragraph.horizontal_alignment(),
             paragraph.vertical_alignment(),
+            scale_factor,
+            pixels,
+            clip_mask,
+        );
+    }
+
+    <span class="kw">pub fn </span>draw_editor(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        editor: <span class="kw-2">&amp;</span>editor::Weak,
+        position: Point,
+        color: Color,
+        scale_factor: f32,
+        pixels: <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut&lt;<span class="lifetime">&#39;_</span>&gt;,
+        clip_mask: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tiny_skia::Mask&gt;,
+    ) {
+        <span class="kw">use </span><span class="kw">crate</span>::core::text::Editor <span class="kw">as _</span>;
+
+        <span class="kw">let </span><span class="prelude-val">Some</span>(editor) = editor.upgrade() <span class="kw">else </span>{
+            <span class="kw">return</span>;
+        };
+
+        <span class="kw">let </span><span class="kw-2">mut </span>font_system = font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
+
+        draw(
+            font_system.raw(),
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.glyph_cache,
+            editor.buffer(),
+            Rectangle::new(position, editor.bounds()),
+            color,
+            alignment::Horizontal::Left,
+            alignment::Vertical::Top,
             scale_factor,
             pixels,
             clip_mask,
@@ -374,7 +457,9 @@
     ) {
         <span class="kw">let </span>line_height = f32::from(line_height.to_absolute(size));
 
-        <span class="kw">let </span>font_system = <span class="self">self</span>.font_system.get_mut();
+        <span class="kw">let </span><span class="kw-2">mut </span>font_system = font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
+        <span class="kw">let </span>font_system = font_system.raw();
+
         <span class="kw">let </span>key = cache::Key {
             bounds: bounds.size(),
             content,
@@ -447,7 +532,7 @@
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>((buffer, placement)) = glyph_cache.allocate(
                 physical_glyph.cache_key,
-                color,
+                glyph.color_opt.map(from_color).unwrap_or(color),
                 font_system,
                 <span class="kw-2">&amp;mut </span>swash,
             ) {
@@ -469,6 +554,23 @@
                 );
             }
         }
+    }
+}
+
+<span class="kw">fn </span>from_color(color: cosmic_text::Color) -&gt; Color {
+    <span class="kw">let </span>[r, g, b, a] = color.as_rgba();
+
+    <span class="kw">if </span>color::GAMMA_CORRECTION {
+        <span class="comment">// `cosmic_text::Color` is linear RGB in this case, so we
+        // need to convert back to sRGB
+        </span>Color::from_linear_rgba(
+            r <span class="kw">as </span>f32 / <span class="number">255.0</span>,
+            g <span class="kw">as </span>f32 / <span class="number">255.0</span>,
+            b <span class="kw">as </span>f32 / <span class="number">255.0</span>,
+            a <span class="kw">as </span>f32 / <span class="number">255.0</span>,
+        )
+    } <span class="kw">else </span>{
+        Color::from_rgba8(r, g, b, a <span class="kw">as </span>f32 / <span class="number">255.0</span>)
     }
 }
 

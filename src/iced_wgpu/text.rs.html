@@ -259,11 +259,23 @@
 <a href="#259" id="259">259</a>
 <a href="#260" id="260">260</a>
 <a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Rectangle, Size};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::cache::{<span class="self">self</span>, Cache};
-<span class="kw">use </span><span class="kw">crate</span>::graphics::text::{FontSystem, Paragraph};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::text::{font_system, to_color, Editor, Paragraph};
 <span class="kw">use </span><span class="kw">crate</span>::layer::Text;
 
 <span class="kw">use </span>std::borrow::Cow;
@@ -271,7 +283,6 @@
 
 <span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Pipeline {
-    font_system: FontSystem,
     renderers: Vec&lt;glyphon::TextRenderer&gt;,
     atlas: glyphon::TextAtlas,
     prepare_layer: usize,
@@ -285,7 +296,6 @@
         format: wgpu::TextureFormat,
     ) -&gt; <span class="self">Self </span>{
         Pipeline {
-            font_system: FontSystem::new(),
             renderers: Vec::new(),
             atlas: glyphon::TextAtlas::with_color_mode(
                 device,
@@ -302,12 +312,11 @@
         }
     }
 
-    <span class="kw">pub fn </span>font_system(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>FontSystem {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.font_system
-    }
-
     <span class="kw">pub fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {
-        <span class="self">self</span>.font_system.load_font(bytes);
+        font_system()
+            .write()
+            .expect(<span class="string">&quot;Write font system&quot;</span>)
+            .load_font(bytes);
 
         <span class="self">self</span>.cache = RefCell::new(Cache::new());
     }
@@ -330,20 +339,26 @@
             ));
         }
 
-        <span class="kw">let </span>font_system = <span class="self">self</span>.font_system.get_mut();
+        <span class="kw">let </span><span class="kw-2">mut </span>font_system = font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
+        <span class="kw">let </span>font_system = font_system.raw();
+
         <span class="kw">let </span>renderer = <span class="kw-2">&amp;mut </span><span class="self">self</span>.renderers[<span class="self">self</span>.prepare_layer];
         <span class="kw">let </span>cache = <span class="self">self</span>.cache.get_mut();
 
         <span class="kw">enum </span>Allocation {
             Paragraph(Paragraph),
+            Editor(Editor),
             Cache(cache::KeyHash),
         }
 
         <span class="kw">let </span>allocations: Vec&lt;<span class="kw">_</span>&gt; = sections
             .iter()
             .map(|section| <span class="kw">match </span>section {
-                Text::Managed { paragraph, .. } =&gt; {
+                Text::Paragraph { paragraph, .. } =&gt; {
                     paragraph.upgrade().map(Allocation::Paragraph)
+                }
+                Text::Editor { editor, .. } =&gt; {
+                    editor.upgrade().map(Allocation::Editor)
                 }
                 Text::Cached(text) =&gt; {
                     <span class="kw">let </span>(key, <span class="kw">_</span>) = cache.allocate(
@@ -379,7 +394,7 @@
                     vertical_alignment,
                     color,
                 ) = <span class="kw">match </span>section {
-                    Text::Managed {
+                    Text::Paragraph {
                         position, color, ..
                     } =&gt; {
                         <span class="kw">use </span><span class="kw">crate</span>::core::text::Paragraph <span class="kw">as _</span>;
@@ -394,6 +409,24 @@
                             Rectangle::new(<span class="kw-2">*</span>position, paragraph.min_bounds()),
                             paragraph.horizontal_alignment(),
                             paragraph.vertical_alignment(),
+                            <span class="kw-2">*</span>color,
+                        )
+                    }
+                    Text::Editor {
+                        position, color, ..
+                    } =&gt; {
+                        <span class="kw">use </span><span class="kw">crate</span>::core::text::Editor <span class="kw">as _</span>;
+
+                        <span class="kw">let </span><span class="prelude-val">Some</span>(Allocation::Editor(editor)) = allocation
+                        <span class="kw">else </span>{
+                            <span class="kw">return </span><span class="prelude-val">None</span>;
+                        };
+
+                        (
+                            editor.buffer(),
+                            Rectangle::new(<span class="kw-2">*</span>position, editor.bounds()),
+                            alignment::Horizontal::Left,
+                            alignment::Vertical::Top,
                             <span class="kw-2">*</span>color,
                         )
                     }
@@ -454,16 +487,7 @@
                         right: (clip_bounds.x + clip_bounds.width) <span class="kw">as </span>i32,
                         bottom: (clip_bounds.y + clip_bounds.height) <span class="kw">as </span>i32,
                     },
-                    default_color: {
-                        <span class="kw">let </span>[r, g, b, a] = color::pack(color).components();
-
-                        glyphon::Color::rgba(
-                            (r * <span class="number">255.0</span>) <span class="kw">as </span>u8,
-                            (g * <span class="number">255.0</span>) <span class="kw">as </span>u8,
-                            (b * <span class="number">255.0</span>) <span class="kw">as </span>u8,
-                            (a * <span class="number">255.0</span>) <span class="kw">as </span>u8,
-                        )
-                    },
+                    default_color: to_color(color),
                 })
             },
         );

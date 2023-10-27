@@ -831,9 +831,28 @@
 <a href="#831" id="831">831</a>
 <a href="#832" id="832">832</a>
 <a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{Background, Color, Gradient, Rectangle, Vector};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::backend;
-<span class="kw">use </span><span class="kw">crate</span>::graphics::text;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::{Damage, Viewport};
 <span class="kw">use </span><span class="kw">crate</span>::primitive::{<span class="self">self</span>, Primitive};
 
@@ -1210,6 +1229,31 @@
 
                 <span class="self">self</span>.text_pipeline.draw_paragraph(
                     paragraph,
+                    <span class="kw-2">*</span>position + translation,
+                    <span class="kw-2">*</span>color,
+                    scale_factor,
+                    pixels,
+                    clip_mask,
+                );
+            }
+            Primitive::Editor {
+                editor,
+                position,
+                color,
+            } =&gt; {
+                <span class="kw">let </span>physical_bounds =
+                    (Rectangle::new(<span class="kw-2">*</span>position, editor.bounds) + translation)
+                        * scale_factor;
+
+                <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
+                    <span class="kw">return</span>;
+                }
+
+                <span class="kw">let </span>clip_mask = (!physical_bounds.is_within(<span class="kw-2">&amp;</span>clip_bounds))
+                    .then_some(clip_mask <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">_</span>);
+
+                <span class="self">self</span>.text_pipeline.draw_editor(
+                    editor,
                     <span class="kw-2">*</span>position + translation,
                     <span class="kw-2">*</span>color,
                     scale_factor,
@@ -1636,10 +1680,6 @@
 }
 
 <span class="kw">impl </span>backend::Text <span class="kw">for </span>Backend {
-    <span class="kw">fn </span>font_system(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>text::FontSystem {
-        <span class="self">self</span>.text_pipeline.font_system()
-    }
-
     <span class="kw">fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, font: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {
         <span class="self">self</span>.text_pipeline.load_font(font);
     }

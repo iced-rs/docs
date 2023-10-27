@@ -134,72 +134,98 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
-</pre></div><pre class="rust"><code><span class="kw">pub mod </span>cache;
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Draw text.
+</span><span class="kw">pub mod </span>cache;
+<span class="kw">pub mod </span>editor;
 <span class="kw">pub mod </span>paragraph;
 
 <span class="kw">pub use </span>cache::Cache;
+<span class="kw">pub use </span>editor::Editor;
 <span class="kw">pub use </span>paragraph::Paragraph;
 
 <span class="kw">pub use </span>cosmic_text;
 
+<span class="kw">use </span><span class="kw">crate</span>::color;
 <span class="kw">use </span><span class="kw">crate</span>::core::font::{<span class="self">self</span>, Font};
 <span class="kw">use </span><span class="kw">crate</span>::core::text::Shaping;
-<span class="kw">use </span><span class="kw">crate</span>::core::Size;
+<span class="kw">use </span><span class="kw">crate</span>::core::{Color, Size};
 
+<span class="kw">use </span>once_cell::sync::OnceCell;
 <span class="kw">use </span>std::borrow::Cow;
-<span class="kw">use </span>std::sync::{<span class="self">self</span>, Arc, RwLock};
+<span class="kw">use </span>std::sync::{Arc, RwLock};
 
-<span class="attr">#[allow(missing_debug_implementations)]
+<span class="doccomment">/// Returns the global [`FontSystem`].
+</span><span class="kw">pub fn </span>font_system() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>RwLock&lt;FontSystem&gt; {
+    <span class="kw">static </span>FONT_SYSTEM: OnceCell&lt;RwLock&lt;FontSystem&gt;&gt; = OnceCell::new();
+
+    FONT_SYSTEM.get_or_init(|| {
+        RwLock::new(FontSystem {
+            raw: cosmic_text::FontSystem::new_with_fonts([
+                cosmic_text::fontdb::Source::Binary(Arc::new(
+                    <span class="macro">include_bytes!</span>(<span class="string">&quot;../fonts/Iced-Icons.ttf&quot;</span>).as_slice(),
+                )),
+            ]),
+            version: Version::default(),
+        })
+    })
+}
+
+<span class="doccomment">/// A set of system fonts.
+</span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>FontSystem {
-    raw: RwLock&lt;cosmic_text::FontSystem&gt;,
+    raw: cosmic_text::FontSystem,
     version: Version,
 }
 
 <span class="kw">impl </span>FontSystem {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        FontSystem {
-            raw: RwLock::new(cosmic_text::FontSystem::new_with_fonts([
-                cosmic_text::fontdb::Source::Binary(Arc::new(
-                    <span class="macro">include_bytes!</span>(<span class="string">&quot;../fonts/Iced-Icons.ttf&quot;</span>).as_slice(),
-                )),
-            ])),
-            version: Version::default(),
-        }
+    <span class="doccomment">/// Returns the raw [`cosmic_text::FontSystem`].
+    </span><span class="kw">pub fn </span>raw(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>cosmic_text::FontSystem {
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>.raw
     }
 
-    <span class="kw">pub fn </span>get_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>cosmic_text::FontSystem {
-        <span class="self">self</span>.raw.get_mut().expect(<span class="string">&quot;Lock font system&quot;</span>)
-    }
-
-    <span class="kw">pub fn </span>write(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; (sync::RwLockWriteGuard&lt;<span class="lifetime">&#39;_</span>, cosmic_text::FontSystem&gt;, Version) {
-        (<span class="self">self</span>.raw.write().expect(<span class="string">&quot;Write font system&quot;</span>), <span class="self">self</span>.version)
-    }
-
-    <span class="kw">pub fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {
-        <span class="kw">let _ </span>= <span class="self">self</span>.get_mut().db_mut().load_font_source(
+    <span class="doccomment">/// Loads a font from its bytes.
+    </span><span class="kw">pub fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {
+        <span class="kw">let _ </span>= <span class="self">self</span>.raw.db_mut().load_font_source(
             cosmic_text::fontdb::Source::Binary(Arc::new(bytes.into_owned())),
         );
 
         <span class="self">self</span>.version = Version(<span class="self">self</span>.version.<span class="number">0 </span>+ <span class="number">1</span>);
     }
 
-    <span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Version {
+    <span class="doccomment">/// Returns the current [`Version`] of the [`FontSystem`].
+    ///
+    /// Loading a font will increase the version of a [`FontSystem`].
+    </span><span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Version {
         <span class="self">self</span>.version
     }
 }
 
-<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+<span class="doccomment">/// A version number.
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 </span><span class="kw">pub struct </span>Version(u32);
 
-<span class="kw">impl </span>Default <span class="kw">for </span>FontSystem {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new()
-    }
-}
-
-<span class="kw">pub fn </span>measure(buffer: <span class="kw-2">&amp;</span>cosmic_text::Buffer) -&gt; Size {
+<span class="doccomment">/// Measures the dimensions of the given [`cosmic_text::Buffer`].
+</span><span class="kw">pub fn </span>measure(buffer: <span class="kw-2">&amp;</span>cosmic_text::Buffer) -&gt; Size {
     <span class="kw">let </span>(width, total_lines) = buffer
         .layout_runs()
         .fold((<span class="number">0.0</span>, <span class="number">0usize</span>), |(width, total_lines), run| {
@@ -209,7 +235,8 @@
     Size::new(width, total_lines <span class="kw">as </span>f32 * buffer.metrics().line_height)
 }
 
-<span class="kw">pub fn </span>to_attributes(font: Font) -&gt; cosmic_text::Attrs&lt;<span class="lifetime">&#39;static</span>&gt; {
+<span class="doccomment">/// Returns the attributes of the given [`Font`].
+</span><span class="kw">pub fn </span>to_attributes(font: Font) -&gt; cosmic_text::Attrs&lt;<span class="lifetime">&#39;static</span>&gt; {
     cosmic_text::Attrs::new()
         .family(to_family(font.family))
         .weight(to_weight(font.weight))
@@ -264,10 +291,23 @@
     }
 }
 
-<span class="kw">pub fn </span>to_shaping(shaping: Shaping) -&gt; cosmic_text::Shaping {
+<span class="doccomment">/// Converts some [`Shaping`] strategy to a [`cosmic_text::Shaping`] strategy.
+</span><span class="kw">pub fn </span>to_shaping(shaping: Shaping) -&gt; cosmic_text::Shaping {
     <span class="kw">match </span>shaping {
         Shaping::Basic =&gt; cosmic_text::Shaping::Basic,
         Shaping::Advanced =&gt; cosmic_text::Shaping::Advanced,
     }
+}
+
+<span class="doccomment">/// Converts some [`Color`] to a [`cosmic_text::Color`].
+</span><span class="kw">pub fn </span>to_color(color: Color) -&gt; cosmic_text::Color {
+    <span class="kw">let </span>[r, g, b, a] = color::pack(color).components();
+
+    cosmic_text::Color::rgba(
+        (r * <span class="number">255.0</span>) <span class="kw">as </span>u8,
+        (g * <span class="number">255.0</span>) <span class="kw">as </span>u8,
+        (b * <span class="number">255.0</span>) <span class="kw">as </span>u8,
+        (a * <span class="number">255.0</span>) <span class="kw">as </span>u8,
+    )
 }
 </code></pre></div></section></main></body></html>

@@ -130,14 +130,35 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{Font, Size};
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Cache text.
+</span><span class="kw">use </span><span class="kw">crate</span>::core::{Font, Size};
 <span class="kw">use </span><span class="kw">crate</span>::text;
 
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::collections::hash_map;
 <span class="kw">use </span>std::hash::{BuildHasher, Hash, Hasher};
 
-<span class="attr">#[allow(missing_debug_implementations)]
+<span class="doccomment">/// A store of recently used sections of text.
+</span><span class="attr">#[allow(missing_debug_implementations)]
 #[derive(Default)]
 </span><span class="kw">pub struct </span>Cache {
     entries: FxHashMap&lt;KeyHash, Entry&gt;,
@@ -153,15 +174,18 @@
 </span><span class="kw">type </span>HashBuilder = std::hash::BuildHasherDefault&lt;twox_hash::XxHash64&gt;;
 
 <span class="kw">impl </span>Cache {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a new empty [`Cache`].
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default()
     }
 
-    <span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>KeyHash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Entry&gt; {
+    <span class="doccomment">/// Gets the text [`Entry`] with the given [`KeyHash`].
+    </span><span class="kw">pub fn </span>get(<span class="kw-2">&amp;</span><span class="self">self</span>, key: <span class="kw-2">&amp;</span>KeyHash) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Entry&gt; {
         <span class="self">self</span>.entries.get(key)
     }
 
-    <span class="kw">pub fn </span>allocate(
+    <span class="doccomment">/// Allocates a text [`Entry`] if it is not already present in the [`Cache`].
+    </span><span class="kw">pub fn </span>allocate(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         font_system: <span class="kw-2">&amp;mut </span>cosmic_text::FontSystem,
         key: Key&lt;<span class="lifetime">&#39;_</span>&gt;,
@@ -220,7 +244,10 @@
         (hash, <span class="self">self</span>.entries.get_mut(<span class="kw-2">&amp;</span>hash).unwrap())
     }
 
-    <span class="kw">pub fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="doccomment">/// Trims the [`Cache`].
+    ///
+    /// This will clear the sections of text that have not been used since the last `trim`.
+    </span><span class="kw">pub fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="self">self</span>.entries
             .retain(|key, <span class="kw">_</span>| <span class="self">self</span>.recently_used.contains(key));
 
@@ -231,14 +258,21 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Clone, Copy)]
+<span class="doccomment">/// A cache key representing a section of text.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>Key&lt;<span class="lifetime">&#39;a</span>&gt; {
-    <span class="kw">pub </span>content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
-    <span class="kw">pub </span>size: f32,
-    <span class="kw">pub </span>line_height: f32,
-    <span class="kw">pub </span>font: Font,
-    <span class="kw">pub </span>bounds: Size,
-    <span class="kw">pub </span>shaping: text::Shaping,
+    <span class="doccomment">/// The content of the text.
+    </span><span class="kw">pub </span>content: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>str,
+    <span class="doccomment">/// The size of the text.
+    </span><span class="kw">pub </span>size: f32,
+    <span class="doccomment">/// The line height of the text.
+    </span><span class="kw">pub </span>line_height: f32,
+    <span class="doccomment">/// The [`Font`] of the text.
+    </span><span class="kw">pub </span>font: Font,
+    <span class="doccomment">/// The bounds of the text.
+    </span><span class="kw">pub </span>bounds: Size,
+    <span class="doccomment">/// The shaping strategy of the text.
+    </span><span class="kw">pub </span>shaping: text::Shaping,
 }
 
 <span class="kw">impl </span>Key&lt;<span class="lifetime">&#39;_</span>&gt; {
@@ -255,11 +289,15 @@
     }
 }
 
-<span class="kw">pub type </span>KeyHash = u64;
+<span class="doccomment">/// The hash of a [`Key`].
+</span><span class="kw">pub type </span>KeyHash = u64;
 
-<span class="attr">#[allow(missing_debug_implementations)]
+<span class="doccomment">/// A cache entry.
+</span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Entry {
-    <span class="kw">pub </span>buffer: cosmic_text::Buffer,
-    <span class="kw">pub </span>min_bounds: Size,
+    <span class="doccomment">/// The buffer of text, ready for drawing.
+    </span><span class="kw">pub </span>buffer: cosmic_text::Buffer,
+    <span class="doccomment">/// The minimum bounds of the text.
+    </span><span class="kw">pub </span>min_bounds: Size,
 }
 </code></pre></div></section></main></body></html>

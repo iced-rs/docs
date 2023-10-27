@@ -286,9 +286,8 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::text::{<span class="self">self</span>, Text};
-<span class="kw">use </span><span class="kw">crate</span>::core::{
-    Background, Color, Font, Pixels, Point, Rectangle, Size, Vector,
-};
+<span class="kw">use </span><span class="kw">crate</span>::core::{Background, Color, Font, Pixels, Point, Rectangle, Vector};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::text::Editor;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::Paragraph;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::Mesh;
 
@@ -416,6 +415,7 @@
 <span class="kw">impl</span>&lt;T&gt; text::Renderer <span class="kw">for </span>Renderer&lt;T&gt; {
     <span class="kw">type </span>Font = Font;
     <span class="kw">type </span>Paragraph = Paragraph;
+    <span class="kw">type </span>Editor = Editor;
 
     <span class="kw">const </span>ICON_FONT: Font = iced_tiny_skia::Renderer::&lt;T&gt;::ICON_FONT;
     <span class="kw">const </span>CHECKMARK_ICON: char = iced_tiny_skia::Renderer::&lt;T&gt;::CHECKMARK_ICON;
@@ -430,36 +430,33 @@
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.default_size())
     }
 
-    <span class="kw">fn </span>create_paragraph(<span class="kw-2">&amp;</span><span class="self">self</span>, text: Text&lt;<span class="lifetime">&#39;_</span>, <span class="self">Self</span>::Font&gt;) -&gt; <span class="self">Self</span>::Paragraph {
-        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.create_paragraph(text))
-    }
-
-    <span class="kw">fn </span>resize_paragraph(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        paragraph: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Paragraph,
-        new_bounds: Size,
-    ) {
-        <span class="macro">delegate!</span>(
-            <span class="self">self</span>,
-            renderer,
-            renderer.resize_paragraph(paragraph, new_bounds)
-        );
-    }
-
     <span class="kw">fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: Cow&lt;<span class="lifetime">&#39;static</span>, [u8]&gt;) {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.load_font(bytes));
     }
 
     <span class="kw">fn </span>fill_paragraph(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        text: <span class="kw-2">&amp;</span><span class="self">Self</span>::Paragraph,
+        paragraph: <span class="kw-2">&amp;</span><span class="self">Self</span>::Paragraph,
         position: Point,
         color: Color,
     ) {
         <span class="macro">delegate!</span>(
             <span class="self">self</span>,
             renderer,
-            renderer.fill_paragraph(text, position, color)
+            renderer.fill_paragraph(paragraph, position, color)
+        );
+    }
+
+    <span class="kw">fn </span>fill_editor(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        editor: <span class="kw-2">&amp;</span><span class="self">Self</span>::Editor,
+        position: Point,
+        color: Color,
+    ) {
+        <span class="macro">delegate!</span>(
+            <span class="self">self</span>,
+            renderer,
+            renderer.fill_editor(editor, position, color)
         );
     }
 
@@ -477,7 +474,10 @@
 </span><span class="kw">impl</span>&lt;T&gt; <span class="kw">crate</span>::core::image::Renderer <span class="kw">for </span>Renderer&lt;T&gt; {
     <span class="kw">type </span>Handle = <span class="kw">crate</span>::core::image::Handle;
 
-    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::core::image::Handle) -&gt; Size&lt;u32&gt; {
+    <span class="kw">fn </span>dimensions(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::core::image::Handle,
+    ) -&gt; core::Size&lt;u32&gt; {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.dimensions(handle))
     }
 
@@ -488,7 +488,7 @@
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
 </span><span class="kw">impl</span>&lt;T&gt; <span class="kw">crate</span>::core::svg::Renderer <span class="kw">for </span>Renderer&lt;T&gt; {
-    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::core::svg::Handle) -&gt; Size&lt;u32&gt; {
+    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::core::svg::Handle) -&gt; core::Size&lt;u32&gt; {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.dimensions(handle))
     }
 

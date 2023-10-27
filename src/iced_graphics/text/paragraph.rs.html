@@ -300,16 +300,23 @@
 <a href="#300" id="300">300</a>
 <a href="#301" id="301">301</a>
 <a href="#302" id="302">302</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core;
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Draw paragraphs.
+</span><span class="kw">use </span><span class="kw">crate</span>::core;
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::text::{Hit, LineHeight, Shaping, Text};
 <span class="kw">use </span><span class="kw">crate</span>::core::{Font, Pixels, Point, Size};
-<span class="kw">use </span><span class="kw">crate</span>::text::{<span class="self">self</span>, FontSystem};
+<span class="kw">use </span><span class="kw">crate</span>::text;
 
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::sync::{<span class="self">self</span>, Arc};
 
-<span class="attr">#[derive(Clone, PartialEq)]
+<span class="doccomment">/// A bunch of text.
+</span><span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Paragraph(<span class="prelude-ty">Option</span>&lt;Arc&lt;Internal&gt;&gt;);
 
 <span class="kw">struct </span>Internal {
@@ -325,17 +332,50 @@
 }
 
 <span class="kw">impl </span>Paragraph {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a new empty [`Paragraph`].
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default()
     }
 
-    <span class="kw">pub fn </span>with_text(text: Text&lt;<span class="lifetime">&#39;_</span>, Font&gt;, font_system: <span class="kw-2">&amp;</span>FontSystem) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Returns the buffer of the [`Paragraph`].
+    </span><span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>cosmic_text::Buffer {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.internal().buffer
+    }
+
+    <span class="doccomment">/// Creates a [`Weak`] reference to the [`Paragraph`].
+    ///
+    /// This is useful to avoid cloning the [`Paragraph`] when
+    /// referential guarantees are unnecessary. For instance,
+    /// when creating a rendering tree.
+    </span><span class="kw">pub fn </span>downgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Weak {
+        <span class="kw">let </span>paragraph = <span class="self">self</span>.internal();
+
+        Weak {
+            raw: Arc::downgrade(paragraph),
+            min_bounds: paragraph.min_bounds,
+            horizontal_alignment: paragraph.horizontal_alignment,
+            vertical_alignment: paragraph.vertical_alignment,
+        }
+    }
+
+    <span class="kw">fn </span>internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;Internal&gt; {
+        <span class="self">self</span>.<span class="number">0
+            </span>.as_ref()
+            .expect(<span class="string">&quot;paragraph should always be initialized&quot;</span>)
+    }
+}
+
+<span class="kw">impl </span>core::text::Paragraph <span class="kw">for </span>Paragraph {
+    <span class="kw">type </span>Font = Font;
+
+    <span class="kw">fn </span>with_text(text: Text&lt;<span class="lifetime">&#39;_</span>, Font&gt;) -&gt; <span class="self">Self </span>{
         <span class="macro">log::trace!</span>(<span class="string">&quot;Allocating paragraph: {}&quot;</span>, text.content);
 
-        <span class="kw">let </span>(<span class="kw-2">mut </span>font_system, version) = font_system.write();
+        <span class="kw">let </span><span class="kw-2">mut </span>font_system =
+            text::font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>buffer = cosmic_text::Buffer::new(
-            <span class="kw-2">&amp;mut </span>font_system,
+            font_system.raw(),
             cosmic_text::Metrics::new(
                 text.size.into(),
                 text.line_height.to_absolute(text.size).into(),
@@ -343,13 +383,13 @@
         );
 
         buffer.set_size(
-            <span class="kw-2">&amp;mut </span>font_system,
+            font_system.raw(),
             text.bounds.width,
             text.bounds.height,
         );
 
         buffer.set_text(
-            <span class="kw-2">&amp;mut </span>font_system,
+            font_system.raw(),
             text.content,
             text::to_attributes(text.font),
             text::to_shaping(text.shaping),
@@ -366,30 +406,11 @@
             shaping: text.shaping,
             bounds: text.bounds,
             min_bounds,
-            version,
+            version: font_system.version(),
         })))
     }
 
-    <span class="kw">pub fn </span>buffer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>cosmic_text::Buffer {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.internal().buffer
-    }
-
-    <span class="kw">pub fn </span>version(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; text::Version {
-        <span class="self">self</span>.internal().version
-    }
-
-    <span class="kw">pub fn </span>downgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Weak {
-        <span class="kw">let </span>paragraph = <span class="self">self</span>.internal();
-
-        Weak {
-            raw: Arc::downgrade(paragraph),
-            min_bounds: paragraph.min_bounds,
-            horizontal_alignment: paragraph.horizontal_alignment,
-            vertical_alignment: paragraph.vertical_alignment,
-        }
-    }
-
-    <span class="kw">pub fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_bounds: Size, font_system: <span class="kw-2">&amp;</span>FontSystem) {
+    <span class="kw">fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_bounds: Size) {
         <span class="kw">let </span>paragraph = <span class="self">self
             </span>.<span class="number">0
             </span>.take()
@@ -397,10 +418,11 @@
 
         <span class="kw">match </span>Arc::try_unwrap(paragraph) {
             <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>internal) =&gt; {
-                <span class="kw">let </span>(<span class="kw-2">mut </span>font_system, <span class="kw">_</span>) = font_system.write();
+                <span class="kw">let </span><span class="kw-2">mut </span>font_system =
+                    text::font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
 
                 internal.buffer.set_size(
-                    <span class="kw-2">&amp;mut </span>font_system,
+                    font_system.raw(),
                     new_bounds.width,
                     new_bounds.height,
                 );
@@ -415,55 +437,42 @@
 
                 <span class="comment">// If there is a strong reference somewhere, we recompute the
                 // buffer from scratch
-                </span><span class="kw-2">*</span><span class="self">self </span>= <span class="self">Self</span>::with_text(
-                    Text {
-                        content: <span class="kw-2">&amp;</span>internal.content,
-                        bounds: internal.bounds,
-                        size: Pixels(metrics.font_size),
-                        line_height: LineHeight::Absolute(Pixels(
-                            metrics.line_height,
-                        )),
-                        font: internal.font,
-                        horizontal_alignment: internal.horizontal_alignment,
-                        vertical_alignment: internal.vertical_alignment,
-                        shaping: internal.shaping,
-                    },
-                    font_system,
-                );
+                </span><span class="kw-2">*</span><span class="self">self </span>= <span class="self">Self</span>::with_text(Text {
+                    content: <span class="kw-2">&amp;</span>internal.content,
+                    bounds: internal.bounds,
+                    size: Pixels(metrics.font_size),
+                    line_height: LineHeight::Absolute(Pixels(
+                        metrics.line_height,
+                    )),
+                    font: internal.font,
+                    horizontal_alignment: internal.horizontal_alignment,
+                    vertical_alignment: internal.vertical_alignment,
+                    shaping: internal.shaping,
+                });
             }
         }
     }
 
-    <span class="kw">fn </span>internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;Internal&gt; {
-        <span class="self">self</span>.<span class="number">0
-            </span>.as_ref()
-            .expect(<span class="string">&quot;paragraph should always be initialized&quot;</span>)
-    }
-}
+    <span class="kw">fn </span>compare(<span class="kw-2">&amp;</span><span class="self">self</span>, text: Text&lt;<span class="lifetime">&#39;_</span>, Font&gt;) -&gt; core::text::Difference {
+        <span class="kw">let </span>font_system = text::font_system().read().expect(<span class="string">&quot;Read font system&quot;</span>);
+        <span class="kw">let </span>paragraph = <span class="self">self</span>.internal();
+        <span class="kw">let </span>metrics = paragraph.buffer.metrics();
 
-<span class="kw">impl </span>core::text::Paragraph <span class="kw">for </span>Paragraph {
-    <span class="kw">type </span>Font = Font;
-
-    <span class="kw">fn </span>content(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.internal().content
-    }
-
-    <span class="kw">fn </span>text_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Pixels {
-        Pixels(<span class="self">self</span>.internal().buffer.metrics().font_size)
-    }
-
-    <span class="kw">fn </span>line_height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; LineHeight {
-        LineHeight::Absolute(Pixels(
-            <span class="self">self</span>.internal().buffer.metrics().line_height,
-        ))
-    }
-
-    <span class="kw">fn </span>font(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Font {
-        <span class="self">self</span>.internal().font
-    }
-
-    <span class="kw">fn </span>shaping(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Shaping {
-        <span class="self">self</span>.internal().shaping
+        <span class="kw">if </span>paragraph.version != font_system.version
+            || paragraph.content != text.content
+            || metrics.font_size != text.size.<span class="number">0
+            </span>|| metrics.line_height != text.line_height.to_absolute(text.size).<span class="number">0
+            </span>|| paragraph.font != text.font
+            || paragraph.shaping != text.shaping
+            || paragraph.horizontal_alignment != text.horizontal_alignment
+            || paragraph.vertical_alignment != text.vertical_alignment
+        {
+            core::text::Difference::Shape
+        } <span class="kw">else if </span>paragraph.bounds != text.bounds {
+            core::text::Difference::Bounds
+        } <span class="kw">else </span>{
+            core::text::Difference::None
+        }
     }
 
     <span class="kw">fn </span>horizontal_alignment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; alignment::Horizontal {
@@ -472,10 +481,6 @@
 
     <span class="kw">fn </span>vertical_alignment(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; alignment::Vertical {
         <span class="self">self</span>.internal().vertical_alignment
-    }
-
-    <span class="kw">fn </span>bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size {
-        <span class="self">self</span>.internal().bounds
     }
 
     <span class="kw">fn </span>min_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size {
@@ -580,16 +585,21 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Clone)]
+<span class="doccomment">/// A weak reference to a [`Paragraph`].
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>Weak {
     raw: sync::Weak&lt;Internal&gt;,
-    <span class="kw">pub </span>min_bounds: Size,
-    <span class="kw">pub </span>horizontal_alignment: alignment::Horizontal,
-    <span class="kw">pub </span>vertical_alignment: alignment::Vertical,
+    <span class="doccomment">/// The minimum bounds of the [`Paragraph`].
+    </span><span class="kw">pub </span>min_bounds: Size,
+    <span class="doccomment">/// The horizontal alignment of the [`Paragraph`].
+    </span><span class="kw">pub </span>horizontal_alignment: alignment::Horizontal,
+    <span class="doccomment">/// The vertical alignment of the [`Paragraph`].
+    </span><span class="kw">pub </span>vertical_alignment: alignment::Vertical,
 }
 
 <span class="kw">impl </span>Weak {
-    <span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Paragraph&gt; {
+    <span class="doccomment">/// Tries to update the reference into a [`Paragraph`].
+    </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Paragraph&gt; {
         <span class="self">self</span>.raw.upgrade().map(<span class="prelude-val">Some</span>).map(Paragraph)
     }
 }

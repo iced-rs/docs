@@ -1471,9 +1471,6 @@
 <a href="#1471" id="1471">1471</a>
 <a href="#1472" id="1472">1472</a>
 <a href="#1473" id="1473">1473</a>
-<a href="#1474" id="1474">1474</a>
-<a href="#1475" id="1475">1475</a>
-<a href="#1476" id="1476">1476</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -1999,18 +1996,15 @@
         shaping: text::Shaping::Advanced,
     };
 
-    renderer.update_paragraph(<span class="kw-2">&amp;mut </span>state.placeholder, placeholder_text);
+    state.placeholder.update(placeholder_text);
 
     <span class="kw">let </span>secure_value = is_secure.then(|| value.secure());
     <span class="kw">let </span>value = secure_value.as_ref().unwrap_or(value);
 
-    renderer.update_paragraph(
-        <span class="kw-2">&amp;mut </span>state.value,
-        Text {
-            content: <span class="kw-2">&amp;</span>value.to_string(),
-            ..placeholder_text
-        },
-    );
+    state.value.update(Text {
+        content: <span class="kw-2">&amp;</span>value.to_string(),
+        ..placeholder_text
+    });
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(icon) = icon {
         <span class="kw">let </span>icon_text = Text {
@@ -2024,7 +2018,7 @@
             shaping: text::Shaping::Advanced,
         };
 
-        renderer.update_paragraph(<span class="kw-2">&amp;mut </span>state.icon, icon_text);
+        state.icon.update(icon_text);
 
         <span class="kw">let </span>icon_width = state.icon.min_width();
 
@@ -2937,7 +2931,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>children_layout = layout.children();
     <span class="kw">let </span>text_bounds = children_layout.next().unwrap().bounds();
 
-    state.value = renderer.create_paragraph(Text {
+    state.value = Renderer::Paragraph::with_text(Text {
         font,
         line_height,
         content: <span class="kw-2">&amp;</span>value.to_string(),
