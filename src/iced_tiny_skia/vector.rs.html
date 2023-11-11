@@ -193,10 +193,21 @@
 <a href="#193" id="193">193</a>
 <a href="#194" id="194">194</a>
 <a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::svg::{Data, Handle};
 <span class="kw">use </span><span class="kw">crate</span>::core::{Color, Rectangle, Size};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::text;
 
-<span class="kw">use </span>resvg::usvg;
+<span class="kw">use </span>resvg::usvg::{<span class="self">self</span>, TreeTextToPath};
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 
 <span class="kw">use </span>std::cell::RefCell;
@@ -272,7 +283,7 @@
         <span class="kw">let </span>id = handle.id();
 
         <span class="kw">if let </span>hash_map::Entry::Vacant(entry) = <span class="self">self</span>.trees.entry(id) {
-            <span class="kw">let </span>svg = <span class="kw">match </span>handle.data() {
+            <span class="kw">let </span><span class="kw-2">mut </span>svg = <span class="kw">match </span>handle.data() {
                 Data::Path(path) =&gt; {
                     fs::read_to_string(path).ok().and_then(|contents| {
                         usvg::Tree::from_str(
@@ -286,6 +297,15 @@
                     usvg::Tree::from_data(bytes, <span class="kw-2">&amp;</span>usvg::Options::default()).ok()
                 }
             };
+
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(svg) = <span class="kw-2">&amp;mut </span>svg {
+                <span class="kw">if </span>svg.has_text_nodes() {
+                    <span class="kw">let </span><span class="kw-2">mut </span>font_system =
+                        text::font_system().write().expect(<span class="string">&quot;Read font system&quot;</span>);
+
+                    svg.convert_text(font_system.raw().db_mut());
+                }
+            }
 
             <span class="kw">let _ </span>= entry.insert(svg);
         }
