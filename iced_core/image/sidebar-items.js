@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Data"],"struct":["Bytes","Handle"],"trait":["Renderer"]};
+window.SIDEBAR_ITEMS = {"enum":["Data","FilterMethod"],"struct":["Bytes","Handle"],"trait":["Renderer"]};

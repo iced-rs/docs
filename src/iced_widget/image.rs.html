@@ -205,6 +205,19 @@
 <a href="#205" id="205">205</a>
 <a href="#206" id="206">206</a>
 <a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display images in your user interface.
 </span><span class="kw">pub mod </span>viewer;
 <span class="kw">pub use </span>viewer::Viewer;
@@ -220,7 +233,7 @@
 
 <span class="kw">use </span>std::hash::Hash;
 
-<span class="kw">pub use </span>image::Handle;
+<span class="kw">pub use </span>image::{FilterMethod, Handle};
 
 <span class="doccomment">/// Creates a new [`Viewer`] with the given image `Handle`.
 </span><span class="kw">pub fn </span>viewer&lt;Handle&gt;(handle: Handle) -&gt; Viewer&lt;Handle&gt; {
@@ -244,6 +257,7 @@
     width: Length,
     height: Length,
     content_fit: ContentFit,
+    filter_method: FilterMethod,
 }
 
 <span class="kw">impl</span>&lt;Handle&gt; Image&lt;Handle&gt; {
@@ -254,6 +268,7 @@
             width: Length::Shrink,
             height: Length::Shrink,
             content_fit: ContentFit::Contain,
+            filter_method: FilterMethod::default(),
         }
     }
 
@@ -272,12 +287,16 @@
     <span class="doccomment">/// Sets the [`ContentFit`] of the [`Image`].
     ///
     /// Defaults to [`ContentFit::Contain`]
-    </span><span class="kw">pub fn </span>content_fit(<span class="self">self</span>, content_fit: ContentFit) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            content_fit,
-            ..<span class="self">self
-        </span>}
-    }
+    </span><span class="kw">pub fn </span>content_fit(<span class="kw-2">mut </span><span class="self">self</span>, content_fit: ContentFit) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.content_fit = content_fit;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the [`FilterMethod`] of the [`Image`].
+    </span><span class="kw">pub fn </span>filter_method(<span class="kw-2">mut </span><span class="self">self</span>, filter_method: FilterMethod) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.filter_method = filter_method;
+        <span class="self">self
+    </span>}
 }
 
 <span class="doccomment">/// Computes the layout of an [`Image`].
@@ -326,6 +345,7 @@
     layout: Layout&lt;<span class="lifetime">&#39;_</span>&gt;,
     handle: <span class="kw-2">&amp;</span>Handle,
     content_fit: ContentFit,
+    filter_method: FilterMethod,
 ) <span class="kw">where
     </span>Renderer: image::Renderer&lt;Handle = Handle&gt;,
     Handle: Clone + Hash,
@@ -348,7 +368,7 @@
             ..bounds
         };
 
-        renderer.draw(handle.clone(), drawing_bounds + offset);
+        renderer.draw(handle.clone(), filter_method, drawing_bounds + offset);
     };
 
     <span class="kw">if </span>adjusted_fit.width &gt; bounds.width || adjusted_fit.height &gt; bounds.height
@@ -398,7 +418,13 @@
         _cursor: mouse::Cursor,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        draw(renderer, layout, <span class="kw-2">&amp;</span><span class="self">self</span>.handle, <span class="self">self</span>.content_fit);
+        draw(
+            renderer,
+            layout,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.handle,
+            <span class="self">self</span>.content_fit,
+            <span class="self">self</span>.filter_method,
+        );
     }
 }
 
