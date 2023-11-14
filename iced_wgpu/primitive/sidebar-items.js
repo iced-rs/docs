@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Custom"],"type":["Primitive"]};
+window.SIDEBAR_ITEMS = {"enum":["Custom"],"mod":["pipeline"],"type":["Primitive"]};
