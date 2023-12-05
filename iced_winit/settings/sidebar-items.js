@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["PlatformSpecific","Settings","Window"]};
+window.SIDEBAR_ITEMS = {"struct":["Settings"]};

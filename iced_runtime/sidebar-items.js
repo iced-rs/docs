@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["clipboard","command","font","keyboard","overlay","program","system","user_interface","window"],"struct":["Debug","Font"]};
+window.SIDEBAR_ITEMS = {"mod":["clipboard","command","font","keyboard","multi_window","overlay","program","system","user_interface","window"],"struct":["Debug","Font"]};
