@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `graphics/src/text/editor.rs`."><title>editor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_graphics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9fad68599 2023-12-03)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../iced_graphics/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_graphics"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `graphics/src/text/editor.rs`."><title>editor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_graphics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (1fdfe1234 2023-12-06)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../iced_graphics/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_graphics"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -831,7 +831,7 @@
     <span class="kw">fn </span>internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;Internal&gt; {
         <span class="self">self</span>.<span class="number">0
             </span>.as_ref()
-            .expect(<span class="string">&quot;Editor should always be initialized&quot;</span>)
+            .expect(<span class="string">"Editor should always be initialized"</span>)
     }
 }
 
@@ -845,7 +845,7 @@
         });
 
         <span class="kw">let </span><span class="kw-2">mut </span>font_system =
-            text::font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
+            text::font_system().write().expect(<span class="string">"Write font system"</span>);
 
         buffer.set_text(
             font_system.raw(),
@@ -941,12 +941,12 @@
                 <span class="kw">let </span>line = buffer
                     .lines
                     .get(cursor.line)
-                    .expect(<span class="string">&quot;Cursor line should be present&quot;</span>);
+                    .expect(<span class="string">"Cursor line should be present"</span>);
 
                 <span class="kw">let </span>layout = line
                     .layout_opt()
                     .as_ref()
-                    .expect(<span class="string">&quot;Line layout should be cached&quot;</span>);
+                    .expect(<span class="string">"Line layout should be cached"</span>);
 
                 <span class="kw">let </span><span class="kw-2">mut </span>lines = layout.iter().enumerate();
 
@@ -1017,14 +1017,14 @@
 
     <span class="kw">fn </span>perform(<span class="kw-2">&amp;mut </span><span class="self">self</span>, action: Action) {
         <span class="kw">let </span><span class="kw-2">mut </span>font_system =
-            text::font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
+            text::font_system().write().expect(<span class="string">"Write font system"</span>);
 
         <span class="kw">let </span>editor =
-            <span class="self">self</span>.<span class="number">0</span>.take().expect(<span class="string">&quot;Editor should always be initialized&quot;</span>);
+            <span class="self">self</span>.<span class="number">0</span>.take().expect(<span class="string">"Editor should always be initialized"</span>);
 
         <span class="comment">// TODO: Handle multiple strong references somehow
         </span><span class="kw">let </span><span class="kw-2">mut </span>internal = Arc::try_unwrap(editor)
-            .expect(<span class="string">&quot;Editor cannot have multiple strong references&quot;</span>);
+            .expect(<span class="string">"Editor cannot have multiple strong references"</span>);
 
         <span class="kw">let </span>editor = <span class="kw-2">&amp;mut </span>internal.editor;
 
@@ -1096,7 +1096,7 @@
                         UnicodeSegmentation::unicode_word_indices(line.text())
                             <span class="comment">// Split words with dots
                             </span>.flat_map(|(i, word)| {
-                                word.split(<span class="string">&#39;.&#39;</span>).scan(i, |current, word| {
+                                word.split(<span class="string">'.'</span>).scan(i, |current, word| {
                                     <span class="kw">let </span>start = <span class="kw-2">*</span>current;
                                     <span class="kw-2">*</span>current += word.len() + <span class="number">1</span>;
 
@@ -1109,7 +1109,7 @@
                             </span>.find(|<span class="kw-2">&amp;</span>(start, end)| {
                                 start &lt;= cursor.index &amp;&amp; cursor.index &lt; end
                             })
-                            <span class="comment">// Cursor is not in a word. Let&#39;s select its punctuation cluster.
+                            <span class="comment">// Cursor is not in a word. Let's select its punctuation cluster.
                             </span>.unwrap_or_else(|| {
                                 <span class="kw">let </span>start = line.text()[..cursor.index]
                                     .char_indices()
@@ -1258,16 +1258,16 @@
         new_highlighter: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Highlighter,
     ) {
         <span class="kw">let </span>editor =
-            <span class="self">self</span>.<span class="number">0</span>.take().expect(<span class="string">&quot;Editor should always be initialized&quot;</span>);
+            <span class="self">self</span>.<span class="number">0</span>.take().expect(<span class="string">"Editor should always be initialized"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>internal = Arc::try_unwrap(editor)
-            .expect(<span class="string">&quot;Editor cannot have multiple strong references&quot;</span>);
+            .expect(<span class="string">"Editor cannot have multiple strong references"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>font_system =
-            text::font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
+            text::font_system().write().expect(<span class="string">"Write font system"</span>);
 
         <span class="kw">if </span>font_system.version() != internal.version {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;Updating `FontSystem` of `Editor`...&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"Updating `FontSystem` of `Editor`..."</span>);
 
             <span class="kw">for </span>line <span class="kw">in </span>internal.editor.buffer_mut().lines.iter_mut() {
                 line.reset();
@@ -1278,7 +1278,7 @@
         }
 
         <span class="kw">if </span>new_font != internal.font {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;Updating font of `Editor`...&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"Updating font of `Editor`..."</span>);
 
             <span class="kw">for </span>line <span class="kw">in </span>internal.editor.buffer_mut().lines.iter_mut() {
                 <span class="kw">let _ </span>= line.set_attrs_list(cosmic_text::AttrsList::new(
@@ -1296,7 +1296,7 @@
         <span class="kw">if </span>new_size.<span class="number">0 </span>!= metrics.font_size
             || new_line_height.<span class="number">0 </span>!= metrics.line_height
         {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;Updating `Metrics` of `Editor`...&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"Updating `Metrics` of `Editor`..."</span>);
 
             internal.editor.buffer_mut().set_metrics(
                 font_system.raw(),
@@ -1305,7 +1305,7 @@
         }
 
         <span class="kw">if </span>new_bounds != internal.bounds {
-            <span class="macro">log::trace!</span>(<span class="string">&quot;Updating size of `Editor`...&quot;</span>);
+            <span class="macro">log::trace!</span>(<span class="string">"Updating size of `Editor`..."</span>);
 
             internal.editor.buffer_mut().set_size(
                 font_system.raw(),
@@ -1319,7 +1319,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(topmost_line_changed) = internal.topmost_line_changed.take()
         {
             <span class="macro">log::trace!</span>(
-                <span class="string">&quot;Notifying highlighter of line change: {topmost_line_changed}&quot;
+                <span class="string">"Notifying highlighter of line change: {topmost_line_changed}"
             </span>);
 
             new_highlighter.change_line(topmost_line_changed);
@@ -1349,7 +1349,7 @@
                 <span class="kw">let </span>visible_lines = line
                     .layout_opt()
                     .as_ref()
-                    .expect(<span class="string">&quot;Line layout should be cached&quot;</span>)
+                    .expect(<span class="string">"Line layout should be cached"</span>)
                     .len() <span class="kw">as </span>i32;
 
                 <span class="kw">if </span>window &gt; visible_lines {
@@ -1368,13 +1368,13 @@
         }
 
         <span class="kw">let </span>editor =
-            <span class="self">self</span>.<span class="number">0</span>.take().expect(<span class="string">&quot;Editor should always be initialized&quot;</span>);
+            <span class="self">self</span>.<span class="number">0</span>.take().expect(<span class="string">"Editor should always be initialized"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>internal = Arc::try_unwrap(editor)
-            .expect(<span class="string">&quot;Editor cannot have multiple strong references&quot;</span>);
+            .expect(<span class="string">"Editor cannot have multiple strong references"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>font_system =
-            text::font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
+            text::font_system().write().expect(<span class="string">"Write font system"</span>);
 
         <span class="kw">let </span>attributes = text::to_attributes(font);
 
@@ -1442,10 +1442,10 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Internal {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
-        f.debug_struct(<span class="string">&quot;Internal&quot;</span>)
-            .field(<span class="string">&quot;font&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.font)
-            .field(<span class="string">&quot;bounds&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.bounds)
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        f.debug_struct(<span class="string">"Internal"</span>)
+            .field(<span class="string">"font"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.font)
+            .field(<span class="string">"bounds"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.bounds)
             .finish()
     }
 }
@@ -1478,11 +1478,11 @@
     line: <span class="kw-2">&amp;</span>cosmic_text::BufferLine,
     from: usize,
     to: usize,
-) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (f32, f32)&gt; + <span class="lifetime">&#39;_ </span>{
+) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (f32, f32)&gt; + <span class="lifetime">'_ </span>{
     <span class="kw">let </span>layout = line
         .layout_opt()
         .as_ref()
-        .expect(<span class="string">&quot;Line layout should be cached&quot;</span>);
+        .expect(<span class="string">"Line layout should be cached"</span>);
 
     layout.iter().map(<span class="kw">move </span>|visual_line| {
         <span class="kw">let </span>start = visual_line
@@ -1532,7 +1532,7 @@
         .map(|line| {
             line.layout_opt()
                 .as_ref()
-                .expect(<span class="string">&quot;Line layout should be cached&quot;</span>)
+                .expect(<span class="string">"Line layout should be cached"</span>)
                 .len()
         })
         .sum();

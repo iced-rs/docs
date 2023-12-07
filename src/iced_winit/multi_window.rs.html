@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `winit/src/multi_window.rs`."><title>multi_window.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9fad68599 2023-12-03)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_winit/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_winit"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `winit/src/multi_window.rs`."><title>multi_window.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (1fdfe1234 2023-12-06)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_winit/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_winit"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1320,9 +1320,9 @@
     compositor_settings: C::Settings,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt;
 <span class="kw">where
-    </span>A: Application + <span class="lifetime">&#39;static</span>,
-    E: Executor + <span class="lifetime">&#39;static</span>,
-    C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">&#39;static</span>,
+    </span>A: Application + <span class="lifetime">'static</span>,
+    E: Executor + <span class="lifetime">'static</span>,
+    C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
     &lt;A::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
 {
     <span class="kw">use </span>winit::event_loop::EventLoopBuilder;
@@ -1357,13 +1357,13 @@
     )
     .with_visible(<span class="bool-val">false</span>);
 
-    <span class="macro">log::info!</span>(<span class="string">&quot;Window builder: {:#?}&quot;</span>, builder);
+    <span class="macro">log::info!</span>(<span class="string">"Window builder: {:#?}"</span>, builder);
 
     <span class="kw">let </span>main_window = builder
         .build(<span class="kw-2">&amp;</span>event_loop)
         .map_err(Error::WindowCreationFailed)<span class="question-mark">?</span>;
 
-    <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
+    <span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
     </span>{
         <span class="kw">use </span>winit::platform::web::WindowExtWebSys;
 
@@ -1374,7 +1374,7 @@
         <span class="kw">let </span>body = document.body().unwrap();
 
         <span class="kw">let </span>target = target.and_then(|target| {
-            body.query_selector(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, target))
+            body.query_selector(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"#{}"</span>, target))
                 .ok()
                 .unwrap_or(<span class="prelude-val">None</span>)
         });
@@ -1383,12 +1383,12 @@
             <span class="prelude-val">Some</span>(node) =&gt; {
                 <span class="kw">let _ </span>= node
                     .replace_with_with_node_1(<span class="kw-2">&amp;</span>canvas)
-                    .expect(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Could not replace #{}&quot;</span>, node.id()));
+                    .expect(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"Could not replace #{}"</span>, node.id()));
             }
             <span class="prelude-val">None </span>=&gt; {
                 <span class="kw">let _ </span>= body
                     .append_child(<span class="kw-2">&amp;</span>canvas)
-                    .expect(<span class="string">&quot;Append canvas to HTML body&quot;</span>);
+                    .expect(<span class="string">"Append canvas to HTML body"</span>);
             }
         };
     }
@@ -1447,7 +1447,7 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = event {
             event_sender
                 .start_send(Event::EventLoopAwakened(event))
-                .expect(<span class="string">&quot;Send event&quot;</span>);
+                .expect(<span class="string">"Send event"</span>);
 
             <span class="kw">loop </span>{
                 <span class="kw">let </span>poll = instance.as_mut().poll(<span class="kw-2">&amp;mut </span>context);
@@ -1471,7 +1471,7 @@
                                     settings, <span class="kw-2">&amp;</span>title, monitor, <span class="prelude-val">None</span>,
                                 )
                                 .build(window_target)
-                                .expect(<span class="string">&quot;Failed to build window&quot;</span>);
+                                .expect(<span class="string">"Failed to build window"</span>);
 
                                 event_sender
                                     .start_send(Event::WindowCreated {
@@ -1479,7 +1479,7 @@
                                         window,
                                         exit_on_close_request,
                                     })
-                                    .expect(<span class="string">&quot;Send event&quot;</span>);
+                                    .expect(<span class="string">"Send event"</span>);
                             }
                         },
                         <span class="kw">_ </span>=&gt; {
@@ -1496,13 +1496,13 @@
     })
 }
 
-<span class="kw">enum </span>Event&lt;Message: <span class="lifetime">&#39;static</span>&gt; {
+<span class="kw">enum </span>Event&lt;Message: <span class="lifetime">'static</span>&gt; {
     WindowCreated {
         id: window::Id,
         window: winit::window::Window,
         exit_on_close_request: bool,
     },
-    EventLoopAwakened(winit::event::Event&lt;<span class="lifetime">&#39;static</span>, Message&gt;),
+    EventLoopAwakened(winit::event::Event&lt;<span class="lifetime">'static</span>, Message&gt;),
 }
 
 <span class="kw">enum </span>Control {
@@ -1527,9 +1527,9 @@
     <span class="kw-2">mut </span>window_manager: WindowManager&lt;A, C&gt;,
     should_main_window_be_visible: bool,
 ) <span class="kw">where
-    </span>A: Application + <span class="lifetime">&#39;static</span>,
-    E: Executor + <span class="lifetime">&#39;static</span>,
-    C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">&#39;static</span>,
+    </span>A: Application + <span class="lifetime">'static</span>,
+    E: Executor + <span class="lifetime">'static</span>,
+    C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
     &lt;A::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
 {
     <span class="kw">use </span>winit::event;
@@ -1537,7 +1537,7 @@
 
     <span class="kw">let </span>main_window = window_manager
         .get_mut(window::Id::MAIN)
-        .expect(<span class="string">&quot;Get main window&quot;</span>);
+        .expect(<span class="string">"Get main window"</span>);
 
     <span class="kw">if </span>should_main_window_be_visible {
         main_window.raw.set_visible(<span class="bool-val">true</span>);
@@ -1588,7 +1588,7 @@
 
     debug.startup_finished();
 
-    <span class="lifetime">&#39;main</span>: <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = event_receiver.next().<span class="kw">await </span>{
+    <span class="lifetime">'main</span>: <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = event_receiver.next().<span class="kw">await </span>{
         <span class="kw">match </span>event {
             Event::WindowCreated {
                 id,
@@ -1665,7 +1665,7 @@
 
                             <span class="kw">let </span>(ui_state, statuses) = user_interfaces
                                 .get_mut(<span class="kw-2">&amp;</span>id)
-                                .expect(<span class="string">&quot;Get user interface&quot;</span>)
+                                .expect(<span class="string">"Get user interface"</span>)
                                 .update(
                                     <span class="kw-2">&amp;</span>window_events,
                                     window.state.cursor(),
@@ -1716,7 +1716,7 @@
                             );
 
                             <span class="comment">// we must synchronize all window states with application state after an
-                            // application update since we don&#39;t know what changed
+                            // application update since we don't know what changed
                             </span><span class="kw">for </span>(id, window) <span class="kw">in </span>window_manager.iter_mut() {
                                 window.state.synchronize(
                                     <span class="kw-2">&amp;</span>application,
@@ -1752,7 +1752,7 @@
 
                             <span class="kw">let </span>ui = user_interfaces
                                 .get_mut(<span class="kw-2">&amp;</span>id)
-                                .expect(<span class="string">&quot;Get user interface&quot;</span>);
+                                .expect(<span class="string">"Get user interface"</span>);
 
                             <span class="kw">let </span>(ui_state, <span class="kw">_</span>) = ui.update(
                                 <span class="kw-2">&amp;</span>[redraw_event.clone()],
@@ -1860,7 +1860,7 @@
 
                             <span class="kw">let </span>ui = user_interfaces
                                 .remove(<span class="kw-2">&amp;</span>id)
-                                .expect(<span class="string">&quot;Remove user interface&quot;</span>);
+                                .expect(<span class="string">"Remove user interface"</span>);
 
                             <span class="kw">let _ </span>= user_interfaces.insert(
                                 id,
@@ -1872,7 +1872,7 @@
                             debug.draw_started();
                             <span class="kw">let </span>new_mouse_interaction = user_interfaces
                                 .get_mut(<span class="kw-2">&amp;</span>id)
-                                .expect(<span class="string">&quot;Get user interface&quot;</span>)
+                                .expect(<span class="string">"Get user interface"</span>)
                                 .draw(
                                     <span class="kw-2">&amp;mut </span>window.renderer,
                                     window.state.theme(),
@@ -1921,12 +1921,12 @@
                             <span class="prelude-val">Err</span>(error) =&gt; <span class="kw">match </span>error {
                                 <span class="comment">// This is an unrecoverable error.
                                 </span>compositor::SurfaceError::OutOfMemory =&gt; {
-                                    <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, error);
+                                    <span class="macro">panic!</span>(<span class="string">"{:?}"</span>, error);
                                 }
                                 <span class="kw">_ </span>=&gt; {
                                     debug.render_finished();
                                     <span class="macro">log::error!</span>(
-                                <span class="string">&quot;Error {error:?} when presenting surface.&quot;
+                                <span class="string">"Error {error:?} when presenting surface."
                             </span>);
 
                                     <span class="comment">// Try rendering all windows again next frame.
@@ -1964,7 +1964,7 @@
                             ));
 
                             <span class="kw">if </span>window_manager.is_empty() {
-                                <span class="kw">break </span><span class="lifetime">&#39;main</span>;
+                                <span class="kw">break </span><span class="lifetime">'main</span>;
                             }
                         } <span class="kw">else </span>{
                             window.state.update(
@@ -1992,15 +1992,15 @@
     <span class="kw">let _ </span>= ManuallyDrop::into_inner(user_interfaces);
 }
 
-<span class="doccomment">/// Builds a window&#39;s [`UserInterface`] for the [`Application`].
-</span><span class="kw">fn </span>build_user_interface&lt;<span class="lifetime">&#39;a</span>, A: Application&gt;(
-    application: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>A,
+<span class="doccomment">/// Builds a window's [`UserInterface`] for the [`Application`].
+</span><span class="kw">fn </span>build_user_interface&lt;<span class="lifetime">'a</span>, A: Application&gt;(
+    application: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>A,
     cache: user_interface::Cache,
     renderer: <span class="kw-2">&amp;mut </span>A::Renderer,
     size: Size,
     debug: <span class="kw-2">&amp;mut </span>Debug,
     id: window::Id,
-) -&gt; UserInterface&lt;<span class="lifetime">&#39;a</span>, A::Message, A::Renderer&gt;
+) -&gt; UserInterface&lt;<span class="lifetime">'a</span>, A::Message, A::Renderer&gt;
 <span class="kw">where
     </span>&lt;A::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
 {
@@ -2029,7 +2029,7 @@
     window_manager: <span class="kw-2">&amp;mut </span>WindowManager&lt;A, C&gt;,
     ui_caches: <span class="kw-2">&amp;mut </span>HashMap&lt;window::Id, user_interface::Cache&gt;,
 ) <span class="kw">where
-    </span>C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">&#39;static</span>,
+    </span>C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
     &lt;A::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
 {
     <span class="kw">for </span>message <span class="kw">in </span>messages.drain(..) {
@@ -2072,7 +2072,7 @@
 ) <span class="kw">where
     </span>A: Application,
     E: Executor,
-    C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">&#39;static</span>,
+    C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
     &lt;A::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
 {
     <span class="kw">use </span><span class="kw">crate</span>::runtime::clipboard;
@@ -2093,7 +2093,7 @@
 
                     proxy
                         .send_event(message)
-                        .expect(<span class="string">&quot;Send message to event loop&quot;</span>);
+                        .expect(<span class="string">"Send message to event loop"</span>);
                 }
                 clipboard::Action::Write(contents) =&gt; {
                     clipboard.write(contents);
@@ -2110,7 +2110,7 @@
                             title: application.title(id),
                             monitor,
                         })
-                        .expect(<span class="string">&quot;Send control action&quot;</span>);
+                        .expect(<span class="string">"Send control action"</span>);
                 }
                 window::Action::Close(id) =&gt; {
                     <span class="kw">use </span>winit::event_loop::ControlFlow;
@@ -2123,7 +2123,7 @@
                             .start_send(Control::ChangeFlow(
                                 ControlFlow::ExitWithCode(<span class="number">0</span>),
                             ))
-                            .expect(<span class="string">&quot;Send control action&quot;</span>);
+                            .expect(<span class="string">"Send control action"</span>);
                     }
                 }
                 window::Action::Drag(id) =&gt; {
@@ -2151,7 +2151,7 @@
                                 size.width,
                                 size.height,
                             )))
-                            .expect(<span class="string">&quot;Send message to event loop&quot;</span>);
+                            .expect(<span class="string">"Send message to event loop"</span>);
                     }
                 }
                 window::Action::Maximize(id, maximized) =&gt; {
@@ -2198,7 +2198,7 @@
 
                         proxy
                             .send_event(tag(mode))
-                            .expect(<span class="string">&quot;Event loop doesn&#39;t exist.&quot;</span>);
+                            .expect(<span class="string">"Event loop doesn't exist."</span>);
                     }
                 }
                 window::Action::ToggleMaximize(id) =&gt; {
@@ -2234,7 +2234,7 @@
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
                         proxy
                             .send_event(tag(window.raw.id().into()))
-                            .expect(<span class="string">&quot;Event loop doesn&#39;t exist.&quot;</span>);
+                            .expect(<span class="string">"Event loop doesn't exist."</span>);
                     }
                 }
                 window::Action::Screenshot(id, tag) =&gt; {
@@ -2252,13 +2252,13 @@
                                 bytes,
                                 window.state.physical_size(),
                             )))
-                            .expect(<span class="string">&quot;Event loop doesn&#39;t exist.&quot;</span>);
+                            .expect(<span class="string">"Event loop doesn't exist."</span>);
                     }
                 }
             },
             command::Action::System(action) =&gt; <span class="kw">match </span>action {
                 system::Action::QueryInformation(_tag) =&gt; {
-                    <span class="attr">#[cfg(feature = <span class="string">&quot;system&quot;</span>)]
+                    <span class="attr">#[cfg(feature = <span class="string">"system"</span>)]
                     </span>{
                         <span class="kw">let </span>graphics_info = compositor.fetch_information();
                         <span class="kw">let </span>proxy = proxy.clone();
@@ -2271,7 +2271,7 @@
 
                             proxy
                                 .send_event(message)
-                                .expect(<span class="string">&quot;Event loop doesn&#39;t exist.&quot;</span>);
+                                .expect(<span class="string">"Event loop doesn't exist."</span>);
                         });
                     }
                 }
@@ -2286,7 +2286,7 @@
                     std::mem::take(ui_caches),
                 );
 
-                <span class="lifetime">&#39;operate</span>: <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>operation) =
+                <span class="lifetime">'operate</span>: <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>operation) =
                     current_operation.take()
                 {
                     <span class="kw">for </span>(id, ui) <span class="kw">in </span>uis.iter_mut() {
@@ -2298,10 +2298,10 @@
                                 operation::Outcome::Some(message) =&gt; {
                                     proxy
                                         .send_event(message)
-                                        .expect(<span class="string">&quot;Event loop doesn&#39;t exist.&quot;</span>);
+                                        .expect(<span class="string">"Event loop doesn't exist."</span>);
 
-                                    <span class="comment">// operation completed, don&#39;t need to try to operate on rest of UIs
-                                    </span><span class="kw">break </span><span class="lifetime">&#39;operate</span>;
+                                    <span class="comment">// operation completed, don't need to try to operate on rest of UIs
+                                    </span><span class="kw">break </span><span class="lifetime">'operate</span>;
                                 }
                                 operation::Outcome::Chain(next) =&gt; {
                                     current_operation = <span class="prelude-val">Some</span>(next);
@@ -2325,19 +2325,19 @@
 
                 proxy
                     .send_event(tagger(<span class="prelude-val">Ok</span>(())))
-                    .expect(<span class="string">&quot;Send message to event loop&quot;</span>);
+                    .expect(<span class="string">"Send message to event loop"</span>);
             }
         }
     }
 }
 
 <span class="doccomment">/// Build the user interface for every window.
-</span><span class="kw">pub fn </span>build_user_interfaces&lt;<span class="lifetime">&#39;a</span>, A: Application, C: Compositor&gt;(
-    application: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>A,
+</span><span class="kw">pub fn </span>build_user_interfaces&lt;<span class="lifetime">'a</span>, A: Application, C: Compositor&gt;(
+    application: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>A,
     debug: <span class="kw-2">&amp;mut </span>Debug,
     window_manager: <span class="kw-2">&amp;mut </span>WindowManager&lt;A, C&gt;,
     <span class="kw-2">mut </span>cached_user_interfaces: HashMap&lt;window::Id, user_interface::Cache&gt;,
-) -&gt; HashMap&lt;window::Id, UserInterface&lt;<span class="lifetime">&#39;a</span>, A::Message, A::Renderer&gt;&gt;
+) -&gt; HashMap&lt;window::Id, UserInterface&lt;<span class="lifetime">'a</span>, A::Message, A::Renderer&gt;&gt;
 <span class="kw">where
     </span>&lt;A::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
     C: Compositor&lt;Renderer = A::Renderer&gt;,
@@ -2365,11 +2365,11 @@
 <span class="doccomment">/// Returns true if the provided event should cause an [`Application`] to
 /// exit.
 </span><span class="kw">pub fn </span>user_force_quit(
-    event: <span class="kw-2">&amp;</span>winit::event::WindowEvent&lt;<span class="lifetime">&#39;_</span>&gt;,
+    event: <span class="kw-2">&amp;</span>winit::event::WindowEvent&lt;<span class="lifetime">'_</span>&gt;,
     _modifiers: winit::event::ModifiersState,
 ) -&gt; bool {
     <span class="kw">match </span>event {
-        <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
+        <span class="attr">#[cfg(target_os = <span class="string">"macos"</span>)]
         </span>winit::event::WindowEvent::KeyboardInput {
             input:
                 winit::event::KeyboardInput {
@@ -2383,16 +2383,16 @@
     }
 }
 
-<span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+<span class="attr">#[cfg(not(target_arch = <span class="string">"wasm32"</span>))]
 </span><span class="kw">mod </span>platform {
     <span class="kw">pub fn </span>run&lt;T, F&gt;(
         <span class="kw-2">mut </span>event_loop: winit::event_loop::EventLoop&lt;T&gt;,
         event_handler: F,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw">super</span>::Error&gt;
     <span class="kw">where
-        </span>F: <span class="lifetime">&#39;static
+        </span>F: <span class="lifetime">'static
             </span>+ FnMut(
-                winit::event::Event&lt;<span class="lifetime">&#39;_</span>, T&gt;,
+                winit::event::Event&lt;<span class="lifetime">'_</span>, T&gt;,
                 <span class="kw-2">&amp;</span>winit::event_loop::EventLoopWindowTarget&lt;T&gt;,
                 <span class="kw-2">&amp;mut </span>winit::event_loop::ControlFlow,
             ),
@@ -2405,16 +2405,16 @@
     }
 }
 
-<span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
+<span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
 </span><span class="kw">mod </span>platform {
     <span class="kw">pub fn </span>run&lt;T, F&gt;(
         event_loop: winit::event_loop::EventLoop&lt;T&gt;,
         event_handler: F,
     ) -&gt; !
     <span class="kw">where
-        </span>F: <span class="lifetime">&#39;static
+        </span>F: <span class="lifetime">'static
             </span>+ FnMut(
-                winit::event::Event&lt;<span class="lifetime">&#39;_</span>, T&gt;,
+                winit::event::Event&lt;<span class="lifetime">'_</span>, T&gt;,
                 <span class="kw-2">&amp;</span>winit::event_loop::EventLoopWindowTarget&lt;T&gt;,
                 <span class="kw-2">&amp;mut </span>winit::event_loop::ControlFlow,
             ),

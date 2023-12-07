@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `futures/src/subscription.rs`."><title>subscription.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_futures" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9fad68599 2023-12-03)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_futures/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_futures"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `futures/src/subscription.rs`."><title>subscription.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_futures" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (1fdfe1234 2023-12-06)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_futures/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_futures"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -438,7 +438,7 @@
 ///
 /// For instance, you can use a [`Subscription`] to listen to a `WebSocket`
 /// connection, keyboard presses, mouse events, time ticks, etc.
-</span><span class="attr">#[must_use = <span class="string">&quot;`Subscription` must be returned to runtime to take effect&quot;</span>]
+</span><span class="attr">#[must_use = <span class="string">"`Subscription` must be returned to runtime to take effect"</span>]
 </span><span class="kw">pub struct </span>Subscription&lt;Message&gt; {
     recipes: Vec&lt;Box&lt;<span class="kw">dyn </span>Recipe&lt;Output = Message&gt;&gt;&gt;,
 }
@@ -453,7 +453,7 @@
 
     <span class="doccomment">/// Creates a [`Subscription`] from a [`Recipe`] describing it.
     </span><span class="kw">pub fn </span>from_recipe(
-        recipe: <span class="kw">impl </span>Recipe&lt;Output = Message&gt; + <span class="lifetime">&#39;static</span>,
+        recipe: <span class="kw">impl </span>Recipe&lt;Output = Message&gt; + <span class="lifetime">'static</span>,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             recipes: <span class="macro">vec!</span>[Box::new(recipe)],
@@ -483,8 +483,8 @@
     /// The value will be part of the identity of a [`Subscription`].
     </span><span class="kw">pub fn </span>with&lt;T&gt;(<span class="kw-2">mut </span><span class="self">self</span>, value: T) -&gt; Subscription&lt;(T, Message)&gt;
     <span class="kw">where
-        </span>Message: <span class="lifetime">&#39;static</span>,
-        T: std::hash::Hash + Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
+        </span>Message: <span class="lifetime">'static</span>,
+        T: std::hash::Hash + Clone + Send + Sync + <span class="lifetime">'static</span>,
     {
         Subscription {
             recipes: <span class="self">self
@@ -501,8 +501,8 @@
     <span class="doccomment">/// Transforms the [`Subscription`] output with the given function.
     </span><span class="kw">pub fn </span>map&lt;A&gt;(<span class="kw-2">mut </span><span class="self">self</span>, f: <span class="kw">fn</span>(Message) -&gt; A) -&gt; Subscription&lt;A&gt;
     <span class="kw">where
-        </span>Message: <span class="lifetime">&#39;static</span>,
-        A: <span class="lifetime">&#39;static</span>,
+        </span>Message: <span class="lifetime">'static</span>,
+        A: <span class="lifetime">'static</span>,
     {
         Subscription {
             recipes: <span class="self">self
@@ -517,8 +517,8 @@
 }
 
 <span class="kw">impl</span>&lt;Message&gt; std::fmt::Debug <span class="kw">for </span>Subscription&lt;Message&gt; {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; std::fmt::Result {
-        f.debug_struct(<span class="string">&quot;Subscription&quot;</span>).finish()
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+        f.debug_struct(<span class="string">"Subscription"</span>).finish()
     }
 }
 
@@ -567,8 +567,8 @@
 
 <span class="kw">impl</span>&lt;A, B&gt; Recipe <span class="kw">for </span>Map&lt;A, B&gt;
 <span class="kw">where
-    </span>A: <span class="lifetime">&#39;static</span>,
-    B: <span class="lifetime">&#39;static</span>,
+    </span>A: <span class="lifetime">'static</span>,
+    B: <span class="lifetime">'static</span>,
 {
     <span class="kw">type </span>Output = B;
 
@@ -599,8 +599,8 @@
 
 <span class="kw">impl</span>&lt;A, B&gt; Recipe <span class="kw">for </span>With&lt;A, B&gt;
 <span class="kw">where
-    </span>A: <span class="lifetime">&#39;static</span>,
-    B: <span class="lifetime">&#39;static </span>+ std::hash::Hash + Clone + Send + Sync,
+    </span>A: <span class="lifetime">'static</span>,
+    B: <span class="lifetime">'static </span>+ std::hash::Hash + Clone + Send + Sync,
 {
     <span class="kw">type </span>Output = (B, A);
 
@@ -627,8 +627,8 @@
 /// asynchronously run the given [`Stream`].
 </span><span class="kw">pub fn </span>run&lt;S, Message&gt;(builder: <span class="kw">fn</span>() -&gt; S) -&gt; Subscription&lt;Message&gt;
 <span class="kw">where
-    </span>S: Stream&lt;Item = Message&gt; + MaybeSend + <span class="lifetime">&#39;static</span>,
-    Message: <span class="lifetime">&#39;static</span>,
+    </span>S: Stream&lt;Item = Message&gt; + MaybeSend + <span class="lifetime">'static</span>,
+    Message: <span class="lifetime">'static</span>,
 {
     Subscription::from_recipe(Runner {
         id: builder,
@@ -642,9 +642,9 @@
 /// The `id` will be used to uniquely identify the [`Subscription`].
 </span><span class="kw">pub fn </span>run_with_id&lt;I, S, Message&gt;(id: I, stream: S) -&gt; Subscription&lt;Message&gt;
 <span class="kw">where
-    </span>I: Hash + <span class="lifetime">&#39;static</span>,
-    S: Stream&lt;Item = Message&gt; + MaybeSend + <span class="lifetime">&#39;static</span>,
-    Message: <span class="lifetime">&#39;static</span>,
+    </span>I: Hash + <span class="lifetime">'static</span>,
+    S: Stream&lt;Item = Message&gt; + MaybeSend + <span class="lifetime">'static</span>,
+    Message: <span class="lifetime">'static</span>,
 {
     Subscription::from_recipe(Runner {
         id,
@@ -659,13 +659,13 @@
 </span><span class="kw">pub fn </span>unfold&lt;I, T, Fut, Message&gt;(
     id: I,
     initial: T,
-    <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(T) -&gt; Fut + MaybeSend + Sync + <span class="lifetime">&#39;static</span>,
+    <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(T) -&gt; Fut + MaybeSend + Sync + <span class="lifetime">'static</span>,
 ) -&gt; Subscription&lt;Message&gt;
 <span class="kw">where
-    </span>I: Hash + <span class="lifetime">&#39;static</span>,
-    T: MaybeSend + <span class="lifetime">&#39;static</span>,
-    Fut: Future&lt;Output = (Message, T)&gt; + MaybeSend + <span class="lifetime">&#39;static</span>,
-    Message: <span class="lifetime">&#39;static </span>+ MaybeSend,
+    </span>I: Hash + <span class="lifetime">'static</span>,
+    T: MaybeSend + <span class="lifetime">'static</span>,
+    Fut: Future&lt;Output = (Message, T)&gt; + MaybeSend + <span class="lifetime">'static</span>,
+    Message: <span class="lifetime">'static </span>+ MaybeSend,
 {
     <span class="kw">use </span>futures::future::FutureExt;
 
@@ -677,9 +677,9 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>filter_map&lt;I, F, Message&gt;(id: I, f: F) -&gt; Subscription&lt;Message&gt;
 <span class="kw">where
-    </span>I: Hash + <span class="lifetime">&#39;static</span>,
-    F: Fn(Event, event::Status) -&gt; <span class="prelude-ty">Option</span>&lt;Message&gt; + MaybeSend + <span class="lifetime">&#39;static</span>,
-    Message: <span class="lifetime">&#39;static </span>+ MaybeSend,
+    </span>I: Hash + <span class="lifetime">'static</span>,
+    F: Fn(Event, event::Status) -&gt; <span class="prelude-ty">Option</span>&lt;Message&gt; + MaybeSend + <span class="lifetime">'static</span>,
+    Message: <span class="lifetime">'static </span>+ MaybeSend,
 {
     Subscription::from_recipe(Runner {
         id,
@@ -773,12 +773,12 @@
 </span><span class="kw">pub fn </span>channel&lt;I, Fut, Message&gt;(
     id: I,
     size: usize,
-    f: <span class="kw">impl </span>FnOnce(mpsc::Sender&lt;Message&gt;) -&gt; Fut + MaybeSend + <span class="lifetime">&#39;static</span>,
+    f: <span class="kw">impl </span>FnOnce(mpsc::Sender&lt;Message&gt;) -&gt; Fut + MaybeSend + <span class="lifetime">'static</span>,
 ) -&gt; Subscription&lt;Message&gt;
 <span class="kw">where
-    </span>I: Hash + <span class="lifetime">&#39;static</span>,
-    Fut: Future&lt;Output = Never&gt; + MaybeSend + <span class="lifetime">&#39;static</span>,
-    Message: <span class="lifetime">&#39;static </span>+ MaybeSend,
+    </span>I: Hash + <span class="lifetime">'static</span>,
+    Fut: Future&lt;Output = Never&gt; + MaybeSend + <span class="lifetime">'static</span>,
+    Message: <span class="lifetime">'static </span>+ MaybeSend,
 {
     <span class="kw">use </span>futures::stream::{<span class="self">self</span>, StreamExt};
 
@@ -805,9 +805,9 @@
 
 <span class="kw">impl</span>&lt;I, S, F, Message&gt; Recipe <span class="kw">for </span>Runner&lt;I, F, S, Message&gt;
 <span class="kw">where
-    </span>I: Hash + <span class="lifetime">&#39;static</span>,
+    </span>I: Hash + <span class="lifetime">'static</span>,
     F: FnOnce(EventStream) -&gt; S,
-    S: Stream&lt;Item = Message&gt; + MaybeSend + <span class="lifetime">&#39;static</span>,
+    S: Stream&lt;Item = Message&gt; + MaybeSend + <span class="lifetime">'static</span>,
 {
     <span class="kw">type </span>Output = Message;
 

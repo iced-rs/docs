@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/window/compositor.rs`."><title>compositor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9fad68599 2023-12-03)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../iced_wgpu/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_wgpu"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/window/compositor.rs`."><title>compositor.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (1fdfe1234 2023-12-06)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../iced_wgpu/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_wgpu"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -477,15 +477,15 @@
             ..Default::default()
         });
 
-        <span class="macro">log::info!</span>(<span class="string">&quot;{settings:#?}&quot;</span>);
+        <span class="macro">log::info!</span>(<span class="string">"{settings:#?}"</span>);
 
-        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+        <span class="attr">#[cfg(not(target_arch = <span class="string">"wasm32"</span>))]
         </span><span class="kw">if </span>log::max_level() &gt;= log::LevelFilter::Info {
             <span class="kw">let </span>available_adapters: Vec&lt;<span class="kw">_</span>&gt; = instance
                 .enumerate_adapters(settings.internal_backend)
                 .map(|adapter| adapter.get_info())
                 .collect();
-            <span class="macro">log::info!</span>(<span class="string">&quot;Available adapters: {available_adapters:#?}&quot;</span>);
+            <span class="macro">log::info!</span>(<span class="string">"Available adapters: {available_adapters:#?}"</span>);
         }
 
         <span class="attr">#[allow(unsafe_code)]
@@ -505,7 +505,7 @@
             })
             .<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="macro">log::info!</span>(<span class="string">&quot;Selected: {:#?}&quot;</span>, adapter.get_info());
+        <span class="macro">log::info!</span>(<span class="string">"Selected: {:#?}"</span>, adapter.get_info());
 
         <span class="kw">let </span>format = compatible_surface.as_ref().and_then(|surface| {
             <span class="kw">let </span>capabilities = surface.get_capabilities(<span class="kw-2">&amp;</span>adapter);
@@ -519,19 +519,19 @@
             };
 
             format.or_else(|| {
-                <span class="macro">log::warn!</span>(<span class="string">&quot;No format found!&quot;</span>);
+                <span class="macro">log::warn!</span>(<span class="string">"No format found!"</span>);
 
                 capabilities.formats.first().copied()
             })
         })<span class="question-mark">?</span>;
 
-        <span class="macro">log::info!</span>(<span class="string">&quot;Selected format: {format:?}&quot;</span>);
+        <span class="macro">log::info!</span>(<span class="string">"Selected format: {format:?}"</span>);
 
-        <span class="attr">#[cfg(target_arch = <span class="string">&quot;wasm32&quot;</span>)]
+        <span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
         </span><span class="kw">let </span>limits = [wgpu::Limits::downlevel_webgl2_defaults()
             .using_resolution(adapter.limits())];
 
-        <span class="attr">#[cfg(not(target_arch = <span class="string">&quot;wasm32&quot;</span>))]
+        <span class="attr">#[cfg(not(target_arch = <span class="string">"wasm32"</span>))]
         </span><span class="kw">let </span>limits =
             [wgpu::Limits::default(), wgpu::Limits::downlevel_defaults()];
 
@@ -546,7 +546,7 @@
                 <span class="kw">let </span>device = adapter.request_device(
                     <span class="kw-2">&amp;</span>wgpu::DeviceDescriptor {
                         label: <span class="prelude-val">Some</span>(
-                            <span class="string">&quot;iced_wgpu::window::compositor device descriptor&quot;</span>,
+                            <span class="string">"iced_wgpu::window::compositor device descriptor"</span>,
                         ),
                         features: wgpu::Features::empty(),
                         limits,
@@ -605,7 +605,7 @@
         <span class="prelude-val">Ok</span>(frame) =&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>encoder = compositor.device.create_command_encoder(
                 <span class="kw-2">&amp;</span>wgpu::CommandEncoderDescriptor {
-                    label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu encoder&quot;</span>),
+                    label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu encoder"</span>),
                 },
             );
 
@@ -674,7 +674,7 @@
     ) -&gt; wgpu::Surface {
         <span class="attr">#[allow(unsafe_code)]
         </span><span class="kw">let </span><span class="kw-2">mut </span>surface = <span class="kw">unsafe </span>{ <span class="self">self</span>.instance.create_surface(window) }
-            .expect(<span class="string">&quot;Create surface&quot;</span>);
+            .expect(<span class="string">"Create surface"</span>);
 
         <span class="self">self</span>.configure_surface(<span class="kw-2">&amp;mut </span>surface, width, height);
 
@@ -706,7 +706,7 @@
 
         compositor::Information {
             adapter: information.name,
-            backend: <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, information.backend),
+            backend: <span class="macro">format!</span>(<span class="string">"{:?}"</span>, information.backend),
         }
     }
 
@@ -765,7 +765,7 @@
 ) -&gt; Vec&lt;u8&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>encoder = compositor.device.create_command_encoder(
         <span class="kw-2">&amp;</span>wgpu::CommandEncoderDescriptor {
-            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu.offscreen.encoder&quot;</span>),
+            label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.offscreen.encoder"</span>),
         },
     );
 
@@ -778,7 +778,7 @@
     };
 
     <span class="kw">let </span>texture = compositor.device.create_texture(<span class="kw-2">&amp;</span>wgpu::TextureDescriptor {
-        label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu.offscreen.source_texture&quot;</span>),
+        label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.offscreen.source_texture"</span>),
         size: texture_extent,
         mip_level_count: <span class="number">1</span>,
         sample_count: <span class="number">1</span>,
@@ -817,7 +817,7 @@
 
     <span class="kw">let </span>output_buffer =
         compositor.device.create_buffer(<span class="kw-2">&amp;</span>wgpu::BufferDescriptor {
-            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu.offscreen.output_texture_buffer&quot;</span>),
+            label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.offscreen.output_texture_buffer"</span>),
             size: (dimensions.padded_bytes_per_row * dimensions.height <span class="kw">as </span>usize)
                 <span class="kw">as </span>u64,
             usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,

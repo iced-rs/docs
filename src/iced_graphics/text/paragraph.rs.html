@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `graphics/src/text/paragraph.rs`."><title>paragraph.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_graphics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9fad68599 2023-12-03)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../iced_graphics/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_graphics"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `graphics/src/text/paragraph.rs`."><title>paragraph.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_graphics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (1fdfe1234 2023-12-06)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../../iced_graphics/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_graphics"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -361,18 +361,18 @@
     <span class="kw">fn </span>internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Arc&lt;Internal&gt; {
         <span class="self">self</span>.<span class="number">0
             </span>.as_ref()
-            .expect(<span class="string">&quot;paragraph should always be initialized&quot;</span>)
+            .expect(<span class="string">"paragraph should always be initialized"</span>)
     }
 }
 
 <span class="kw">impl </span>core::text::Paragraph <span class="kw">for </span>Paragraph {
     <span class="kw">type </span>Font = Font;
 
-    <span class="kw">fn </span>with_text(text: Text&lt;<span class="lifetime">&#39;_</span>, Font&gt;) -&gt; <span class="self">Self </span>{
-        <span class="macro">log::trace!</span>(<span class="string">&quot;Allocating paragraph: {}&quot;</span>, text.content);
+    <span class="kw">fn </span>with_text(text: Text&lt;<span class="lifetime">'_</span>, Font&gt;) -&gt; <span class="self">Self </span>{
+        <span class="macro">log::trace!</span>(<span class="string">"Allocating paragraph: {}"</span>, text.content);
 
         <span class="kw">let </span><span class="kw-2">mut </span>font_system =
-            text::font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
+            text::font_system().write().expect(<span class="string">"Write font system"</span>);
 
         <span class="kw">let </span><span class="kw-2">mut </span>buffer = cosmic_text::Buffer::new(
             font_system.raw(),
@@ -414,12 +414,12 @@
         <span class="kw">let </span>paragraph = <span class="self">self
             </span>.<span class="number">0
             </span>.take()
-            .expect(<span class="string">&quot;paragraph should always be initialized&quot;</span>);
+            .expect(<span class="string">"paragraph should always be initialized"</span>);
 
         <span class="kw">match </span>Arc::try_unwrap(paragraph) {
             <span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>internal) =&gt; {
                 <span class="kw">let </span><span class="kw-2">mut </span>font_system =
-                    text::font_system().write().expect(<span class="string">&quot;Write font system&quot;</span>);
+                    text::font_system().write().expect(<span class="string">"Write font system"</span>);
 
                 internal.buffer.set_size(
                     font_system.raw(),
@@ -453,8 +453,8 @@
         }
     }
 
-    <span class="kw">fn </span>compare(<span class="kw-2">&amp;</span><span class="self">self</span>, text: Text&lt;<span class="lifetime">&#39;_</span>, Font&gt;) -&gt; core::text::Difference {
-        <span class="kw">let </span>font_system = text::font_system().read().expect(<span class="string">&quot;Read font system&quot;</span>);
+    <span class="kw">fn </span>compare(<span class="kw-2">&amp;</span><span class="self">self</span>, text: Text&lt;<span class="lifetime">'_</span>, Font&gt;) -&gt; core::text::Difference {
+        <span class="kw">let </span>font_system = text::font_system().read().expect(<span class="string">"Read font system"</span>);
         <span class="kw">let </span>paragraph = <span class="self">self</span>.internal();
         <span class="kw">let </span>metrics = paragraph.buffer.metrics();
 
@@ -497,7 +497,7 @@
         <span class="kw">let </span>run = <span class="self">self</span>.internal().buffer.layout_runs().nth(line)<span class="question-mark">?</span>;
 
         <span class="comment">// index represents a grapheme, not a glyph
-        // Let&#39;s find the first glyph for the given grapheme cluster
+        // Let's find the first glyph for the given grapheme cluster
         </span><span class="kw">let </span><span class="kw-2">mut </span>last_start = <span class="prelude-val">None</span>;
         <span class="kw">let </span><span class="kw-2">mut </span>graphemes_seen = <span class="number">0</span>;
 
@@ -538,17 +538,17 @@
 }
 
 <span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Paragraph {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
         <span class="kw">let </span>paragraph = <span class="self">self</span>.internal();
 
-        f.debug_struct(<span class="string">&quot;Paragraph&quot;</span>)
-            .field(<span class="string">&quot;content&quot;</span>, <span class="kw-2">&amp;</span>paragraph.content)
-            .field(<span class="string">&quot;font&quot;</span>, <span class="kw-2">&amp;</span>paragraph.font)
-            .field(<span class="string">&quot;shaping&quot;</span>, <span class="kw-2">&amp;</span>paragraph.shaping)
-            .field(<span class="string">&quot;horizontal_alignment&quot;</span>, <span class="kw-2">&amp;</span>paragraph.horizontal_alignment)
-            .field(<span class="string">&quot;vertical_alignment&quot;</span>, <span class="kw-2">&amp;</span>paragraph.vertical_alignment)
-            .field(<span class="string">&quot;bounds&quot;</span>, <span class="kw-2">&amp;</span>paragraph.bounds)
-            .field(<span class="string">&quot;min_bounds&quot;</span>, <span class="kw-2">&amp;</span>paragraph.min_bounds)
+        f.debug_struct(<span class="string">"Paragraph"</span>)
+            .field(<span class="string">"content"</span>, <span class="kw-2">&amp;</span>paragraph.content)
+            .field(<span class="string">"font"</span>, <span class="kw-2">&amp;</span>paragraph.font)
+            .field(<span class="string">"shaping"</span>, <span class="kw-2">&amp;</span>paragraph.shaping)
+            .field(<span class="string">"horizontal_alignment"</span>, <span class="kw-2">&amp;</span>paragraph.horizontal_alignment)
+            .field(<span class="string">"vertical_alignment"</span>, <span class="kw-2">&amp;</span>paragraph.vertical_alignment)
+            .field(<span class="string">"bounds"</span>, <span class="kw-2">&amp;</span>paragraph.bounds)
+            .field(<span class="string">"min_bounds"</span>, <span class="kw-2">&amp;</span>paragraph.min_bounds)
             .finish()
     }
 }

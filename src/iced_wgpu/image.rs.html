@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/image.rs`."><title>image.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (9fad68599 2023-12-03)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_wgpu/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_wgpu"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/image.rs`."><title>image.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-c67e44d78ab2db17.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (1fdfe1234 2023-12-06)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../static.files/storage-fec3eaa3851e447d.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_wgpu/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_wgpu"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -675,10 +675,10 @@
 <a href="#675" id="675">675</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>atlas;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
 </span><span class="kw">mod </span>raster;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
 </span><span class="kw">mod </span>vector;
 
 <span class="kw">use </span>atlas::Atlas;
@@ -693,20 +693,20 @@
 
 <span class="kw">use </span>bytemuck::{Pod, Zeroable};
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::core::image;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
 </span><span class="kw">use </span><span class="kw">crate</span>::core::svg;
 
-<span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"tracing"</span>)]
 </span><span class="kw">use </span>tracing::info_span;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Pipeline {
-    <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
     </span>raster_cache: RefCell&lt;raster::Cache&gt;,
-    <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
     </span>vector_cache: RefCell&lt;vector::Cache&gt;,
 
     pipeline: wgpu::RenderPipeline,
@@ -739,7 +739,7 @@
         linear_sampler: <span class="kw-2">&amp;</span>wgpu::Sampler,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>uniforms = device.create_buffer(<span class="kw-2">&amp;</span>wgpu::BufferDescriptor {
-            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image uniforms buffer&quot;</span>),
+            label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image uniforms buffer"</span>),
             size: mem::size_of::&lt;Uniforms&gt;() <span class="kw">as </span>u64,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: <span class="bool-val">false</span>,
@@ -778,7 +778,7 @@
         <span class="self">self</span>.linear.upload(device, queue, linear_instances);
     }
 
-    <span class="kw">fn </span>render&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">&#39;a</span>&gt;) {
+    <span class="kw">fn </span>render&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">'a</span>&gt;) {
         <span class="self">self</span>.nearest.render(render_pass);
         <span class="self">self</span>.linear.render(render_pass);
     }
@@ -799,7 +799,7 @@
         uniforms: <span class="kw-2">&amp;</span>wgpu::Buffer,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>constants = device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
-            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image constants bind group&quot;</span>),
+            label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image constants bind group"</span>),
             layout: constant_layout,
             entries: <span class="kw-2">&amp;</span>[
                 wgpu::BindGroupEntry {
@@ -821,7 +821,7 @@
 
         <span class="kw">let </span>instances = Buffer::new(
             device,
-            <span class="string">&quot;iced_wgpu::image instance buffer&quot;</span>,
+            <span class="string">"iced_wgpu::image instance buffer"</span>,
             Instance::INITIAL,
             wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
         );
@@ -845,7 +845,7 @@
         <span class="self">self</span>.instance_count = instances.len();
     }
 
-    <span class="kw">fn </span>render&lt;<span class="lifetime">&#39;a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>, render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">&#39;a</span>&gt;) {
+    <span class="kw">fn </span>render&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">'a</span>&gt;) {
         render_pass.set_bind_group(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.constants, <span class="kw-2">&amp;</span>[]);
         render_pass.set_vertex_buffer(<span class="number">1</span>, <span class="self">self</span>.instances.slice(..));
 
@@ -883,7 +883,7 @@
 
         <span class="kw">let </span>constant_layout =
             device.create_bind_group_layout(<span class="kw-2">&amp;</span>wgpu::BindGroupLayoutDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image constants layout&quot;</span>),
+                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image constants layout"</span>),
                 entries: <span class="kw-2">&amp;</span>[
                     wgpu::BindGroupLayoutEntry {
                         binding: <span class="number">0</span>,
@@ -910,7 +910,7 @@
 
         <span class="kw">let </span>texture_layout =
             device.create_bind_group_layout(<span class="kw-2">&amp;</span>wgpu::BindGroupLayoutDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image texture atlas layout&quot;</span>),
+                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image texture atlas layout"</span>),
                 entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupLayoutEntry {
                     binding: <span class="number">0</span>,
                     visibility: wgpu::ShaderStages::FRAGMENT,
@@ -927,26 +927,26 @@
 
         <span class="kw">let </span>layout =
             device.create_pipeline_layout(<span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image pipeline layout&quot;</span>),
+                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image pipeline layout"</span>),
                 push_constant_ranges: <span class="kw-2">&amp;</span>[],
                 bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>constant_layout, <span class="kw-2">&amp;</span>texture_layout],
             });
 
         <span class="kw">let </span>shader =
             device.create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu image shader&quot;</span>),
+                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu image shader"</span>),
                 source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(
-                    <span class="macro">include_str!</span>(<span class="string">&quot;shader/image.wgsl&quot;</span>),
+                    <span class="macro">include_str!</span>(<span class="string">"shader/image.wgsl"</span>),
                 )),
             });
 
         <span class="kw">let </span>pipeline =
             device.create_render_pipeline(<span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image pipeline&quot;</span>),
+                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image pipeline"</span>),
                 layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
                 vertex: wgpu::VertexState {
                     module: <span class="kw-2">&amp;</span>shader,
-                    entry_point: <span class="string">&quot;vs_main&quot;</span>,
+                    entry_point: <span class="string">"vs_main"</span>,
                     buffers: <span class="kw-2">&amp;</span>[
                         wgpu::VertexBufferLayout {
                             array_stride: mem::size_of::&lt;Vertex&gt;() <span class="kw">as </span>u64,
@@ -972,7 +972,7 @@
                 },
                 fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
                     module: <span class="kw-2">&amp;</span>shader,
-                    entry_point: <span class="string">&quot;fs_main&quot;</span>,
+                    entry_point: <span class="string">"fs_main"</span>,
                     targets: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(wgpu::ColorTargetState {
                         format,
                         blend: <span class="prelude-val">Some</span>(wgpu::BlendState {
@@ -1006,14 +1006,14 @@
 
         <span class="kw">let </span>vertices =
             device.create_buffer_init(<span class="kw-2">&amp;</span>wgpu::util::BufferInitDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image vertex buffer&quot;</span>),
+                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image vertex buffer"</span>),
                 contents: bytemuck::cast_slice(<span class="kw-2">&amp;</span>QUAD_VERTICES),
                 usage: wgpu::BufferUsages::VERTEX,
             });
 
         <span class="kw">let </span>indices =
             device.create_buffer_init(<span class="kw-2">&amp;</span>wgpu::util::BufferInitDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image index buffer&quot;</span>),
+                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image index buffer"</span>),
                 contents: bytemuck::cast_slice(<span class="kw-2">&amp;</span>QUAD_INDICES),
                 usage: wgpu::BufferUsages::INDEX,
             });
@@ -1021,7 +1021,7 @@
         <span class="kw">let </span>texture_atlas = Atlas::new(device);
 
         <span class="kw">let </span>texture = device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
-            label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image texture atlas bind group&quot;</span>),
+            label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image texture atlas bind group"</span>),
             layout: <span class="kw-2">&amp;</span>texture_layout,
             entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
                 binding: <span class="number">0</span>,
@@ -1032,10 +1032,10 @@
         });
 
         Pipeline {
-            <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
             </span>raster_cache: RefCell::new(raster::Cache::default()),
 
-            <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
+            <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
             </span>vector_cache: RefCell::new(vector::Cache::default()),
 
             pipeline,
@@ -1054,7 +1054,7 @@
         }
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
     </span><span class="kw">pub fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle) -&gt; Size&lt;u32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>cache = <span class="self">self</span>.raster_cache.borrow_mut();
         <span class="kw">let </span>memory = cache.load(handle);
@@ -1062,7 +1062,7 @@
         memory.dimensions()
     }
 
-    <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
+    <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
     </span><span class="kw">pub fn </span>viewport_dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>svg::Handle) -&gt; Size&lt;u32&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>cache = <span class="self">self</span>.vector_cache.borrow_mut();
         <span class="kw">let </span>svg = cache.load(handle);
@@ -1079,24 +1079,24 @@
         transformation: Transformation,
         _scale: f32,
     ) {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
-        </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">&quot;Wgpu::Image&quot;</span>, <span class="string">&quot;PREPARE&quot;</span>).entered();
+        <span class="attr">#[cfg(feature = <span class="string">"tracing"</span>)]
+        </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">"Wgpu::Image"</span>, <span class="string">"PREPARE"</span>).entered();
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
-        </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">&quot;Wgpu::Image&quot;</span>, <span class="string">&quot;DRAW&quot;</span>).entered();
+        <span class="attr">#[cfg(feature = <span class="string">"tracing"</span>)]
+        </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">"Wgpu::Image"</span>, <span class="string">"DRAW"</span>).entered();
 
         <span class="kw">let </span>nearest_instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt; = <span class="kw-2">&amp;mut </span>Vec::new();
         <span class="kw">let </span>linear_instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt; = <span class="kw-2">&amp;mut </span>Vec::new();
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
         </span><span class="kw">let </span><span class="kw-2">mut </span>raster_cache = <span class="self">self</span>.raster_cache.borrow_mut();
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
         </span><span class="kw">let </span><span class="kw-2">mut </span>vector_cache = <span class="self">self</span>.vector_cache.borrow_mut();
 
         <span class="kw">for </span>image <span class="kw">in </span>images {
             <span class="kw">match </span><span class="kw-2">&amp;</span>image {
-                <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
                 </span>layer::Image::Raster {
                     handle,
                     filter_method,
@@ -1121,10 +1121,10 @@
                         );
                     }
                 }
-                <span class="attr">#[cfg(not(feature = <span class="string">&quot;image&quot;</span>))]
+                <span class="attr">#[cfg(not(feature = <span class="string">"image"</span>))]
                 </span>layer::Image::Raster { .. } =&gt; {}
 
-                <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
+                <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
                 </span>layer::Image::Vector {
                     handle,
                     color,
@@ -1149,7 +1149,7 @@
                         );
                     }
                 }
-                <span class="attr">#[cfg(not(feature = <span class="string">&quot;svg&quot;</span>))]
+                <span class="attr">#[cfg(not(feature = <span class="string">"svg"</span>))]
                 </span>layer::Image::Vector { .. } =&gt; {}
             }
         }
@@ -1161,11 +1161,11 @@
         <span class="kw">let </span>texture_version = <span class="self">self</span>.texture_atlas.layer_count();
 
         <span class="kw">if </span><span class="self">self</span>.texture_version != texture_version {
-            <span class="macro">log::info!</span>(<span class="string">&quot;Atlas has grown. Recreating bind group...&quot;</span>);
+            <span class="macro">log::info!</span>(<span class="string">"Atlas has grown. Recreating bind group..."</span>);
 
             <span class="self">self</span>.texture =
                 device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
-                    label: <span class="prelude-val">Some</span>(<span class="string">&quot;iced_wgpu::image texture atlas bind group&quot;</span>),
+                    label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image texture atlas bind group"</span>),
                     layout: <span class="kw-2">&amp;</span><span class="self">self</span>.texture_layout,
                     entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
                         binding: <span class="number">0</span>,
@@ -1200,11 +1200,11 @@
         <span class="self">self</span>.prepare_layer += <span class="number">1</span>;
     }
 
-    <span class="kw">pub fn </span>render&lt;<span class="lifetime">&#39;a</span>&gt;(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="self">self</span>,
+    <span class="kw">pub fn </span>render&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         layer: usize,
         bounds: Rectangle&lt;u32&gt;,
-        render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">&#39;a</span>&gt;,
+        render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">'a</span>&gt;,
     ) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(layer) = <span class="self">self</span>.layers.get(layer) {
             render_pass.set_pipeline(<span class="kw-2">&amp;</span><span class="self">self</span>.pipeline);
@@ -1228,10 +1228,10 @@
     }
 
     <span class="kw">pub fn </span>end_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="attr">#[cfg(feature = <span class="string">&quot;image&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
         </span><span class="self">self</span>.raster_cache.borrow_mut().trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>.texture_atlas);
 
-        <span class="attr">#[cfg(feature = <span class="string">&quot;svg&quot;</span>)]
+        <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
         </span><span class="self">self</span>.vector_cache.borrow_mut().trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>.texture_atlas);
 
         <span class="self">self</span>.prepare_layer = <span class="number">0</span>;
