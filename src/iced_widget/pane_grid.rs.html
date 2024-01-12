@@ -1241,10 +1241,6 @@
 <a href="#1239" id="1239">1239</a>
 <a href="#1240" id="1240">1240</a>
 <a href="#1241" id="1241">1241</a>
-<a href="#1242" id="1242">1242</a>
-<a href="#1243" id="1243">1243</a>
-<a href="#1244" id="1244">1244</a>
-<a href="#1245" id="1245">1245</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Let your users split regions of your application and organize layout dynamically.
 //!
 //! ![Pane grid - Iced](https://iced.rs/examples/pane_grid.gif)
@@ -1512,12 +1508,11 @@
         }
     }
 
-    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.width
-    }
-
-    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.height
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
+        Size {
+            width: <span class="self">self</span>.width,
+            height: <span class="self">self</span>.height,
+        }
     }
 
     <span class="kw">fn </span>layout(
@@ -1737,8 +1732,7 @@
         <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node,
 ) -&gt; layout::Node {
-    <span class="kw">let </span>limits = limits.width(width).height(height);
-    <span class="kw">let </span>size = limits.resolve(Size::ZERO);
+    <span class="kw">let </span>size = limits.resolve(width, height, Size::ZERO);
 
     <span class="kw">let </span>regions = node.pane_regions(spacing, size);
     <span class="kw">let </span>children = contents
@@ -1747,16 +1741,14 @@
             <span class="kw">let </span>region = regions.get(<span class="kw-2">&amp;</span>pane)<span class="question-mark">?</span>;
             <span class="kw">let </span>size = Size::new(region.width, region.height);
 
-            <span class="kw">let </span><span class="kw-2">mut </span>node = layout_content(
+            <span class="kw">let </span>node = layout_content(
                 content,
                 tree,
                 renderer,
                 <span class="kw-2">&amp;</span>layout::Limits::new(size, size),
             );
 
-            node.move_to(Point::new(region.x, region.y));
-
-            <span class="prelude-val">Some</span>(node)
+            <span class="prelude-val">Some</span>(node.move_to(Point::new(region.x, region.y)))
         })
         .collect();
 

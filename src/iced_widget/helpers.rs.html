@@ -423,6 +423,13 @@
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Helper functions to create pure widgets.
 </span><span class="kw">use </span><span class="kw">crate</span>::button::{<span class="self">self</span>, Button};
 <span class="kw">use </span><span class="kw">crate</span>::checkbox::{<span class="self">self</span>, Checkbox};
@@ -459,7 +466,7 @@
         <span class="macro-nonterminal">$crate::Column::new</span>()
     );
     ($(<span class="macro-nonterminal">$x</span>:expr),+ $(,)<span class="question-mark">?</span>) =&gt; (
-        <span class="macro-nonterminal">$crate::Column::with_children</span>(<span class="macro">vec!</span>[$(<span class="macro-nonterminal">$crate::core::Element::from</span>(<span class="macro-nonterminal">$x</span>)),+])
+        <span class="macro-nonterminal">$crate::Column::with_children</span>([$(<span class="macro-nonterminal">$crate::core::Element::from</span>(<span class="macro-nonterminal">$x</span>)),+])
     );
 }
 
@@ -472,7 +479,7 @@
         <span class="macro-nonterminal">$crate::Row::new</span>()
     );
     ($(<span class="macro-nonterminal">$x</span>:expr),+ $(,)<span class="question-mark">?</span>) =&gt; (
-        <span class="macro-nonterminal">$crate::Row::with_children</span>(<span class="macro">vec!</span>[$(<span class="macro-nonterminal">$crate::core::Element::from</span>(<span class="macro-nonterminal">$x</span>)),+])
+        <span class="macro-nonterminal">$crate::Row::with_children</span>([$(<span class="macro-nonterminal">$crate::core::Element::from</span>(<span class="macro-nonterminal">$x</span>)),+])
     );
 }
 
@@ -490,9 +497,12 @@
 }
 
 <span class="doccomment">/// Creates a new [`Column`] with the given children.
-</span><span class="kw">pub fn </span>column&lt;Message, Renderer&gt;(
-    children: Vec&lt;Element&lt;<span class="lifetime">'_</span>, Message, Renderer&gt;&gt;,
-) -&gt; Column&lt;<span class="lifetime">'_</span>, Message, Renderer&gt; {
+</span><span class="kw">pub fn </span>column&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;(
+    children: <span class="kw">impl </span>IntoIterator&lt;Item = Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;,
+) -&gt; Column&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: core::Renderer,
+{
     Column::with_children(children)
 }
 
@@ -502,6 +512,7 @@
 ) -&gt; keyed::Column&lt;<span class="lifetime">'a</span>, Key, Message, Renderer&gt;
 <span class="kw">where
     </span>Key: Copy + PartialEq,
+    Renderer: core::Renderer,
 {
     keyed::Column::with_children(children)
 }
@@ -509,9 +520,12 @@
 <span class="doccomment">/// Creates a new [`Row`] with the given children.
 ///
 /// [`Row`]: crate::Row
-</span><span class="kw">pub fn </span>row&lt;Message, Renderer&gt;(
-    children: Vec&lt;Element&lt;<span class="lifetime">'_</span>, Message, Renderer&gt;&gt;,
-) -&gt; Row&lt;<span class="lifetime">'_</span>, Message, Renderer&gt; {
+</span><span class="kw">pub fn </span>row&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;(
+    children: <span class="kw">impl </span>IntoIterator&lt;Item = Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;,
+) -&gt; Row&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">where
+    </span>Renderer: core::Renderer,
+{
     Row::with_children(children)
 }
 
@@ -689,7 +703,7 @@
     on_selected: <span class="kw">impl </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>,
 ) -&gt; PickList&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;
 <span class="kw">where
-    </span>T: ToString + Eq + <span class="lifetime">'static</span>,
+    </span>T: ToString + PartialEq + <span class="lifetime">'static</span>,
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
     Renderer: core::text::Renderer,
     Renderer::Theme: pick_list::StyleSheet

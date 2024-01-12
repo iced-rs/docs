@@ -561,9 +561,6 @@
 <a href="#559" id="559">559</a>
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
-<a href="#564" id="564">564</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and show dropdown menus.
 </span><span class="kw">use </span><span class="kw">crate</span>::container::{<span class="self">self</span>, Container};
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
@@ -820,15 +817,14 @@
         )
         .width(<span class="self">self</span>.width);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>node = <span class="self">self</span>.container.layout(<span class="self">self</span>.state, renderer, <span class="kw-2">&amp;</span>limits);
+        <span class="kw">let </span>node = <span class="self">self</span>.container.layout(<span class="self">self</span>.state, renderer, <span class="kw-2">&amp;</span>limits);
+        <span class="kw">let </span>size = node.size();
 
         node.move_to(<span class="kw">if </span>space_below &gt; space_above {
             position + Vector::new(<span class="number">0.0</span>, <span class="self">self</span>.target_height)
         } <span class="kw">else </span>{
-            position - Vector::new(<span class="number">0.0</span>, node.size().height)
-        });
-
-        node
+            position - Vector::new(<span class="number">0.0</span>, size.height)
+        })
     }
 
     <span class="kw">fn </span>on_event(
@@ -909,12 +905,11 @@
     Renderer: text::Renderer,
     Renderer::Theme: StyleSheet,
 {
-    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        Length::Fill
-    }
-
-    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        Length::Shrink
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
+        Size {
+            width: Length::Fill,
+            height: Length::Shrink,
+        }
     }
 
     <span class="kw">fn </span>layout(
@@ -925,7 +920,6 @@
     ) -&gt; layout::Node {
         <span class="kw">use </span>std::f32;
 
-        <span class="kw">let </span>limits = limits.width(Length::Fill).height(Length::Shrink);
         <span class="kw">let </span>text_size =
             <span class="self">self</span>.text_size.unwrap_or_else(|| renderer.default_size());
 
@@ -938,7 +932,7 @@
                     * <span class="self">self</span>.options.len() <span class="kw">as </span>f32,
             );
 
-            limits.resolve(intrinsic)
+            limits.resolve(Length::Fill, Length::Shrink, intrinsic)
         };
 
         layout::Node::new(size)

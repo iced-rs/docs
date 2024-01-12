@@ -658,7 +658,7 @@
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        <span class="kw">let </span>limits = limits.pad(<span class="self">self</span>.padding);
+        <span class="kw">let </span>limits = limits.shrink(<span class="self">self</span>.padding);
         <span class="kw">let </span>max_size = limits.max();
 
         <span class="kw">let </span>title_layout = <span class="self">self</span>.content.as_widget().layout(
@@ -669,8 +669,8 @@
 
         <span class="kw">let </span>title_size = title_layout.size();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>node = <span class="kw">if let </span><span class="prelude-val">Some</span>(controls) = <span class="kw-2">&amp;</span><span class="self">self</span>.controls {
-            <span class="kw">let </span><span class="kw-2">mut </span>controls_layout = controls.as_widget().layout(
+        <span class="kw">let </span>node = <span class="kw">if let </span><span class="prelude-val">Some</span>(controls) = <span class="kw-2">&amp;</span><span class="self">self</span>.controls {
+            <span class="kw">let </span>controls_layout = controls.as_widget().layout(
                 <span class="kw-2">&amp;mut </span>tree.children[<span class="number">1</span>],
                 renderer,
                 <span class="kw-2">&amp;</span>layout::Limits::new(Size::ZERO, max_size),
@@ -681,11 +681,13 @@
 
             <span class="kw">let </span>height = title_size.height.max(controls_size.height);
 
-            controls_layout.move_to(Point::new(space_before_controls, <span class="number">0.0</span>));
-
             layout::Node::with_children(
                 Size::new(max_size.width, height),
-                <span class="macro">vec!</span>[title_layout, controls_layout],
+                <span class="macro">vec!</span>[
+                    title_layout,
+                    controls_layout
+                        .move_to(Point::new(space_before_controls, <span class="number">0.0</span>)),
+                ],
             )
         } <span class="kw">else </span>{
             layout::Node::with_children(
@@ -694,9 +696,7 @@
             )
         };
 
-        node.move_to(Point::new(<span class="self">self</span>.padding.left, <span class="self">self</span>.padding.top));
-
-        layout::Node::with_children(node.size().pad(<span class="self">self</span>.padding), <span class="macro">vec!</span>[node])
+        layout::Node::container(node, <span class="self">self</span>.padding)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>operate(

@@ -466,9 +466,6 @@
 <a href="#464" id="464">464</a>
 <a href="#465" id="465">465</a>
 <a href="#466" id="466">466</a>
-<a href="#467" id="467">467</a>
-<a href="#468" id="468">468</a>
-<a href="#469" id="469">469</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Decorate content and apply alignment.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment::{<span class="self">self</span>, Alignment};
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -517,17 +514,20 @@
     </span><span class="kw">where
         </span>T: Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;,
     {
+        <span class="kw">let </span>content = content.into();
+        <span class="kw">let </span>size = content.as_widget().size_hint();
+
         Container {
             id: <span class="prelude-val">None</span>,
             padding: Padding::ZERO,
-            width: Length::Shrink,
-            height: Length::Shrink,
+            width: size.width.fluid(),
+            height: size.height.fluid(),
             max_width: f32::INFINITY,
             max_height: f32::INFINITY,
             horizontal_alignment: alignment::Horizontal::Left,
             vertical_alignment: alignment::Vertical::Top,
             style: Default::default(),
-            content: content.into(),
+            content,
         }
     }
 
@@ -623,12 +623,11 @@
         <span class="self">self</span>.content.as_widget().diff(tree);
     }
 
-    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.width
-    }
-
-    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.height
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
+        Size {
+            width: <span class="self">self</span>.width,
+            height: <span class="self">self</span>.height,
+        }
     }
 
     <span class="kw">fn </span>layout(
@@ -782,25 +781,20 @@
     vertical_alignment: alignment::Vertical,
     layout_content: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
 ) -&gt; layout::Node {
-    <span class="kw">let </span>limits = limits
-        .loose()
-        .max_width(max_width)
-        .max_height(max_height)
-        .width(width)
-        .height(height);
-
-    <span class="kw">let </span><span class="kw-2">mut </span>content = layout_content(<span class="kw-2">&amp;</span>limits.pad(padding).loose());
-    <span class="kw">let </span>padding = padding.fit(content.size(), limits.max());
-    <span class="kw">let </span>size = limits.pad(padding).resolve(content.size());
-
-    content.move_to(Point::new(padding.left, padding.top));
-    content.align(
-        Alignment::from(horizontal_alignment),
-        Alignment::from(vertical_alignment),
-        size,
-    );
-
-    layout::Node::with_children(size.pad(padding), <span class="macro">vec!</span>[content])
+    layout::positioned(
+        <span class="kw-2">&amp;</span>limits.max_width(max_width).max_height(max_height),
+        width,
+        height,
+        padding,
+        |limits| layout_content(<span class="kw-2">&amp;</span>limits.loose()),
+        |content, size| {
+            content.align(
+                Alignment::from(horizontal_alignment),
+                Alignment::from(vertical_alignment),
+                size,
+            )
+        },
+    )
 }
 
 <span class="doccomment">/// Draws the background of a [`Container`] given its [`Appearance`] and its `bounds`.

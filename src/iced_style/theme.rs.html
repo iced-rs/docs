@@ -1289,6 +1289,36 @@
 <a href="#1287" id="1287">1287</a>
 <a href="#1288" id="1288">1288</a>
 <a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a>
+<a href="#1303" id="1303">1303</a>
+<a href="#1304" id="1304">1304</a>
+<a href="#1305" id="1305">1305</a>
+<a href="#1306" id="1306">1306</a>
+<a href="#1307" id="1307">1307</a>
+<a href="#1308" id="1308">1308</a>
+<a href="#1309" id="1309">1309</a>
+<a href="#1310" id="1310">1310</a>
+<a href="#1311" id="1311">1311</a>
+<a href="#1312" id="1312">1312</a>
+<a href="#1313" id="1313">1313</a>
+<a href="#1314" id="1314">1314</a>
+<a href="#1315" id="1315">1315</a>
+<a href="#1316" id="1316">1316</a>
+<a href="#1317" id="1317">1317</a>
+<a href="#1318" id="1318">1318</a>
+<a href="#1319" id="1319">1319</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Use the built-in theme and styles.
 </span><span class="kw">pub mod </span>palette;
 
@@ -1314,6 +1344,7 @@
 
 <span class="kw">use </span>iced_core::{Background, Color, Vector};
 
+<span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::rc::Rc;
 
 <span class="doccomment">/// A built-in theme.
@@ -1329,18 +1360,22 @@
 }
 
 <span class="kw">impl </span>Theme {
+    <span class="doccomment">/// A list with all the defined themes.
+    </span><span class="kw">pub const </span>ALL: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="self">Self</span>] = <span class="kw-2">&amp;</span>[<span class="self">Self</span>::Light, <span class="self">Self</span>::Dark];
+
     <span class="doccomment">/// Creates a new custom [`Theme`] from the given [`Palette`].
-    </span><span class="kw">pub fn </span>custom(palette: Palette) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::custom_with_fn(palette, palette::Extended::generate)
+    </span><span class="kw">pub fn </span>custom(name: String, palette: Palette) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::custom_with_fn(name, palette, palette::Extended::generate)
     }
 
     <span class="doccomment">/// Creates a new custom [`Theme`] from the given [`Palette`], with
     /// a custom generator of a [`palette::Extended`].
     </span><span class="kw">pub fn </span>custom_with_fn(
+        name: String,
         palette: Palette,
         generate: <span class="kw">impl </span>FnOnce(Palette) -&gt; palette::Extended,
     ) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Custom(Box::new(Custom::with_fn(palette, generate)))
+        <span class="self">Self</span>::Custom(Box::new(Custom::with_fn(name, palette, generate)))
     }
 
     <span class="doccomment">/// Returns the [`Palette`] of the [`Theme`].
@@ -1362,29 +1397,48 @@
     }
 }
 
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Theme {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Light =&gt; <span class="macro">write!</span>(f, <span class="string">"Light"</span>),
+            <span class="self">Self</span>::Dark =&gt; <span class="macro">write!</span>(f, <span class="string">"Dark"</span>),
+            <span class="self">Self</span>::Custom(custom) =&gt; custom.fmt(f),
+        }
+    }
+}
+
 <span class="doccomment">/// A [`Theme`] with a customized [`Palette`].
-</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Custom {
+    name: String,
     palette: Palette,
     extended: palette::Extended,
 }
 
 <span class="kw">impl </span>Custom {
     <span class="doccomment">/// Creates a [`Custom`] theme from the given [`Palette`].
-    </span><span class="kw">pub fn </span>new(palette: Palette) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::with_fn(palette, palette::Extended::generate)
+    </span><span class="kw">pub fn </span>new(name: String, palette: Palette) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::with_fn(name, palette, palette::Extended::generate)
     }
 
     <span class="doccomment">/// Creates a [`Custom`] theme from the given [`Palette`] with
     /// a custom generator of a [`palette::Extended`].
     </span><span class="kw">pub fn </span>with_fn(
+        name: String,
         palette: Palette,
         generate: <span class="kw">impl </span>FnOnce(Palette) -&gt; palette::Extended,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
+            name,
             palette,
             extended: generate(palette),
         }
+    }
+}
+
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>Custom {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">"{}"</span>, <span class="self">self</span>.name)
     }
 }
 
@@ -1672,6 +1726,12 @@
     </span>Box,
     <span class="doccomment">/// A custom style.
     </span>Custom(Box&lt;<span class="kw">dyn </span>container::StyleSheet&lt;Style = Theme&gt;&gt;),
+}
+
+<span class="kw">impl </span>From&lt;container::Appearance&gt; <span class="kw">for </span>Container {
+    <span class="kw">fn </span>from(appearance: container::Appearance) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Custom(Box::new(<span class="kw">move </span>|<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">_</span>| appearance))
+    }
 }
 
 <span class="kw">impl</span>&lt;T: Fn(<span class="kw-2">&amp;</span>Theme) -&gt; container::Appearance + <span class="lifetime">'static</span>&gt; From&lt;T&gt; <span class="kw">for </span>Container {

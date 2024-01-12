@@ -452,12 +452,6 @@
 <a href="#450" id="450">450</a>
 <a href="#451" id="451">451</a>
 <a href="#452" id="452">452</a>
-<a href="#453" id="453">453</a>
-<a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Allow your users to perform actions by pressing a button.
 //!
 //! A [`Button`] has some local [`State`].
@@ -470,8 +464,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::Operation;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Background, Clipboard, Color, Element, Layout, Length, Padding, Point,
-    Rectangle, Shell, Vector, Widget,
+    Background, Clipboard, Color, Element, Layout, Length, Padding, Rectangle,
+    Shell, Size, Vector, Widget,
 };
 
 <span class="kw">pub use </span>iced_style::button::{Appearance, StyleSheet};
@@ -531,11 +525,14 @@
 {
     <span class="doccomment">/// Creates a new [`Button`] with the given content.
     </span><span class="kw">pub fn </span>new(content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>content = content.into();
+        <span class="kw">let </span>size = content.as_widget().size_hint();
+
         Button {
-            content: content.into(),
+            content,
             on_press: <span class="prelude-val">None</span>,
-            width: Length::Shrink,
-            height: Length::Shrink,
+            width: size.width.fluid(),
+            height: size.height.fluid(),
             padding: Padding::new(<span class="number">5.0</span>),
             style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style::default(),
         }
@@ -609,12 +606,11 @@
         tree.diff_children(std::slice::from_ref(<span class="kw-2">&amp;</span><span class="self">self</span>.content));
     }
 
-    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.width
-    }
-
-    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.height
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
+        Size {
+            width: <span class="self">self</span>.width,
+            height: <span class="self">self</span>.height,
+        }
     }
 
     <span class="kw">fn </span>layout(
@@ -891,15 +887,7 @@
     padding: Padding,
     layout_content: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>layout::Limits) -&gt; layout::Node,
 ) -&gt; layout::Node {
-    <span class="kw">let </span>limits = limits.width(width).height(height);
-
-    <span class="kw">let </span><span class="kw-2">mut </span>content = layout_content(<span class="kw-2">&amp;</span>limits.pad(padding));
-    <span class="kw">let </span>padding = padding.fit(content.size(), limits.max());
-    <span class="kw">let </span>size = limits.pad(padding).resolve(content.size()).pad(padding);
-
-    content.move_to(Point::new(padding.left, padding.top));
-
-    layout::Node::with_children(size, <span class="macro">vec!</span>[content])
+    layout::padded(limits, width, height, padding, layout_content)
 }
 
 <span class="doccomment">/// Returns the [`mouse::Interaction`] of a [`Button`].

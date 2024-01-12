@@ -752,6 +752,8 @@
 <a href="#750" id="750">750</a>
 <a href="#751" id="751">751</a>
 <a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of selectable values.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
@@ -799,7 +801,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Renderer&gt; PickList&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;
 <span class="kw">where
-    </span>T: ToString + Eq,
+    </span>T: ToString + PartialEq,
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
     Renderer: text::Renderer,
     Renderer::Theme: StyleSheet
@@ -899,7 +901,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Renderer&gt; Widget&lt;Message, Renderer&gt;
     <span class="kw">for </span>PickList&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;
 <span class="kw">where
-    </span>T: Clone + ToString + Eq + <span class="lifetime">'static</span>,
+    </span>T: Clone + ToString + PartialEq + <span class="lifetime">'static</span>,
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
     Message: <span class="lifetime">'a</span>,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
@@ -918,12 +920,11 @@
         tree::State::new(State::&lt;Renderer::Paragraph&gt;::new())
     }
 
-    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.width
-    }
-
-    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        Length::Shrink
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
+        Size {
+            width: <span class="self">self</span>.width,
+            height: Length::Shrink,
+        }
     }
 
     <span class="kw">fn </span>layout(
@@ -1036,7 +1037,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Renderer&gt; From&lt;PickList&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;&gt;
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
 <span class="kw">where
-    </span>T: Clone + ToString + Eq + <span class="lifetime">'static</span>,
+    </span>T: Clone + ToString + PartialEq + <span class="lifetime">'static</span>,
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
     Message: <span class="lifetime">'a</span>,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
@@ -1147,7 +1148,6 @@
 {
     <span class="kw">use </span>std::f32;
 
-    <span class="kw">let </span>limits = limits.width(width).height(Length::Shrink).pad(padding);
     <span class="kw">let </span>font = font.unwrap_or_else(|| renderer.default_font());
     <span class="kw">let </span>text_size = text_size.unwrap_or_else(|| renderer.default_size());
 
@@ -1205,7 +1205,11 @@
             f32::from(text_line_height.to_absolute(text_size)),
         );
 
-        limits.resolve(intrinsic).pad(padding)
+        limits
+            .width(width)
+            .shrink(padding)
+            .resolve(width, Length::Shrink, intrinsic)
+            .expand(padding)
     };
 
     layout::Node::new(size)

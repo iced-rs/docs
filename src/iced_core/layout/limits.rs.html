@@ -149,29 +149,14 @@
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
 </pre></div><pre class="rust"><code><span class="attr">#![allow(clippy::manual_clamp)]
-</span><span class="kw">use crate</span>::{Length, Padding, Size};
+</span><span class="kw">use crate</span>::{Length, Size};
 
 <span class="doccomment">/// A set of size constraints for layouting.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
 </span><span class="kw">pub struct </span>Limits {
     min: Size,
     max: Size,
-    fill: Size,
 }
 
 <span class="kw">impl </span>Limits {
@@ -179,16 +164,11 @@
     </span><span class="kw">pub const </span>NONE: Limits = Limits {
         min: Size::ZERO,
         max: Size::INFINITY,
-        fill: Size::INFINITY,
     };
 
     <span class="doccomment">/// Creates new [`Limits`] with the given minimum and maximum [`Size`].
     </span><span class="kw">pub const fn </span>new(min: Size, max: Size) -&gt; Limits {
-        Limits {
-            min,
-            max,
-            fill: Size::INFINITY,
-        }
+        Limits { min, max }
     }
 
     <span class="doccomment">/// Returns the minimum [`Size`] of the [`Limits`].
@@ -201,26 +181,15 @@
         <span class="self">self</span>.max
     }
 
-    <span class="doccomment">/// Returns the fill [`Size`] of the [`Limits`].
-    </span><span class="kw">pub fn </span>fill(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size {
-        <span class="self">self</span>.fill
-    }
-
     <span class="doccomment">/// Applies a width constraint to the current [`Limits`].
     </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; Limits {
         <span class="kw">match </span>width.into() {
-            Length::Shrink =&gt; {
-                <span class="self">self</span>.fill.width = <span class="self">self</span>.min.width;
-            }
-            Length::Fill | Length::FillPortion(<span class="kw">_</span>) =&gt; {
-                <span class="self">self</span>.fill.width = <span class="self">self</span>.fill.width.min(<span class="self">self</span>.max.width);
-            }
+            Length::Shrink | Length::Fill | Length::FillPortion(<span class="kw">_</span>) =&gt; {}
             Length::Fixed(amount) =&gt; {
                 <span class="kw">let </span>new_width = amount.min(<span class="self">self</span>.max.width).max(<span class="self">self</span>.min.width);
 
                 <span class="self">self</span>.min.width = new_width;
                 <span class="self">self</span>.max.width = new_width;
-                <span class="self">self</span>.fill.width = new_width;
             }
         }
 
@@ -230,19 +199,13 @@
     <span class="doccomment">/// Applies a height constraint to the current [`Limits`].
     </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; Limits {
         <span class="kw">match </span>height.into() {
-            Length::Shrink =&gt; {
-                <span class="self">self</span>.fill.height = <span class="self">self</span>.min.height;
-            }
-            Length::Fill | Length::FillPortion(<span class="kw">_</span>) =&gt; {
-                <span class="self">self</span>.fill.height = <span class="self">self</span>.fill.height.min(<span class="self">self</span>.max.height);
-            }
+            Length::Shrink | Length::Fill | Length::FillPortion(<span class="kw">_</span>) =&gt; {}
             Length::Fixed(amount) =&gt; {
                 <span class="kw">let </span>new_height =
                     amount.min(<span class="self">self</span>.max.height).max(<span class="self">self</span>.min.height);
 
                 <span class="self">self</span>.min.height = new_height;
                 <span class="self">self</span>.max.height = new_height;
-                <span class="self">self</span>.fill.height = new_height;
             }
         }
 
@@ -277,13 +240,10 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Shrinks the current [`Limits`] to account for the given padding.
-    </span><span class="kw">pub fn </span>pad(<span class="kw-2">&amp;</span><span class="self">self</span>, padding: Padding) -&gt; Limits {
-        <span class="self">self</span>.shrink(Size::new(padding.horizontal(), padding.vertical()))
-    }
-
     <span class="doccomment">/// Shrinks the current [`Limits`] by the given [`Size`].
-    </span><span class="kw">pub fn </span>shrink(<span class="kw-2">&amp;</span><span class="self">self</span>, size: Size) -&gt; Limits {
+    </span><span class="kw">pub fn </span>shrink(<span class="kw-2">&amp;</span><span class="self">self</span>, size: <span class="kw">impl </span>Into&lt;Size&gt;) -&gt; Limits {
+        <span class="kw">let </span>size = size.into();
+
         <span class="kw">let </span>min = Size::new(
             (<span class="self">self</span>.min().width - size.width).max(<span class="number">0.0</span>),
             (<span class="self">self</span>.min().height - size.height).max(<span class="number">0.0</span>),
@@ -294,12 +254,7 @@
             (<span class="self">self</span>.max().height - size.height).max(<span class="number">0.0</span>),
         );
 
-        <span class="kw">let </span>fill = Size::new(
-            (<span class="self">self</span>.fill.width - size.width).max(<span class="number">0.0</span>),
-            (<span class="self">self</span>.fill.height - size.height).max(<span class="number">0.0</span>),
-        );
-
-        Limits { min, max, fill }
+        Limits { min, max }
     }
 
     <span class="doccomment">/// Removes the minimum width constraint for the current [`Limits`].
@@ -307,23 +262,40 @@
         Limits {
             min: Size::ZERO,
             max: <span class="self">self</span>.max,
-            fill: <span class="self">self</span>.fill,
         }
     }
 
-    <span class="doccomment">/// Computes the resulting [`Size`] that fits the [`Limits`] given the
-    /// intrinsic size of some content.
-    </span><span class="kw">pub fn </span>resolve(<span class="kw-2">&amp;</span><span class="self">self</span>, intrinsic_size: Size) -&gt; Size {
-        Size::new(
-            intrinsic_size
-                .width
-                .min(<span class="self">self</span>.max.width)
-                .max(<span class="self">self</span>.fill.width),
-            intrinsic_size
+    <span class="doccomment">/// Computes the resulting [`Size`] that fits the [`Limits`] given
+    /// some width and height requirements and the intrinsic size of
+    /// some content.
+    </span><span class="kw">pub fn </span>resolve(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        width: <span class="kw">impl </span>Into&lt;Length&gt;,
+        height: <span class="kw">impl </span>Into&lt;Length&gt;,
+        intrinsic_size: Size,
+    ) -&gt; Size {
+        <span class="kw">let </span>width = <span class="kw">match </span>width.into() {
+            Length::Fill | Length::FillPortion(<span class="kw">_</span>) =&gt; <span class="self">self</span>.max.width,
+            Length::Fixed(amount) =&gt; {
+                amount.min(<span class="self">self</span>.max.width).max(<span class="self">self</span>.min.width)
+            }
+            Length::Shrink =&gt; {
+                intrinsic_size.width.min(<span class="self">self</span>.max.width).max(<span class="self">self</span>.min.width)
+            }
+        };
+
+        <span class="kw">let </span>height = <span class="kw">match </span>height.into() {
+            Length::Fill | Length::FillPortion(<span class="kw">_</span>) =&gt; <span class="self">self</span>.max.height,
+            Length::Fixed(amount) =&gt; {
+                amount.min(<span class="self">self</span>.max.height).max(<span class="self">self</span>.min.height)
+            }
+            Length::Shrink =&gt; intrinsic_size
                 .height
                 .min(<span class="self">self</span>.max.height)
-                .max(<span class="self">self</span>.fill.height),
-        )
+                .max(<span class="self">self</span>.min.height),
+        };
+
+        Size::new(width, height)
     }
 }
 </code></pre></div></section></main></body></html>

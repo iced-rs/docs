@@ -1474,10 +1474,6 @@
 <a href="#1472" id="1472">1472</a>
 <a href="#1473" id="1473">1473</a>
 <a href="#1474" id="1474">1474</a>
-<a href="#1475" id="1475">1475</a>
-<a href="#1476" id="1476">1476</a>
-<a href="#1477" id="1477">1477</a>
-<a href="#1478" id="1478">1478</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -1763,12 +1759,11 @@
         }
     }
 
-    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.width
-    }
-
-    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        Length::Shrink
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
+        Size {
+            width: <span class="self">self</span>.width,
+            height: Length::Shrink,
+        }
     }
 
     <span class="kw">fn </span>layout(
@@ -1986,14 +1981,11 @@
 {
     <span class="kw">let </span>font = font.unwrap_or_else(|| renderer.default_font());
     <span class="kw">let </span>text_size = size.unwrap_or_else(|| renderer.default_size());
-
     <span class="kw">let </span>padding = padding.fit(Size::ZERO, limits.max());
-    <span class="kw">let </span>limits = limits
-        .width(width)
-        .pad(padding)
-        .height(line_height.to_absolute(text_size));
+    <span class="kw">let </span>height = line_height.to_absolute(text_size);
 
-    <span class="kw">let </span>text_bounds = limits.resolve(Size::ZERO);
+    <span class="kw">let </span>limits = limits.width(width).shrink(padding);
+    <span class="kw">let </span>text_bounds = limits.resolve(width, height, Size::ZERO);
 
     <span class="kw">let </span>placeholder_text = Text {
         font,
@@ -2032,41 +2024,41 @@
 
         <span class="kw">let </span>icon_width = state.icon.min_width();
 
-        <span class="kw">let </span><span class="kw-2">mut </span>text_node = layout::Node::new(
-            text_bounds - Size::new(icon_width + icon.spacing, <span class="number">0.0</span>),
-        );
-
-        <span class="kw">let </span><span class="kw-2">mut </span>icon_node =
-            layout::Node::new(Size::new(icon_width, text_bounds.height));
-
-        <span class="kw">match </span>icon.side {
-            Side::Left =&gt; {
-                text_node.move_to(Point::new(
+        <span class="kw">let </span>(text_position, icon_position) = <span class="kw">match </span>icon.side {
+            Side::Left =&gt; (
+                Point::new(
                     padding.left + icon_width + icon.spacing,
                     padding.top,
-                ));
-
-                icon_node.move_to(Point::new(padding.left, padding.top));
-            }
-            Side::Right =&gt; {
-                text_node.move_to(Point::new(padding.left, padding.top));
-
-                icon_node.move_to(Point::new(
+                ),
+                Point::new(padding.left, padding.top),
+            ),
+            Side::Right =&gt; (
+                Point::new(padding.left, padding.top),
+                Point::new(
                     padding.left + text_bounds.width - icon_width,
                     padding.top,
-                ));
-            }
+                ),
+            ),
         };
 
+        <span class="kw">let </span>text_node = layout::Node::new(
+            text_bounds - Size::new(icon_width + icon.spacing, <span class="number">0.0</span>),
+        )
+        .move_to(text_position);
+
+        <span class="kw">let </span>icon_node =
+            layout::Node::new(Size::new(icon_width, text_bounds.height))
+                .move_to(icon_position);
+
         layout::Node::with_children(
-            text_bounds.pad(padding),
+            text_bounds.expand(padding),
             <span class="macro">vec!</span>[text_node, icon_node],
         )
     } <span class="kw">else </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>text = layout::Node::new(text_bounds);
-        text.move_to(Point::new(padding.left, padding.top));
+        <span class="kw">let </span>text = layout::Node::new(text_bounds)
+            .move_to(Point::new(padding.left, padding.top));
 
-        layout::Node::with_children(text_bounds.pad(padding), <span class="macro">vec!</span>[text])
+        layout::Node::with_children(text_bounds.expand(padding), <span class="macro">vec!</span>[text])
     }
 }
 

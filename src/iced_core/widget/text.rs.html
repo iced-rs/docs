@@ -350,7 +350,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::text::{<span class="self">self</span>, Paragraph};
 <span class="kw">use </span><span class="kw">crate</span>::widget::tree::{<span class="self">self</span>, Tree};
-<span class="kw">use crate</span>::{Color, Element, Layout, Length, Pixels, Point, Rectangle, Widget};
+<span class="kw">use crate</span>::{
+    Color, Element, Layout, Length, Pixels, Point, Rectangle, Size, Widget,
+};
 
 <span class="kw">use </span>std::borrow::Cow;
 
@@ -479,12 +481,11 @@
         tree::State::new(State(Renderer::Paragraph::default()))
     }
 
-    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.width
-    }
-
-    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.height
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
+        Size {
+            width: <span class="self">self</span>.width,
+            height: <span class="self">self</span>.height,
+        }
     }
 
     <span class="kw">fn </span>layout(
@@ -550,28 +551,27 @@
 <span class="kw">where
     </span>Renderer: text::Renderer,
 {
-    <span class="kw">let </span>limits = limits.width(width).height(height);
-    <span class="kw">let </span>bounds = limits.max();
+    layout::sized(limits, width, height, |limits| {
+        <span class="kw">let </span>bounds = limits.max();
 
-    <span class="kw">let </span>size = size.unwrap_or_else(|| renderer.default_size());
-    <span class="kw">let </span>font = font.unwrap_or_else(|| renderer.default_font());
+        <span class="kw">let </span>size = size.unwrap_or_else(|| renderer.default_size());
+        <span class="kw">let </span>font = font.unwrap_or_else(|| renderer.default_font());
 
-    <span class="kw">let </span>State(<span class="kw-2">ref mut </span>paragraph) = state;
+        <span class="kw">let </span>State(<span class="kw-2">ref mut </span>paragraph) = state;
 
-    paragraph.update(text::Text {
-        content,
-        bounds,
-        size,
-        line_height,
-        font,
-        horizontal_alignment,
-        vertical_alignment,
-        shaping,
-    });
+        paragraph.update(text::Text {
+            content,
+            bounds,
+            size,
+            line_height,
+            font,
+            horizontal_alignment,
+            vertical_alignment,
+            shaping,
+        });
 
-    <span class="kw">let </span>size = limits.resolve(paragraph.min_bounds());
-
-    layout::Node::new(size)
+        paragraph.min_bounds()
+    })
 }
 
 <span class="doccomment">/// Draws text using the same logic as the [`Text`] widget.

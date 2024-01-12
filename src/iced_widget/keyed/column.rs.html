@@ -320,6 +320,12 @@
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Distribute content vertically.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -330,7 +336,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::Operation;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
     Alignment, Clipboard, Element, Layout, Length, Padding, Pixels, Rectangle,
-    Shell, Widget,
+    Shell, Size, Widget,
 };
 
 <span class="doccomment">/// A container that distributes its contents vertically.
@@ -352,26 +358,10 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Key, Message, Renderer&gt; Column&lt;<span class="lifetime">'a</span>, Key, Message, Renderer&gt;
 <span class="kw">where
     </span>Key: Copy + PartialEq,
+    Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     <span class="doccomment">/// Creates an empty [`Column`].
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::with_children(Vec::new())
-    }
-
-    <span class="doccomment">/// Creates a [`Column`] with the given elements.
-    </span><span class="kw">pub fn </span>with_children(
-        children: <span class="kw">impl </span>IntoIterator&lt;Item = (Key, Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;)&gt;,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>(keys, children) = children.into_iter().fold(
-            (Vec::new(), Vec::new()),
-            |(<span class="kw-2">mut </span>keys, <span class="kw-2">mut </span>children), (key, child)| {
-                keys.push(key);
-                children.push(child);
-
-                (keys, children)
-            },
-        );
-
         Column {
             spacing: <span class="number">0.0</span>,
             padding: Padding::ZERO,
@@ -379,9 +369,18 @@
             height: Length::Shrink,
             max_width: f32::INFINITY,
             align_items: Alignment::Start,
-            keys,
-            children,
+            keys: Vec::new(),
+            children: Vec::new(),
         }
+    }
+
+    <span class="doccomment">/// Creates a [`Column`] with the given elements.
+    </span><span class="kw">pub fn </span>with_children(
+        children: <span class="kw">impl </span>IntoIterator&lt;Item = (Key, Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;)&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        children
+            .into_iter()
+            .fold(<span class="self">Self</span>::new(), |column, (key, child)| column.push(key, child))
     }
 
     <span class="doccomment">/// Sets the vertical spacing _between_ elements.
@@ -430,8 +429,19 @@
         key: Key,
         child: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>child = child.into();
+        <span class="kw">let </span>size = child.as_widget().size_hint();
+
+        <span class="kw">if </span>size.width.is_fill() {
+            <span class="self">self</span>.width = Length::Fill;
+        }
+
+        <span class="kw">if </span>size.height.is_fill() {
+            <span class="self">self</span>.height = Length::Fill;
+        }
+
         <span class="self">self</span>.keys.push(key);
-        <span class="self">self</span>.children.push(child.into());
+        <span class="self">self</span>.children.push(child);
         <span class="self">self
     </span>}
 }
@@ -439,6 +449,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Key, Message, Renderer&gt; Default <span class="kw">for </span>Column&lt;<span class="lifetime">'a</span>, Key, Message, Renderer&gt;
 <span class="kw">where
     </span>Key: Copy + PartialEq,
+    Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
@@ -495,12 +506,11 @@
         }
     }
 
-    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.width
-    }
-
-    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
-        <span class="self">self</span>.height
+    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
+        Size {
+            width: <span class="self">self</span>.width,
+            height: <span class="self">self</span>.height,
+        }
     }
 
     <span class="kw">fn </span>layout(
@@ -518,6 +528,8 @@
             layout::flex::Axis::Vertical,
             renderer,
             <span class="kw-2">&amp;</span>limits,
+            <span class="self">self</span>.width,
+            <span class="self">self</span>.height,
             <span class="self">self</span>.padding,
             <span class="self">self</span>.spacing,
             <span class="self">self</span>.align_items,
