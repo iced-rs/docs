@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["font_system","measure","to_attributes","to_color","to_shaping"],"mod":["cache","editor","paragraph"],"struct":["FontSystem","Version"]};
+window.SIDEBAR_ITEMS = {"fn":["font_system","measure","to_attributes","to_color","to_shaping"],"mod":["cache","editor","paragraph"],"struct":["FontSystem","Raw","Version"]};
