@@ -1470,6 +1470,14 @@
 <a href="#1468" id="1468">1468</a>
 <a href="#1469" id="1469">1469</a>
 <a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
+<a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -2666,31 +2674,39 @@
         (<span class="prelude-val">None</span>, <span class="number">0.0</span>)
     };
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>((cursor, color)) = cursor {
-        renderer.with_translation(Vector::new(-offset, <span class="number">0.0</span>), |renderer| {
-            renderer.fill_quad(cursor, color);
-        });
-    } <span class="kw">else </span>{
-        renderer.with_translation(Vector::ZERO, |<span class="kw">_</span>| {});
-    }
+    <span class="kw">let </span>draw = |renderer: <span class="kw-2">&amp;mut </span>Renderer, viewport| {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((cursor, color)) = cursor {
+            renderer.with_translation(Vector::new(-offset, <span class="number">0.0</span>), |renderer| {
+                renderer.fill_quad(cursor, color);
+            });
+        } <span class="kw">else </span>{
+            renderer.with_translation(Vector::ZERO, |<span class="kw">_</span>| {});
+        }
 
-    renderer.fill_paragraph(
-        <span class="kw">if </span>text.is_empty() {
-            <span class="kw-2">&amp;</span>state.placeholder
-        } <span class="kw">else </span>{
-            <span class="kw-2">&amp;</span>state.value
-        },
-        Point::new(text_bounds.x, text_bounds.center_y())
-            - Vector::new(offset, <span class="number">0.0</span>),
-        <span class="kw">if </span>text.is_empty() {
-            theme.placeholder_color(style)
-        } <span class="kw">else if </span>is_disabled {
-            theme.disabled_color(style)
-        } <span class="kw">else </span>{
-            theme.value_color(style)
-        },
-        text_bounds,
-    );
+        renderer.fill_paragraph(
+            <span class="kw">if </span>text.is_empty() {
+                <span class="kw-2">&amp;</span>state.placeholder
+            } <span class="kw">else </span>{
+                <span class="kw-2">&amp;</span>state.value
+            },
+            Point::new(text_bounds.x, text_bounds.center_y())
+                - Vector::new(offset, <span class="number">0.0</span>),
+            <span class="kw">if </span>text.is_empty() {
+                theme.placeholder_color(style)
+            } <span class="kw">else if </span>is_disabled {
+                theme.disabled_color(style)
+            } <span class="kw">else </span>{
+                theme.value_color(style)
+            },
+            viewport,
+        );
+    };
+
+    <span class="kw">if </span>cursor.is_some() {
+        renderer.with_layer(text_bounds, |renderer| draw(renderer, <span class="kw-2">*</span>viewport));
+    } <span class="kw">else </span>{
+        draw(renderer, text_bounds);
+    }
 }
 
 <span class="doccomment">/// Computes the current [`mouse::Interaction`] of the [`TextInput`].
