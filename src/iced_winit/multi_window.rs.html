@@ -1,6 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `winit/src/multi_window.rs`."><title>multi_window.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-4e54bb2b497cc83f.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.77.0-nightly (714b29a17 2024-01-15)" data-channel="nightly" data-search-js="search-dd67cee4cfa65049.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-f2adc0d6ca4d09fb.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-0b2e2def73e61cbe.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-04d5337699b92874.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title">
-            <h2>Files</h2></div></nav><div class="sidebar-resizer"></div>
-    <main><nav class="sub"><form class="search-form"><span></span><div id="sidebar-button" tabindex="-1"><a href="../../iced_winit/all.html" title="show sidebar"></a></div><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" tabindex="-1"><a href="../../help.html" title="help">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `winit/src/multi_window.rs`."><title>multi_window.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-e883e87179a81222.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (d86d65bbc 2023-12-10)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../static.files/storage-bc37acceda91d44a.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_winit/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_winit"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1186,46 +1184,6 @@
 <a href="#1184" id="1184">1184</a>
 <a href="#1185" id="1185">1185</a>
 <a href="#1186" id="1186">1186</a>
-<a href="#1187" id="1187">1187</a>
-<a href="#1188" id="1188">1188</a>
-<a href="#1189" id="1189">1189</a>
-<a href="#1190" id="1190">1190</a>
-<a href="#1191" id="1191">1191</a>
-<a href="#1192" id="1192">1192</a>
-<a href="#1193" id="1193">1193</a>
-<a href="#1194" id="1194">1194</a>
-<a href="#1195" id="1195">1195</a>
-<a href="#1196" id="1196">1196</a>
-<a href="#1197" id="1197">1197</a>
-<a href="#1198" id="1198">1198</a>
-<a href="#1199" id="1199">1199</a>
-<a href="#1200" id="1200">1200</a>
-<a href="#1201" id="1201">1201</a>
-<a href="#1202" id="1202">1202</a>
-<a href="#1203" id="1203">1203</a>
-<a href="#1204" id="1204">1204</a>
-<a href="#1205" id="1205">1205</a>
-<a href="#1206" id="1206">1206</a>
-<a href="#1207" id="1207">1207</a>
-<a href="#1208" id="1208">1208</a>
-<a href="#1209" id="1209">1209</a>
-<a href="#1210" id="1210">1210</a>
-<a href="#1211" id="1211">1211</a>
-<a href="#1212" id="1212">1212</a>
-<a href="#1213" id="1213">1213</a>
-<a href="#1214" id="1214">1214</a>
-<a href="#1215" id="1215">1215</a>
-<a href="#1216" id="1216">1216</a>
-<a href="#1217" id="1217">1217</a>
-<a href="#1218" id="1218">1218</a>
-<a href="#1219" id="1219">1219</a>
-<a href="#1220" id="1220">1220</a>
-<a href="#1221" id="1221">1221</a>
-<a href="#1222" id="1222">1222</a>
-<a href="#1223" id="1223">1223</a>
-<a href="#1224" id="1224">1224</a>
-<a href="#1225" id="1225">1225</a>
-<a href="#1226" id="1226">1226</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
@@ -1346,7 +1304,10 @@
     <span class="kw">let </span><span class="kw-2">mut </span>debug = Debug::new();
     debug.startup_started();
 
-    <span class="kw">let </span>event_loop = EventLoopBuilder::with_user_event().build();
+    <span class="kw">let </span>event_loop = EventLoopBuilder::with_user_event()
+        .build()
+        .expect(<span class="string">"Create event loop"</span>);
+
     <span class="kw">let </span>proxy = event_loop.create_proxy();
 
     <span class="kw">let </span>runtime = {
@@ -1438,78 +1399,78 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>context = task::Context::from_waker(task::noop_waker_ref());
 
-    platform::run(event_loop, <span class="kw">move </span>|event, window_target, control_flow| {
-        <span class="kw">use </span>winit::event_loop::ControlFlow;
-
-        <span class="kw">if let </span>ControlFlow::ExitWithCode(<span class="kw">_</span>) = control_flow {
+    <span class="kw">let _ </span>= event_loop.run(<span class="kw">move </span>|event, event_loop| {
+        <span class="kw">if </span>event_loop.exiting() {
             <span class="kw">return</span>;
         }
 
-        <span class="kw">let </span>event = <span class="kw">match </span>event {
-            winit::event::Event::WindowEvent {
-                event:
-                    winit::event::WindowEvent::ScaleFactorChanged {
-                        new_inner_size,
-                        ..
-                    },
-                window_id,
-            } =&gt; <span class="prelude-val">Some</span>(winit::event::Event::WindowEvent {
-                event: winit::event::WindowEvent::Resized(<span class="kw-2">*</span>new_inner_size),
-                window_id,
-            }),
-            <span class="kw">_ </span>=&gt; event.to_static(),
-        };
+        event_sender
+            .start_send(Event::EventLoopAwakened(event))
+            .expect(<span class="string">"Send event"</span>);
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = event {
-            event_sender
-                .start_send(Event::EventLoopAwakened(event))
-                .expect(<span class="string">"Send event"</span>);
+        <span class="kw">loop </span>{
+            <span class="kw">let </span>poll = instance.as_mut().poll(<span class="kw-2">&amp;mut </span>context);
 
-            <span class="kw">loop </span>{
-                <span class="kw">let </span>poll = instance.as_mut().poll(<span class="kw-2">&amp;mut </span>context);
+            <span class="kw">match </span>poll {
+                task::Poll::Pending =&gt; <span class="kw">match </span>control_receiver.try_next() {
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(control)) =&gt; <span class="kw">match </span>control {
+                        Control::ChangeFlow(flow) =&gt; {
+                            <span class="kw">use </span>winit::event_loop::ControlFlow;
 
-                <span class="kw">match </span>poll {
-                    task::Poll::Pending =&gt; <span class="kw">match </span>control_receiver.try_next() {
-                        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(control)) =&gt; <span class="kw">match </span>control {
-                            Control::ChangeFlow(flow) =&gt; {
-                                <span class="kw-2">*</span>control_flow = flow;
+                            <span class="kw">match </span>(event_loop.control_flow(), flow) {
+                                (
+                                    ControlFlow::WaitUntil(current),
+                                    ControlFlow::WaitUntil(new),
+                                ) <span class="kw">if </span>new &lt; current =&gt; {}
+                                (
+                                    ControlFlow::WaitUntil(target),
+                                    ControlFlow::Wait,
+                                ) <span class="kw">if </span>target &gt; Instant::now() =&gt; {}
+                                <span class="kw">_ </span>=&gt; {
+                                    event_loop.set_control_flow(flow);
+                                }
                             }
-                            Control::CreateWindow {
-                                id,
-                                settings,
-                                title,
-                                monitor,
-                            } =&gt; {
-                                <span class="kw">let </span>exit_on_close_request =
-                                    settings.exit_on_close_request;
+                        }
+                        Control::CreateWindow {
+                            id,
+                            settings,
+                            title,
+                            monitor,
+                        } =&gt; {
+                            <span class="kw">let </span>exit_on_close_request =
+                                settings.exit_on_close_request;
 
-                                <span class="kw">let </span>window = conversion::window_settings(
-                                    settings, <span class="kw-2">&amp;</span>title, monitor, <span class="prelude-val">None</span>,
-                                )
-                                .build(window_target)
-                                .expect(<span class="string">"Failed to build window"</span>);
+                            <span class="kw">let </span>window = conversion::window_settings(
+                                settings, <span class="kw-2">&amp;</span>title, monitor, <span class="prelude-val">None</span>,
+                            )
+                            .build(event_loop)
+                            .expect(<span class="string">"Failed to build window"</span>);
 
-                                event_sender
-                                    .start_send(Event::WindowCreated {
-                                        id,
-                                        window,
-                                        exit_on_close_request,
-                                    })
-                                    .expect(<span class="string">"Send event"</span>);
-                            }
-                        },
-                        <span class="kw">_ </span>=&gt; {
-                            <span class="kw">break</span>;
+                            event_sender
+                                .start_send(Event::WindowCreated {
+                                    id,
+                                    window,
+                                    exit_on_close_request,
+                                })
+                                .expect(<span class="string">"Send event"</span>);
+                        }
+                        Control::Exit =&gt; {
+                            event_loop.exit();
                         }
                     },
-                    task::Poll::Ready(<span class="kw">_</span>) =&gt; {
-                        <span class="kw-2">*</span>control_flow = ControlFlow::Exit;
+                    <span class="kw">_ </span>=&gt; {
                         <span class="kw">break</span>;
                     }
-                };
-            }
+                },
+                task::Poll::Ready(<span class="kw">_</span>) =&gt; {
+                    event_loop.exit();
+                    <span class="kw">break</span>;
+                }
+            };
         }
-    })
+    });
+
+    <span class="prelude-val">Ok</span>(())
 }
 
 <span class="kw">enum </span>Event&lt;Message: <span class="lifetime">'static</span>&gt; {
@@ -1518,11 +1479,12 @@
         window: winit::window::Window,
         exit_on_close_request: bool,
     },
-    EventLoopAwakened(winit::event::Event&lt;<span class="lifetime">'static</span>, Message&gt;),
+    EventLoopAwakened(winit::event::Event&lt;Message&gt;),
 }
 
 <span class="kw">enum </span>Control {
     ChangeFlow(winit::event_loop::ControlFlow),
+    Exit,
     CreateWindow {
         id: window::Id,
         settings: window::Settings,
@@ -1600,7 +1562,6 @@
     runtime.track(application.subscription().into_recipes());
 
     <span class="kw">let </span><span class="kw-2">mut </span>messages = Vec::new();
-    <span class="kw">let </span><span class="kw-2">mut </span>redraw_pending = <span class="bool-val">false</span>;
 
     debug.startup_finished();
 
@@ -1647,15 +1608,259 @@
             }
             Event::EventLoopAwakened(event) =&gt; {
                 <span class="kw">match </span>event {
-                    event::Event::NewEvents(start_cause) =&gt; {
-                        redraw_pending = <span class="macro">matches!</span>(
-                            start_cause,
-                            event::StartCause::Init
-                                | event::StartCause::Poll
-                                | event::StartCause::ResumeTimeReached { .. }
-                        );
+                    event::Event::NewEvents(
+                        event::StartCause::Init
+                        | event::StartCause::ResumeTimeReached { .. },
+                    ) =&gt; {
+                        <span class="kw">for </span>(_id, window) <span class="kw">in </span>window_manager.iter_mut() {
+                            <span class="comment">// TODO once widgets can request to be redrawn, we can avoid always requesting a
+                            // redraw
+                            </span>window.raw.request_redraw();
+                        }
                     }
-                    event::Event::MainEventsCleared =&gt; {
+                    event::Event::PlatformSpecific(
+                        event::PlatformSpecific::MacOS(
+                            event::MacOS::ReceivedUrl(url),
+                        ),
+                    ) =&gt; {
+                        <span class="kw">use </span><span class="kw">crate</span>::core::event;
+
+                        events.push((
+                            <span class="prelude-val">None</span>,
+                            event::Event::PlatformSpecific(
+                                event::PlatformSpecific::MacOS(
+                                    event::MacOS::ReceivedUrl(url),
+                                ),
+                            ),
+                        ));
+                    }
+                    event::Event::UserEvent(message) =&gt; {
+                        messages.push(message);
+                    }
+                    event::Event::WindowEvent {
+                        window_id: id,
+                        event: event::WindowEvent::RedrawRequested,
+                        ..
+                    } =&gt; {
+                        <span class="kw">let </span><span class="prelude-val">Some</span>((id, window)) =
+                            window_manager.get_mut_alias(id)
+                        <span class="kw">else </span>{
+                            <span class="kw">continue</span>;
+                        };
+
+                        <span class="comment">// TODO: Avoid redrawing all the time by forcing widgets to
+                        // request redraws on state changes
+                        //
+                        // Then, we can use the `interface_state` here to decide if a redraw
+                        // is needed right away, or simply wait until a specific time.
+                        </span><span class="kw">let </span>redraw_event = core::Event::Window(
+                            id,
+                            window::Event::RedrawRequested(Instant::now()),
+                        );
+
+                        <span class="kw">let </span>cursor = window.state.cursor();
+
+                        <span class="kw">let </span>ui = user_interfaces
+                            .get_mut(<span class="kw-2">&amp;</span>id)
+                            .expect(<span class="string">"Get user interface"</span>);
+
+                        <span class="kw">let </span>(ui_state, <span class="kw">_</span>) = ui.update(
+                            <span class="kw-2">&amp;</span>[redraw_event.clone()],
+                            cursor,
+                            <span class="kw-2">&amp;mut </span>window.renderer,
+                            <span class="kw-2">&amp;mut </span>clipboard,
+                            <span class="kw-2">&amp;mut </span>messages,
+                        );
+
+                        debug.draw_started();
+                        <span class="kw">let </span>new_mouse_interaction = ui.draw(
+                            <span class="kw-2">&amp;mut </span>window.renderer,
+                            window.state.theme(),
+                            <span class="kw-2">&amp;</span>renderer::Style {
+                                text_color: window.state.text_color(),
+                            },
+                            cursor,
+                        );
+                        debug.draw_finished();
+
+                        <span class="kw">if </span>new_mouse_interaction != window.mouse_interaction {
+                            window.raw.set_cursor_icon(
+                                conversion::mouse_interaction(
+                                    new_mouse_interaction,
+                                ),
+                            );
+
+                            window.mouse_interaction = new_mouse_interaction;
+                        }
+
+                        runtime.broadcast(
+                            redraw_event.clone(),
+                            core::event::Status::Ignored,
+                        );
+
+                        <span class="kw">let _ </span>= control_sender.start_send(Control::ChangeFlow(
+                            <span class="kw">match </span>ui_state {
+                                user_interface::State::Updated {
+                                    redraw_request: <span class="prelude-val">Some</span>(redraw_request),
+                                } =&gt; <span class="kw">match </span>redraw_request {
+                                    window::RedrawRequest::NextFrame =&gt; {
+                                        window.raw.request_redraw();
+
+                                        ControlFlow::Wait
+                                    }
+                                    window::RedrawRequest::At(at) =&gt; {
+                                        ControlFlow::WaitUntil(at)
+                                    }
+                                },
+                                <span class="kw">_ </span>=&gt; ControlFlow::Wait,
+                            },
+                        ));
+
+                        <span class="kw">let </span>physical_size = window.state.physical_size();
+
+                        <span class="kw">if </span>physical_size.width == <span class="number">0 </span>|| physical_size.height == <span class="number">0
+                        </span>{
+                            <span class="kw">continue</span>;
+                        }
+
+                        <span class="kw">if </span>window.viewport_version
+                            != window.state.viewport_version()
+                        {
+                            <span class="kw">let </span>logical_size = window.state.logical_size();
+
+                            debug.layout_started();
+                            <span class="kw">let </span>ui = user_interfaces
+                                .remove(<span class="kw-2">&amp;</span>id)
+                                .expect(<span class="string">"Remove user interface"</span>);
+
+                            <span class="kw">let _ </span>= user_interfaces.insert(
+                                id,
+                                ui.relayout(logical_size, <span class="kw-2">&amp;mut </span>window.renderer),
+                            );
+                            debug.layout_finished();
+
+                            debug.draw_started();
+                            <span class="kw">let </span>new_mouse_interaction = user_interfaces
+                                .get_mut(<span class="kw-2">&amp;</span>id)
+                                .expect(<span class="string">"Get user interface"</span>)
+                                .draw(
+                                    <span class="kw-2">&amp;mut </span>window.renderer,
+                                    window.state.theme(),
+                                    <span class="kw-2">&amp;</span>renderer::Style {
+                                        text_color: window.state.text_color(),
+                                    },
+                                    window.state.cursor(),
+                                );
+                            debug.draw_finished();
+
+                            <span class="kw">if </span>new_mouse_interaction != window.mouse_interaction
+                            {
+                                window.raw.set_cursor_icon(
+                                    conversion::mouse_interaction(
+                                        new_mouse_interaction,
+                                    ),
+                                );
+
+                                window.mouse_interaction =
+                                    new_mouse_interaction;
+                            }
+
+                            compositor.configure_surface(
+                                <span class="kw-2">&amp;mut </span>window.surface,
+                                physical_size.width,
+                                physical_size.height,
+                            );
+
+                            window.viewport_version =
+                                window.state.viewport_version();
+                        }
+
+                        debug.render_started();
+                        <span class="kw">match </span>compositor.present(
+                            <span class="kw-2">&amp;mut </span>window.renderer,
+                            <span class="kw-2">&amp;mut </span>window.surface,
+                            window.state.viewport(),
+                            window.state.background_color(),
+                            <span class="kw-2">&amp;</span>debug.overlay(),
+                        ) {
+                            <span class="prelude-val">Ok</span>(()) =&gt; {
+                                debug.render_finished();
+
+                                <span class="comment">// TODO: Handle animations!
+                                // Maybe we can use `ControlFlow::WaitUntil` for this.
+                            </span>}
+                            <span class="prelude-val">Err</span>(error) =&gt; <span class="kw">match </span>error {
+                                <span class="comment">// This is an unrecoverable error.
+                                </span>compositor::SurfaceError::OutOfMemory =&gt; {
+                                    <span class="macro">panic!</span>(<span class="string">"{:?}"</span>, error);
+                                }
+                                <span class="kw">_ </span>=&gt; {
+                                    debug.render_finished();
+
+                                    <span class="macro">log::error!</span>(
+                                        <span class="string">"Error {error:?} when \
+                                        presenting surface."
+                                    </span>);
+
+                                    <span class="comment">// Try rendering all windows again next frame.
+                                    </span><span class="kw">for </span>(_id, window) <span class="kw">in
+                                        </span>window_manager.iter_mut()
+                                    {
+                                        window.raw.request_redraw();
+                                    }
+                                }
+                            },
+                        }
+                    }
+                    event::Event::WindowEvent {
+                        event: window_event,
+                        window_id,
+                    } =&gt; {
+                        <span class="kw">let </span><span class="prelude-val">Some</span>((id, window)) =
+                            window_manager.get_mut_alias(window_id)
+                        <span class="kw">else </span>{
+                            <span class="kw">continue</span>;
+                        };
+
+                        <span class="kw">if </span><span class="macro">matches!</span>(
+                            window_event,
+                            winit::event::WindowEvent::CloseRequested
+                        ) &amp;&amp; window.exit_on_close_request
+                        {
+                            <span class="kw">let _ </span>= window_manager.remove(id);
+                            <span class="kw">let _ </span>= user_interfaces.remove(<span class="kw-2">&amp;</span>id);
+                            <span class="kw">let _ </span>= ui_caches.remove(<span class="kw-2">&amp;</span>id);
+
+                            events.push((
+                                <span class="prelude-val">None</span>,
+                                core::Event::Window(id, window::Event::Closed),
+                            ));
+
+                            <span class="kw">if </span>window_manager.is_empty() {
+                                <span class="kw">break </span><span class="lifetime">'main</span>;
+                            }
+                        } <span class="kw">else </span>{
+                            window.state.update(
+                                <span class="kw-2">&amp;</span>window.raw,
+                                <span class="kw-2">&amp;</span>window_event,
+                                <span class="kw-2">&amp;mut </span>debug,
+                            );
+
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = conversion::window_event(
+                                id,
+                                window_event,
+                                window.state.scale_factor(),
+                                window.state.modifiers(),
+                            ) {
+                                events.push((<span class="prelude-val">Some</span>(id), event));
+                            }
+                        }
+                    }
+                    event::Event::AboutToWait =&gt; {
+                        <span class="kw">if </span>events.is_empty() &amp;&amp; messages.is_empty() {
+                            <span class="kw">continue</span>;
+                        }
+
                         debug.event_processing_started();
                         <span class="kw">let </span><span class="kw-2">mut </span>uis_stale = <span class="bool-val">false</span>;
 
@@ -1672,10 +1877,7 @@
                                 </span>}
                             });
 
-                            <span class="kw">if </span>!redraw_pending
-                                &amp;&amp; window_events.is_empty()
-                                &amp;&amp; messages.is_empty()
-                            {
+                            <span class="kw">if </span>window_events.is_empty() &amp;&amp; messages.is_empty() {
                                 <span class="kw">continue</span>;
                             }
 
@@ -1689,6 +1891,8 @@
                                     <span class="kw-2">&amp;mut </span>clipboard,
                                     <span class="kw-2">&amp;mut </span>messages,
                                 );
+
+                            window.raw.request_redraw();
 
                             <span class="kw">if </span>!uis_stale {
                                 uis_stale = <span class="macro">matches!</span>(
@@ -1739,6 +1943,10 @@
                                     id,
                                     <span class="kw-2">&amp;</span>window.raw,
                                 );
+
+                                <span class="comment">// TODO once widgets can request to be redrawn, we can avoid always requesting a
+                                // redraw
+                                </span>window.raw.request_redraw();
                             }
 
                             <span class="comment">// rebuild UIs with the synchronized states
@@ -1749,254 +1957,6 @@
                                     <span class="kw-2">&amp;mut </span>window_manager,
                                     cached_interfaces,
                                 ));
-                        }
-
-                        debug.draw_started();
-
-                        <span class="kw">for </span>(id, window) <span class="kw">in </span>window_manager.iter_mut() {
-                            <span class="comment">// TODO: Avoid redrawing all the time by forcing widgets to
-                            //  request redraws on state changes
-                            //
-                            // Then, we can use the `interface_state` here to decide if a redraw
-                            // is needed right away, or simply wait until a specific time.
-                            </span><span class="kw">let </span>redraw_event = core::Event::Window(
-                                id,
-                                window::Event::RedrawRequested(Instant::now()),
-                            );
-
-                            <span class="kw">let </span>cursor = window.state.cursor();
-
-                            <span class="kw">let </span>ui = user_interfaces
-                                .get_mut(<span class="kw-2">&amp;</span>id)
-                                .expect(<span class="string">"Get user interface"</span>);
-
-                            <span class="kw">let </span>(ui_state, <span class="kw">_</span>) = ui.update(
-                                <span class="kw-2">&amp;</span>[redraw_event.clone()],
-                                cursor,
-                                <span class="kw-2">&amp;mut </span>window.renderer,
-                                <span class="kw-2">&amp;mut </span>clipboard,
-                                <span class="kw-2">&amp;mut </span>messages,
-                            );
-
-                            <span class="kw">let </span>new_mouse_interaction = {
-                                <span class="kw">let </span>state = <span class="kw-2">&amp;</span>window.state;
-
-                                ui.draw(
-                                    <span class="kw-2">&amp;mut </span>window.renderer,
-                                    state.theme(),
-                                    <span class="kw-2">&amp;</span>renderer::Style {
-                                        text_color: state.text_color(),
-                                    },
-                                    cursor,
-                                )
-                            };
-
-                            <span class="kw">if </span>new_mouse_interaction != window.mouse_interaction
-                            {
-                                window.raw.set_cursor_icon(
-                                    conversion::mouse_interaction(
-                                        new_mouse_interaction,
-                                    ),
-                                );
-
-                                window.mouse_interaction =
-                                    new_mouse_interaction;
-                            }
-
-                            <span class="comment">// TODO once widgets can request to be redrawn, we can avoid always requesting a
-                            // redraw
-                            </span>window.raw.request_redraw();
-
-                            runtime.broadcast(
-                                redraw_event.clone(),
-                                core::event::Status::Ignored,
-                            );
-
-                            <span class="kw">let _ </span>= control_sender.start_send(
-                                Control::ChangeFlow(<span class="kw">match </span>ui_state {
-                                    user_interface::State::Updated {
-                                        redraw_request: <span class="prelude-val">Some</span>(redraw_request),
-                                    } =&gt; <span class="kw">match </span>redraw_request {
-                                        window::RedrawRequest::NextFrame =&gt; {
-                                            ControlFlow::Poll
-                                        }
-                                        window::RedrawRequest::At(at) =&gt; {
-                                            ControlFlow::WaitUntil(at)
-                                        }
-                                    },
-                                    <span class="kw">_ </span>=&gt; ControlFlow::Wait,
-                                }),
-                            );
-                        }
-
-                        redraw_pending = <span class="bool-val">false</span>;
-
-                        debug.draw_finished();
-                    }
-                    event::Event::PlatformSpecific(
-                        event::PlatformSpecific::MacOS(
-                            event::MacOS::ReceivedUrl(url),
-                        ),
-                    ) =&gt; {
-                        <span class="kw">use </span><span class="kw">crate</span>::core::event;
-
-                        events.push((
-                            <span class="prelude-val">None</span>,
-                            event::Event::PlatformSpecific(
-                                event::PlatformSpecific::MacOS(
-                                    event::MacOS::ReceivedUrl(url),
-                                ),
-                            ),
-                        ));
-                    }
-                    event::Event::UserEvent(message) =&gt; {
-                        messages.push(message);
-                    }
-                    event::Event::RedrawRequested(id) =&gt; {
-                        <span class="kw">let </span><span class="prelude-val">Some</span>((id, window)) =
-                            window_manager.get_mut_alias(id)
-                        <span class="kw">else </span>{
-                            <span class="kw">continue</span>;
-                        };
-
-                        <span class="kw">let </span>physical_size = window.state.physical_size();
-
-                        <span class="kw">if </span>physical_size.width == <span class="number">0 </span>|| physical_size.height == <span class="number">0
-                        </span>{
-                            <span class="kw">continue</span>;
-                        }
-
-                        debug.render_started();
-                        <span class="kw">if </span>window.viewport_version
-                            != window.state.viewport_version()
-                        {
-                            <span class="kw">let </span>logical_size = window.state.logical_size();
-
-                            debug.layout_started();
-
-                            <span class="kw">let </span>ui = user_interfaces
-                                .remove(<span class="kw-2">&amp;</span>id)
-                                .expect(<span class="string">"Remove user interface"</span>);
-
-                            <span class="kw">let _ </span>= user_interfaces.insert(
-                                id,
-                                ui.relayout(logical_size, <span class="kw-2">&amp;mut </span>window.renderer),
-                            );
-
-                            debug.layout_finished();
-
-                            debug.draw_started();
-                            <span class="kw">let </span>new_mouse_interaction = user_interfaces
-                                .get_mut(<span class="kw-2">&amp;</span>id)
-                                .expect(<span class="string">"Get user interface"</span>)
-                                .draw(
-                                    <span class="kw-2">&amp;mut </span>window.renderer,
-                                    window.state.theme(),
-                                    <span class="kw-2">&amp;</span>renderer::Style {
-                                        text_color: window.state.text_color(),
-                                    },
-                                    window.state.cursor(),
-                                );
-
-                            <span class="kw">if </span>new_mouse_interaction != window.mouse_interaction
-                            {
-                                window.raw.set_cursor_icon(
-                                    conversion::mouse_interaction(
-                                        new_mouse_interaction,
-                                    ),
-                                );
-
-                                window.mouse_interaction =
-                                    new_mouse_interaction;
-                            }
-                            debug.draw_finished();
-
-                            compositor.configure_surface(
-                                <span class="kw-2">&amp;mut </span>window.surface,
-                                physical_size.width,
-                                physical_size.height,
-                            );
-
-                            window.viewport_version =
-                                window.state.viewport_version();
-                        }
-
-                        <span class="kw">match </span>compositor.present(
-                            <span class="kw-2">&amp;mut </span>window.renderer,
-                            <span class="kw-2">&amp;mut </span>window.surface,
-                            window.state.viewport(),
-                            window.state.background_color(),
-                            <span class="kw-2">&amp;</span>debug.overlay(),
-                        ) {
-                            <span class="prelude-val">Ok</span>(()) =&gt; {
-                                debug.render_finished();
-
-                                <span class="comment">// TODO: Handle animations!
-                                // Maybe we can use `ControlFlow::WaitUntil` for this.
-                            </span>}
-                            <span class="prelude-val">Err</span>(error) =&gt; <span class="kw">match </span>error {
-                                <span class="comment">// This is an unrecoverable error.
-                                </span>compositor::SurfaceError::OutOfMemory =&gt; {
-                                    <span class="macro">panic!</span>(<span class="string">"{:?}"</span>, error);
-                                }
-                                <span class="kw">_ </span>=&gt; {
-                                    debug.render_finished();
-                                    <span class="macro">log::error!</span>(
-                                <span class="string">"Error {error:?} when presenting surface."
-                            </span>);
-
-                                    <span class="comment">// Try rendering all windows again next frame.
-                                    </span><span class="kw">for </span>(_id, window) <span class="kw">in
-                                        </span>window_manager.iter_mut()
-                                    {
-                                        window.raw.request_redraw();
-                                    }
-                                }
-                            },
-                        }
-                    }
-                    event::Event::WindowEvent {
-                        event: window_event,
-                        window_id,
-                    } =&gt; {
-                        <span class="kw">let </span><span class="prelude-val">Some</span>((id, window)) =
-                            window_manager.get_mut_alias(window_id)
-                        <span class="kw">else </span>{
-                            <span class="kw">continue</span>;
-                        };
-
-                        <span class="kw">if </span><span class="macro">matches!</span>(
-                            window_event,
-                            winit::event::WindowEvent::CloseRequested
-                        ) &amp;&amp; window.exit_on_close_request
-                        {
-                            <span class="kw">let _ </span>= window_manager.remove(id);
-                            <span class="kw">let _ </span>= user_interfaces.remove(<span class="kw-2">&amp;</span>id);
-                            <span class="kw">let _ </span>= ui_caches.remove(<span class="kw-2">&amp;</span>id);
-
-                            events.push((
-                                <span class="prelude-val">None</span>,
-                                core::Event::Window(id, window::Event::Closed),
-                            ));
-
-                            <span class="kw">if </span>window_manager.is_empty() {
-                                <span class="kw">break </span><span class="lifetime">'main</span>;
-                            }
-                        } <span class="kw">else </span>{
-                            window.state.update(
-                                <span class="kw-2">&amp;</span>window.raw,
-                                <span class="kw-2">&amp;</span>window_event,
-                                <span class="kw-2">&amp;mut </span>debug,
-                            );
-
-                            <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = conversion::window_event(
-                                id,
-                                <span class="kw-2">&amp;</span>window_event,
-                                window.state.scale_factor(),
-                                window.state.modifiers(),
-                            ) {
-                                events.push((<span class="prelude-val">Some</span>(id), event));
-                            }
                         }
                     }
                     <span class="kw">_ </span>=&gt; {}
@@ -2129,16 +2089,12 @@
                         .expect(<span class="string">"Send control action"</span>);
                 }
                 window::Action::Close(id) =&gt; {
-                    <span class="kw">use </span>winit::event_loop::ControlFlow;
-
                     <span class="kw">let _ </span>= window_manager.remove(id);
                     <span class="kw">let _ </span>= ui_caches.remove(<span class="kw-2">&amp;</span>id);
 
                     <span class="kw">if </span>window_manager.is_empty() {
                         control_sender
-                            .start_send(Control::ChangeFlow(
-                                ControlFlow::ExitWithCode(<span class="number">0</span>),
-                            ))
+                            .start_send(Control::Exit)
                             .expect(<span class="string">"Send control action"</span>);
                     }
                 }
@@ -2149,10 +2105,12 @@
                 }
                 window::Action::Resize(id, size) =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        window.raw.set_inner_size(winit::dpi::LogicalSize {
-                            width: size.width,
-                            height: size.height,
-                        });
+                        <span class="kw">let _ </span>= window.raw.request_inner_size(
+                            winit::dpi::LogicalSize {
+                                width: size.width,
+                                height: size.height,
+                            },
+                        );
                     }
                 }
                 window::Action::FetchSize(id, callback) =&gt; {
@@ -2395,61 +2353,21 @@
 <span class="doccomment">/// Returns true if the provided event should cause an [`Application`] to
 /// exit.
 </span><span class="kw">pub fn </span>user_force_quit(
-    event: <span class="kw-2">&amp;</span>winit::event::WindowEvent&lt;<span class="lifetime">'_</span>&gt;,
-    _modifiers: winit::event::ModifiersState,
+    event: <span class="kw-2">&amp;</span>winit::event::WindowEvent,
+    _modifiers: winit::keyboard::ModifiersState,
 ) -&gt; bool {
     <span class="kw">match </span>event {
         <span class="attr">#[cfg(target_os = <span class="string">"macos"</span>)]
         </span>winit::event::WindowEvent::KeyboardInput {
-            input:
-                winit::event::KeyboardInput {
-                    virtual_keycode: <span class="prelude-val">Some</span>(winit::event::VirtualKeyCode::Q),
+            event:
+                winit::event::KeyEvent {
+                    logical_key: winit::keyboard::Key::Character(c),
                     state: winit::event::ElementState::Pressed,
                     ..
                 },
             ..
-        } <span class="kw">if </span>_modifiers.logo() =&gt; <span class="bool-val">true</span>,
+        } <span class="kw">if </span>c == <span class="string">"q" </span>&amp;&amp; _modifiers.super_key() =&gt; <span class="bool-val">true</span>,
         <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-    }
-}
-
-<span class="attr">#[cfg(not(target_arch = <span class="string">"wasm32"</span>))]
-</span><span class="kw">mod </span>platform {
-    <span class="kw">pub fn </span>run&lt;T, F&gt;(
-        <span class="kw-2">mut </span>event_loop: winit::event_loop::EventLoop&lt;T&gt;,
-        event_handler: F,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw">super</span>::Error&gt;
-    <span class="kw">where
-        </span>F: <span class="lifetime">'static
-            </span>+ FnMut(
-                winit::event::Event&lt;<span class="lifetime">'_</span>, T&gt;,
-                <span class="kw-2">&amp;</span>winit::event_loop::EventLoopWindowTarget&lt;T&gt;,
-                <span class="kw-2">&amp;mut </span>winit::event_loop::ControlFlow,
-            ),
-    {
-        <span class="kw">use </span>winit::platform::run_return::EventLoopExtRunReturn;
-
-        <span class="kw">let _ </span>= event_loop.run_return(event_handler);
-
-        <span class="prelude-val">Ok</span>(())
-    }
-}
-
-<span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
-</span><span class="kw">mod </span>platform {
-    <span class="kw">pub fn </span>run&lt;T, F&gt;(
-        event_loop: winit::event_loop::EventLoop&lt;T&gt;,
-        event_handler: F,
-    ) -&gt; !
-    <span class="kw">where
-        </span>F: <span class="lifetime">'static
-            </span>+ FnMut(
-                winit::event::Event&lt;<span class="lifetime">'_</span>, T&gt;,
-                <span class="kw-2">&amp;</span>winit::event_loop::EventLoopWindowTarget&lt;T&gt;,
-                <span class="kw-2">&amp;mut </span>winit::event_loop::ControlFlow,
-            ),
-    {
-        event_loop.run(event_handler)
     }
 }
 </code></pre></div></section></main></body></html>
