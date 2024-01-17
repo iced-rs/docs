@@ -330,7 +330,49 @@
 <a href="#330" id="330">330</a>
 <a href="#331" id="331">331</a>
 <a href="#332" id="332">332</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{Point, Rectangle, Size, Vector};
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::text::LineHeight;
+<span class="kw">use </span><span class="kw">crate</span>::core::{Pixels, Point, Rectangle, Size, Vector};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::fill::{<span class="self">self</span>, Fill};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::stroke::{<span class="self">self</span>, Stroke};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{Path, Style, Text};
@@ -371,17 +413,22 @@
     }
 
     <span class="kw">pub fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path, fill: <span class="kw">impl </span>Into&lt;Fill&gt;) {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(path) = convert_path(path) <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(path) =
+            convert_path(path).and_then(|path| path.transform(<span class="self">self</span>.transform))
+        <span class="kw">else </span>{
             <span class="kw">return</span>;
         };
+
         <span class="kw">let </span>fill = fill.into();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>paint = into_paint(fill.style);
+        paint.shader.transform(<span class="self">self</span>.transform);
 
         <span class="self">self</span>.primitives
             .push(Primitive::Custom(primitive::Custom::Fill {
                 path,
-                paint: into_paint(fill.style),
+                paint,
                 rule: into_fill_rule(fill.rule),
-                transform: <span class="self">self</span>.transform,
             }));
     }
 
@@ -391,76 +438,111 @@
         size: Size,
         fill: <span class="kw">impl </span>Into&lt;Fill&gt;,
     ) {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(path) = convert_path(<span class="kw-2">&amp;</span>Path::rectangle(top_left, size)) <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(path) = convert_path(<span class="kw-2">&amp;</span>Path::rectangle(top_left, size))
+            .and_then(|path| path.transform(<span class="self">self</span>.transform))
+        <span class="kw">else </span>{
             <span class="kw">return</span>;
         };
+
         <span class="kw">let </span>fill = fill.into();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>paint = tiny_skia::Paint {
+            anti_alias: <span class="bool-val">false</span>,
+            ..into_paint(fill.style)
+        };
+        paint.shader.transform(<span class="self">self</span>.transform);
 
         <span class="self">self</span>.primitives
             .push(Primitive::Custom(primitive::Custom::Fill {
                 path,
-                paint: tiny_skia::Paint {
-                    anti_alias: <span class="bool-val">false</span>,
-                    ..into_paint(fill.style)
-                },
+                paint,
                 rule: into_fill_rule(fill.rule),
-                transform: <span class="self">self</span>.transform,
             }));
     }
 
     <span class="kw">pub fn </span>stroke&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path, stroke: <span class="kw">impl </span>Into&lt;Stroke&lt;<span class="lifetime">'a</span>&gt;&gt;) {
-        <span class="kw">let </span><span class="prelude-val">Some</span>(path) = convert_path(path) <span class="kw">else </span>{
+        <span class="kw">let </span><span class="prelude-val">Some</span>(path) =
+            convert_path(path).and_then(|path| path.transform(<span class="self">self</span>.transform))
+        <span class="kw">else </span>{
             <span class="kw">return</span>;
         };
 
         <span class="kw">let </span>stroke = stroke.into();
         <span class="kw">let </span>skia_stroke = into_stroke(<span class="kw-2">&amp;</span>stroke);
 
+        <span class="kw">let </span><span class="kw-2">mut </span>paint = into_paint(stroke.style);
+        paint.shader.transform(<span class="self">self</span>.transform);
+
         <span class="self">self</span>.primitives
             .push(Primitive::Custom(primitive::Custom::Stroke {
                 path,
-                paint: into_paint(stroke.style),
+                paint,
                 stroke: skia_stroke,
-                transform: <span class="self">self</span>.transform,
             }));
     }
 
     <span class="kw">pub fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: <span class="kw">impl </span>Into&lt;Text&gt;) {
         <span class="kw">let </span>text = text.into();
 
-        <span class="kw">let </span>position = <span class="kw">if </span><span class="self">self</span>.transform.is_identity() {
-            text.position
+        <span class="kw">let </span>(scale_x, scale_y) = <span class="self">self</span>.transform.get_scale();
+
+        <span class="kw">if </span><span class="self">self</span>.transform.is_scale_translate()
+            &amp;&amp; scale_x == scale_y
+            &amp;&amp; scale_x &gt; <span class="number">0.0
+            </span>&amp;&amp; scale_y &gt; <span class="number">0.0
+        </span>{
+            <span class="kw">let </span>(position, size, line_height) = <span class="kw">if </span><span class="self">self</span>.transform.is_identity()
+            {
+                (text.position, text.size, text.line_height)
+            } <span class="kw">else </span>{
+                <span class="kw">let </span><span class="kw-2">mut </span>position = [tiny_skia::Point {
+                    x: text.position.x,
+                    y: text.position.y,
+                }];
+
+                <span class="self">self</span>.transform.map_points(<span class="kw-2">&amp;mut </span>position);
+
+                <span class="kw">let </span>size = text.size.<span class="number">0 </span>* scale_y;
+
+                <span class="kw">let </span>line_height = <span class="kw">match </span>text.line_height {
+                    LineHeight::Absolute(size) =&gt; {
+                        LineHeight::Absolute(Pixels(size.<span class="number">0 </span>* scale_y))
+                    }
+                    LineHeight::Relative(factor) =&gt; {
+                        LineHeight::Relative(factor)
+                    }
+                };
+
+                (
+                    Point::new(position[<span class="number">0</span>].x, position[<span class="number">0</span>].y),
+                    size.into(),
+                    line_height,
+                )
+            };
+
+            <span class="kw">let </span>bounds = Rectangle {
+                x: position.x,
+                y: position.y,
+                width: f32::INFINITY,
+                height: f32::INFINITY,
+            };
+
+            <span class="comment">// TODO: Honor layering!
+            </span><span class="self">self</span>.primitives.push(Primitive::Text {
+                content: text.content,
+                bounds,
+                color: text.color,
+                size,
+                line_height,
+                font: text.font,
+                horizontal_alignment: text.horizontal_alignment,
+                vertical_alignment: text.vertical_alignment,
+                shaping: text.shaping,
+                clip_bounds: Rectangle::with_size(Size::INFINITY),
+            });
         } <span class="kw">else </span>{
-            <span class="kw">let </span><span class="kw-2">mut </span>transformed = [tiny_skia::Point {
-                x: text.position.x,
-                y: text.position.y,
-            }];
-
-            <span class="self">self</span>.transform.map_points(<span class="kw-2">&amp;mut </span>transformed);
-
-            Point::new(transformed[<span class="number">0</span>].x, transformed[<span class="number">0</span>].y)
-        };
-
-        <span class="kw">let </span>bounds = Rectangle {
-            x: position.x,
-            y: position.y,
-            width: f32::INFINITY,
-            height: f32::INFINITY,
-        };
-
-        <span class="comment">// TODO: Use vectorial text instead of primitive
-        </span><span class="self">self</span>.primitives.push(Primitive::Text {
-            content: text.content,
-            bounds,
-            color: text.color,
-            size: text.size,
-            line_height: text.line_height,
-            font: text.font,
-            horizontal_alignment: text.horizontal_alignment,
-            vertical_alignment: text.vertical_alignment,
-            shaping: text.shaping,
-            clip_bounds: Rectangle::with_size(Size::INFINITY),
-        });
+            text.draw_with(|path, color| <span class="self">self</span>.fill(<span class="kw-2">&amp;</span>path, color));
+        }
     }
 
     <span class="kw">pub fn </span>push_transform(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {

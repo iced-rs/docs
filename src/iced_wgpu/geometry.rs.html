@@ -640,8 +640,38 @@
 <a href="#640" id="640">640</a>
 <a href="#641" id="641">641</a>
 <a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and draw geometry.
-</span><span class="kw">use </span><span class="kw">crate</span>::core::{Point, Rectangle, Size, Vector};
+</span><span class="kw">use </span><span class="kw">crate</span>::core::text::LineHeight;
+<span class="kw">use </span><span class="kw">crate</span>::core::{Pixels, Point, Rectangle, Size, Vector};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::fill::{<span class="self">self</span>, Fill};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{
@@ -757,19 +787,31 @@
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">struct </span>Transform {
-    raw: lyon::math::Transform,
-    is_identity: bool,
-}
+</span><span class="kw">struct </span>Transform(lyon::math::Transform);
 
 <span class="kw">impl </span>Transform {
-    <span class="doccomment">/// Transforms the given [Point] by the transformation matrix.
-    </span><span class="kw">fn </span>transform_point(<span class="kw-2">&amp;</span><span class="self">self</span>, point: <span class="kw-2">&amp;mut </span>Point) {
+    <span class="kw">fn </span>is_identity(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0 </span>== lyon::math::Transform::identity()
+    }
+
+    <span class="kw">fn </span>is_scale_translation(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.<span class="number">0</span>.m12.abs() &lt; <span class="number">2.0 </span>* f32::EPSILON
+            &amp;&amp; <span class="self">self</span>.<span class="number">0</span>.m21.abs() &lt; <span class="number">2.0 </span>* f32::EPSILON
+    }
+
+    <span class="kw">fn </span>scale(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (f32, f32) {
+        (<span class="self">self</span>.<span class="number">0</span>.m11, <span class="self">self</span>.<span class="number">0</span>.m22)
+    }
+
+    <span class="kw">fn </span>transform_point(<span class="kw-2">&amp;</span><span class="self">self</span>, point: Point) -&gt; Point {
         <span class="kw">let </span>transformed = <span class="self">self
-            </span>.raw
-            .transform_point(euclid::Point2D::new(point.x, point.y));
-        point.x = transformed.x;
-        point.y = transformed.y;
+            </span>.<span class="number">0
+            </span>.transform_point(euclid::Point2D::new(point.x, point.y));
+
+        Point {
+            x: transformed.x,
+            y: transformed.y,
+        }
     }
 
     <span class="kw">fn </span>transform_style(<span class="kw-2">&amp;</span><span class="self">self</span>, style: Style) -&gt; Style {
@@ -784,8 +826,8 @@
     <span class="kw">fn </span>transform_gradient(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>gradient: Gradient) -&gt; Gradient {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span>gradient {
             Gradient::Linear(linear) =&gt; {
-                <span class="self">self</span>.transform_point(<span class="kw-2">&amp;mut </span>linear.start);
-                <span class="self">self</span>.transform_point(<span class="kw-2">&amp;mut </span>linear.end);
+                linear.start = <span class="self">self</span>.transform_point(linear.start);
+                linear.end = <span class="self">self</span>.transform_point(linear.end);
             }
         }
 
@@ -805,10 +847,7 @@
             primitives: Vec::new(),
             transforms: Transforms {
                 previous: Vec::new(),
-                current: Transform {
-                    raw: lyon::math::Transform::identity(),
-                    is_identity: <span class="bool-val">true</span>,
-                },
+                current: Transform(lyon::math::Transform::identity()),
             },
             fill_tessellator: tessellation::FillTessellator::new(),
             stroke_tessellator: tessellation::StrokeTessellator::new(),
@@ -851,14 +890,14 @@
         <span class="kw">let </span>options = tessellation::FillOptions::default()
             .with_fill_rule(into_fill_rule(rule));
 
-        <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity {
+        <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity() {
             <span class="self">self</span>.fill_tessellator.tessellate_path(
                 path.raw(),
                 <span class="kw-2">&amp;</span>options,
                 buffer.as_mut(),
             )
         } <span class="kw">else </span>{
-            <span class="kw">let </span>path = path.transform(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.raw);
+            <span class="kw">let </span>path = path.transform(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.<span class="number">0</span>);
 
             <span class="self">self</span>.fill_tessellator.tessellate_path(
                 path.raw(),
@@ -883,13 +922,14 @@
             </span>.buffers
             .get_fill(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.transform_style(style));
 
-        <span class="kw">let </span>top_left =
-            <span class="self">self</span>.transforms.current.raw.transform_point(
-                lyon::math::Point::new(top_left.x, top_left.y),
-            );
+        <span class="kw">let </span>top_left = <span class="self">self
+            </span>.transforms
+            .current
+            .<span class="number">0
+            </span>.transform_point(lyon::math::Point::new(top_left.x, top_left.y));
 
         <span class="kw">let </span>size =
-            <span class="self">self</span>.transforms.current.raw.transform_vector(
+            <span class="self">self</span>.transforms.current.<span class="number">0</span>.transform_vector(
                 lyon::math::Vector::new(size.width, size.height),
             );
 
@@ -926,14 +966,14 @@
             Cow::Owned(dashed(path, stroke.line_dash))
         };
 
-        <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity {
+        <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity() {
             <span class="self">self</span>.stroke_tessellator.tessellate_path(
                 path.raw(),
                 <span class="kw-2">&amp;</span>options,
                 buffer.as_mut(),
             )
         } <span class="kw">else </span>{
-            <span class="kw">let </span>path = path.transform(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.raw);
+            <span class="kw">let </span>path = path.transform(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.<span class="number">0</span>);
 
             <span class="self">self</span>.stroke_tessellator.tessellate_path(
                 path.raw(),
@@ -960,36 +1000,57 @@
     </span><span class="kw">pub fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: <span class="kw">impl </span>Into&lt;Text&gt;) {
         <span class="kw">let </span>text = text.into();
 
-        <span class="kw">let </span>position = <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity {
-            text.position
+        <span class="kw">let </span>(scale_x, scale_y) = <span class="self">self</span>.transforms.current.scale();
+
+        <span class="kw">if </span><span class="self">self</span>.transforms.current.is_scale_translation()
+            &amp;&amp; scale_x == scale_y
+            &amp;&amp; scale_x &gt; <span class="number">0.0
+            </span>&amp;&amp; scale_y &gt; <span class="number">0.0
+        </span>{
+            <span class="kw">let </span>(position, size, line_height) =
+                <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity() {
+                    (text.position, text.size, text.line_height)
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>position =
+                        <span class="self">self</span>.transforms.current.transform_point(text.position);
+
+                    <span class="kw">let </span>size = Pixels(text.size.<span class="number">0 </span>* scale_y);
+
+                    <span class="kw">let </span>line_height = <span class="kw">match </span>text.line_height {
+                        LineHeight::Absolute(size) =&gt; {
+                            LineHeight::Absolute(Pixels(size.<span class="number">0 </span>* scale_y))
+                        }
+                        LineHeight::Relative(factor) =&gt; {
+                            LineHeight::Relative(factor)
+                        }
+                    };
+
+                    (position, size, line_height)
+                };
+
+            <span class="kw">let </span>bounds = Rectangle {
+                x: position.x,
+                y: position.y,
+                width: f32::INFINITY,
+                height: f32::INFINITY,
+            };
+
+            <span class="comment">// TODO: Honor layering!
+            </span><span class="self">self</span>.primitives.push(Primitive::Text {
+                content: text.content,
+                bounds,
+                color: text.color,
+                size,
+                line_height,
+                font: text.font,
+                horizontal_alignment: text.horizontal_alignment,
+                vertical_alignment: text.vertical_alignment,
+                shaping: text.shaping,
+                clip_bounds: Rectangle::with_size(Size::INFINITY),
+            });
         } <span class="kw">else </span>{
-            <span class="kw">let </span>transformed = <span class="self">self</span>.transforms.current.raw.transform_point(
-                lyon::math::Point::new(text.position.x, text.position.y),
-            );
-
-            Point::new(transformed.x, transformed.y)
-        };
-
-        <span class="kw">let </span>bounds = Rectangle {
-            x: position.x,
-            y: position.y,
-            width: f32::INFINITY,
-            height: f32::INFINITY,
-        };
-
-        <span class="comment">// TODO: Use vectorial text instead of primitive
-        </span><span class="self">self</span>.primitives.push(Primitive::Text {
-            content: text.content,
-            bounds,
-            color: text.color,
-            size: text.size,
-            line_height: text.line_height,
-            font: text.font,
-            horizontal_alignment: text.horizontal_alignment,
-            vertical_alignment: text.vertical_alignment,
-            shaping: text.shaping,
-            clip_bounds: Rectangle::with_size(Size::INFINITY),
-        });
+            text.draw_with(|path, color| <span class="self">self</span>.fill(<span class="kw-2">&amp;</span>path, color));
+        }
     }
 
     <span class="doccomment">/// Stores the current transform of the [`Frame`] and executes the given
@@ -1065,26 +1126,24 @@
     <span class="doccomment">/// Applies a translation to the current transform of the [`Frame`].
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>translate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, translation: Vector) {
-        <span class="self">self</span>.transforms.current.raw = <span class="self">self
-            </span>.transforms
-            .current
-            .raw
-            .pre_translate(lyon::math::Vector::new(
-                translation.x,
-                translation.y,
-            ));
-        <span class="self">self</span>.transforms.current.is_identity = <span class="bool-val">false</span>;
+        <span class="self">self</span>.transforms.current.<span class="number">0 </span>=
+            <span class="self">self</span>.transforms
+                .current
+                .<span class="number">0
+                </span>.pre_translate(lyon::math::Vector::new(
+                    translation.x,
+                    translation.y,
+                ));
     }
 
     <span class="doccomment">/// Applies a rotation in radians to the current transform of the [`Frame`].
     </span><span class="attr">#[inline]
     </span><span class="kw">pub fn </span>rotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, angle: f32) {
-        <span class="self">self</span>.transforms.current.raw = <span class="self">self
+        <span class="self">self</span>.transforms.current.<span class="number">0 </span>= <span class="self">self
             </span>.transforms
             .current
-            .raw
-            .pre_rotate(lyon::math::Angle::radians(angle));
-        <span class="self">self</span>.transforms.current.is_identity = <span class="bool-val">false</span>;
+            .<span class="number">0
+            </span>.pre_rotate(lyon::math::Angle::radians(angle));
     }
 
     <span class="doccomment">/// Applies a uniform scaling to the current transform of the [`Frame`].
@@ -1100,9 +1159,8 @@
     </span><span class="kw">pub fn </span>scale_nonuniform(<span class="kw-2">&amp;mut </span><span class="self">self</span>, scale: <span class="kw">impl </span>Into&lt;Vector&gt;) {
         <span class="kw">let </span>scale = scale.into();
 
-        <span class="self">self</span>.transforms.current.raw =
-            <span class="self">self</span>.transforms.current.raw.pre_scale(scale.x, scale.y);
-        <span class="self">self</span>.transforms.current.is_identity = <span class="bool-val">false</span>;
+        <span class="self">self</span>.transforms.current.<span class="number">0 </span>=
+            <span class="self">self</span>.transforms.current.<span class="number">0</span>.pre_scale(scale.x, scale.y);
     }
 
     <span class="doccomment">/// Produces the [`Primitive`] representing everything drawn on the [`Frame`].
