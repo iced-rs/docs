@@ -191,6 +191,11 @@
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
 <a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display vector graphics in your application.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
@@ -334,7 +339,7 @@
         theme: <span class="kw-2">&amp;</span>Renderer::Theme,
         _style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-        _cursor: mouse::Cursor,
+        cursor: mouse::Cursor,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
         <span class="kw">let </span>Size { width, height } = renderer.dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>.handle);
@@ -342,6 +347,7 @@
 
         <span class="kw">let </span>bounds = layout.bounds();
         <span class="kw">let </span>adjusted_fit = <span class="self">self</span>.content_fit.fit(image_size, bounds.size());
+        <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
 
         <span class="kw">let </span>render = |renderer: <span class="kw-2">&amp;mut </span>Renderer| {
             <span class="kw">let </span>offset = Vector::new(
@@ -355,7 +361,11 @@
                 ..bounds
             };
 
-            <span class="kw">let </span>appearance = theme.appearance(<span class="kw-2">&amp;</span><span class="self">self</span>.style);
+            <span class="kw">let </span>appearance = <span class="kw">if </span>is_mouse_over {
+                theme.hovered(<span class="kw-2">&amp;</span><span class="self">self</span>.style)
+            } <span class="kw">else </span>{
+                theme.appearance(<span class="kw-2">&amp;</span><span class="self">self</span>.style)
+            };
 
             renderer.draw(
                 <span class="self">self</span>.handle.clone(),
