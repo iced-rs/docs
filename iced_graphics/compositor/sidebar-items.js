@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["SurfaceError"],"struct":["Information"],"trait":["Compositor"]};
+window.SIDEBAR_ITEMS = {"enum":["SurfaceError"],"struct":["Information"],"trait":["Compositor","Window"]};

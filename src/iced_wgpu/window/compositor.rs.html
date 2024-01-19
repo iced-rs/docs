@@ -440,6 +440,7 @@
 <a href="#440" id="440">440</a>
 <a href="#441" id="441">441</a>
 <a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Connect a window with a renderer.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::{Color, Size};
 <span class="kw">use </span><span class="kw">crate</span>::graphics;
@@ -447,8 +448,6 @@
 <span class="kw">use </span><span class="kw">crate</span>::graphics::compositor;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::{Error, Viewport};
 <span class="kw">use crate</span>::{Backend, Primitive, Renderer, Settings};
-
-<span class="kw">use </span>raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 
 <span class="kw">use </span>std::marker::PhantomData;
 
@@ -468,9 +467,9 @@
     <span class="doccomment">/// Requests a new [`Compositor`] with the given [`Settings`].
     ///
     /// Returns `None` if no compatible graphics adapter could be found.
-    </span><span class="kw">pub async fn </span>request&lt;W: HasRawWindowHandle + HasRawDisplayHandle&gt;(
+    </span><span class="kw">pub async fn </span>request&lt;W: compositor::Window&gt;(
         settings: Settings,
-        compatible_window: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>W&gt;,
+        compatible_window: <span class="prelude-ty">Option</span>&lt;W&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
         <span class="kw">let </span>instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: settings.internal_backend,
@@ -483,14 +482,15 @@
         </span><span class="kw">if </span>log::max_level() &gt;= log::LevelFilter::Info {
             <span class="kw">let </span>available_adapters: Vec&lt;<span class="kw">_</span>&gt; = instance
                 .enumerate_adapters(settings.internal_backend)
-                .map(|adapter| adapter.get_info())
+                .iter()
+                .map(wgpu::Adapter::get_info)
                 .collect();
             <span class="macro">log::info!</span>(<span class="string">"Available adapters: {available_adapters:#?}"</span>);
         }
 
         <span class="attr">#[allow(unsafe_code)]
         </span><span class="kw">let </span>compatible_surface = compatible_window
-            .and_then(|window| <span class="kw">unsafe </span>{ instance.create_surface(window).ok() });
+            .and_then(|window| instance.create_surface(window).ok());
 
         <span class="kw">let </span>adapter = instance
             .request_adapter(<span class="kw-2">&amp;</span>wgpu::RequestAdapterOptions {
@@ -542,14 +542,14 @@
 
         <span class="kw">let </span>(device, queue) =
             <span class="kw">loop </span>{
-                <span class="kw">let </span>limits = limits.next()<span class="question-mark">?</span>;
+                <span class="kw">let </span>required_limits = limits.next()<span class="question-mark">?</span>;
                 <span class="kw">let </span>device = adapter.request_device(
                     <span class="kw-2">&amp;</span>wgpu::DeviceDescriptor {
                         label: <span class="prelude-val">Some</span>(
                             <span class="string">"iced_wgpu::window::compositor device descriptor"</span>,
                         ),
-                        features: wgpu::Features::empty(),
-                        limits,
+                        required_features: wgpu::Features::empty(),
+                        required_limits,
                     },
                     <span class="prelude-val">None</span>,
                 ).<span class="kw">await</span>.ok();
@@ -578,13 +578,13 @@
 
 <span class="doccomment">/// Creates a [`Compositor`] and its [`Backend`] for the given [`Settings`] and
 /// window.
-</span><span class="kw">pub fn </span>new&lt;Theme, W: HasRawWindowHandle + HasRawDisplayHandle&gt;(
+</span><span class="kw">pub fn </span>new&lt;W: compositor::Window, Theme&gt;(
     settings: Settings,
-    compatible_window: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>W&gt;,
+    compatible_window: W,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;Compositor&lt;Theme&gt;, Error&gt; {
     <span class="kw">let </span>compositor = futures::executor::block_on(Compositor::request(
         settings,
-        compatible_window,
+        <span class="prelude-val">Some</span>(compatible_window),
     ))
     .ok_or(Error::GraphicsAdapterNotFound)<span class="question-mark">?</span>;
 
@@ -595,7 +595,7 @@
 </span><span class="kw">pub fn </span>present&lt;Theme, T: AsRef&lt;str&gt;&gt;(
     compositor: <span class="kw-2">&amp;mut </span>Compositor&lt;Theme&gt;,
     backend: <span class="kw-2">&amp;mut </span>Backend,
-    surface: <span class="kw-2">&amp;mut </span>wgpu::Surface,
+    surface: <span class="kw-2">&amp;mut </span>wgpu::Surface&lt;<span class="lifetime">'static</span>&gt;,
     primitives: <span class="kw-2">&amp;</span>[Primitive],
     viewport: <span class="kw-2">&amp;</span>Viewport,
     background_color: Color,
@@ -649,11 +649,11 @@
 <span class="kw">impl</span>&lt;Theme&gt; graphics::Compositor <span class="kw">for </span>Compositor&lt;Theme&gt; {
     <span class="kw">type </span>Settings = Settings;
     <span class="kw">type </span>Renderer = Renderer&lt;Theme&gt;;
-    <span class="kw">type </span>Surface = wgpu::Surface;
+    <span class="kw">type </span>Surface = wgpu::Surface&lt;<span class="lifetime">'static</span>&gt;;
 
-    <span class="kw">fn </span>new&lt;W: HasRawWindowHandle + HasRawDisplayHandle&gt;(
+    <span class="kw">fn </span>new&lt;W: compositor::Window&gt;(
         settings: <span class="self">Self</span>::Settings,
-        compatible_window: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>W&gt;,
+        compatible_window: W,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         new(settings, compatible_window)
     }
@@ -666,14 +666,15 @@
         )
     }
 
-    <span class="kw">fn </span>create_surface&lt;W: HasRawWindowHandle + HasRawDisplayHandle&gt;(
+    <span class="kw">fn </span>create_surface&lt;W: compositor::Window&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        window: <span class="kw-2">&amp;</span>W,
+        window: W,
         width: u32,
         height: u32,
-    ) -&gt; wgpu::Surface {
-        <span class="attr">#[allow(unsafe_code)]
-        </span><span class="kw">let </span><span class="kw-2">mut </span>surface = <span class="kw">unsafe </span>{ <span class="self">self</span>.instance.create_surface(window) }
+    ) -&gt; <span class="self">Self</span>::Surface {
+        <span class="kw">let </span><span class="kw-2">mut </span>surface = <span class="self">self
+            </span>.instance
+            .create_surface(window)
             .expect(<span class="string">"Create surface"</span>);
 
         <span class="self">self</span>.configure_surface(<span class="kw-2">&amp;mut </span>surface, width, height);
@@ -697,6 +698,7 @@
                 height,
                 alpha_mode: wgpu::CompositeAlphaMode::Auto,
                 view_formats: <span class="macro">vec!</span>[],
+                desired_maximum_frame_latency: <span class="number">2</span>,
             },
         );
     }

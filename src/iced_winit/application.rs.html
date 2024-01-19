@@ -863,6 +863,9 @@
 <a href="#863" id="863">863</a>
 <a href="#864" id="864">864</a>
 <a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="kw">mod </span>state;
 
@@ -889,6 +892,7 @@
 <span class="kw">use </span>futures::channel::mpsc;
 
 <span class="kw">use </span>std::mem::ManuallyDrop;
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="doccomment">/// An interactive, native cross-platform application.
 ///
@@ -1014,9 +1018,11 @@
 
     <span class="macro">log::debug!</span>(<span class="string">"Window builder: {builder:#?}"</span>);
 
-    <span class="kw">let </span>window = builder
-        .build(<span class="kw-2">&amp;</span>event_loop)
-        .map_err(Error::WindowCreationFailed)<span class="question-mark">?</span>;
+    <span class="kw">let </span>window = Arc::new(
+        builder
+            .build(<span class="kw-2">&amp;</span>event_loop)
+            .map_err(Error::WindowCreationFailed)<span class="question-mark">?</span>,
+    );
 
     <span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
     </span>{
@@ -1048,7 +1054,7 @@
         };
     }
 
-    <span class="kw">let </span>compositor = C::new(compositor_settings, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>window))<span class="question-mark">?</span>;
+    <span class="kw">let </span>compositor = C::new(compositor_settings, window.clone())<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>renderer = compositor.create_renderer();
 
     <span class="kw">for </span>font <span class="kw">in </span>settings.fonts {
@@ -1113,7 +1119,7 @@
     &gt;,
     <span class="kw-2">mut </span>control_sender: mpsc::UnboundedSender&lt;winit::event_loop::ControlFlow&gt;,
     init_command: Command&lt;A::Message&gt;,
-    window: winit::window::Window,
+    window: Arc&lt;winit::window::Window&gt;,
     should_be_visible: bool,
     exit_on_close_request: bool,
 ) <span class="kw">where
@@ -1133,7 +1139,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>clipboard = Clipboard::connect(<span class="kw-2">&amp;</span>window);
     <span class="kw">let </span><span class="kw-2">mut </span>cache = user_interface::Cache::default();
     <span class="kw">let </span><span class="kw-2">mut </span>surface = compositor.create_surface(
-        <span class="kw-2">&amp;</span>window,
+        window.clone(),
         physical_size.width,
         physical_size.height,
     );
