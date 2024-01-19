@@ -176,10 +176,6 @@
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::gradient;
 <span class="kw">use </span><span class="kw">crate</span>::quad::{<span class="self">self</span>, Quad};
@@ -265,6 +261,8 @@
                         <span class="macro">concat!</span>(
                             <span class="macro">include_str!</span>(<span class="string">"../shader/quad.wgsl"</span>),
                             <span class="string">"\n"</span>,
+                            <span class="macro">include_str!</span>(<span class="string">"../shader/vertex.wgsl"</span>),
+                            <span class="string">"\n"</span>,
                             <span class="macro">include_str!</span>(<span class="string">"../shader/quad/gradient.wgsl"</span>),
                             <span class="string">"\n"</span>,
                             <span class="macro">include_str!</span>(<span class="string">"../shader/color/oklab.wgsl"</span>)
@@ -272,6 +270,8 @@
                     } <span class="kw">else </span>{
                         <span class="macro">concat!</span>(
                             <span class="macro">include_str!</span>(<span class="string">"../shader/quad.wgsl"</span>),
+                            <span class="string">"\n"</span>,
+                            <span class="macro">include_str!</span>(<span class="string">"../shader/vertex.wgsl"</span>),
                             <span class="string">"\n"</span>,
                             <span class="macro">include_str!</span>(<span class="string">"../shader/quad/gradient.wgsl"</span>),
                             <span class="string">"\n"</span>,
@@ -288,36 +288,32 @@
                 vertex: wgpu::VertexState {
                     module: <span class="kw-2">&amp;</span>shader,
                     entry_point: <span class="string">"gradient_vs_main"</span>,
-                    buffers: <span class="kw-2">&amp;</span>[
-                        quad::Vertex::buffer_layout(),
-                        wgpu::VertexBufferLayout {
-                            array_stride: std::mem::size_of::&lt;Gradient&gt;()
-                                <span class="kw">as </span>u64,
-                            step_mode: wgpu::VertexStepMode::Instance,
-                            attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
-                                <span class="comment">// Colors 1-2
-                                </span><span class="number">1 </span>=&gt; Uint32x4,
-                                <span class="comment">// Colors 3-4
-                                </span><span class="number">2 </span>=&gt; Uint32x4,
-                                <span class="comment">// Colors 5-6
-                                </span><span class="number">3 </span>=&gt; Uint32x4,
-                                <span class="comment">// Colors 7-8
-                                </span><span class="number">4 </span>=&gt; Uint32x4,
-                                <span class="comment">// Offsets 1-8
-                                </span><span class="number">5 </span>=&gt; Uint32x4,
-                                <span class="comment">// Direction
-                                </span><span class="number">6 </span>=&gt; Float32x4,
-                                <span class="comment">// Position &amp; Scale
-                                </span><span class="number">7 </span>=&gt; Float32x4,
-                                <span class="comment">// Border color
-                                </span><span class="number">8 </span>=&gt; Float32x4,
-                                <span class="comment">// Border radius
-                                </span><span class="number">9 </span>=&gt; Float32x4,
-                                <span class="comment">// Border width
-                                </span><span class="number">10 </span>=&gt; Float32
-                            ),
-                        },
-                    ],
+                    buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
+                        array_stride: std::mem::size_of::&lt;Gradient&gt;() <span class="kw">as </span>u64,
+                        step_mode: wgpu::VertexStepMode::Instance,
+                        attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
+                            <span class="comment">// Colors 1-2
+                            </span><span class="number">0 </span>=&gt; Uint32x4,
+                            <span class="comment">// Colors 3-4
+                            </span><span class="number">1 </span>=&gt; Uint32x4,
+                            <span class="comment">// Colors 5-6
+                            </span><span class="number">2 </span>=&gt; Uint32x4,
+                            <span class="comment">// Colors 7-8
+                            </span><span class="number">3 </span>=&gt; Uint32x4,
+                            <span class="comment">// Offsets 1-8
+                            </span><span class="number">4 </span>=&gt; Uint32x4,
+                            <span class="comment">// Direction
+                            </span><span class="number">5 </span>=&gt; Float32x4,
+                            <span class="comment">// Position &amp; Scale
+                            </span><span class="number">6 </span>=&gt; Float32x4,
+                            <span class="comment">// Border color
+                            </span><span class="number">7 </span>=&gt; Float32x4,
+                            <span class="comment">// Border radius
+                            </span><span class="number">8 </span>=&gt; Float32x4,
+                            <span class="comment">// Border width
+                            </span><span class="number">9 </span>=&gt; Float32
+                        ),
+                    }],
                 },
                 fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
                     module: <span class="kw-2">&amp;</span>shader,
@@ -353,13 +349,9 @@
 
         render_pass.set_pipeline(<span class="kw-2">&amp;</span><span class="self">self</span>.pipeline);
         render_pass.set_bind_group(<span class="number">0</span>, constants, <span class="kw-2">&amp;</span>[]);
-        render_pass.set_vertex_buffer(<span class="number">1</span>, layer.instances.slice(..));
+        render_pass.set_vertex_buffer(<span class="number">0</span>, layer.instances.slice(..));
 
-        render_pass.draw_indexed(
-            <span class="number">0</span>..quad::INDICES.len() <span class="kw">as </span>u32,
-            <span class="number">0</span>,
-            range.start <span class="kw">as </span>u32..range.end <span class="kw">as </span>u32,
-        );
+        render_pass.draw(<span class="number">0</span>..<span class="number">6</span>, range.start <span class="kw">as </span>u32..range.end <span class="kw">as </span>u32);
     }
 }
 </code></pre></div></section></main></body></html>
