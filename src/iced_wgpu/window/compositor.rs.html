@@ -437,10 +437,6 @@
 <a href="#437" id="437">437</a>
 <a href="#438" id="438">438</a>
 <a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Connect a window with a renderer.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::{Color, Size};
 <span class="kw">use </span><span class="kw">crate</span>::graphics;
@@ -449,21 +445,18 @@
 <span class="kw">use </span><span class="kw">crate</span>::graphics::{Error, Viewport};
 <span class="kw">use crate</span>::{Backend, Primitive, Renderer, Settings};
 
-<span class="kw">use </span>std::marker::PhantomData;
-
 <span class="doccomment">/// A window graphics backend for iced powered by `wgpu`.
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Compositor&lt;Theme&gt; {
+</span><span class="kw">pub struct </span>Compositor {
     settings: Settings,
     instance: wgpu::Instance,
     adapter: wgpu::Adapter,
     device: wgpu::Device,
     queue: wgpu::Queue,
     format: wgpu::TextureFormat,
-    theme: PhantomData&lt;Theme&gt;,
 }
 
-<span class="kw">impl</span>&lt;Theme&gt; Compositor&lt;Theme&gt; {
+<span class="kw">impl </span>Compositor {
     <span class="doccomment">/// Requests a new [`Compositor`] with the given [`Settings`].
     ///
     /// Returns `None` if no compatible graphics adapter could be found.
@@ -566,7 +559,6 @@
             device,
             queue,
             format,
-            theme: PhantomData,
         })
     }
 
@@ -578,10 +570,10 @@
 
 <span class="doccomment">/// Creates a [`Compositor`] and its [`Backend`] for the given [`Settings`] and
 /// window.
-</span><span class="kw">pub fn </span>new&lt;W: compositor::Window, Theme&gt;(
+</span><span class="kw">pub fn </span>new&lt;W: compositor::Window&gt;(
     settings: Settings,
     compatible_window: W,
-) -&gt; <span class="prelude-ty">Result</span>&lt;Compositor&lt;Theme&gt;, Error&gt; {
+) -&gt; <span class="prelude-ty">Result</span>&lt;Compositor, Error&gt; {
     <span class="kw">let </span>compositor = futures::executor::block_on(Compositor::request(
         settings,
         <span class="prelude-val">Some</span>(compatible_window),
@@ -592,8 +584,8 @@
 }
 
 <span class="doccomment">/// Presents the given primitives with the given [`Compositor`] and [`Backend`].
-</span><span class="kw">pub fn </span>present&lt;Theme, T: AsRef&lt;str&gt;&gt;(
-    compositor: <span class="kw-2">&amp;mut </span>Compositor&lt;Theme&gt;,
+</span><span class="kw">pub fn </span>present&lt;T: AsRef&lt;str&gt;&gt;(
+    compositor: <span class="kw-2">&amp;mut </span>Compositor,
     backend: <span class="kw-2">&amp;mut </span>Backend,
     surface: <span class="kw-2">&amp;mut </span>wgpu::Surface&lt;<span class="lifetime">'static</span>&gt;,
     primitives: <span class="kw-2">&amp;</span>[Primitive],
@@ -646,9 +638,9 @@
     }
 }
 
-<span class="kw">impl</span>&lt;Theme&gt; graphics::Compositor <span class="kw">for </span>Compositor&lt;Theme&gt; {
+<span class="kw">impl </span>graphics::Compositor <span class="kw">for </span>Compositor {
     <span class="kw">type </span>Settings = Settings;
-    <span class="kw">type </span>Renderer = Renderer&lt;Theme&gt;;
+    <span class="kw">type </span>Renderer = Renderer;
     <span class="kw">type </span>Surface = wgpu::Surface&lt;<span class="lifetime">'static</span>&gt;;
 
     <span class="kw">fn </span>new&lt;W: compositor::Window&gt;(
@@ -757,8 +749,8 @@
 <span class="doccomment">/// Renders the current surface to an offscreen buffer.
 ///
 /// Returns RGBA bytes of the texture data.
-</span><span class="kw">pub fn </span>screenshot&lt;Theme, T: AsRef&lt;str&gt;&gt;(
-    compositor: <span class="kw-2">&amp;</span>Compositor&lt;Theme&gt;,
+</span><span class="kw">pub fn </span>screenshot&lt;T: AsRef&lt;str&gt;&gt;(
+    compositor: <span class="kw-2">&amp;</span>Compositor,
     backend: <span class="kw-2">&amp;mut </span>Backend,
     primitives: <span class="kw-2">&amp;</span>[Primitive],
     viewport: <span class="kw-2">&amp;</span>Viewport,

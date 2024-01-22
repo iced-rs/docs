@@ -390,6 +390,7 @@
 <a href="#390" id="390">390</a>
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -404,23 +405,27 @@
 ///
 /// [`Pane`]: super::Pane
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Content&lt;<span class="lifetime">'a</span>, Message, Renderer = <span class="kw">crate</span>::Renderer&gt;
-<span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: container::StyleSheet,
+</span><span class="kw">pub struct </span>Content&lt;
+    <span class="lifetime">'a</span>,
+    Message,
+    Theme = <span class="kw">crate</span>::Theme,
+    Renderer = <span class="kw">crate</span>::Renderer,
+&gt; <span class="kw">where
+    </span>Theme: container::StyleSheet,
+    Renderer: <span class="kw">crate</span>::core::Renderer,
 {
-    title_bar: <span class="prelude-ty">Option</span>&lt;TitleBar&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;,
-    body: Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;,
-    style: &lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
+    title_bar: <span class="prelude-ty">Option</span>&lt;TitleBar&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
+    body: Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
+    style: Theme::Style,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; Content&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Content&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: container::StyleSheet,
+    </span>Theme: container::StyleSheet,
+    Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     <span class="doccomment">/// Creates a new [`Content`] with the provided body.
-    </span><span class="kw">pub fn </span>new(body: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(body: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             title_bar: <span class="prelude-val">None</span>,
             body: body.into(),
@@ -431,26 +436,23 @@
     <span class="doccomment">/// Sets the [`TitleBar`] of this [`Content`].
     </span><span class="kw">pub fn </span>title_bar(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        title_bar: TitleBar&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;,
+        title_bar: TitleBar&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.title_bar = <span class="prelude-val">Some</span>(title_bar);
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`Content`].
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style&gt;,
-    ) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Theme::Style&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; Content&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Content&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: container::StyleSheet,
+    </span>Theme: container::StyleSheet,
+    Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Tree {
         <span class="kw">let </span>children = <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="self">self</span>.title_bar.as_ref() {
@@ -484,14 +486,12 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="kw">use </span>container::StyleSheet;
-
         <span class="kw">let </span>bounds = layout.bounds();
 
         {
@@ -723,7 +723,7 @@
         tree: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Tree,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Renderer&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="self">self</span>.title_bar.as_mut() {
             <span class="kw">let </span><span class="kw-2">mut </span>children = layout.children();
             <span class="kw">let </span>title_bar_layout = children.next()<span class="question-mark">?</span>;
@@ -751,10 +751,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; Draggable <span class="kw">for </span><span class="kw-2">&amp;</span>Content&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Draggable
+    <span class="kw">for </span><span class="kw-2">&amp;</span>Content&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: container::StyleSheet,
+    </span>Theme: container::StyleSheet,
+    Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     <span class="kw">fn </span>can_be_dragged_at(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -772,11 +773,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt; From&lt;T&gt; <span class="kw">for </span>Content&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt; From&lt;T&gt;
+    <span class="kw">for </span>Content&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>T: Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;,
+    </span>T: Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
+    Theme: container::StyleSheet,
     Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: container::StyleSheet,
 {
     <span class="kw">fn </span>from(element: T) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(element)

@@ -751,6 +751,11 @@
 <a href="#751" id="751">751</a>
 <a href="#752" id="752">752</a>
 <a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of selectable values.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
@@ -776,11 +781,16 @@
 
 <span class="doccomment">/// A widget for selecting a single value from a list of options.
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>PickList&lt;<span class="lifetime">'a</span>, T, Message, Renderer = <span class="kw">crate</span>::Renderer&gt;
-<span class="kw">where
+</span><span class="kw">pub struct </span>PickList&lt;
+    <span class="lifetime">'a</span>,
+    T,
+    Message,
+    Theme = <span class="kw">crate</span>::Theme,
+    Renderer = <span class="kw">crate</span>::Renderer,
+&gt; <span class="kw">where
     </span>[T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
+    Theme: StyleSheet,
     Renderer: text::Renderer,
-    Renderer::Theme: StyleSheet,
 {
     on_selected: Box&lt;<span class="kw">dyn </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>&gt;,
     options: Cow&lt;<span class="lifetime">'a</span>, [T]&gt;,
@@ -793,20 +803,20 @@
     text_shaping: text::Shaping,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
     handle: Handle&lt;Renderer::Font&gt;,
-    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: Theme::Style,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Renderer&gt; PickList&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
+    PickList&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>T: ToString + PartialEq,
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
-    Renderer: text::Renderer,
-    Renderer::Theme: StyleSheet
+    Theme: StyleSheet
         + scrollable::StyleSheet
         + menu::StyleSheet
         + container::StyleSheet,
-    &lt;Renderer::Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style:
-        From&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+    &lt;Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style: From&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+    Renderer: text::Renderer,
 {
     <span class="doccomment">/// The default padding of a [`PickList`].
     </span><span class="kw">pub const </span>DEFAULT_PADDING: Padding = Padding::new(<span class="number">5.0</span>);
@@ -888,26 +898,25 @@
     <span class="doccomment">/// Sets the style of the [`PickList`].
     </span><span class="kw">pub fn </span>style(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+        style: <span class="kw">impl </span>Into&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Renderer&gt; Widget&lt;Message, Renderer&gt;
-    <span class="kw">for </span>PickList&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>PickList&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>T: Clone + ToString + PartialEq + <span class="lifetime">'static</span>,
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
     Message: <span class="lifetime">'a</span>,
-    Renderer: text::Renderer + <span class="lifetime">'a</span>,
-    Renderer::Theme: StyleSheet
+    Theme: StyleSheet
         + scrollable::StyleSheet
         + menu::StyleSheet
         + container::StyleSheet,
-    &lt;Renderer::Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style:
-        From&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+    &lt;Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style: From&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+    Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
         tree::Tag::of::&lt;State&lt;Renderer::Paragraph&gt;&gt;()
@@ -983,7 +992,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         _style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
@@ -1014,7 +1023,7 @@
         tree: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Tree,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Renderer&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
         <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
 
         overlay(
@@ -1031,21 +1040,22 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Renderer&gt; From&lt;PickList&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;&gt;
-    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
+    From&lt;PickList&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>T: Clone + ToString + PartialEq + <span class="lifetime">'static</span>,
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
     Message: <span class="lifetime">'a</span>,
-    Renderer: text::Renderer + <span class="lifetime">'a</span>,
-    Renderer::Theme: StyleSheet
+    Theme: StyleSheet
         + scrollable::StyleSheet
         + menu::StyleSheet
-        + container::StyleSheet,
-    &lt;Renderer::Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style:
-        From&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+        + container::StyleSheet
+        + <span class="lifetime">'a</span>,
+    &lt;Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style: From&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+    Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
-    <span class="kw">fn </span>from(pick_list: PickList&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(pick_list: PickList&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(pick_list)
     }
 }
@@ -1319,7 +1329,7 @@
 }
 
 <span class="doccomment">/// Returns the current overlay of a [`PickList`].
-</span><span class="kw">pub fn </span>overlay&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;(
+</span><span class="kw">pub fn </span>overlay&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;(
     layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
     state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>State&lt;Renderer::Paragraph&gt;,
     padding: Padding,
@@ -1328,18 +1338,18 @@
     font: Renderer::Font,
     options: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T],
     on_selected: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">dyn </span>Fn(T) -&gt; Message,
-    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
-) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;
+    style: &lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;
 <span class="kw">where
     </span>T: Clone + ToString,
     Message: <span class="lifetime">'a</span>,
-    Renderer: text::Renderer + <span class="lifetime">'a</span>,
-    Renderer::Theme: StyleSheet
+    Theme: StyleSheet
         + scrollable::StyleSheet
         + menu::StyleSheet
-        + container::StyleSheet,
-    &lt;Renderer::Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style:
-        From&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+        + container::StyleSheet
+        + <span class="lifetime">'a</span>,
+    &lt;Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style: From&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+    Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">if </span>state.is_open {
         <span class="kw">let </span>bounds = layout.bounds();
@@ -1372,9 +1382,9 @@
 }
 
 <span class="doccomment">/// Draws a [`PickList`].
-</span><span class="kw">pub fn </span>draw&lt;<span class="lifetime">'a</span>, T, Renderer&gt;(
+</span><span class="kw">pub fn </span>draw&lt;<span class="lifetime">'a</span>, T, Theme, Renderer&gt;(
     renderer: <span class="kw-2">&amp;mut </span>Renderer,
-    theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+    theme: <span class="kw-2">&amp;</span>Theme,
     layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
     cursor: mouse::Cursor,
     padding: Padding,
@@ -1385,12 +1395,12 @@
     placeholder: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     selected: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;,
     handle: <span class="kw-2">&amp;</span>Handle&lt;Renderer::Font&gt;,
-    style: <span class="kw-2">&amp;</span>&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: <span class="kw-2">&amp;</span>Theme::Style,
     state: <span class="kw">impl </span>FnOnce() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>State&lt;Renderer::Paragraph&gt;,
     viewport: <span class="kw-2">&amp;</span>Rectangle,
 ) <span class="kw">where
     </span>Renderer: text::Renderer,
-    Renderer::Theme: StyleSheet,
+    Theme: StyleSheet,
     T: ToString + <span class="lifetime">'a</span>,
 {
     <span class="kw">let </span>bounds = layout.bounds();

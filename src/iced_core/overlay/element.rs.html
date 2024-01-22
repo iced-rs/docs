@@ -296,6 +296,11 @@
 <a href="#296" id="296">296</a>
 <a href="#297" id="297">297</a>
 <a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
 </pre></div><pre class="rust"><code><span class="kw">pub use </span><span class="kw">crate</span>::Overlay;
 
 <span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
@@ -309,20 +314,20 @@
 
 <span class="doccomment">/// A generic [`Overlay`].
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; {
+</span><span class="kw">pub struct </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
     position: Point,
     translation: Vector,
-    overlay: Box&lt;<span class="kw">dyn </span>Overlay&lt;Message, Renderer&gt; + <span class="lifetime">'a</span>&gt;,
+    overlay: Box&lt;<span class="kw">dyn </span>Overlay&lt;Message, Theme, Renderer&gt; + <span class="lifetime">'a</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Renderer: <span class="kw">crate</span>::Renderer,
 {
     <span class="doccomment">/// Creates a new [`Element`] containing the given [`Overlay`].
     </span><span class="kw">pub fn </span>new(
         position: Point,
-        overlay: Box&lt;<span class="kw">dyn </span>Overlay&lt;Message, Renderer&gt; + <span class="lifetime">'a</span>&gt;,
+        overlay: Box&lt;<span class="kw">dyn </span>Overlay&lt;Message, Theme, Renderer&gt; + <span class="lifetime">'a</span>&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             position,
@@ -344,9 +349,13 @@
     </span>}
 
     <span class="doccomment">/// Applies a transformation to the produced message of the [`Element`].
-    </span><span class="kw">pub fn </span>map&lt;B&gt;(<span class="self">self</span>, f: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">dyn </span>Fn(Message) -&gt; B) -&gt; Element&lt;<span class="lifetime">'a</span>, B, Renderer&gt;
+    </span><span class="kw">pub fn </span>map&lt;B&gt;(
+        <span class="self">self</span>,
+        f: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">dyn </span>Fn(Message) -&gt; B,
+    ) -&gt; Element&lt;<span class="lifetime">'a</span>, B, Theme, Renderer&gt;
     <span class="kw">where
         </span>Message: <span class="lifetime">'a</span>,
+        Theme: <span class="lifetime">'a</span>,
         Renderer: <span class="lifetime">'a</span>,
         B: <span class="lifetime">'a</span>,
     {
@@ -402,7 +411,7 @@
     </span><span class="kw">pub fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
@@ -435,26 +444,27 @@
         <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span><span class="self">self</span>,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Element&lt;<span class="lifetime">'b</span>, Message, Renderer&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
         <span class="self">self</span>.overlay.overlay(layout, renderer)
     }
 }
 
-<span class="kw">struct </span>Map&lt;<span class="lifetime">'a</span>, A, B, Renderer&gt; {
-    content: Box&lt;<span class="kw">dyn </span>Overlay&lt;A, Renderer&gt; + <span class="lifetime">'a</span>&gt;,
+<span class="kw">struct </span>Map&lt;<span class="lifetime">'a</span>, A, B, Theme, Renderer&gt; {
+    content: Box&lt;<span class="kw">dyn </span>Overlay&lt;A, Theme, Renderer&gt; + <span class="lifetime">'a</span>&gt;,
     mapper: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">dyn </span>Fn(A) -&gt; B,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, A, B, Renderer&gt; Map&lt;<span class="lifetime">'a</span>, A, B, Renderer&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, A, B, Theme, Renderer&gt; Map&lt;<span class="lifetime">'a</span>, A, B, Theme, Renderer&gt; {
     <span class="kw">pub fn </span>new(
-        content: Box&lt;<span class="kw">dyn </span>Overlay&lt;A, Renderer&gt; + <span class="lifetime">'a</span>&gt;,
+        content: Box&lt;<span class="kw">dyn </span>Overlay&lt;A, Theme, Renderer&gt; + <span class="lifetime">'a</span>&gt;,
         mapper: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">dyn </span>Fn(A) -&gt; B,
-    ) -&gt; Map&lt;<span class="lifetime">'a</span>, A, B, Renderer&gt; {
+    ) -&gt; Map&lt;<span class="lifetime">'a</span>, A, B, Theme, Renderer&gt; {
         Map { content, mapper }
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, A, B, Renderer&gt; Overlay&lt;B, Renderer&gt; <span class="kw">for </span>Map&lt;<span class="lifetime">'a</span>, A, B, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, A, B, Theme, Renderer&gt; Overlay&lt;B, Theme, Renderer&gt;
+    <span class="kw">for </span>Map&lt;<span class="lifetime">'a</span>, A, B, Theme, Renderer&gt;
 <span class="kw">where
     </span>Renderer: <span class="kw">crate</span>::Renderer,
 {
@@ -567,7 +577,7 @@
     <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
@@ -588,7 +598,7 @@
         <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span><span class="self">self</span>,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;Element&lt;<span class="lifetime">'b</span>, B, Renderer&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;Element&lt;<span class="lifetime">'b</span>, B, Theme, Renderer&gt;&gt; {
         <span class="self">self</span>.content
             .overlay(layout, renderer)
             .map(|overlay| overlay.map(<span class="self">self</span>.mapper))

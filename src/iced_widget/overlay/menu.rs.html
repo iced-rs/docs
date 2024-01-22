@@ -557,6 +557,10 @@
 <a href="#557" id="557">557</a>
 <a href="#558" id="558">558</a>
 <a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and show dropdown menus.
 </span><span class="kw">use </span><span class="kw">crate</span>::container::{<span class="self">self</span>, Container};
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
@@ -578,10 +582,15 @@
 
 <span class="doccomment">/// A list of selectable options.
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Menu&lt;<span class="lifetime">'a</span>, T, Message, Renderer = <span class="kw">crate</span>::Renderer&gt;
-<span class="kw">where
-    </span>Renderer: text::Renderer,
-    Renderer::Theme: StyleSheet,
+</span><span class="kw">pub struct </span>Menu&lt;
+    <span class="lifetime">'a</span>,
+    T,
+    Message,
+    Theme = <span class="kw">crate</span>::Theme,
+    Renderer = <span class="kw">crate</span>::Renderer,
+&gt; <span class="kw">where
+    </span>Theme: StyleSheet,
+    Renderer: text::Renderer,
 {
     state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>State,
     options: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T],
@@ -594,16 +603,15 @@
     text_line_height: text::LineHeight,
     text_shaping: text::Shaping,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
-    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: Theme::Style,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt; Menu&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt; Menu&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>T: ToString + Clone,
     Message: <span class="lifetime">'a</span>,
+    Theme: StyleSheet + container::StyleSheet + scrollable::StyleSheet + <span class="lifetime">'a</span>,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
-    Renderer::Theme:
-        StyleSheet + container::StyleSheet + scrollable::StyleSheet,
 {
     <span class="doccomment">/// Creates a new [`Menu`] with the given [`State`], a list of options, and
     /// the message to produced when an option is selected.
@@ -672,7 +680,7 @@
     <span class="doccomment">/// Sets the style of the [`Menu`].
     </span><span class="kw">pub fn </span>style(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+        style: <span class="kw">impl </span>Into&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
@@ -688,7 +696,7 @@
         <span class="self">self</span>,
         position: Point,
         target_height: f32,
-    ) -&gt; overlay::Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; {
+    ) -&gt; overlay::Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         overlay::Element::new(
             position,
             Box::new(Overlay::new(<span class="self">self</span>, target_height)),
@@ -717,28 +725,26 @@
     }
 }
 
-<span class="kw">struct </span>Overlay&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">struct </span>Overlay&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: StyleSheet + container::StyleSheet,
+    </span>Theme: StyleSheet + container::StyleSheet,
+    Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Tree,
-    container: Container&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;,
+    container: Container&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     width: f32,
     target_height: f32,
-    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: &lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; Overlay&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Overlay&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a</span>,
-    Renderer: <span class="lifetime">'a</span>,
-    Renderer: text::Renderer,
-    Renderer::Theme:
-        StyleSheet + container::StyleSheet + scrollable::StyleSheet,
+    Theme: StyleSheet + container::StyleSheet + scrollable::StyleSheet + <span class="lifetime">'a</span>,
+    Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">pub fn </span>new&lt;T&gt;(
-        menu: Menu&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;,
+        menu: Menu&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;,
         target_height: f32,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
@@ -772,7 +778,7 @@
             style: style.clone(),
         }));
 
-        state.tree.diff(<span class="kw-2">&amp;</span>container <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Widget&lt;<span class="kw">_</span>, <span class="kw">_</span>&gt;);
+        state.tree.diff(<span class="kw-2">&amp;</span>container <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Widget&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;);
 
         <span class="self">Self </span>{
             state: <span class="kw-2">&amp;mut </span>state.tree,
@@ -784,11 +790,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; <span class="kw">crate</span>::core::Overlay&lt;Message, Renderer&gt;
-    <span class="kw">for </span>Overlay&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
+    <span class="kw">crate</span>::core::Overlay&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>Overlay&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: text::Renderer,
-    Renderer::Theme: StyleSheet + container::StyleSheet,
+    </span>Theme: StyleSheet + container::StyleSheet,
+    Renderer: text::Renderer,
 {
     <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -854,12 +861,12 @@
     <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
     ) {
-        <span class="kw">let </span>appearance = theme.appearance(<span class="kw-2">&amp;</span><span class="self">self</span>.style);
+        <span class="kw">let </span>appearance = StyleSheet::appearance(theme, <span class="kw-2">&amp;</span><span class="self">self</span>.style);
         <span class="kw">let </span>bounds = layout.bounds();
 
         renderer.fill_quad(
@@ -876,10 +883,10 @@
     }
 }
 
-<span class="kw">struct </span>List&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;
+<span class="kw">struct </span>List&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: text::Renderer,
-    Renderer::Theme: StyleSheet,
+    </span>Theme: StyleSheet,
+    Renderer: text::Renderer,
 {
     options: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T],
     hovered_option: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;usize&gt;,
@@ -890,15 +897,15 @@
     text_line_height: text::LineHeight,
     text_shaping: text::Shaping,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
-    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: Theme::Style,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt; Widget&lt;Message, Renderer&gt;
-    <span class="kw">for </span>List&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>List&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>T: Clone + ToString,
+    Theme: StyleSheet,
     Renderer: text::Renderer,
-    Renderer::Theme: StyleSheet,
 {
     <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
         Size {
@@ -1034,7 +1041,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         _state: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         _style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         _cursor: mouse::Cursor,
@@ -1104,15 +1111,16 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt; From&lt;List&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;&gt;
-    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
+    From&lt;List&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>T: ToString + Clone,
     Message: <span class="lifetime">'a</span>,
+    Theme: StyleSheet + <span class="lifetime">'a</span>,
     Renderer: <span class="lifetime">'a </span>+ text::Renderer,
-    Renderer::Theme: StyleSheet,
 {
-    <span class="kw">fn </span>from(list: List&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(list: List&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;) -&gt; <span class="self">Self </span>{
         Element::new(list)
     }
 }

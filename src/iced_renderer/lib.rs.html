@@ -298,9 +298,6 @@
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
 </pre></div><pre class="rust"><code><span class="attr">#![forbid(rust_2018_idioms)]
 #![deny(unsafe_code, unused_results, rustdoc::broken_intra_doc_links)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg))]
@@ -335,10 +332,10 @@
 <span class="doccomment">/// The default graphics renderer for [`iced`].
 ///
 /// [`iced`]: https://github.com/iced-rs/iced
-</span><span class="kw">pub enum </span>Renderer&lt;Theme&gt; {
-    TinySkia(iced_tiny_skia::Renderer&lt;Theme&gt;),
+</span><span class="kw">pub enum </span>Renderer {
+    TinySkia(iced_tiny_skia::Renderer),
     <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
-    </span>Wgpu(iced_wgpu::Renderer&lt;Theme&gt;),
+    </span>Wgpu(iced_wgpu::Renderer),
 }
 
 <span class="macro">macro_rules! </span>delegate {
@@ -351,7 +348,7 @@
     };
 }
 
-<span class="kw">impl</span>&lt;T&gt; Renderer&lt;T&gt; {
+<span class="kw">impl </span>Renderer {
     <span class="kw">pub fn </span>draw_mesh(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mesh: Mesh) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::TinySkia(<span class="kw">_</span>) =&gt; {
@@ -367,9 +364,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; core::Renderer <span class="kw">for </span>Renderer&lt;T&gt; {
-    <span class="kw">type </span>Theme = T;
-
+<span class="kw">impl </span>core::Renderer <span class="kw">for </span>Renderer {
     <span class="kw">fn </span>with_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>)) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::TinySkia(renderer) =&gt; {
@@ -451,15 +446,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;T&gt; text::Renderer <span class="kw">for </span>Renderer&lt;T&gt; {
+<span class="kw">impl </span>text::Renderer <span class="kw">for </span>Renderer {
     <span class="kw">type </span>Font = Font;
     <span class="kw">type </span>Paragraph = Paragraph;
     <span class="kw">type </span>Editor = Editor;
 
-    <span class="kw">const </span>ICON_FONT: Font = iced_tiny_skia::Renderer::&lt;T&gt;::ICON_FONT;
-    <span class="kw">const </span>CHECKMARK_ICON: char = iced_tiny_skia::Renderer::&lt;T&gt;::CHECKMARK_ICON;
-    <span class="kw">const </span>ARROW_DOWN_ICON: char =
-        iced_tiny_skia::Renderer::&lt;T&gt;::ARROW_DOWN_ICON;
+    <span class="kw">const </span>ICON_FONT: Font = iced_tiny_skia::Renderer::ICON_FONT;
+    <span class="kw">const </span>CHECKMARK_ICON: char = iced_tiny_skia::Renderer::CHECKMARK_ICON;
+    <span class="kw">const </span>ARROW_DOWN_ICON: char = iced_tiny_skia::Renderer::ARROW_DOWN_ICON;
 
     <span class="kw">fn </span>default_font(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Font {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.default_font())
@@ -517,7 +511,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
-</span><span class="kw">impl</span>&lt;T&gt; <span class="kw">crate</span>::core::image::Renderer <span class="kw">for </span>Renderer&lt;T&gt; {
+</span><span class="kw">impl </span><span class="kw">crate</span>::core::image::Renderer <span class="kw">for </span>Renderer {
     <span class="kw">type </span>Handle = <span class="kw">crate</span>::core::image::Handle;
 
     <span class="kw">fn </span>dimensions(
@@ -538,7 +532,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
-</span><span class="kw">impl</span>&lt;T&gt; <span class="kw">crate</span>::core::svg::Renderer <span class="kw">for </span>Renderer&lt;T&gt; {
+</span><span class="kw">impl </span><span class="kw">crate</span>::core::svg::Renderer <span class="kw">for </span>Renderer {
     <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span><span class="kw">crate</span>::core::svg::Handle) -&gt; core::Size&lt;u32&gt; {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.dimensions(handle))
     }
@@ -554,7 +548,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"geometry"</span>)]
-</span><span class="kw">impl</span>&lt;T&gt; <span class="kw">crate</span>::graphics::geometry::Renderer <span class="kw">for </span>Renderer&lt;T&gt; {
+</span><span class="kw">impl </span><span class="kw">crate</span>::graphics::geometry::Renderer <span class="kw">for </span>Renderer {
     <span class="kw">type </span>Geometry = <span class="kw">crate</span>::Geometry;
 
     <span class="kw">fn </span>draw(<span class="kw-2">&amp;mut </span><span class="self">self</span>, layers: Vec&lt;<span class="self">Self</span>::Geometry&gt;) {
@@ -586,7 +580,7 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
-</span><span class="kw">impl</span>&lt;T&gt; iced_wgpu::primitive::pipeline::Renderer <span class="kw">for </span>Renderer&lt;T&gt; {
+</span><span class="kw">impl </span>iced_wgpu::primitive::pipeline::Renderer <span class="kw">for </span>Renderer {
     <span class="kw">fn </span>draw_pipeline_primitive(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         bounds: Rectangle,

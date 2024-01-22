@@ -188,6 +188,10 @@
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::event;
 <span class="kw">use </span><span class="kw">crate</span>::layout;
 <span class="kw">use </span><span class="kw">crate</span>::mouse;
@@ -201,14 +205,15 @@
 <span class="doccomment">/// An [`Overlay`] container that displays multiple overlay [`overlay::Element`]
 /// children.
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Group&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; {
-    children: Vec&lt;overlay::Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;,
+</span><span class="kw">pub struct </span>Group&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
+    children: Vec&lt;overlay::Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; Group&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Group&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::Renderer,
-    Message: <span class="lifetime">'a</span>,
+    </span>Message: <span class="lifetime">'a</span>,
+    Theme: <span class="lifetime">'a</span>,
+    Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::Renderer,
 {
     <span class="doccomment">/// Creates an empty [`Group`].
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
@@ -217,7 +222,7 @@
 
     <span class="doccomment">/// Creates a [`Group`] with the given elements.
     </span><span class="kw">pub fn </span>with_children(
-        children: Vec&lt;overlay::Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;,
+        children: Vec&lt;overlay::Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
         Group { children }
     }
@@ -225,30 +230,32 @@
     <span class="doccomment">/// Adds an [`overlay::Element`] to the [`Group`].
     </span><span class="kw">pub fn </span>push(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        child: <span class="kw">impl </span>Into&lt;overlay::Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;,
+        child: <span class="kw">impl </span>Into&lt;overlay::Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.children.push(child.into());
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Turns the [`Group`] into an overlay [`overlay::Element`].
-    </span><span class="kw">pub fn </span>overlay(<span class="self">self</span>) -&gt; overlay::Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; {
+    </span><span class="kw">pub fn </span>overlay(<span class="self">self</span>) -&gt; overlay::Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         overlay::Element::new(Point::ORIGIN, Box::new(<span class="self">self</span>))
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; Default <span class="kw">for </span>Group&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Default
+    <span class="kw">for </span>Group&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::Renderer,
-    Message: <span class="lifetime">'a</span>,
+    </span>Message: <span class="lifetime">'a</span>,
+    Theme: <span class="lifetime">'a</span>,
+    Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::Renderer,
 {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::with_children(Vec::new())
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; Overlay&lt;Message, Renderer&gt;
-    <span class="kw">for </span>Group&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Overlay&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>Group&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Renderer: <span class="kw">crate</span>::Renderer,
 {
@@ -296,7 +303,7 @@
     <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>&lt;Renderer <span class="kw">as </span><span class="kw">crate</span>::Renderer&gt;::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
@@ -356,7 +363,7 @@
         <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span><span class="self">self</span>,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Renderer&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
         <span class="kw">let </span>children = <span class="self">self
             </span>.children
             .iter_mut()
@@ -368,13 +375,14 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; From&lt;Group&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;
-    <span class="kw">for </span>overlay::Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; From&lt;Group&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;
+    <span class="kw">for </span>overlay::Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::Renderer,
-    Message: <span class="lifetime">'a</span>,
+    </span>Message: <span class="lifetime">'a</span>,
+    Theme: <span class="lifetime">'a</span>,
+    Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::Renderer,
 {
-    <span class="kw">fn </span>from(group: Group&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(group: Group&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;) -&gt; <span class="self">Self </span>{
         group.overlay()
     }
 }

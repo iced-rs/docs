@@ -462,10 +462,6 @@
 <a href="#462" id="462">462</a>
 <a href="#463" id="463">463</a>
 <a href="#464" id="464">464</a>
-<a href="#465" id="465">465</a>
-<a href="#466" id="466">466</a>
-<a href="#467" id="467">467</a>
-<a href="#468" id="468">468</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display an interactive selector of a single value from a range of values.
 //!
 //! A [`VerticalSlider`] has some local [`State`].
@@ -496,7 +492,7 @@
 /// # Example
 /// ```no_run
 /// # type VerticalSlider&lt;'a, T, Message&gt; =
-/// #     iced_widget::VerticalSlider&lt;'a, T, Message, iced_widget::renderer::Renderer&lt;iced_widget::style::Theme&gt;&gt;;
+/// #     iced_widget::VerticalSlider&lt;'a, T, Message, iced_widget::style::Theme&gt;;
 /// #
 /// #[derive(Clone)]
 /// pub enum Message {
@@ -508,10 +504,9 @@
 /// VerticalSlider::new(0.0..=100.0, value, Message::SliderChanged);
 /// ```
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Renderer = <span class="kw">crate</span>::Renderer&gt;
+</span><span class="kw">pub struct </span>VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Theme = <span class="kw">crate</span>::Theme&gt;
 <span class="kw">where
-    </span>Renderer: core::Renderer,
-    Renderer::Theme: StyleSheet,
+    </span>Theme: StyleSheet,
 {
     range: RangeInclusive&lt;T&gt;,
     step: T,
@@ -520,15 +515,14 @@
     on_release: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     width: f32,
     height: Length,
-    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: Theme::Style,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt; VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt; VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt;
 <span class="kw">where
     </span>T: Copy + From&lt;u8&gt; + std::cmp::PartialOrd,
     Message: Clone,
-    Renderer: core::Renderer,
-    Renderer::Theme: StyleSheet,
+    Theme: StyleSheet,
 {
     <span class="doccomment">/// The default width of a [`VerticalSlider`].
     </span><span class="kw">pub const </span>DEFAULT_WIDTH: f32 = <span class="number">22.0</span>;
@@ -593,10 +587,7 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`VerticalSlider`].
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
-    ) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Theme::Style&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
     </span>}
@@ -608,13 +599,13 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt; Widget&lt;Message, Renderer&gt;
-    <span class="kw">for </span>VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt;
 <span class="kw">where
     </span>T: Copy + Into&lt;f64&gt; + num_traits::FromPrimitive,
     Message: Clone,
+    Theme: StyleSheet,
     Renderer: core::Renderer,
-    Renderer::Theme: StyleSheet,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
         tree::Tag::of::&lt;State&gt;()
@@ -669,7 +660,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         _style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
@@ -699,17 +690,18 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt; From&lt;VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;&gt;
-    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
+    From&lt;VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>T: <span class="lifetime">'a </span>+ Copy + Into&lt;f64&gt; + num_traits::FromPrimitive,
-    Message: <span class="lifetime">'a </span>+ Clone,
-    Renderer: <span class="lifetime">'a </span>+ core::Renderer,
-    Renderer::Theme: StyleSheet,
+    </span>T: Copy + Into&lt;f64&gt; + num_traits::FromPrimitive + <span class="lifetime">'a</span>,
+    Message: Clone + <span class="lifetime">'a</span>,
+    Theme: StyleSheet + <span class="lifetime">'a</span>,
+    Renderer: core::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
-        slider: VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Renderer&gt;,
-    ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; {
+        slider: VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt;,
+    ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         Element::new(slider)
     }
 }
@@ -805,19 +797,19 @@
 }
 
 <span class="doccomment">/// Draws a [`VerticalSlider`].
-</span><span class="kw">pub fn </span>draw&lt;T, R&gt;(
-    renderer: <span class="kw-2">&amp;mut </span>R,
+</span><span class="kw">pub fn </span>draw&lt;T, Theme, Renderer&gt;(
+    renderer: <span class="kw-2">&amp;mut </span>Renderer,
     layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
     cursor: mouse::Cursor,
     state: <span class="kw-2">&amp;</span>State,
     value: T,
     range: <span class="kw-2">&amp;</span>RangeInclusive&lt;T&gt;,
-    style_sheet: <span class="kw-2">&amp;</span><span class="kw">dyn </span>StyleSheet&lt;Style = &lt;R::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
-    style: <span class="kw-2">&amp;</span>&lt;R::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style_sheet: <span class="kw-2">&amp;</span>Theme,
+    style: <span class="kw-2">&amp;</span>Theme::Style,
 ) <span class="kw">where
     </span>T: Into&lt;f64&gt; + Copy,
-    R: core::Renderer,
-    R::Theme: StyleSheet,
+    Theme: StyleSheet,
+    Renderer: core::Renderer,
 {
     <span class="kw">let </span>bounds = layout.bounds();
     <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);

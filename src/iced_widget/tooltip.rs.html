@@ -466,6 +466,9 @@
 <a href="#466" id="466">466</a>
 <a href="#467" id="467">467</a>
 <a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a widget over another.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -485,24 +488,28 @@
 
 <span class="doccomment">/// An element to display a widget over another.
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Tooltip&lt;<span class="lifetime">'a</span>, Message, Renderer = <span class="kw">crate</span>::Renderer&gt;
-<span class="kw">where
-    </span>Renderer: text::Renderer,
-    Renderer::Theme: container::StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
+</span><span class="kw">pub struct </span>Tooltip&lt;
+    <span class="lifetime">'a</span>,
+    Message,
+    Theme = <span class="kw">crate</span>::Theme,
+    Renderer = <span class="kw">crate</span>::Renderer,
+&gt; <span class="kw">where
+    </span>Theme: container::StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
+    Renderer: text::Renderer,
 {
-    content: Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;,
-    tooltip: Text&lt;<span class="lifetime">'a</span>, Renderer&gt;,
+    content: Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
+    tooltip: Text&lt;<span class="lifetime">'a</span>, Theme, Renderer&gt;,
     position: Position,
     gap: f32,
     padding: f32,
     snap_within_viewport: bool,
-    style: &lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
+    style: &lt;Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; Tooltip&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Tooltip&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: text::Renderer,
-    Renderer::Theme: container::StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
+    </span>Theme: container::StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
+    Renderer: text::Renderer,
 {
     <span class="doccomment">/// The default padding of a [`Tooltip`] drawn by this renderer.
     </span><span class="kw">const </span>DEFAULT_PADDING: f32 = <span class="number">5.0</span>;
@@ -511,7 +518,7 @@
     ///
     /// [`Tooltip`]: struct.Tooltip.html
     </span><span class="kw">pub fn </span>new(
-        content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;,
+        content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
         tooltip: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
         position: Position,
     ) -&gt; <span class="self">Self </span>{
@@ -567,23 +574,23 @@
     <span class="doccomment">/// Sets the style of the [`Tooltip`].
     </span><span class="kw">pub fn </span>style(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style&gt;,
+        style: <span class="kw">impl </span>Into&lt;&lt;Theme <span class="kw">as </span>container::StyleSheet&gt;::Style&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; Widget&lt;Message, Renderer&gt;
-    <span class="kw">for </span>Tooltip&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>Tooltip&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: text::Renderer,
-    Renderer::Theme: container::StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
+    </span>Theme: container::StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
+    Renderer: text::Renderer,
 {
     <span class="kw">fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;widget::Tree&gt; {
         <span class="macro">vec!</span>[
             widget::Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.content),
-            widget::Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.tooltip <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Widget&lt;Message, <span class="kw">_</span>&gt;),
+            widget::Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.tooltip <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Widget&lt;Message, <span class="kw">_</span>, <span class="kw">_</span>&gt;),
         ]
     }
 
@@ -673,7 +680,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;</span>widget::Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         inherited_style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
@@ -695,7 +702,7 @@
         tree: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>widget::Tree,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Renderer&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
         <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&gt;();
 
         <span class="kw">let </span><span class="kw-2">mut </span>children = tree.children.iter_mut();
@@ -738,16 +745,16 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; From&lt;Tooltip&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;
-    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; From&lt;Tooltip&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a</span>,
-    Renderer: <span class="lifetime">'a </span>+ text::Renderer,
-    Renderer::Theme: container::StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
+    Theme: container::StyleSheet + <span class="kw">crate</span>::text::StyleSheet + <span class="lifetime">'a</span>,
+    Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
-        tooltip: Tooltip&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;,
-    ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; {
+        tooltip: Tooltip&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
+    ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         Element::new(tooltip)
     }
 }
@@ -776,12 +783,12 @@
     },
 }
 
-<span class="kw">struct </span>Overlay&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Renderer&gt;
+<span class="kw">struct </span>Overlay&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: text::Renderer,
-    Renderer::Theme: container::StyleSheet + widget::text::StyleSheet,
+    </span>Theme: container::StyleSheet + widget::text::StyleSheet,
+    Renderer: text::Renderer,
 {
-    tooltip: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Text&lt;<span class="lifetime">'a</span>, Renderer&gt;,
+    tooltip: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Text&lt;<span class="lifetime">'a</span>, Theme, Renderer&gt;,
     state: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>widget::Tree,
     cursor_position: Point,
     content_bounds: Rectangle,
@@ -789,14 +796,15 @@
     position: Position,
     gap: f32,
     padding: f32,
-    style: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>&lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
+    style: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>&lt;Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Message, Renderer&gt; overlay::Overlay&lt;Message, Renderer&gt;
-    <span class="kw">for </span>Overlay&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Message, Theme, Renderer&gt;
+    overlay::Overlay&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>Overlay&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: text::Renderer,
-    Renderer::Theme: container::StyleSheet + widget::text::StyleSheet,
+    </span>Theme: container::StyleSheet + widget::text::StyleSheet,
+    Renderer: text::Renderer,
 {
     <span class="kw">fn </span>layout(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -807,7 +815,7 @@
     ) -&gt; layout::Node {
         <span class="kw">let </span>viewport = Rectangle::with_size(bounds);
 
-        <span class="kw">let </span>text_layout = Widget::&lt;(), Renderer&gt;::layout(
+        <span class="kw">let </span>text_layout = Widget::&lt;(), Theme, Renderer&gt;::layout(
             <span class="self">self</span>.tooltip,
             <span class="self">self</span>.state,
             renderer,
@@ -898,14 +906,12 @@
     <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>&lt;Renderer <span class="kw">as </span>renderer::Renderer&gt;::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         inherited_style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor_position: mouse::Cursor,
     ) {
-        <span class="kw">let </span>style = &lt;Renderer::Theme <span class="kw">as </span>container::StyleSheet&gt;::appearance(
-            theme, <span class="self">self</span>.style,
-        );
+        <span class="kw">let </span>style = container::StyleSheet::appearance(theme, <span class="self">self</span>.style);
 
         container::draw_background(renderer, <span class="kw-2">&amp;</span>style, layout.bounds());
 
@@ -913,7 +919,7 @@
             text_color: style.text_color.unwrap_or(inherited_style.text_color),
         };
 
-        Widget::&lt;(), Renderer&gt;::draw(
+        Widget::&lt;(), Theme, Renderer&gt;::draw(
             <span class="self">self</span>.tooltip,
             <span class="self">self</span>.state,
             renderer,

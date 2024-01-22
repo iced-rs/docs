@@ -160,11 +160,6 @@
 <a href="#160" id="160">160</a>
 <a href="#161" id="161">161</a>
 <a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Provide progress feedback to your users.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
@@ -180,8 +175,7 @@
 ///
 /// # Example
 /// ```no_run
-/// # type ProgressBar =
-/// #     iced_widget::ProgressBar&lt;iced_widget::renderer::Renderer&lt;iced_widget::style::Theme&gt;&gt;;
+/// # type ProgressBar = iced_widget::ProgressBar&lt;iced_widget::style::Theme&gt;;
 /// #
 /// let value = 50.0;
 ///
@@ -190,22 +184,20 @@
 ///
 /// ![Progress bar drawn with `iced_wgpu`](https://user-images.githubusercontent.com/18618951/71662391-a316c200-2d51-11ea-9cef-52758cab85e3.png)
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>ProgressBar&lt;Renderer = <span class="kw">crate</span>::Renderer&gt;
+</span><span class="kw">pub struct </span>ProgressBar&lt;Theme = <span class="kw">crate</span>::Theme&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: StyleSheet,
+    </span>Theme: StyleSheet,
 {
     range: RangeInclusive&lt;f32&gt;,
     value: f32,
     width: Length,
     height: <span class="prelude-ty">Option</span>&lt;Length&gt;,
-    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: Theme::Style,
 }
 
-<span class="kw">impl</span>&lt;Renderer&gt; ProgressBar&lt;Renderer&gt;
+<span class="kw">impl</span>&lt;Theme&gt; ProgressBar&lt;Theme&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: StyleSheet,
+    </span>Theme: StyleSheet,
 {
     <span class="doccomment">/// The default height of a [`ProgressBar`].
     </span><span class="kw">pub const </span>DEFAULT_HEIGHT: f32 = <span class="number">30.0</span>;
@@ -238,19 +230,17 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`ProgressBar`].
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
-    ) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Theme::Style&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;Message, Renderer&gt; Widget&lt;Message, Renderer&gt; <span class="kw">for </span>ProgressBar&lt;Renderer&gt;
+<span class="kw">impl</span>&lt;Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>ProgressBar&lt;Theme&gt;
 <span class="kw">where
     </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: StyleSheet,
+    Theme: StyleSheet,
 {
     <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
         Size {
@@ -276,7 +266,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         _state: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         _style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         _cursor: mouse::Cursor,
@@ -319,16 +309,16 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; From&lt;ProgressBar&lt;Renderer&gt;&gt;
-    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; From&lt;ProgressBar&lt;Theme&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a</span>,
+    Theme: StyleSheet + <span class="lifetime">'a</span>,
     Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: StyleSheet,
 {
     <span class="kw">fn </span>from(
-        progress_bar: ProgressBar&lt;Renderer&gt;,
-    ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; {
+        progress_bar: ProgressBar&lt;Theme&gt;,
+    ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         Element::new(progress_bar)
     }
 }

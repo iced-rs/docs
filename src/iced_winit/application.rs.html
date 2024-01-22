@@ -864,8 +864,6 @@
 <a href="#864" id="864">864</a>
 <a href="#865" id="865">865</a>
 <a href="#866" id="866">866</a>
-<a href="#867" id="867">867</a>
-<a href="#868" id="868">868</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="kw">mod </span>state;
 
@@ -907,7 +905,7 @@
 /// can be toggled by pressing `F12`.
 </span><span class="kw">pub trait </span>Application: Program
 <span class="kw">where
-    </span>&lt;<span class="self">Self</span>::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
+    </span><span class="self">Self</span>::Theme: StyleSheet,
 {
     <span class="doccomment">/// The data needed to initialize your [`Application`].
     </span><span class="kw">type </span>Flags;
@@ -929,12 +927,10 @@
     </span><span class="kw">fn </span>title(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String;
 
     <span class="doccomment">/// Returns the current `Theme` of the [`Application`].
-    </span><span class="kw">fn </span>theme(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; &lt;<span class="self">Self</span>::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme;
+    </span><span class="kw">fn </span>theme(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Theme;
 
     <span class="doccomment">/// Returns the `Style` variation of the `Theme`.
-    </span><span class="kw">fn </span>style(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; &lt;&lt;<span class="self">Self</span>::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme <span class="kw">as </span>StyleSheet&gt;::Style {
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; &lt;<span class="self">Self</span>::Theme <span class="kw">as </span>StyleSheet&gt;::Style {
         Default::default()
     }
 
@@ -975,7 +971,7 @@
     </span>A: Application + <span class="lifetime">'static</span>,
     E: Executor + <span class="lifetime">'static</span>,
     C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    &lt;A::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
+    A::Theme: StyleSheet,
 {
     <span class="kw">use </span>futures::task;
     <span class="kw">use </span>futures::Future;
@@ -1126,7 +1122,7 @@
     </span>A: Application + <span class="lifetime">'static</span>,
     E: Executor + <span class="lifetime">'static</span>,
     C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    &lt;A::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
+    A::Theme: StyleSheet,
 {
     <span class="kw">use </span>futures::stream::StreamExt;
     <span class="kw">use </span>winit::event;
@@ -1447,9 +1443,9 @@
     renderer: <span class="kw-2">&amp;mut </span>A::Renderer,
     size: Size,
     debug: <span class="kw-2">&amp;mut </span>Debug,
-) -&gt; UserInterface&lt;<span class="lifetime">'a</span>, A::Message, A::Renderer&gt;
+) -&gt; UserInterface&lt;<span class="lifetime">'a</span>, A::Message, A::Theme, A::Renderer&gt;
 <span class="kw">where
-    </span>&lt;A::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
+    </span>A::Theme: StyleSheet,
 {
     debug.view_started();
     <span class="kw">let </span>view = application.view();
@@ -1480,7 +1476,7 @@
     window: <span class="kw-2">&amp;</span>winit::window::Window,
 ) <span class="kw">where
     </span>C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    &lt;A::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
+    A::Theme: StyleSheet,
 {
     <span class="kw">for </span>message <span class="kw">in </span>messages.drain(..) {
         debug.log_message(<span class="kw-2">&amp;</span>message);
@@ -1531,7 +1527,7 @@
     </span>A: Application,
     E: Executor,
     C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    &lt;A::Renderer <span class="kw">as </span>core::Renderer&gt;::Theme: StyleSheet,
+    A::Theme: StyleSheet,
 {
     <span class="kw">use </span><span class="kw">crate</span>::runtime::command;
     <span class="kw">use </span><span class="kw">crate</span>::runtime::system;

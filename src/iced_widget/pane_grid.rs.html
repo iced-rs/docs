@@ -1234,6 +1234,10 @@
 <a href="#1234" id="1234">1234</a>
 <a href="#1235" id="1235">1235</a>
 <a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
+<a href="#1240" id="1240">1240</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Let your users split regions of your application and organize layout dynamically.
 //!
 //! ![Pane grid - Iced](https://iced.rs/examples/pane_grid.gif)
@@ -1307,7 +1311,7 @@
 /// # use iced_widget::{pane_grid, text};
 /// #
 /// # type PaneGrid&lt;'a, Message&gt; =
-/// #     iced_widget::PaneGrid&lt;'a, Message, iced_widget::renderer::Renderer&lt;iced_widget::style::Theme&gt;&gt;;
+/// #     iced_widget::PaneGrid&lt;'a, Message, iced_widget::style::Theme, iced_widget::renderer::Renderer&gt;;
 /// #
 /// enum PaneState {
 ///     SomePane,
@@ -1332,25 +1336,29 @@
 ///     .on_resize(10, Message::PaneResized);
 /// ```
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>PaneGrid&lt;<span class="lifetime">'a</span>, Message, Renderer = <span class="kw">crate</span>::Renderer&gt;
-<span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: StyleSheet + container::StyleSheet,
+</span><span class="kw">pub struct </span>PaneGrid&lt;
+    <span class="lifetime">'a</span>,
+    Message,
+    Theme = <span class="kw">crate</span>::Theme,
+    Renderer = <span class="kw">crate</span>::Renderer,
+&gt; <span class="kw">where
+    </span>Theme: StyleSheet + container::StyleSheet,
+    Renderer: <span class="kw">crate</span>::core::Renderer,
 {
-    contents: Contents&lt;<span class="lifetime">'a</span>, Content&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;,
+    contents: Contents&lt;<span class="lifetime">'a</span>, Content&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
     width: Length,
     height: Length,
     spacing: f32,
     on_click: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Pane) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
     on_drag: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(DragEvent) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
     on_resize: <span class="prelude-ty">Option</span>&lt;(f32, Box&lt;<span class="kw">dyn </span>Fn(ResizeEvent) -&gt; Message + <span class="lifetime">'a</span>&gt;)&gt;,
-    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: &lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; PaneGrid&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; PaneGrid&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: StyleSheet + container::StyleSheet,
+    </span>Theme: StyleSheet + container::StyleSheet,
+    Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     <span class="doccomment">/// Creates a [`PaneGrid`] with the given [`State`] and view function.
     ///
@@ -1358,7 +1366,7 @@
     /// [`State`]. [`bool`] is set if the pane is maximized.
     </span><span class="kw">pub fn </span>new&lt;T&gt;(
         state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>State&lt;T&gt;,
-        view: <span class="kw">impl </span>Fn(Pane, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T, bool) -&gt; Content&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;,
+        view: <span class="kw">impl </span>Fn(Pane, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T, bool) -&gt; Content&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>contents = <span class="kw">if let </span><span class="prelude-val">Some</span>((pane, pane_state)) =
             state.maximized.and_then(|pane| {
@@ -1452,7 +1460,7 @@
     <span class="doccomment">/// Sets the style of the [`PaneGrid`].
     </span><span class="kw">pub fn </span>style(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+        style: <span class="kw">impl </span>Into&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
@@ -1465,11 +1473,11 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; Widget&lt;Message, Renderer&gt;
-    <span class="kw">for </span>PaneGrid&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>PaneGrid&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: StyleSheet + container::StyleSheet,
+    Theme: StyleSheet + container::StyleSheet,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
         tree::Tag::of::&lt;state::Action&gt;()
@@ -1644,7 +1652,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
@@ -1679,7 +1687,7 @@
         tree: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Tree,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'_</span>, Message, Renderer&gt;&gt; {
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'_</span>, Message, Theme, Renderer&gt;&gt; {
         <span class="kw">let </span>children = <span class="self">self
             </span>.contents
             .iter_mut()
@@ -1694,16 +1702,16 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; From&lt;PaneGrid&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;&gt;
-    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; From&lt;PaneGrid&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a</span>,
-    Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: StyleSheet + container::StyleSheet,
+    Theme: StyleSheet + container::StyleSheet + <span class="lifetime">'a</span>,
+    Renderer: <span class="kw">crate</span>::core::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
-        pane_grid: PaneGrid&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;,
-    ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; {
+        pane_grid: PaneGrid&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
+    ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         Element::new(pane_grid)
     }
 }
@@ -2047,18 +2055,18 @@
 </span>}
 
 <span class="doccomment">/// Draws a [`PaneGrid`].
-</span><span class="kw">pub fn </span>draw&lt;Renderer, T&gt;(
+</span><span class="kw">pub fn </span>draw&lt;Theme, Renderer, T&gt;(
     action: <span class="kw-2">&amp;</span>state::Action,
     node: <span class="kw-2">&amp;</span>Node,
     layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
     cursor: mouse::Cursor,
     renderer: <span class="kw-2">&amp;mut </span>Renderer,
-    theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+    theme: <span class="kw-2">&amp;</span>Theme,
     default_style: <span class="kw-2">&amp;</span>renderer::Style,
     viewport: <span class="kw-2">&amp;</span>Rectangle,
     spacing: f32,
     resize_leeway: <span class="prelude-ty">Option</span>&lt;f32&gt;,
-    style: <span class="kw-2">&amp;</span>&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: <span class="kw-2">&amp;</span>Theme::Style,
     contents: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
     draw_pane: <span class="kw">impl </span>Fn(
         T,
@@ -2069,8 +2077,8 @@
         <span class="kw-2">&amp;</span>Rectangle,
     ),
 ) <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Renderer::Theme: StyleSheet,
+    </span>Theme: StyleSheet,
+    Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     <span class="kw">let </span>picked_pane = action.picked_pane();
 

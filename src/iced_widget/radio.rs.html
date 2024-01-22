@@ -389,7 +389,7 @@
 /// # Example
 /// ```no_run
 /// # type Radio&lt;Message&gt; =
-/// #     iced_widget::Radio&lt;Message, iced_widget::renderer::Renderer&lt;iced_widget::style::Theme&gt;&gt;;
+/// #     iced_widget::Radio&lt;Message, iced_widget::style::Theme, iced_widget::renderer::Renderer&gt;;
 /// #
 /// # use iced_widget::column;
 /// #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -438,10 +438,10 @@
 /// let content = column![a, b, c, all];
 /// ```
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Radio&lt;Message, Renderer = <span class="kw">crate</span>::Renderer&gt;
+</span><span class="kw">pub struct </span>Radio&lt;Message, Theme = <span class="kw">crate</span>::Theme, Renderer = <span class="kw">crate</span>::Renderer&gt;
 <span class="kw">where
-    </span>Renderer: text::Renderer,
-    Renderer::Theme: StyleSheet,
+    </span>Theme: StyleSheet,
+    Renderer: text::Renderer,
 {
     is_selected: bool,
     on_click: Message,
@@ -453,14 +453,14 @@
     text_line_height: text::LineHeight,
     text_shaping: text::Shaping,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
-    style: &lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: Theme::Style,
 }
 
-<span class="kw">impl</span>&lt;Message, Renderer&gt; Radio&lt;Message, Renderer&gt;
+<span class="kw">impl</span>&lt;Message, Theme, Renderer&gt; Radio&lt;Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
+    Theme: StyleSheet,
     Renderer: text::Renderer,
-    Renderer::Theme: StyleSheet,
 {
     <span class="doccomment">/// The default size of a [`Radio`] button.
     </span><span class="kw">pub const </span>DEFAULT_SIZE: f32 = <span class="number">28.0</span>;
@@ -547,20 +547,18 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`Radio`] button.
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Into&lt;&lt;Renderer::Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
-    ) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Theme::Style&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;Message, Renderer&gt; Widget&lt;Message, Renderer&gt; <span class="kw">for </span>Radio&lt;Message, Renderer&gt;
+<span class="kw">impl</span>&lt;Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>Radio&lt;Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
+    Theme: StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
     Renderer: text::Renderer,
-    Renderer::Theme: StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
         tree::Tag::of::&lt;widget::text::State&lt;Renderer::Paragraph&gt;&gt;()
@@ -655,7 +653,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        theme: <span class="kw-2">&amp;</span>Renderer::Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
@@ -725,14 +723,16 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; From&lt;Radio&lt;Message, Renderer&gt;&gt;
-    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; From&lt;Radio&lt;Message, Theme, Renderer&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a </span>+ Clone,
+    Theme: StyleSheet + <span class="kw">crate</span>::text::StyleSheet + <span class="lifetime">'a</span>,
     Renderer: <span class="lifetime">'a </span>+ text::Renderer,
-    Renderer::Theme: StyleSheet + <span class="kw">crate</span>::text::StyleSheet,
 {
-    <span class="kw">fn </span>from(radio: Radio&lt;Message, Renderer&gt;) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Renderer&gt; {
+    <span class="kw">fn </span>from(
+        radio: Radio&lt;Message, Theme, Renderer&gt;,
+    ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         Element::new(radio)
     }
 }
