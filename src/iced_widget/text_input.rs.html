@@ -1463,11 +1463,6 @@
 <a href="#1463" id="1463">1463</a>
 <a href="#1464" id="1464">1464</a>
 <a href="#1465" id="1465">1465</a>
-<a href="#1466" id="1466">1466</a>
-<a href="#1467" id="1467">1467</a>
-<a href="#1468" id="1468">1468</a>
-<a href="#1469" id="1469">1469</a>
-<a href="#1470" id="1470">1470</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -2356,42 +2351,38 @@
 
                         update_cache(state, value);
                     }
-                    keyboard::Key::Character(<span class="string">"v"</span>) =&gt; {
+                    keyboard::Key::Character(<span class="string">"v"</span>)
                         <span class="kw">if </span>state.keyboard_modifiers.command()
-                            &amp;&amp; !state.keyboard_modifiers.alt()
-                        {
-                            <span class="kw">let </span>content = <span class="kw">match </span>state.is_pasting.take() {
-                                <span class="prelude-val">Some</span>(content) =&gt; content,
-                                <span class="prelude-val">None </span>=&gt; {
-                                    <span class="kw">let </span>content: String = clipboard
-                                        .read()
-                                        .unwrap_or_default()
-                                        .chars()
-                                        .filter(|c| !c.is_control())
-                                        .collect();
+                            &amp;&amp; !state.keyboard_modifiers.alt() =&gt;
+                    {
+                        <span class="kw">let </span>content = <span class="kw">match </span>state.is_pasting.take() {
+                            <span class="prelude-val">Some</span>(content) =&gt; content,
+                            <span class="prelude-val">None </span>=&gt; {
+                                <span class="kw">let </span>content: String = clipboard
+                                    .read()
+                                    .unwrap_or_default()
+                                    .chars()
+                                    .filter(|c| !c.is_control())
+                                    .collect();
 
-                                    Value::new(<span class="kw-2">&amp;</span>content)
-                                }
-                            };
+                                Value::new(<span class="kw-2">&amp;</span>content)
+                            }
+                        };
 
-                            <span class="kw">let </span><span class="kw-2">mut </span>editor =
-                                Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
+                        <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
 
-                            editor.paste(content.clone());
+                        editor.paste(content.clone());
 
-                            <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(paste) = <span class="kw-2">&amp;</span>on_paste {
-                                (paste)(editor.contents())
-                            } <span class="kw">else </span>{
-                                (on_input)(editor.contents())
-                            };
-                            shell.publish(message);
-
-                            state.is_pasting = <span class="prelude-val">Some</span>(content);
-
-                            update_cache(state, value);
+                        <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(paste) = <span class="kw-2">&amp;</span>on_paste {
+                            (paste)(editor.contents())
                         } <span class="kw">else </span>{
-                            state.is_pasting = <span class="prelude-val">None</span>;
-                        }
+                            (on_input)(editor.contents())
+                        };
+                        shell.publish(message);
+
+                        state.is_pasting = <span class="prelude-val">Some</span>(content);
+
+                        update_cache(state, value);
                     }
                     keyboard::Key::Character(<span class="string">"a"</span>)
                         <span class="kw">if </span>state.keyboard_modifiers.command() =&gt;
@@ -2415,12 +2406,11 @@
                     }
                     <span class="kw">_ </span>=&gt; {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = text {
+                            state.is_pasting = <span class="prelude-val">None</span>;
+
                             <span class="kw">let </span>c = text.chars().next().unwrap_or_default();
 
-                            <span class="kw">if </span>state.is_pasting.is_none()
-                                &amp;&amp; !state.keyboard_modifiers.command()
-                                &amp;&amp; !c.is_control()
-                            {
+                            <span class="kw">if </span>!c.is_control() {
                                 <span class="kw">let </span><span class="kw-2">mut </span>editor =
                                     Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
 
