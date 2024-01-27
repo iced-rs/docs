@@ -730,6 +730,18 @@
 <a href="#730" id="730">730</a>
 <a href="#731" id="731">731</a>
 <a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a multi-line text input for text editing.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -1151,6 +1163,12 @@
                     clipboard.write(selection);
                 }
             }
+            Update::Cut =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(selection) = <span class="self">self</span>.content.selection() {
+                    clipboard.write(selection.clone());
+                    shell.publish(on_edit(Action::Edit(Edit::Delete)));
+                }
+            }
             Update::Paste =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(contents) = clipboard.read() {
                     shell.publish(on_edit(Action::Edit(Edit::Paste(
@@ -1307,6 +1325,7 @@
     Release,
     Action(Action),
     Copy,
+    Cut,
     Paste,
 }
 
@@ -1415,6 +1434,11 @@
                             <span class="kw">if </span>modifiers.command() =&gt;
                         {
                             <span class="prelude-val">Some</span>(<span class="self">Self</span>::Copy)
+                        }
+                        keyboard::Key::Character(<span class="string">"x"</span>)
+                            <span class="kw">if </span>modifiers.command() =&gt;
+                        {
+                            <span class="prelude-val">Some</span>(<span class="self">Self</span>::Cut)
                         }
                         keyboard::Key::Character(<span class="string">"v"</span>)
                             <span class="kw">if </span>modifiers.command() &amp;&amp; !modifiers.alt() =&gt;
