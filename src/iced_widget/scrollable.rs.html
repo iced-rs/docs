@@ -2094,7 +2094,7 @@
     <span class="kw">let </span>(mouse_over_y_scrollbar, mouse_over_x_scrollbar) =
         scrollbars.is_mouse_over(cursor);
 
-    <span class="kw">let </span>event_status = {
+    <span class="kw">let </span><span class="kw-2">mut </span>event_status = {
         <span class="kw">let </span>cursor = <span class="kw">match </span>cursor_over_scrollable {
             <span class="prelude-val">Some</span>(cursor_position)
                 <span class="kw">if </span>!(mouse_over_x_scrollbar || mouse_over_y_scrollbar) =&gt;
@@ -2158,7 +2158,7 @@
 
             notify_on_scroll(state, on_scroll, bounds, content_bounds, shell);
 
-            <span class="kw">return </span>event::Status::Captured;
+            event_status = event::Status::Captured;
         }
         Event::Touch(event)
             <span class="kw">if </span>state.scroll_area_touched_at.is_some()
@@ -2204,7 +2204,7 @@
                 }
             }
 
-            <span class="kw">return </span>event::Status::Captured;
+            event_status = event::Status::Captured;
         }
         <span class="kw">_ </span>=&gt; {}
     }
@@ -2216,7 +2216,7 @@
             | Event::Touch(touch::Event::FingerLost { .. }) =&gt; {
                 state.y_scroller_grabbed_at = <span class="prelude-val">None</span>;
 
-                <span class="kw">return </span>event::Status::Captured;
+                event_status = event::Status::Captured;
             }
             Event::Mouse(mouse::Event::CursorMoved { .. })
             | Event::Touch(touch::Event::FingerMoved { .. }) =&gt; {
@@ -2242,7 +2242,7 @@
                         shell,
                     );
 
-                    <span class="kw">return </span>event::Status::Captured;
+                    event_status = event::Status::Captured;
                 }
             }
             <span class="kw">_ </span>=&gt; {}
@@ -2278,7 +2278,7 @@
                     );
                 }
 
-                <span class="kw">return </span>event::Status::Captured;
+                event_status = event::Status::Captured;
             }
             <span class="kw">_ </span>=&gt; {}
         }
@@ -2291,7 +2291,7 @@
             | Event::Touch(touch::Event::FingerLost { .. }) =&gt; {
                 state.x_scroller_grabbed_at = <span class="prelude-val">None</span>;
 
-                <span class="kw">return </span>event::Status::Captured;
+                event_status = event::Status::Captured;
             }
             Event::Mouse(mouse::Event::CursorMoved { .. })
             | Event::Touch(touch::Event::FingerMoved { .. }) =&gt; {
@@ -2318,7 +2318,7 @@
                     );
                 }
 
-                <span class="kw">return </span>event::Status::Captured;
+                event_status = event::Status::Captured;
             }
             <span class="kw">_ </span>=&gt; {}
         }
@@ -2352,14 +2352,14 @@
                         shell,
                     );
 
-                    <span class="kw">return </span>event::Status::Captured;
+                    event_status = event::Status::Captured;
                 }
             }
             <span class="kw">_ </span>=&gt; {}
         }
     }
 
-    event::Status::Ignored
+    event_status
 }
 
 <span class="doccomment">/// Computes the current [`mouse::Interaction`] of a [`Scrollable`].
