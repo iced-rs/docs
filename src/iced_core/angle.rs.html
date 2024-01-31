@@ -71,10 +71,79 @@
 <a href="#71" id="71">71</a>
 <a href="#72" id="72">72</a>
 <a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{Point, Rectangle, Vector};
 
 <span class="kw">use </span>std::f32::consts::{FRAC_PI_2, PI};
-<span class="kw">use </span>std::ops::RangeInclusive;
+<span class="kw">use </span>std::ops::{Add, AddAssign, Div, Mul, RangeInclusive, Sub, SubAssign};
 
 <span class="doccomment">/// Degrees
 </span><span class="attr">#[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
@@ -86,7 +155,26 @@
 
 <span class="kw">impl </span>Radians {
     <span class="doccomment">/// The range of radians of a circle.
-    </span><span class="kw">pub const </span>RANGE: RangeInclusive&lt;Radians&gt; = Radians(<span class="number">0.0</span>)..=Radians(<span class="number">2.0 </span>* PI);
+    </span><span class="kw">pub const </span>RANGE: RangeInclusive&lt;<span class="self">Self</span>&gt; = <span class="self">Self</span>(<span class="number">0.0</span>)..=<span class="self">Self</span>(<span class="number">2.0 </span>* PI);
+
+    <span class="doccomment">/// The amount of radians in half a circle.
+    </span><span class="kw">pub const </span>PI: <span class="self">Self </span>= <span class="self">Self</span>(PI);
+
+    <span class="doccomment">/// Calculates the line in which the angle intercepts the `bounds`.
+    </span><span class="kw">pub fn </span>to_distance(<span class="kw-2">&amp;</span><span class="self">self</span>, bounds: <span class="kw-2">&amp;</span>Rectangle) -&gt; (Point, Point) {
+        <span class="kw">let </span>angle = <span class="self">self</span>.<span class="number">0 </span>- FRAC_PI_2;
+        <span class="kw">let </span>r = Vector::new(f32::cos(angle), f32::sin(angle));
+
+        <span class="kw">let </span>distance_to_rect = f32::max(
+            f32::abs(r.x * bounds.width / <span class="number">2.0</span>),
+            f32::abs(r.y * bounds.height / <span class="number">2.0</span>),
+        );
+
+        <span class="kw">let </span>start = bounds.center() - r * distance_to_rect;
+        <span class="kw">let </span>end = bounds.center() + r * distance_to_rect;
+
+        (start, end)
+    }
 }
 
 <span class="kw">impl </span>From&lt;Degrees&gt; <span class="kw">for </span>Radians {
@@ -127,21 +215,71 @@
     }
 }
 
-<span class="kw">impl </span>Radians {
-    <span class="doccomment">/// Calculates the line in which the angle intercepts the `bounds`.
-    </span><span class="kw">pub fn </span>to_distance(<span class="kw-2">&amp;</span><span class="self">self</span>, bounds: <span class="kw-2">&amp;</span>Rectangle) -&gt; (Point, Point) {
-        <span class="kw">let </span>angle = <span class="self">self</span>.<span class="number">0 </span>- FRAC_PI_2;
-        <span class="kw">let </span>r = Vector::new(f32::cos(angle), f32::sin(angle));
+<span class="kw">impl </span>Sub <span class="kw">for </span>Radians {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
 
-        <span class="kw">let </span>distance_to_rect = f32::max(
-            f32::abs(r.x * bounds.width / <span class="number">2.0</span>),
-            f32::abs(r.y * bounds.height / <span class="number">2.0</span>),
-        );
+    <span class="kw">fn </span>sub(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>- rhs.<span class="number">0</span>)
+    }
+}
 
-        <span class="kw">let </span>start = bounds.center() - r * distance_to_rect;
-        <span class="kw">let </span>end = bounds.center() + r * distance_to_rect;
+<span class="kw">impl </span>SubAssign <span class="kw">for </span>Radians {
+    <span class="kw">fn </span>sub_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: <span class="self">Self</span>) {
+        <span class="self">self</span>.<span class="number">0 </span>= <span class="self">self</span>.<span class="number">0 </span>- rhs.<span class="number">0</span>;
+    }
+}
 
-        (start, end)
+<span class="kw">impl </span>Add <span class="kw">for </span>Radians {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>add(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>+ rhs.<span class="number">0</span>)
+    }
+}
+
+<span class="kw">impl </span>AddAssign <span class="kw">for </span>Radians {
+    <span class="kw">fn </span>add_assign(<span class="kw-2">&amp;mut </span><span class="self">self</span>, rhs: Radians) {
+        <span class="self">self</span>.<span class="number">0 </span>= <span class="self">self</span>.<span class="number">0 </span>+ rhs.<span class="number">0</span>;
+    }
+}
+
+<span class="kw">impl </span>Mul <span class="kw">for </span>Radians {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>mul(<span class="self">self</span>, rhs: Radians) -&gt; <span class="self">Self</span>::Output {
+        Radians(<span class="self">self</span>.<span class="number">0 </span>* rhs.<span class="number">0</span>)
+    }
+}
+
+<span class="kw">impl </span>Mul&lt;f32&gt; <span class="kw">for </span>Radians {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>mul(<span class="self">self</span>, rhs: f32) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>* rhs)
+    }
+}
+
+<span class="kw">impl </span>Mul&lt;Radians&gt; <span class="kw">for </span>f32 {
+    <span class="kw">type </span>Output = Radians;
+
+    <span class="kw">fn </span>mul(<span class="self">self</span>, rhs: Radians) -&gt; <span class="self">Self</span>::Output {
+        Radians(<span class="self">self </span>* rhs.<span class="number">0</span>)
+    }
+}
+
+<span class="kw">impl </span>Div&lt;f32&gt; <span class="kw">for </span>Radians {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>div(<span class="self">self</span>, rhs: f32) -&gt; <span class="self">Self</span>::Output {
+        Radians(<span class="self">self</span>.<span class="number">0 </span>/ rhs)
+    }
+}
+
+<span class="kw">impl </span>Div <span class="kw">for </span>Radians {
+    <span class="kw">type </span>Output = <span class="self">Self</span>;
+
+    <span class="kw">fn </span>div(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self</span>::Output {
+        <span class="self">Self</span>(<span class="self">self</span>.<span class="number">0 </span>/ rhs.<span class="number">0</span>)
     }
 }
 </code></pre></div></section></main></body></html>
