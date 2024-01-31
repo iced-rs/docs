@@ -186,6 +186,14 @@
 <a href="#186" id="186">186</a>
 <a href="#187" id="187">187</a>
 <a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>cache;
 
 <span class="kw">pub use </span>cache::Cache;
@@ -299,12 +307,14 @@
     /// This method is useful to compose transforms and perform drawing
     /// operations in different coordinate systems.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>with_save(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Frame)) {
+    </span><span class="kw">pub fn </span>with_save&lt;R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Frame) -&gt; R) -&gt; R {
         <span class="macro">delegate!</span>(<span class="self">self</span>, frame, frame.push_transform());
 
-        f(<span class="self">self</span>);
+        <span class="kw">let </span>result = f(<span class="self">self</span>);
 
         <span class="macro">delegate!</span>(<span class="self">self</span>, frame, frame.pop_transform());
+
+        result
     }
 
     <span class="doccomment">/// Executes the given drawing operations within a [`Rectangle`] region,
@@ -314,7 +324,11 @@
     /// This method is useful to perform drawing operations that need to be
     /// clipped.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>with_clip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, region: Rectangle, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Frame)) {
+    </span><span class="kw">pub fn </span>with_clip&lt;R&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        region: Rectangle,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Frame) -&gt; R,
+    ) -&gt; R {
         <span class="kw">let </span><span class="kw-2">mut </span>frame = <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::TinySkia(<span class="kw">_</span>) =&gt; <span class="self">Self</span>::TinySkia(
                 iced_tiny_skia::geometry::Frame::new(region.size()),
@@ -325,7 +339,7 @@
             }
         };
 
-        f(<span class="kw-2">&amp;mut </span>frame);
+        <span class="kw">let </span>result = f(<span class="kw-2">&amp;mut </span>frame);
 
         <span class="kw">let </span>origin = Point::new(region.x, region.y);
 
@@ -340,6 +354,8 @@
             <span class="attr">#[allow(unreachable_patterns)]
             </span><span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         };
+
+        result
     }
 
     <span class="doccomment">/// Applies a translation to the current transform of the [`Frame`].

@@ -669,6 +669,14 @@
 <a href="#669" id="669">669</a>
 <a href="#670" id="670">670</a>
 <a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and draw geometry.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::text::LineHeight;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Pixels, Point, Rectangle, Size, Vector};
@@ -1059,12 +1067,14 @@
     /// This method is useful to compose transforms and perform drawing
     /// operations in different coordinate systems.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>with_save(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Frame)) {
+    </span><span class="kw">pub fn </span>with_save&lt;R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Frame) -&gt; R) -&gt; R {
         <span class="self">self</span>.push_transform();
 
-        f(<span class="self">self</span>);
+        <span class="kw">let </span>result = f(<span class="self">self</span>);
 
         <span class="self">self</span>.pop_transform();
+
+        result
     }
 
     <span class="doccomment">/// Pushes the current transform in the transform stack.
@@ -1084,14 +1094,20 @@
     /// This method is useful to perform drawing operations that need to be
     /// clipped.
     </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>with_clip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, region: Rectangle, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Frame)) {
+    </span><span class="kw">pub fn </span>with_clip&lt;R&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        region: Rectangle,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Frame) -&gt; R,
+    ) -&gt; R {
         <span class="kw">let </span><span class="kw-2">mut </span>frame = Frame::new(region.size());
 
-        f(<span class="kw-2">&amp;mut </span>frame);
+        <span class="kw">let </span>result = f(<span class="kw-2">&amp;mut </span>frame);
 
         <span class="kw">let </span>origin = Point::new(region.x, region.y);
 
         <span class="self">self</span>.clip(frame, origin);
+
+        result
     }
 
     <span class="doccomment">/// Draws the clipped contents of the given [`Frame`] with origin at the given [`Point`].
