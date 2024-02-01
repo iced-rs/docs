@@ -430,17 +430,6 @@
 <a href="#430" id="430">430</a>
 <a href="#431" id="431">431</a>
 <a href="#432" id="432">432</a>
-<a href="#433" id="433">433</a>
-<a href="#434" id="434">434</a>
-<a href="#435" id="435">435</a>
-<a href="#436" id="436">436</a>
-<a href="#437" id="437">437</a>
-<a href="#438" id="438">438</a>
-<a href="#439" id="439">439</a>
-<a href="#440" id="440">440</a>
-<a href="#441" id="441">441</a>
-<a href="#442" id="442">442</a>
-<a href="#443" id="443">443</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout::{<span class="self">self</span>, Layout};
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
@@ -722,6 +711,7 @@
         tree: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Tree,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
+        translation: Vector,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
         <span class="kw">use </span>std::ops::DerefMut;
 
@@ -752,17 +742,13 @@
 
                 element
                     .as_widget_mut()
-                    .overlay(tree, content_layout, renderer)
+                    .overlay(tree, content_layout, renderer, translation)
                     .map(|overlay| RefCell::new(Nested::new(overlay)))
             },
         }
         .build();
 
-        <span class="kw">let </span>has_overlay =
-            overlay.with_overlay_maybe(|overlay| overlay.position());
-
-        has_overlay
-            .map(|position| overlay::Element::new(position, Box::new(overlay)))
+        <span class="prelude-val">Some</span>(overlay::Element::new(Box::new(overlay)))
     }
 }
 
@@ -818,17 +804,9 @@
 <span class="kw">where
     </span>Renderer: core::Renderer,
 {
-    <span class="kw">fn </span>layout(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        renderer: <span class="kw-2">&amp;</span>Renderer,
-        bounds: Size,
-        position: Point,
-        translation: Vector,
-    ) -&gt; layout::Node {
-        <span class="self">self</span>.with_overlay_maybe(|overlay| {
-            overlay.layout(renderer, bounds, position, translation)
-        })
-        .unwrap_or_default()
+    <span class="kw">fn </span>layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, renderer: <span class="kw-2">&amp;</span>Renderer, bounds: Size) -&gt; layout::Node {
+        <span class="self">self</span>.with_overlay_maybe(|overlay| overlay.layout(renderer, bounds))
+            .unwrap_or_default()
     }
 
     <span class="kw">fn </span>draw(

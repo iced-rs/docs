@@ -644,6 +644,10 @@
 <a href="#644" id="644">644</a>
 <a href="#645" id="645">645</a>
 <a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Implement your own event loop to drive a user interface.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -651,9 +655,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget;
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
-<span class="kw">use </span><span class="kw">crate</span>::core::{
-    Clipboard, Element, Layout, Point, Rectangle, Shell, Size, Vector,
-};
+<span class="kw">use </span><span class="kw">crate</span>::core::{Clipboard, Element, Layout, Rectangle, Shell, Size, Vector};
 <span class="kw">use </span><span class="kw">crate</span>::overlay;
 
 <span class="doccomment">/// A set of interactive graphical elements with a specific [`Layout`].
@@ -839,7 +841,12 @@
         <span class="kw">let </span><span class="kw-2">mut </span>manual_overlay = ManuallyDrop::new(
             <span class="self">self</span>.root
                 .as_widget_mut()
-                .overlay(<span class="kw-2">&amp;mut </span><span class="self">self</span>.state, Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base), renderer)
+                .overlay(
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
+                    Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
+                    renderer,
+                    Vector::ZERO,
+                )
                 .map(overlay::Nested::new),
         );
 
@@ -847,8 +854,7 @@
             <span class="kw">let </span>bounds = <span class="self">self</span>.bounds;
 
             <span class="kw">let </span><span class="kw-2">mut </span>overlay = manual_overlay.as_mut().unwrap();
-            <span class="kw">let </span><span class="kw-2">mut </span>layout =
-                overlay.layout(renderer, bounds, Point::ORIGIN, Vector::ZERO);
+            <span class="kw">let </span><span class="kw-2">mut </span>layout = overlay.layout(renderer, bounds);
             <span class="kw">let </span><span class="kw-2">mut </span>event_statuses = Vec::new();
 
             <span class="kw">for </span>event <span class="kw">in </span>events.iter().cloned() {
@@ -891,6 +897,7 @@
                                 <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
                                 Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
                                 renderer,
+                                Vector::ZERO,
                             )
                             .map(overlay::Nested::new),
                     );
@@ -902,12 +909,7 @@
                     overlay = manual_overlay.as_mut().unwrap();
 
                     shell.revalidate_layout(|| {
-                        layout = overlay.layout(
-                            renderer,
-                            bounds,
-                            Point::ORIGIN,
-                            Vector::ZERO,
-                        );
+                        layout = overlay.layout(renderer, bounds);
                     });
                 }
 
@@ -1097,17 +1099,18 @@
         <span class="kw">let </span>base_cursor = <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>overlay) = <span class="self">self
             </span>.root
             .as_widget_mut()
-            .overlay(<span class="kw-2">&amp;mut </span><span class="self">self</span>.state, Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base), renderer)
+            .overlay(
+                <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
+                Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
+                renderer,
+                Vector::ZERO,
+            )
             .map(overlay::Nested::new)
         {
-            <span class="kw">let </span>overlay_layout = <span class="self">self</span>.overlay.take().unwrap_or_else(|| {
-                overlay.layout(
-                    renderer,
-                    <span class="self">self</span>.bounds,
-                    Point::ORIGIN,
-                    Vector::ZERO,
-                )
-            });
+            <span class="kw">let </span>overlay_layout = <span class="self">self
+                </span>.overlay
+                .take()
+                .unwrap_or_else(|| overlay.layout(renderer, <span class="self">self</span>.bounds));
 
             <span class="kw">let </span>cursor = <span class="kw">if </span>cursor
                 .position()
@@ -1166,7 +1169,12 @@
             .as_ref()
             .and_then(|layout| {
                 root.as_widget_mut()
-                    .overlay(<span class="kw-2">&amp;mut </span><span class="self">self</span>.state, Layout::new(base), renderer)
+                    .overlay(
+                        <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
+                        Layout::new(base),
+                        renderer,
+                        Vector::ZERO,
+                    )
                     .map(overlay::Nested::new)
                     .map(|<span class="kw-2">mut </span>overlay| {
                         <span class="kw">let </span>overlay_interaction = overlay.mouse_interaction(
@@ -1220,16 +1228,16 @@
         <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>overlay) = <span class="self">self
             </span>.root
             .as_widget_mut()
-            .overlay(<span class="kw-2">&amp;mut </span><span class="self">self</span>.state, Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base), renderer)
+            .overlay(
+                <span class="kw-2">&amp;mut </span><span class="self">self</span>.state,
+                Layout::new(<span class="kw-2">&amp;</span><span class="self">self</span>.base),
+                renderer,
+                Vector::ZERO,
+            )
             .map(overlay::Nested::new)
         {
             <span class="kw">if </span><span class="self">self</span>.overlay.is_none() {
-                <span class="self">self</span>.overlay = <span class="prelude-val">Some</span>(overlay.layout(
-                    renderer,
-                    <span class="self">self</span>.bounds,
-                    Point::ORIGIN,
-                    Vector::ZERO,
-                ));
+                <span class="self">self</span>.overlay = <span class="prelude-val">Some</span>(overlay.layout(renderer, <span class="self">self</span>.bounds));
             }
 
             overlay.operate(

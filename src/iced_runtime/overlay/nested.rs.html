@@ -343,28 +343,13 @@
 <a href="#343" id="343">343</a>
 <a href="#344" id="344">344</a>
 <a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
-<a href="#354" id="354">354</a>
-<a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::event;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::core::overlay;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget;
-<span class="kw">use </span><span class="kw">crate</span>::core::{
-    Clipboard, Event, Layout, Point, Rectangle, Shell, Size, Vector,
-};
+<span class="kw">use </span><span class="kw">crate</span>::core::{Clipboard, Event, Layout, Point, Rectangle, Shell, Size};
 
 <span class="doccomment">/// An overlay container that displays nested overlays
 </span><span class="attr">#[allow(missing_debug_implementations)]
@@ -383,11 +368,6 @@
         <span class="self">Self </span>{ overlay: element }
     }
 
-    <span class="doccomment">/// Returns the position of the [`Nested`] overlay.
-    </span><span class="kw">pub fn </span>position(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Point {
-        <span class="self">self</span>.overlay.position()
-    }
-
     <span class="doccomment">/// Returns the layout [`Node`] of the [`Nested`] overlay.
     ///
     /// [`Node`]: layout::Node
@@ -395,36 +375,30 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         renderer: <span class="kw-2">&amp;</span>Renderer,
         bounds: Size,
-        _position: Point,
-        translation: Vector,
     ) -&gt; layout::Node {
         <span class="kw">fn </span>recurse&lt;Message, Theme, Renderer&gt;(
             element: <span class="kw-2">&amp;mut </span>overlay::Element&lt;<span class="lifetime">'_</span>, Message, Theme, Renderer&gt;,
             renderer: <span class="kw-2">&amp;</span>Renderer,
             bounds: Size,
-            translation: Vector,
         ) -&gt; layout::Node
         <span class="kw">where
             </span>Renderer: renderer::Renderer,
         {
-            <span class="kw">let </span>node = element.layout(renderer, bounds, translation);
+            <span class="kw">let </span>node = element.layout(renderer, bounds);
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>nested) =
                 element.overlay(Layout::new(<span class="kw-2">&amp;</span>node), renderer)
             {
                 layout::Node::with_children(
                     node.size(),
-                    <span class="macro">vec!</span>[
-                        node,
-                        recurse(<span class="kw-2">&amp;mut </span>nested, renderer, bounds, translation),
-                    ],
+                    <span class="macro">vec!</span>[node, recurse(<span class="kw-2">&amp;mut </span>nested, renderer, bounds)],
                 )
             } <span class="kw">else </span>{
                 layout::Node::with_children(node.size(), <span class="macro">vec!</span>[node])
             }
         }
 
-        recurse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.overlay, renderer, bounds, translation)
+        recurse(<span class="kw-2">&amp;mut </span><span class="self">self</span>.overlay, renderer, bounds)
     }
 
     <span class="doccomment">/// Draws the [`Nested`] overlay using the associated `Renderer`.

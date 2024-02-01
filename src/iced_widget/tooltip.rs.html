@@ -469,6 +469,8 @@
 <a href="#469" id="469">469</a>
 <a href="#470" id="470">470</a>
 <a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a widget over another.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -702,6 +704,7 @@
         tree: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>widget::Tree,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
+        translation: Vector,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
         <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&gt;();
 
@@ -711,23 +714,22 @@
             children.next().unwrap(),
             layout,
             renderer,
+            translation,
         );
 
         <span class="kw">let </span>tooltip = <span class="kw">if let </span>State::Hovered { cursor_position } = <span class="kw-2">*</span>state {
-            <span class="prelude-val">Some</span>(overlay::Element::new(
-                layout.position(),
-                Box::new(Overlay {
-                    tooltip: <span class="kw-2">&amp;</span><span class="self">self</span>.tooltip,
-                    state: children.next().unwrap(),
-                    cursor_position,
-                    content_bounds: layout.bounds(),
-                    snap_within_viewport: <span class="self">self</span>.snap_within_viewport,
-                    position: <span class="self">self</span>.position,
-                    gap: <span class="self">self</span>.gap,
-                    padding: <span class="self">self</span>.padding,
-                    style: <span class="kw-2">&amp;</span><span class="self">self</span>.style,
-                }),
-            ))
+            <span class="prelude-val">Some</span>(overlay::Element::new(Box::new(Overlay {
+                position: layout.position() + translation,
+                tooltip: <span class="kw-2">&amp;</span><span class="self">self</span>.tooltip,
+                state: children.next().unwrap(),
+                cursor_position,
+                content_bounds: layout.bounds(),
+                snap_within_viewport: <span class="self">self</span>.snap_within_viewport,
+                positioning: <span class="self">self</span>.position,
+                gap: <span class="self">self</span>.gap,
+                padding: <span class="self">self</span>.padding,
+                style: <span class="kw-2">&amp;</span><span class="self">self</span>.style,
+            })))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>};
@@ -788,12 +790,13 @@
     </span>Theme: container::StyleSheet + widget::text::StyleSheet,
     Renderer: text::Renderer,
 {
+    position: Point,
     tooltip: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Text&lt;<span class="lifetime">'a</span>, Theme, Renderer&gt;,
     state: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>widget::Tree,
     cursor_position: Point,
     content_bounds: Rectangle,
     snap_within_viewport: bool,
-    position: Position,
+    positioning: Position,
     gap: f32,
     padding: f32,
     style: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>&lt;Theme <span class="kw">as </span>container::StyleSheet&gt;::Style,
@@ -806,13 +809,7 @@
     </span>Theme: container::StyleSheet + widget::text::StyleSheet,
     Renderer: text::Renderer,
 {
-    <span class="kw">fn </span>layout(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        renderer: <span class="kw-2">&amp;</span>Renderer,
-        bounds: Size,
-        position: Point,
-        _translation: Vector,
-    ) -&gt; layout::Node {
+    <span class="kw">fn </span>layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, renderer: <span class="kw-2">&amp;</span>Renderer, bounds: Size) -&gt; layout::Node {
         <span class="kw">let </span>viewport = Rectangle::with_size(bounds);
 
         <span class="kw">let </span>text_layout = Widget::&lt;(), Theme, Renderer&gt;::layout(
@@ -829,37 +826,44 @@
         );
 
         <span class="kw">let </span>text_bounds = text_layout.bounds();
-        <span class="kw">let </span>x_center =
-            position.x + (<span class="self">self</span>.content_bounds.width - text_bounds.width) / <span class="number">2.0</span>;
-        <span class="kw">let </span>y_center = position.y
+        <span class="kw">let </span>x_center = <span class="self">self</span>.position.x
+            + (<span class="self">self</span>.content_bounds.width - text_bounds.width) / <span class="number">2.0</span>;
+        <span class="kw">let </span>y_center = <span class="self">self</span>.position.y
             + (<span class="self">self</span>.content_bounds.height - text_bounds.height) / <span class="number">2.0</span>;
 
         <span class="kw">let </span><span class="kw-2">mut </span>tooltip_bounds = {
-            <span class="kw">let </span>offset = <span class="kw">match </span><span class="self">self</span>.position {
+            <span class="kw">let </span>offset = <span class="kw">match </span><span class="self">self</span>.positioning {
                 Position::Top =&gt; Vector::new(
                     x_center,
-                    position.y - text_bounds.height - <span class="self">self</span>.gap - <span class="self">self</span>.padding,
+                    <span class="self">self</span>.position.y
+                        - text_bounds.height
+                        - <span class="self">self</span>.gap
+                        - <span class="self">self</span>.padding,
                 ),
                 Position::Bottom =&gt; Vector::new(
                     x_center,
-                    position.y
+                    <span class="self">self</span>.position.y
                         + <span class="self">self</span>.content_bounds.height
                         + <span class="self">self</span>.gap
                         + <span class="self">self</span>.padding,
                 ),
                 Position::Left =&gt; Vector::new(
-                    position.x - text_bounds.width - <span class="self">self</span>.gap - <span class="self">self</span>.padding,
+                    <span class="self">self</span>.position.x
+                        - text_bounds.width
+                        - <span class="self">self</span>.gap
+                        - <span class="self">self</span>.padding,
                     y_center,
                 ),
                 Position::Right =&gt; Vector::new(
-                    position.x
+                    <span class="self">self</span>.position.x
                         + <span class="self">self</span>.content_bounds.width
                         + <span class="self">self</span>.gap
                         + <span class="self">self</span>.padding,
                     y_center,
                 ),
                 Position::FollowCursor =&gt; {
-                    <span class="kw">let </span>translation = position - <span class="self">self</span>.content_bounds.position();
+                    <span class="kw">let </span>translation =
+                        <span class="self">self</span>.position - <span class="self">self</span>.content_bounds.position();
 
                     Vector::new(
                         <span class="self">self</span>.cursor_position.x,

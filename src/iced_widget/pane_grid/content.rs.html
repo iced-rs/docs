@@ -391,6 +391,15 @@
 <a href="#391" id="391">391</a>
 <a href="#392" id="392">392</a>
 <a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -398,7 +407,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::overlay;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::{<span class="self">self</span>, Tree};
-<span class="kw">use </span><span class="kw">crate</span>::core::{Clipboard, Element, Layout, Point, Rectangle, Shell, Size};
+<span class="kw">use </span><span class="kw">crate</span>::core::{
+    Clipboard, Element, Layout, Point, Rectangle, Shell, Size, Vector,
+};
 <span class="kw">use </span><span class="kw">crate</span>::pane_grid::{Draggable, TitleBar};
 
 <span class="doccomment">/// The content of a [`Pane`].
@@ -723,6 +734,7 @@
         tree: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Tree,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
+        translation: Vector,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(title_bar) = <span class="self">self</span>.title_bar.as_mut() {
             <span class="kw">let </span><span class="kw-2">mut </span>children = layout.children();
@@ -732,13 +744,18 @@
             <span class="kw">let </span>body_state = states.next().unwrap();
             <span class="kw">let </span>title_bar_state = states.next().unwrap();
 
-            <span class="kw">match </span>title_bar.overlay(title_bar_state, title_bar_layout, renderer)
-            {
+            <span class="kw">match </span>title_bar.overlay(
+                title_bar_state,
+                title_bar_layout,
+                renderer,
+                translation,
+            ) {
                 <span class="prelude-val">Some</span>(overlay) =&gt; <span class="prelude-val">Some</span>(overlay),
                 <span class="prelude-val">None </span>=&gt; <span class="self">self</span>.body.as_widget_mut().overlay(
                     body_state,
                     children.next()<span class="question-mark">?</span>,
                     renderer,
+                    translation,
                 ),
             }
         } <span class="kw">else </span>{
@@ -746,6 +763,7 @@
                 <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
                 layout,
                 renderer,
+                translation,
             )
         }
     }

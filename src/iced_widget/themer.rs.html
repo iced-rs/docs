@@ -257,15 +257,6 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
@@ -409,6 +400,7 @@
         tree: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Tree,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         renderer: <span class="kw-2">&amp;</span>Renderer,
+        translation: Vector,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, AnyTheme, Renderer&gt;&gt; {
         <span class="kw">struct </span>Overlay&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
             theme: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Theme,
@@ -425,14 +417,8 @@
                 <span class="kw-2">&amp;mut </span><span class="self">self</span>,
                 renderer: <span class="kw-2">&amp;</span>Renderer,
                 bounds: Size,
-                position: Point,
-                translation: Vector,
             ) -&gt; layout::Node {
-                <span class="self">self</span>.content.layout(
-                    renderer,
-                    bounds,
-                    translation + (position - Point::ORIGIN),
-                )
+                <span class="self">self</span>.content.layout(renderer, bounds)
             }
 
             <span class="kw">fn </span>draw(
@@ -501,22 +487,18 @@
                         theme: <span class="self">self</span>.theme,
                         content,
                     })
-                    .map(|overlay| {
-                        overlay::Element::new(Point::ORIGIN, Box::new(overlay))
-                    })
+                    .map(|overlay| overlay::Element::new(Box::new(overlay)))
             }
         }
 
         <span class="self">self</span>.content
             .as_widget_mut()
-            .overlay(tree, layout, renderer)
+            .overlay(tree, layout, renderer, translation)
             .map(|content| Overlay {
                 theme: <span class="kw-2">&amp;</span><span class="self">self</span>.theme,
                 content,
             })
-            .map(|overlay| {
-                overlay::Element::new(Point::ORIGIN, Box::new(overlay))
-            })
+            .map(|overlay| overlay::Element::new(Box::new(overlay)))
     }
 }
 

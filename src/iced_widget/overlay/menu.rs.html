@@ -560,7 +560,6 @@
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
 <a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and show dropdown menus.
 </span><span class="kw">use </span><span class="kw">crate</span>::container::{<span class="self">self</span>, Container};
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
@@ -697,10 +696,11 @@
         position: Point,
         target_height: f32,
     ) -&gt; overlay::Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
-        overlay::Element::new(
+        overlay::Element::new(Box::new(Overlay::new(
             position,
-            Box::new(Overlay::new(<span class="self">self</span>, target_height)),
-        )
+            <span class="self">self</span>,
+            target_height,
+        )))
     }
 }
 
@@ -730,6 +730,7 @@
     </span>Theme: StyleSheet + container::StyleSheet,
     Renderer: <span class="kw">crate</span>::core::Renderer,
 {
+    position: Point,
     state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Tree,
     container: Container&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     width: f32,
@@ -744,6 +745,7 @@
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">pub fn </span>new&lt;T&gt;(
+        position: Point,
         menu: Menu&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;,
         target_height: f32,
     ) -&gt; <span class="self">Self
@@ -781,6 +783,7 @@
         state.tree.diff(<span class="kw-2">&amp;</span>container <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Widget&lt;<span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;);
 
         <span class="self">Self </span>{
+            position,
             state: <span class="kw-2">&amp;mut </span>state.tree,
             container,
             width,
@@ -797,20 +800,15 @@
     </span>Theme: StyleSheet + container::StyleSheet,
     Renderer: text::Renderer,
 {
-    <span class="kw">fn </span>layout(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        renderer: <span class="kw-2">&amp;</span>Renderer,
-        bounds: Size,
-        position: Point,
-        _translation: Vector,
-    ) -&gt; layout::Node {
-        <span class="kw">let </span>space_below = bounds.height - (position.y + <span class="self">self</span>.target_height);
-        <span class="kw">let </span>space_above = position.y;
+    <span class="kw">fn </span>layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, renderer: <span class="kw-2">&amp;</span>Renderer, bounds: Size) -&gt; layout::Node {
+        <span class="kw">let </span>space_below =
+            bounds.height - (<span class="self">self</span>.position.y + <span class="self">self</span>.target_height);
+        <span class="kw">let </span>space_above = <span class="self">self</span>.position.y;
 
         <span class="kw">let </span>limits = layout::Limits::new(
             Size::ZERO,
             Size::new(
-                bounds.width - position.x,
+                bounds.width - <span class="self">self</span>.position.x,
                 <span class="kw">if </span>space_below &gt; space_above {
                     space_below
                 } <span class="kw">else </span>{
@@ -824,9 +822,9 @@
         <span class="kw">let </span>size = node.size();
 
         node.move_to(<span class="kw">if </span>space_below &gt; space_above {
-            position + Vector::new(<span class="number">0.0</span>, <span class="self">self</span>.target_height)
+            <span class="self">self</span>.position + Vector::new(<span class="number">0.0</span>, <span class="self">self</span>.target_height)
         } <span class="kw">else </span>{
-            position - Vector::new(<span class="number">0.0</span>, size.height)
+            <span class="self">self</span>.position - Vector::new(<span class="number">0.0</span>, size.height)
         })
     }
 
