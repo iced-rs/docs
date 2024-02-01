@@ -367,6 +367,29 @@
 <a href="#367" id="367">367</a>
 <a href="#368" id="368">368</a>
 <a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Show toggle controls using checkboxes.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -397,7 +420,7 @@
 ///
 /// let is_checked = true;
 ///
-/// Checkbox::new("Toggle me!", is_checked, Message::CheckboxToggled);
+/// Checkbox::new("Toggle me!", is_checked).on_toggle(Message::CheckboxToggled);
 /// ```
 ///
 /// ![Checkbox drawn by `iced_wgpu`](https://github.com/iced-rs/iced/blob/7760618fb112074bc40b148944521f312152012a/docs/images/checkbox.png?raw=true)
@@ -412,7 +435,7 @@
     Renderer: text::Renderer,
 {
     is_checked: bool,
-    on_toggle: Box&lt;<span class="kw">dyn </span>Fn(bool) -&gt; Message + <span class="lifetime">'a</span>&gt;,
+    on_toggle: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(bool) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
     label: String,
     width: Length,
     size: f32,
@@ -439,18 +462,12 @@
     <span class="doccomment">/// Creates a new [`Checkbox`].
     ///
     /// It expects:
-    ///   * a boolean describing whether the [`Checkbox`] is checked or not
     ///   * the label of the [`Checkbox`]
-    ///   * a function that will be called when the [`Checkbox`] is toggled. It
-    ///     will receive the new state of the [`Checkbox`] and must produce a
-    ///     `Message`.
-    </span><span class="kw">pub fn </span>new&lt;F&gt;(label: <span class="kw">impl </span>Into&lt;String&gt;, is_checked: bool, f: F) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>F: <span class="lifetime">'a </span>+ Fn(bool) -&gt; Message,
-    {
+    ///   * a boolean describing whether the [`Checkbox`] is checked or not
+    </span><span class="kw">pub fn </span>new(label: <span class="kw">impl </span>Into&lt;String&gt;, is_checked: bool) -&gt; <span class="self">Self </span>{
         Checkbox {
             is_checked,
-            on_toggle: Box::new(f),
+            on_toggle: <span class="prelude-val">None</span>,
             label: label.into(),
             width: Length::Shrink,
             size: <span class="self">Self</span>::DEFAULT_SIZE,
@@ -469,6 +486,31 @@
             style: Default::default(),
         }
     }
+
+    <span class="doccomment">/// Sets the function that will be called when the [`Checkbox`] is toggled.
+    /// It will receive the new state of the [`Checkbox`] and must produce a
+    /// `Message`.
+    ///
+    /// Unless `on_toggle` is called, the [`Checkbox`] will be disabled.
+    </span><span class="kw">pub fn </span>on_toggle&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, f: F) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: <span class="lifetime">'a </span>+ Fn(bool) -&gt; Message,
+    {
+        <span class="self">self</span>.on_toggle = <span class="prelude-val">Some</span>(Box::new(f));
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the function that will be called when the [`Checkbox`] is toggled,
+    /// if `Some`.
+    ///
+    /// If `None`, the checkbox will be disabled.
+    </span><span class="kw">pub fn </span>on_toggle_maybe&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, f: <span class="prelude-ty">Option</span>&lt;F&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>F: Fn(bool) -&gt; Message + <span class="lifetime">'a</span>,
+    {
+        <span class="self">self</span>.on_toggle = f.map(|f| Box::new(f) <span class="kw">as _</span>);
+        <span class="self">self
+    </span>}
 
     <span class="doccomment">/// Sets the size of the [`Checkbox`].
     </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
@@ -604,9 +646,10 @@
                 <span class="kw">let </span>mouse_over = cursor.is_over(layout.bounds());
 
                 <span class="kw">if </span>mouse_over {
-                    shell.publish((<span class="self">self</span>.on_toggle)(!<span class="self">self</span>.is_checked));
-
-                    <span class="kw">return </span>event::Status::Captured;
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(on_toggle) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_toggle {
+                        shell.publish((on_toggle)(!<span class="self">self</span>.is_checked));
+                        <span class="kw">return </span>event::Status::Captured;
+                    }
                 }
             }
             <span class="kw">_ </span>=&gt; {}
@@ -623,7 +666,7 @@
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
         _renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; mouse::Interaction {
-        <span class="kw">if </span>cursor.is_over(layout.bounds()) {
+        <span class="kw">if </span>cursor.is_over(layout.bounds()) &amp;&amp; <span class="self">self</span>.on_toggle.is_some() {
             mouse::Interaction::Pointer
         } <span class="kw">else </span>{
             mouse::Interaction::default()
@@ -641,10 +684,13 @@
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
         <span class="kw">let </span>is_mouse_over = cursor.is_over(layout.bounds());
+        <span class="kw">let </span>is_disabled = <span class="self">self</span>.on_toggle.is_none();
 
         <span class="kw">let </span><span class="kw-2">mut </span>children = layout.children();
 
-        <span class="kw">let </span>custom_style = <span class="kw">if </span>is_mouse_over {
+        <span class="kw">let </span>custom_style = <span class="kw">if </span>is_disabled {
+            theme.disabled(<span class="kw-2">&amp;</span><span class="self">self</span>.style, <span class="self">self</span>.is_checked)
+        } <span class="kw">else if </span>is_mouse_over {
             theme.hovered(<span class="kw-2">&amp;</span><span class="self">self</span>.style, <span class="self">self</span>.is_checked)
         } <span class="kw">else </span>{
             theme.active(<span class="kw-2">&amp;</span><span class="self">self</span>.style, <span class="self">self</span>.is_checked)
