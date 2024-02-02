@@ -679,7 +679,7 @@
 <a href="#679" id="679">679</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and draw geometry.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::text::LineHeight;
-<span class="kw">use </span><span class="kw">crate</span>::core::{Pixels, Point, Rectangle, Size, Vector};
+<span class="kw">use </span><span class="kw">crate</span>::core::{Pixels, Point, Rectangle, Size, Transformation, Vector};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::fill::{<span class="self">self</span>, Fill};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{
@@ -1114,7 +1114,7 @@
     </span><span class="kw">pub fn </span>clip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: Frame, at: Point) {
         <span class="kw">let </span>size = frame.size();
         <span class="kw">let </span>primitives = frame.into_primitives();
-        <span class="kw">let </span>translation = Vector::new(at.x, at.y);
+        <span class="kw">let </span>transformation = Transformation::translate(at.x, at.y);
 
         <span class="kw">let </span>(text, meshes) = primitives
             .into_iter()
@@ -1122,12 +1122,12 @@
 
         <span class="self">self</span>.primitives.push(Primitive::Group {
             primitives: <span class="macro">vec!</span>[
-                Primitive::Translate {
-                    translation,
+                Primitive::Transform {
+                    transformation,
                     content: Box::new(Primitive::Group { primitives: meshes }),
                 },
-                Primitive::Translate {
-                    translation,
+                Primitive::Transform {
+                    transformation,
                     content: Box::new(Primitive::Clip {
                         bounds: Rectangle::with_size(size),
                         content: Box::new(Primitive::Group {

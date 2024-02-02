@@ -258,7 +258,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::svg;
 <span class="kw">use </span><span class="kw">crate</span>::core::text::Text;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Background, Color, Font, Pixels, Point, Rectangle, Size, Vector,
+    Background, Color, Font, Pixels, Point, Rectangle, Size, Transformation,
 };
 <span class="kw">use </span><span class="kw">crate</span>::text;
 <span class="kw">use </span><span class="kw">crate</span>::Primitive;
@@ -325,20 +325,20 @@
     }
 
     <span class="doccomment">/// Starts recording a translation.
-    </span><span class="kw">pub fn </span>start_translation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Primitive&lt;B::Primitive&gt;&gt; {
+    </span><span class="kw">pub fn </span>start_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Primitive&lt;B::Primitive&gt;&gt; {
         std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives)
     }
 
     <span class="doccomment">/// Ends the recording of a translation.
-    </span><span class="kw">pub fn </span>end_translation(
+    </span><span class="kw">pub fn </span>end_transformation(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         primitives: Vec&lt;Primitive&lt;B::Primitive&gt;&gt;,
-        translation: Vector,
+        transformation: Transformation,
     ) {
         <span class="kw">let </span>layer = std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives, primitives);
 
         <span class="self">self</span>.primitives
-            .push(Primitive::group(layer).translate(translation));
+            .push(Primitive::group(layer).transform(transformation));
     }
 }
 
@@ -351,16 +351,16 @@
         <span class="self">self</span>.end_layer(current, bounds);
     }
 
-    <span class="kw">fn </span>with_translation(
+    <span class="kw">fn </span>with_transformation(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        translation: Vector,
+        transformation: Transformation,
         f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>),
     ) {
-        <span class="kw">let </span>current = <span class="self">self</span>.start_translation();
+        <span class="kw">let </span>current = <span class="self">self</span>.start_transformation();
 
         f(<span class="self">self</span>);
 
-        <span class="self">self</span>.end_translation(current, translation);
+        <span class="self">self</span>.end_transformation(current, transformation);
     }
 
     <span class="kw">fn </span>fill_quad(

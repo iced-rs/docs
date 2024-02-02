@@ -298,8 +298,21 @@
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
-<span class="kw">use </span><span class="kw">crate</span>::core::{Rectangle, Size};
+<span class="kw">use </span><span class="kw">crate</span>::core::{Rectangle, Size, Transformation};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::cache::{<span class="self">self</span>, Cache};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::{font_system, to_color, Editor, Paragraph};
@@ -409,7 +422,9 @@
 
                     <span class="prelude-val">Some</span>(Allocation::Cache(key))
                 }
-                Text::Raw(text) =&gt; text.buffer.upgrade().map(Allocation::Raw),
+                Text::Raw { raw, .. } =&gt; {
+                    raw.buffer.upgrade().map(Allocation::Raw)
+                }
             })
             .collect();
 
@@ -424,11 +439,13 @@
                     vertical_alignment,
                     color,
                     clip_bounds,
+                    transformation,
                 ) = <span class="kw">match </span>section {
                     Text::Paragraph {
                         position,
                         color,
                         clip_bounds,
+                        transformation,
                         ..
                     } =&gt; {
                         <span class="kw">use </span><span class="kw">crate</span>::core::text::Paragraph <span class="kw">as _</span>;
@@ -445,12 +462,14 @@
                             paragraph.vertical_alignment(),
                             <span class="kw-2">*</span>color,
                             <span class="kw-2">*</span>clip_bounds,
+                            <span class="kw-2">*</span>transformation,
                         )
                     }
                     Text::Editor {
                         position,
                         color,
                         clip_bounds,
+                        transformation,
                         ..
                     } =&gt; {
                         <span class="kw">use </span><span class="kw">crate</span>::core::text::Editor <span class="kw">as _</span>;
@@ -467,6 +486,7 @@
                             alignment::Vertical::Top,
                             <span class="kw-2">*</span>color,
                             <span class="kw-2">*</span>clip_bounds,
+                            <span class="kw-2">*</span>transformation,
                         )
                     }
                     Text::Cached(text) =&gt; {
@@ -486,9 +506,13 @@
                             text.vertical_alignment,
                             text.color,
                             text.clip_bounds,
+                            Transformation::IDENTITY,
                         )
                     }
-                    Text::Raw(text) =&gt; {
+                    Text::Raw {
+                        raw,
+                        transformation,
+                    } =&gt; {
                         <span class="kw">let </span><span class="prelude-val">Some</span>(Allocation::Raw(buffer)) = allocation <span class="kw">else </span>{
                             <span class="kw">return </span><span class="prelude-val">None</span>;
                         };
@@ -498,18 +522,19 @@
                         (
                             buffer.as_ref(),
                             Rectangle::new(
-                                text.position,
+                                raw.position,
                                 Size::new(width, height),
                             ),
                             alignment::Horizontal::Left,
                             alignment::Vertical::Top,
-                            text.color,
-                            text.clip_bounds,
+                            raw.color,
+                            raw.clip_bounds,
+                            <span class="kw-2">*</span>transformation,
                         )
                     }
                 };
 
-                <span class="kw">let </span>bounds = bounds * scale_factor;
+                <span class="kw">let </span>bounds = bounds * transformation * scale_factor;
 
                 <span class="kw">let </span>left = <span class="kw">match </span>horizontal_alignment {
                     alignment::Horizontal::Left =&gt; bounds.x,
@@ -527,14 +552,15 @@
                     alignment::Vertical::Bottom =&gt; bounds.y - bounds.height,
                 };
 
-                <span class="kw">let </span>clip_bounds =
-                    layer_bounds.intersection(<span class="kw-2">&amp;</span>(clip_bounds * scale_factor))<span class="question-mark">?</span>;
+                <span class="kw">let </span>clip_bounds = layer_bounds.intersection(
+                    <span class="kw-2">&amp;</span>(clip_bounds * transformation * scale_factor),
+                )<span class="question-mark">?</span>;
 
                 <span class="prelude-val">Some</span>(glyphon::TextArea {
                     buffer,
                     left,
                     top,
-                    scale: scale_factor,
+                    scale: scale_factor * transformation.scale_factor(),
                     bounds: glyphon::TextBounds {
                         left: clip_bounds.x <span class="kw">as </span>i32,
                         top: clip_bounds.y <span class="kw">as </span>i32,

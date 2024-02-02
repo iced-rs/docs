@@ -194,25 +194,27 @@
 <a href="#194" id="194">194</a>
 <a href="#195" id="195">195</a>
 <a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>cache;
 
 <span class="kw">pub use </span>cache::Cache;
 
-<span class="kw">use </span><span class="kw">crate</span>::core::{Point, Rectangle, Size, Vector};
+<span class="kw">use </span><span class="kw">crate</span>::core::{Point, Rectangle, Size, Transformation, Vector};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{Fill, Path, Stroke, Text};
 <span class="kw">use </span><span class="kw">crate</span>::Renderer;
-
-<span class="kw">pub enum </span>Frame {
-    TinySkia(iced_tiny_skia::geometry::Frame),
-    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
-    </span>Wgpu(iced_wgpu::geometry::Frame),
-}
-
-<span class="kw">pub enum </span>Geometry {
-    TinySkia(iced_tiny_skia::Primitive),
-    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
-    </span>Wgpu(iced_wgpu::Primitive),
-}
 
 <span class="macro">macro_rules! </span>delegate {
     (<span class="macro-nonterminal">$frame</span>:expr, <span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$body</span>:expr) =&gt; {
@@ -222,6 +224,32 @@
             </span><span class="self">Self</span>::Wgpu(<span class="macro-nonterminal">$name</span>) =&gt; <span class="macro-nonterminal">$body</span>,
         }
     };
+}
+
+<span class="kw">pub enum </span>Geometry {
+    TinySkia(iced_tiny_skia::Primitive),
+    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+    </span>Wgpu(iced_wgpu::Primitive),
+}
+
+<span class="kw">impl </span>Geometry {
+    <span class="kw">pub fn </span>transform(<span class="self">self</span>, transformation: Transformation) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::TinySkia(primitive) =&gt; {
+                <span class="self">Self</span>::TinySkia(primitive.transform(transformation))
+            }
+            <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+            </span><span class="self">Self</span>::Wgpu(primitive) =&gt; {
+                <span class="self">Self</span>::Wgpu(primitive.transform(transformation))
+            }
+        }
+    }
+}
+
+<span class="kw">pub enum </span>Frame {
+    TinySkia(iced_tiny_skia::geometry::Frame),
+    <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
+    </span>Wgpu(iced_wgpu::geometry::Frame),
 }
 
 <span class="kw">impl </span>Frame {

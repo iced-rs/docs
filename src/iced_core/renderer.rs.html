@@ -65,6 +65,20 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Write your own renderer.
 </span><span class="attr">#[cfg(debug_assertions)]
 </span><span class="kw">mod </span>null;
@@ -72,7 +86,9 @@
 <span class="attr">#[cfg(debug_assertions)]
 </span><span class="kw">pub use </span>null::Null;
 
-<span class="kw">use crate</span>::{Background, Border, Color, Rectangle, Shadow, Size, Vector};
+<span class="kw">use crate</span>::{
+    Background, Border, Color, Rectangle, Shadow, Size, Transformation, Vector,
+};
 
 <span class="doccomment">/// A component that can be used by widgets to draw themselves on a screen.
 </span><span class="kw">pub trait </span>Renderer: Sized {
@@ -81,12 +97,24 @@
     /// The layer will clip its contents to the provided `bounds`.
     </span><span class="kw">fn </span>with_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>));
 
-    <span class="doccomment">/// Applies a `translation` to the primitives recorded in the given closure.
+    <span class="doccomment">/// Applies a [`Transformation`] to the primitives recorded in the given closure.
+    </span><span class="kw">fn </span>with_transformation(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        transformation: Transformation,
+        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>),
+    );
+
+    <span class="doccomment">/// Applies a translation to the primitives recorded in the given closure.
     </span><span class="kw">fn </span>with_translation(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         translation: Vector,
         f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>),
-    );
+    ) {
+        <span class="self">self</span>.with_transformation(
+            Transformation::translate(translation.x, translation.y),
+            f,
+        );
+    }
 
     <span class="doccomment">/// Fills a [`Quad`] with the provided [`Background`].
     </span><span class="kw">fn </span>fill_quad(<span class="kw-2">&amp;mut </span><span class="self">self</span>, quad: Quad, background: <span class="kw">impl </span>Into&lt;Background&gt;);

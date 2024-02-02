@@ -341,21 +341,6 @@
 <a href="#341" id="341">341</a>
 <a href="#342" id="342">342</a>
 <a href="#343" id="343">343</a>
-<a href="#344" id="344">344</a>
-<a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a>
-<a href="#347" id="347">347</a>
-<a href="#348" id="348">348</a>
-<a href="#349" id="349">349</a>
-<a href="#350" id="350">350</a>
-<a href="#351" id="351">351</a>
-<a href="#352" id="352">352</a>
-<a href="#353" id="353">353</a>
-<a href="#354" id="354">354</a>
-<a href="#355" id="355">355</a>
-<a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a>
-<a href="#358" id="358">358</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Organize rendering primitives into a flattened list of layers.
 </span><span class="kw">mod </span>image;
 <span class="kw">mod </span>pipeline;
@@ -370,7 +355,9 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::core;
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
-<span class="kw">use </span><span class="kw">crate</span>::core::{Color, Font, Pixels, Point, Rectangle, Size, Vector};
+<span class="kw">use </span><span class="kw">crate</span>::core::{
+    Color, Font, Pixels, Point, Rectangle, Size, Transformation, Vector,
+};
 <span class="kw">use </span><span class="kw">crate</span>::graphics;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::Viewport;
@@ -462,7 +449,7 @@
         <span class="kw">for </span>primitive <span class="kw">in </span>primitives {
             <span class="self">Self</span>::process_primitive(
                 <span class="kw-2">&amp;mut </span>layers,
-                Vector::new(<span class="number">0.0</span>, <span class="number">0.0</span>),
+                Transformation::IDENTITY,
                 primitive,
                 <span class="number">0</span>,
             );
@@ -473,7 +460,7 @@
 
     <span class="kw">fn </span>process_primitive(
         layers: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;,
-        translation: Vector,
+        transformation: Transformation,
         primitive: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Primitive,
         current_layer: usize,
     ) {
@@ -488,9 +475,10 @@
 
                 layer.text.push(Text::Paragraph {
                     paragraph: paragraph.clone(),
-                    position: <span class="kw-2">*</span>position + translation,
+                    position: <span class="kw-2">*</span>position,
                     color: <span class="kw-2">*</span>color,
-                    clip_bounds: <span class="kw-2">*</span>clip_bounds + translation,
+                    clip_bounds: <span class="kw-2">*</span>clip_bounds,
+                    transformation,
                 });
             }
             Primitive::Editor {
@@ -503,9 +491,10 @@
 
                 layer.text.push(Text::Editor {
                     editor: editor.clone(),
-                    position: <span class="kw-2">*</span>position + translation,
+                    position: <span class="kw-2">*</span>position,
                     color: <span class="kw-2">*</span>color,
-                    clip_bounds: <span class="kw-2">*</span>clip_bounds + translation,
+                    clip_bounds: <span class="kw-2">*</span>clip_bounds,
+                    transformation,
                 });
             }
             Primitive::Text {
@@ -524,31 +513,24 @@
 
                 layer.text.push(Text::Cached(text::Cached {
                     content,
-                    bounds: <span class="kw-2">*</span>bounds + translation,
-                    size: <span class="kw-2">*</span>size,
+                    bounds: <span class="kw-2">*</span>bounds + transformation.translation(),
+                    size: <span class="kw-2">*</span>size * transformation.scale_factor(),
                     line_height: <span class="kw-2">*</span>line_height,
                     color: <span class="kw-2">*</span>color,
                     font: <span class="kw-2">*</span>font,
                     horizontal_alignment: <span class="kw-2">*</span>horizontal_alignment,
                     vertical_alignment: <span class="kw-2">*</span>vertical_alignment,
                     shaping: <span class="kw-2">*</span>shaping,
-                    clip_bounds: <span class="kw-2">*</span>clip_bounds + translation,
+                    clip_bounds: <span class="kw-2">*</span>clip_bounds * transformation,
                 }));
             }
-            graphics::Primitive::RawText(graphics::text::Raw {
-                buffer,
-                position,
-                color,
-                clip_bounds,
-            }) =&gt; {
+            graphics::Primitive::RawText(raw) =&gt; {
                 <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
 
-                layer.text.push(Text::Raw(graphics::text::Raw {
-                    buffer: buffer.clone(),
-                    position: <span class="kw-2">*</span>position + translation,
-                    color: <span class="kw-2">*</span>color,
-                    clip_bounds: <span class="kw-2">*</span>clip_bounds + translation,
-                }));
+                layer.text.push(Text::Raw {
+                    raw: raw.clone(),
+                    transformation,
+                });
             }
             Primitive::Quad {
                 bounds,
@@ -557,12 +539,10 @@
                 shadow,
             } =&gt; {
                 <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
+                <span class="kw">let </span>bounds = <span class="kw-2">*</span>bounds * transformation;
 
                 <span class="kw">let </span>quad = Quad {
-                    position: [
-                        bounds.x + translation.x,
-                        bounds.y + translation.y,
-                    ],
+                    position: [bounds.x, bounds.y],
                     size: [bounds.width, bounds.height],
                     border_color: color::pack(border.color),
                     border_radius: border.radius.into(),
@@ -584,7 +564,7 @@
                 layer.images.push(Image::Raster {
                     handle: handle.clone(),
                     filter_method: <span class="kw-2">*</span>filter_method,
-                    bounds: <span class="kw-2">*</span>bounds + translation,
+                    bounds: <span class="kw-2">*</span>bounds * transformation,
                 });
             }
             Primitive::Svg {
@@ -597,7 +577,7 @@
                 layer.images.push(Image::Vector {
                     handle: handle.clone(),
                     color: <span class="kw-2">*</span>color,
-                    bounds: <span class="kw-2">*</span>bounds + translation,
+                    bounds: <span class="kw-2">*</span>bounds * transformation,
                 });
             }
             Primitive::Group { primitives } =&gt; {
@@ -605,7 +585,7 @@
                 </span><span class="kw">for </span>primitive <span class="kw">in </span>primitives {
                     <span class="self">Self</span>::process_primitive(
                         layers,
-                        translation,
+                        transformation,
                         primitive,
                         current_layer,
                     );
@@ -613,7 +593,7 @@
             }
             Primitive::Clip { bounds, content } =&gt; {
                 <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-                <span class="kw">let </span>translated_bounds = <span class="kw-2">*</span>bounds + translation;
+                <span class="kw">let </span>translated_bounds = <span class="kw-2">*</span>bounds * transformation;
 
                 <span class="comment">// Only draw visible content
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(clip_bounds) =
@@ -624,19 +604,19 @@
 
                     <span class="self">Self</span>::process_primitive(
                         layers,
-                        translation,
+                        transformation,
                         content,
                         layers.len() - <span class="number">1</span>,
                     );
                 }
             }
-            Primitive::Translate {
-                translation: new_translation,
+            Primitive::Transform {
+                transformation: new_transformation,
                 content,
             } =&gt; {
                 <span class="self">Self</span>::process_primitive(
                     layers,
-                    translation + <span class="kw-2">*</span>new_translation,
+                    transformation * <span class="kw-2">*</span>new_transformation,
                     content,
                     current_layer,
                 );
@@ -644,7 +624,7 @@
             Primitive::Cache { content } =&gt; {
                 <span class="self">Self</span>::process_primitive(
                     layers,
-                    translation,
+                    transformation,
                     content,
                     current_layer,
                 );
@@ -654,20 +634,15 @@
                     graphics::Mesh::Solid { buffers, size } =&gt; {
                         <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
 
-                        <span class="kw">let </span>bounds = Rectangle::new(
-                            Point::new(translation.x, translation.y),
-                            <span class="kw-2">*</span>size,
-                        );
+                        <span class="kw">let </span>bounds =
+                            Rectangle::with_size(<span class="kw-2">*</span>size) * transformation;
 
                         <span class="comment">// Only draw visible content
                         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(clip_bounds) =
                             layer.bounds.intersection(<span class="kw-2">&amp;</span>bounds)
                         {
                             layer.meshes.push(Mesh::Solid {
-                                origin: Point::new(
-                                    translation.x,
-                                    translation.y,
-                                ),
+                                transformation,
                                 buffers,
                                 clip_bounds,
                             });
@@ -676,20 +651,15 @@
                     graphics::Mesh::Gradient { buffers, size } =&gt; {
                         <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
 
-                        <span class="kw">let </span>bounds = Rectangle::new(
-                            Point::new(translation.x, translation.y),
-                            <span class="kw-2">*</span>size,
-                        );
+                        <span class="kw">let </span>bounds =
+                            Rectangle::with_size(<span class="kw-2">*</span>size) * transformation;
 
                         <span class="comment">// Only draw visible content
                         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(clip_bounds) =
                             layer.bounds.intersection(<span class="kw-2">&amp;</span>bounds)
                         {
                             layer.meshes.push(Mesh::Gradient {
-                                origin: Point::new(
-                                    translation.x,
-                                    translation.y,
-                                ),
+                                transformation,
                                 buffers,
                                 clip_bounds,
                             });
@@ -698,7 +668,7 @@
                 },
                 primitive::Custom::Pipeline(pipeline) =&gt; {
                     <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-                    <span class="kw">let </span>bounds = pipeline.bounds + translation;
+                    <span class="kw">let </span>bounds = pipeline.bounds * transformation;
 
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(clip_bounds) =
                         layer.bounds.intersection(<span class="kw-2">&amp;</span>bounds)

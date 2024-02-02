@@ -999,9 +999,18 @@
 <a href="#999" id="999">999</a>
 <a href="#1000" id="1000">1000</a>
 <a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>tiny_skia::Size;
 
-<span class="kw">use </span><span class="kw">crate</span>::core::{Background, Color, Gradient, Rectangle, Vector};
+<span class="kw">use </span><span class="kw">crate</span>::core::{
+    Background, Color, Gradient, Rectangle, Transformation, Vector,
+};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::backend;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::Viewport;
@@ -1107,7 +1116,7 @@
                     clip_mask,
                     region,
                     scale_factor,
-                    Vector::ZERO,
+                    Transformation::IDENTITY,
                 );
             }
 
@@ -1147,7 +1156,7 @@
         clip_mask: <span class="kw-2">&amp;mut </span>tiny_skia::Mask,
         clip_bounds: Rectangle,
         scale_factor: f32,
-        translation: Vector,
+        transformation: Transformation,
     ) {
         <span class="kw">match </span>primitive {
             Primitive::Quad {
@@ -1165,7 +1174,7 @@
                     <span class="string">"Quad with non-normal height!"
                 </span>);
 
-                <span class="kw">let </span>physical_bounds = (<span class="kw-2">*</span>bounds + translation) * scale_factor;
+                <span class="kw">let </span>physical_bounds = (<span class="kw-2">*</span>bounds * transformation) * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
                     <span class="kw">return</span>;
@@ -1174,11 +1183,8 @@
                 <span class="kw">let </span>clip_mask = (!physical_bounds.is_within(<span class="kw-2">&amp;</span>clip_bounds))
                     .then_some(clip_mask <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">_</span>);
 
-                <span class="kw">let </span>transform = tiny_skia::Transform::from_translate(
-                    translation.x,
-                    translation.y,
-                )
-                .post_scale(scale_factor, scale_factor);
+                <span class="kw">let </span>transform = into_transform(transformation)
+                    .post_scale(scale_factor, scale_factor);
 
                 <span class="comment">// Make sure the border radius is not larger than the bounds
                 </span><span class="kw">let </span>border_width = border
@@ -1200,7 +1206,7 @@
                         y: bounds.y + shadow.offset.y - shadow.blur_radius,
                         width: bounds.width + shadow.blur_radius * <span class="number">2.0</span>,
                         height: bounds.height + shadow.blur_radius * <span class="number">2.0</span>,
-                    } + translation)
+                    } * transformation)
                         * scale_factor;
 
                     <span class="kw">let </span>radii = fill_border_radius
@@ -1452,7 +1458,7 @@
                 clip_bounds: text_clip_bounds,
             } =&gt; {
                 <span class="kw">let </span>physical_bounds =
-                    (<span class="kw-2">*</span>text_clip_bounds + translation) * scale_factor;
+                    <span class="kw-2">*</span>text_clip_bounds * transformation * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
                     <span class="kw">return</span>;
@@ -1463,11 +1469,12 @@
 
                 <span class="self">self</span>.text_pipeline.draw_paragraph(
                     paragraph,
-                    <span class="kw-2">*</span>position + translation,
+                    <span class="kw-2">*</span>position,
                     <span class="kw-2">*</span>color,
                     scale_factor,
                     pixels,
                     clip_mask,
+                    transformation,
                 );
             }
             Primitive::Editor {
@@ -1477,7 +1484,7 @@
                 clip_bounds: text_clip_bounds,
             } =&gt; {
                 <span class="kw">let </span>physical_bounds =
-                    (<span class="kw-2">*</span>text_clip_bounds + translation) * scale_factor;
+                    (<span class="kw-2">*</span>text_clip_bounds * transformation) * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
                     <span class="kw">return</span>;
@@ -1488,11 +1495,12 @@
 
                 <span class="self">self</span>.text_pipeline.draw_editor(
                     editor,
-                    <span class="kw-2">*</span>position + translation,
+                    <span class="kw-2">*</span>position,
                     <span class="kw-2">*</span>color,
                     scale_factor,
                     pixels,
                     clip_mask,
+                    transformation,
                 );
             }
             Primitive::Text {
@@ -1508,7 +1516,7 @@
                 clip_bounds: text_clip_bounds,
             } =&gt; {
                 <span class="kw">let </span>physical_bounds =
-                    (<span class="kw-2">*</span>text_clip_bounds + translation) * scale_factor;
+                    <span class="kw-2">*</span>text_clip_bounds * transformation * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
                     <span class="kw">return</span>;
@@ -1519,7 +1527,7 @@
 
                 <span class="self">self</span>.text_pipeline.draw_cached(
                     content,
-                    <span class="kw-2">*</span>bounds + translation,
+                    <span class="kw-2">*</span>bounds,
                     <span class="kw-2">*</span>color,
                     <span class="kw-2">*</span>size,
                     <span class="kw-2">*</span>line_height,
@@ -1530,6 +1538,7 @@
                     scale_factor,
                     pixels,
                     clip_mask,
+                    transformation,
                 );
             }
             Primitive::RawText(text::Raw {
@@ -1543,7 +1552,7 @@
                 };
 
                 <span class="kw">let </span>physical_bounds =
-                    (<span class="kw-2">*</span>text_clip_bounds + translation) * scale_factor;
+                    <span class="kw-2">*</span>text_clip_bounds * transformation * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
                     <span class="kw">return</span>;
@@ -1554,11 +1563,12 @@
 
                 <span class="self">self</span>.text_pipeline.draw_raw(
                     <span class="kw-2">&amp;</span>buffer,
-                    <span class="kw-2">*</span>position + translation,
+                    <span class="kw-2">*</span>position,
                     <span class="kw-2">*</span>color,
                     scale_factor,
                     pixels,
                     clip_mask,
+                    transformation,
                 );
             }
             <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
@@ -1567,7 +1577,7 @@
                 filter_method,
                 bounds,
             } =&gt; {
-                <span class="kw">let </span>physical_bounds = (<span class="kw-2">*</span>bounds + translation) * scale_factor;
+                <span class="kw">let </span>physical_bounds = (<span class="kw-2">*</span>bounds * transformation) * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
                     <span class="kw">return</span>;
@@ -1576,11 +1586,8 @@
                 <span class="kw">let </span>clip_mask = (!physical_bounds.is_within(<span class="kw-2">&amp;</span>clip_bounds))
                     .then_some(clip_mask <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">_</span>);
 
-                <span class="kw">let </span>transform = tiny_skia::Transform::from_translate(
-                    translation.x,
-                    translation.y,
-                )
-                .post_scale(scale_factor, scale_factor);
+                <span class="kw">let </span>transform = into_transform(transformation)
+                    .post_scale(scale_factor, scale_factor);
 
                 <span class="self">self</span>.raster_pipeline.draw(
                     handle,
@@ -1603,7 +1610,7 @@
                 bounds,
                 color,
             } =&gt; {
-                <span class="kw">let </span>physical_bounds = (<span class="kw-2">*</span>bounds + translation) * scale_factor;
+                <span class="kw">let </span>physical_bounds = (<span class="kw-2">*</span>bounds * transformation) * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
                     <span class="kw">return</span>;
@@ -1615,7 +1622,7 @@
                 <span class="self">self</span>.vector_pipeline.draw(
                     handle,
                     <span class="kw-2">*</span>color,
-                    (<span class="kw-2">*</span>bounds + translation) * scale_factor,
+                    (<span class="kw-2">*</span>bounds * transformation) * scale_factor,
                     pixels,
                     clip_mask,
                 );
@@ -1638,7 +1645,7 @@
                     y: bounds.y(),
                     width: bounds.width(),
                     height: bounds.height(),
-                } + translation)
+                } * transformation)
                     * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
@@ -1652,11 +1659,8 @@
                     path,
                     paint,
                     <span class="kw-2">*</span>rule,
-                    tiny_skia::Transform::from_translate(
-                        translation.x,
-                        translation.y,
-                    )
-                    .post_scale(scale_factor, scale_factor),
+                    into_transform(transformation)
+                        .post_scale(scale_factor, scale_factor),
                     clip_mask,
                 );
             }
@@ -1672,7 +1676,7 @@
                     y: bounds.y(),
                     width: bounds.width(),
                     height: bounds.height(),
-                } + translation)
+                } * transformation)
                     * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
@@ -1686,11 +1690,8 @@
                     path,
                     paint,
                     stroke,
-                    tiny_skia::Transform::from_translate(
-                        translation.x,
-                        translation.y,
-                    )
-                    .post_scale(scale_factor, scale_factor),
+                    into_transform(transformation)
+                        .post_scale(scale_factor, scale_factor),
                     clip_mask,
                 );
             }
@@ -1702,12 +1703,12 @@
                         clip_mask,
                         clip_bounds,
                         scale_factor,
-                        translation,
+                        transformation,
                     );
                 }
             }
-            Primitive::Translate {
-                translation: offset,
+            Primitive::Transform {
+                transformation: new_transformation,
                 content,
             } =&gt; {
                 <span class="self">self</span>.draw_primitive(
@@ -1716,11 +1717,11 @@
                     clip_mask,
                     clip_bounds,
                     scale_factor,
-                    translation + <span class="kw-2">*</span>offset,
+                    transformation * <span class="kw-2">*</span>new_transformation,
                 );
             }
             Primitive::Clip { bounds, content } =&gt; {
-                <span class="kw">let </span>bounds = (<span class="kw-2">*</span>bounds + translation) * scale_factor;
+                <span class="kw">let </span>bounds = (<span class="kw-2">*</span>bounds * transformation) * scale_factor;
 
                 <span class="kw">if </span>bounds == clip_bounds {
                     <span class="self">self</span>.draw_primitive(
@@ -1729,7 +1730,7 @@
                         clip_mask,
                         bounds,
                         scale_factor,
-                        translation,
+                        transformation,
                     );
                 } <span class="kw">else if let </span><span class="prelude-val">Some</span>(bounds) = clip_bounds.intersection(<span class="kw-2">&amp;</span>bounds) {
                     <span class="kw">if </span>bounds.x + bounds.width &lt;= <span class="number">0.0
@@ -1750,7 +1751,7 @@
                         clip_mask,
                         bounds,
                         scale_factor,
-                        translation,
+                        transformation,
                     );
 
                     adjust_clip_mask(clip_mask, clip_bounds);
@@ -1763,7 +1764,7 @@
                     clip_mask,
                     clip_bounds,
                     scale_factor,
-                    translation,
+                    transformation,
                 );
             }
         }
@@ -1779,6 +1780,19 @@
 <span class="kw">fn </span>into_color(color: Color) -&gt; tiny_skia::Color {
     tiny_skia::Color::from_rgba(color.b, color.g, color.r, color.a)
         .expect(<span class="string">"Convert color from iced to tiny_skia"</span>)
+}
+
+<span class="kw">fn </span>into_transform(transformation: Transformation) -&gt; tiny_skia::Transform {
+    <span class="kw">let </span>translation = transformation.translation();
+
+    tiny_skia::Transform {
+        sx: transformation.scale_factor(),
+        kx: <span class="number">0.0</span>,
+        ky: <span class="number">0.0</span>,
+        sy: transformation.scale_factor(),
+        tx: translation.x,
+        ty: translation.y,
+    }
 }
 
 <span class="kw">fn </span>rounded_rectangle(

@@ -146,13 +146,26 @@
 <a href="#146" id="146">146</a>
 <a href="#147" id="147">147</a>
 <a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Draw using different graphical primitives.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::image;
 <span class="kw">use </span><span class="kw">crate</span>::core::svg;
 <span class="kw">use </span><span class="kw">crate</span>::core::text;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Background, Border, Color, Font, Pixels, Point, Rectangle, Shadow, Vector,
+    Background, Border, Color, Font, Pixels, Point, Rectangle, Shadow,
+    Transformation, Vector,
 };
 <span class="kw">use </span><span class="kw">crate</span>::text::editor;
 <span class="kw">use </span><span class="kw">crate</span>::text::paragraph;
@@ -252,12 +265,12 @@
         <span class="doccomment">/// The content of the clip
         </span>content: Box&lt;Primitive&lt;T&gt;&gt;,
     },
-    <span class="doccomment">/// A primitive that applies a translation
-    </span>Translate {
-        <span class="doccomment">/// The translation vector
-        </span>translation: Vector,
+    <span class="doccomment">/// A primitive that applies a [`Transformation`]
+    </span>Transform {
+        <span class="doccomment">/// The [`Transformation`]
+        </span>transformation: Transformation,
 
-        <span class="doccomment">/// The primitive to translate
+        <span class="doccomment">/// The primitive to transform
         </span>content: Box&lt;Primitive&lt;T&gt;&gt;,
     },
     <span class="doccomment">/// A cached primitive.
@@ -273,12 +286,12 @@
 }
 
 <span class="kw">impl</span>&lt;T&gt; Primitive&lt;T&gt; {
-    <span class="doccomment">/// Creates a [`Primitive::Group`].
+    <span class="doccomment">/// Groups the current [`Primitive`].
     </span><span class="kw">pub fn </span>group(primitives: Vec&lt;<span class="self">Self</span>&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Group { primitives }
     }
 
-    <span class="doccomment">/// Creates a [`Primitive::Clip`].
+    <span class="doccomment">/// Clips the current [`Primitive`].
     </span><span class="kw">pub fn </span>clip(<span class="self">self</span>, bounds: Rectangle) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::Clip {
             bounds,
@@ -286,10 +299,21 @@
         }
     }
 
-    <span class="doccomment">/// Creates a [`Primitive::Translate`].
+    <span class="doccomment">/// Translates the current [`Primitive`].
     </span><span class="kw">pub fn </span>translate(<span class="self">self</span>, translation: Vector) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Translate {
-            translation,
+        <span class="self">Self</span>::Transform {
+            transformation: Transformation::translate(
+                translation.x,
+                translation.y,
+            ),
+            content: Box::new(<span class="self">self</span>),
+        }
+    }
+
+    <span class="doccomment">/// Transforms the current [`Primitive`].
+    </span><span class="kw">pub fn </span>transform(<span class="self">self</span>, transformation: Transformation) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Transform {
+            transformation,
             content: Box::new(<span class="self">self</span>),
         }
     }

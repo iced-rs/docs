@@ -356,9 +356,26 @@
 <a href="#356" id="356">356</a>
 <a href="#357" id="357">357</a>
 <a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::text::{LineHeight, Shaping};
-<span class="kw">use </span><span class="kw">crate</span>::core::{Color, Font, Pixels, Point, Rectangle, Size};
+<span class="kw">use </span><span class="kw">crate</span>::core::{
+    Color, Font, Pixels, Point, Rectangle, Size, Transformation,
+};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::cache::{<span class="self">self</span>, Cache};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::editor;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::font_system;
@@ -400,6 +417,7 @@
         scale_factor: f32,
         pixels: <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut&lt;<span class="lifetime">'_</span>&gt;,
         clip_mask: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tiny_skia::Mask&gt;,
+        transformation: Transformation,
     ) {
         <span class="kw">use </span><span class="kw">crate</span>::core::text::Paragraph <span class="kw">as _</span>;
 
@@ -420,6 +438,7 @@
             scale_factor,
             pixels,
             clip_mask,
+            transformation,
         );
     }
 
@@ -431,6 +450,7 @@
         scale_factor: f32,
         pixels: <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut&lt;<span class="lifetime">'_</span>&gt;,
         clip_mask: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tiny_skia::Mask&gt;,
+        transformation: Transformation,
     ) {
         <span class="kw">use </span><span class="kw">crate</span>::core::text::Editor <span class="kw">as _</span>;
 
@@ -451,6 +471,7 @@
             scale_factor,
             pixels,
             clip_mask,
+            transformation,
         );
     }
 
@@ -468,6 +489,7 @@
         scale_factor: f32,
         pixels: <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut&lt;<span class="lifetime">'_</span>&gt;,
         clip_mask: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tiny_skia::Mask&gt;,
+        transformation: Transformation,
     ) {
         <span class="kw">let </span>line_height = f32::from(line_height.to_absolute(size));
 
@@ -503,6 +525,7 @@
             scale_factor,
             pixels,
             clip_mask,
+            transformation,
         );
     }
 
@@ -514,6 +537,7 @@
         scale_factor: f32,
         pixels: <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut&lt;<span class="lifetime">'_</span>&gt;,
         clip_mask: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tiny_skia::Mask&gt;,
+        transformation: Transformation,
     ) {
         <span class="kw">let </span><span class="kw-2">mut </span>font_system = font_system().write().expect(<span class="string">"Write font system"</span>);
 
@@ -530,6 +554,7 @@
             scale_factor,
             pixels,
             clip_mask,
+            transformation,
         );
     }
 
@@ -550,8 +575,9 @@
     scale_factor: f32,
     pixels: <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut&lt;<span class="lifetime">'_</span>&gt;,
     clip_mask: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tiny_skia::Mask&gt;,
+    transformation: Transformation,
 ) {
-    <span class="kw">let </span>bounds = bounds * scale_factor;
+    <span class="kw">let </span>bounds = bounds * transformation * scale_factor;
 
     <span class="kw">let </span>x = <span class="kw">match </span>horizontal_alignment {
         alignment::Horizontal::Left =&gt; bounds.x,
@@ -569,7 +595,8 @@
 
     <span class="kw">for </span>run <span class="kw">in </span>buffer.layout_runs() {
         <span class="kw">for </span>glyph <span class="kw">in </span>run.glyphs {
-            <span class="kw">let </span>physical_glyph = glyph.physical((x, y), scale_factor);
+            <span class="kw">let </span>physical_glyph = glyph
+                .physical((x, y), scale_factor * transformation.scale_factor());
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>((buffer, placement)) = glyph_cache.allocate(
                 physical_glyph.cache_key,
@@ -587,7 +614,10 @@
                 pixels.draw_pixmap(
                     physical_glyph.x + placement.left,
                     physical_glyph.y - placement.top
-                        + (run.line_y * scale_factor).round() <span class="kw">as </span>i32,
+                        + (run.line_y
+                            * scale_factor
+                            * transformation.scale_factor())
+                        .round() <span class="kw">as </span>i32,
                     pixmap,
                     <span class="kw-2">&amp;</span>tiny_skia::PixmapPaint::default(),
                     tiny_skia::Transform::identity(),
