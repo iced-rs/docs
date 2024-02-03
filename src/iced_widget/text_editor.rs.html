@@ -742,6 +742,12 @@
 <a href="#742" id="742">742</a>
 <a href="#743" id="743">743</a>
 <a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a multi-line text input for text editing.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -1033,6 +1039,7 @@
     is_focused: bool,
     last_click: <span class="prelude-ty">Option</span>&lt;mouse::Click&gt;,
     drag_click: <span class="prelude-ty">Option</span>&lt;mouse::click::Kind&gt;,
+    partial_scroll: f32,
     highlighter: RefCell&lt;Highlighter&gt;,
     highlighter_settings: Highlighter::Settings,
     highlighter_format_address: usize,
@@ -1054,6 +1061,7 @@
             is_focused: <span class="bool-val">false</span>,
             last_click: <span class="prelude-val">None</span>,
             drag_click: <span class="prelude-val">None</span>,
+            partial_scroll: <span class="number">0.0</span>,
             highlighter: RefCell::new(Highlighter::new(
                 <span class="kw-2">&amp;</span><span class="self">self</span>.highlighter_settings,
             )),
@@ -1147,6 +1155,14 @@
                 state.drag_click = <span class="prelude-val">Some</span>(click.kind());
 
                 shell.publish(on_edit(action));
+            }
+            Update::Scroll(lines) =&gt; {
+                <span class="kw">let </span>lines = lines + state.partial_scroll;
+                state.partial_scroll = lines.fract();
+
+                shell.publish(on_edit(Action::Scroll {
+                    lines: lines <span class="kw">as </span>i32,
+                }));
             }
             Update::Unfocus =&gt; {
                 state.is_focused = <span class="bool-val">false</span>;
@@ -1321,6 +1337,7 @@
 
 <span class="kw">enum </span>Update {
     Click(mouse::Click),
+    Scroll(f32),
     Unfocus,
     Release,
     Action(Action),
@@ -1374,21 +1391,16 @@
                 mouse::Event::WheelScrolled { delta }
                     <span class="kw">if </span>cursor.is_over(bounds) =&gt;
                 {
-                    action(Action::Scroll {
-                        lines: <span class="kw">match </span>delta {
-                            mouse::ScrollDelta::Lines { y, .. } =&gt; {
-                                <span class="kw">if </span>y.abs() &gt; <span class="number">0.0 </span>{
-                                    (y.signum() * -(y.abs() * <span class="number">4.0</span>).max(<span class="number">1.0</span>))
-                                        <span class="kw">as </span>i32
-                                } <span class="kw">else </span>{
-                                    <span class="number">0
-                                </span>}
-                            }
-                            mouse::ScrollDelta::Pixels { y, .. } =&gt; {
-                                (-y / <span class="number">4.0</span>) <span class="kw">as </span>i32
-                            }
-                        },
-                    })
+                    <span class="prelude-val">Some</span>(Update::Scroll(<span class="kw">match </span>delta {
+                        mouse::ScrollDelta::Lines { y, .. } =&gt; {
+                            <span class="kw">if </span>y.abs() &gt; <span class="number">0.0 </span>{
+                                y.signum() * -(y.abs() * <span class="number">4.0</span>).max(<span class="number">1.0</span>)
+                            } <span class="kw">else </span>{
+                                <span class="number">0.0
+                            </span>}
+                        }
+                        mouse::ScrollDelta::Pixels { y, .. } =&gt; -y / <span class="number">4.0</span>,
+                    }))
                 }
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             },
