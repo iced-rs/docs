@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"static":["EXTENDED_DARK","EXTENDED_LIGHT"],"struct":["Background","Danger","Extended","Pair","Palette","Primary","Secondary","Success"]};
+window.SIDEBAR_ITEMS = {"static":["EXTENDED_DARK","EXTENDED_DRACULA","EXTENDED_GRUVBOX_DARK","EXTENDED_GRUVBOX_LIGHT","EXTENDED_LIGHT","EXTENDED_NORD","EXTENDED_SOLARIZED_DARK","EXTENDED_SOLARIZED_LIGHT"],"struct":["Background","Danger","Extended","Pair","Palette","Primary","Secondary","Success"]};

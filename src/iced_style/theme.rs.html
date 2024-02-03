@@ -1378,6 +1378,46 @@
 <a href="#1378" id="1378">1378</a>
 <a href="#1379" id="1379">1379</a>
 <a href="#1380" id="1380">1380</a>
+<a href="#1381" id="1381">1381</a>
+<a href="#1382" id="1382">1382</a>
+<a href="#1383" id="1383">1383</a>
+<a href="#1384" id="1384">1384</a>
+<a href="#1385" id="1385">1385</a>
+<a href="#1386" id="1386">1386</a>
+<a href="#1387" id="1387">1387</a>
+<a href="#1388" id="1388">1388</a>
+<a href="#1389" id="1389">1389</a>
+<a href="#1390" id="1390">1390</a>
+<a href="#1391" id="1391">1391</a>
+<a href="#1392" id="1392">1392</a>
+<a href="#1393" id="1393">1393</a>
+<a href="#1394" id="1394">1394</a>
+<a href="#1395" id="1395">1395</a>
+<a href="#1396" id="1396">1396</a>
+<a href="#1397" id="1397">1397</a>
+<a href="#1398" id="1398">1398</a>
+<a href="#1399" id="1399">1399</a>
+<a href="#1400" id="1400">1400</a>
+<a href="#1401" id="1401">1401</a>
+<a href="#1402" id="1402">1402</a>
+<a href="#1403" id="1403">1403</a>
+<a href="#1404" id="1404">1404</a>
+<a href="#1405" id="1405">1405</a>
+<a href="#1406" id="1406">1406</a>
+<a href="#1407" id="1407">1407</a>
+<a href="#1408" id="1408">1408</a>
+<a href="#1409" id="1409">1409</a>
+<a href="#1410" id="1410">1410</a>
+<a href="#1411" id="1411">1411</a>
+<a href="#1412" id="1412">1412</a>
+<a href="#1413" id="1413">1413</a>
+<a href="#1414" id="1414">1414</a>
+<a href="#1415" id="1415">1415</a>
+<a href="#1416" id="1416">1416</a>
+<a href="#1417" id="1417">1417</a>
+<a href="#1418" id="1418">1418</a>
+<a href="#1419" id="1419">1419</a>
+<a href="#1420" id="1420">1420</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Use the built-in theme and styles.
 </span><span class="kw">pub mod </span>palette;
 
@@ -1405,6 +1445,7 @@
 
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::rc::Rc;
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="doccomment">/// A built-in theme.
 </span><span class="attr">#[derive(Debug, Clone, PartialEq, Default)]
@@ -1414,13 +1455,34 @@
     </span>Light,
     <span class="doccomment">/// The built-in dark variant.
     </span>Dark,
+    <span class="doccomment">/// The built-in Dracula variant.
+    </span>Dracula,
+    <span class="doccomment">/// The built-in Nord variant.
+    </span>Nord,
+    <span class="doccomment">/// The built-in Solarized Light variant.
+    </span>SolarizedLight,
+    <span class="doccomment">/// The built-in Solarized Dark variant.
+    </span>SolarizedDark,
+    <span class="doccomment">/// The built-in Gruvbox Light variant.
+    </span>GruvboxLight,
+    <span class="doccomment">/// The built-in Gruvbox Dark variant.
+    </span>GruvboxDark,
     <span class="doccomment">/// A [`Theme`] that uses a [`Custom`] palette.
-    </span>Custom(Box&lt;Custom&gt;),
+    </span>Custom(Arc&lt;Custom&gt;),
 }
 
 <span class="kw">impl </span>Theme {
     <span class="doccomment">/// A list with all the defined themes.
-    </span><span class="kw">pub const </span>ALL: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="self">Self</span>] = <span class="kw-2">&amp;</span>[<span class="self">Self</span>::Light, <span class="self">Self</span>::Dark];
+    </span><span class="kw">pub const </span>ALL: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="self">Self</span>] = <span class="kw-2">&amp;</span>[
+        <span class="self">Self</span>::Light,
+        <span class="self">Self</span>::Dark,
+        <span class="self">Self</span>::Dracula,
+        <span class="self">Self</span>::Nord,
+        <span class="self">Self</span>::SolarizedLight,
+        <span class="self">Self</span>::SolarizedDark,
+        <span class="self">Self</span>::GruvboxLight,
+        <span class="self">Self</span>::GruvboxDark,
+    ];
 
     <span class="doccomment">/// Creates a new custom [`Theme`] from the given [`Palette`].
     </span><span class="kw">pub fn </span>custom(name: String, palette: Palette) -&gt; <span class="self">Self </span>{
@@ -1434,7 +1496,7 @@
         palette: Palette,
         generate: <span class="kw">impl </span>FnOnce(Palette) -&gt; palette::Extended,
     ) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Custom(Box::new(Custom::with_fn(name, palette, generate)))
+        <span class="self">Self</span>::Custom(Arc::new(Custom::with_fn(name, palette, generate)))
     }
 
     <span class="doccomment">/// Returns the [`Palette`] of the [`Theme`].
@@ -1442,6 +1504,12 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Light =&gt; Palette::LIGHT,
             <span class="self">Self</span>::Dark =&gt; Palette::DARK,
+            <span class="self">Self</span>::Dracula =&gt; Palette::DRACULA,
+            <span class="self">Self</span>::Nord =&gt; Palette::NORD,
+            <span class="self">Self</span>::SolarizedLight =&gt; Palette::SOLARIZED_LIGHT,
+            <span class="self">Self</span>::SolarizedDark =&gt; Palette::SOLARIZED_DARK,
+            <span class="self">Self</span>::GruvboxLight =&gt; Palette::GRUVBOX_LIGHT,
+            <span class="self">Self</span>::GruvboxDark =&gt; Palette::GRUVBOX_DARK,
             <span class="self">Self</span>::Custom(custom) =&gt; custom.palette,
         }
     }
@@ -1451,6 +1519,12 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Light =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_LIGHT,
             <span class="self">Self</span>::Dark =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_DARK,
+            <span class="self">Self</span>::Dracula =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_DRACULA,
+            <span class="self">Self</span>::Nord =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_NORD,
+            <span class="self">Self</span>::SolarizedLight =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_SOLARIZED_LIGHT,
+            <span class="self">Self</span>::SolarizedDark =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_SOLARIZED_DARK,
+            <span class="self">Self</span>::GruvboxLight =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_GRUVBOX_LIGHT,
+            <span class="self">Self</span>::GruvboxDark =&gt; <span class="kw-2">&amp;</span>palette::EXTENDED_GRUVBOX_DARK,
             <span class="self">Self</span>::Custom(custom) =&gt; <span class="kw-2">&amp;</span>custom.extended,
         }
     }
@@ -1461,6 +1535,12 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Light =&gt; <span class="macro">write!</span>(f, <span class="string">"Light"</span>),
             <span class="self">Self</span>::Dark =&gt; <span class="macro">write!</span>(f, <span class="string">"Dark"</span>),
+            <span class="self">Self</span>::Dracula =&gt; <span class="macro">write!</span>(f, <span class="string">"Dracula"</span>),
+            <span class="self">Self</span>::Nord =&gt; <span class="macro">write!</span>(f, <span class="string">"Nord"</span>),
+            <span class="self">Self</span>::SolarizedLight =&gt; <span class="macro">write!</span>(f, <span class="string">"Solarized Light"</span>),
+            <span class="self">Self</span>::SolarizedDark =&gt; <span class="macro">write!</span>(f, <span class="string">"Solarized Dark"</span>),
+            <span class="self">Self</span>::GruvboxLight =&gt; <span class="macro">write!</span>(f, <span class="string">"Gruvbox Light"</span>),
+            <span class="self">Self</span>::GruvboxDark =&gt; <span class="macro">write!</span>(f, <span class="string">"Gruvbox Dark"</span>),
             <span class="self">Self</span>::Custom(custom) =&gt; custom.fmt(f),
         }
     }
