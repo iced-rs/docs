@@ -93,14 +93,19 @@
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::clipboard;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget;
 <span class="kw">use </span><span class="kw">crate</span>::font;
+<span class="kw">use </span><span class="kw">crate</span>::futures::MaybeSend;
 <span class="kw">use </span><span class="kw">crate</span>::system;
 <span class="kw">use </span><span class="kw">crate</span>::window;
 
-<span class="kw">use </span>iced_futures::MaybeSend;
-
+<span class="kw">use </span>std::any::Any;
 <span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::fmt;
 
@@ -138,6 +143,9 @@
         <span class="doccomment">/// The message to produce when the font has been loaded.
         </span>tagger: Box&lt;<span class="kw">dyn </span>Fn(<span class="prelude-ty">Result</span>&lt;(), font::Error&gt;) -&gt; T&gt;,
     },
+
+    <span class="doccomment">/// A custom action supported by a specific runtime.
+    </span>Custom(Box&lt;<span class="kw">dyn </span>Any&gt;),
 }
 
 <span class="kw">impl</span>&lt;T&gt; Action&lt;T&gt; {
@@ -167,6 +175,7 @@
                 bytes,
                 tagger: Box::new(<span class="kw">move </span>|result| f(tagger(result))),
             },
+            <span class="self">Self</span>::Custom(custom) =&gt; Action::Custom(custom),
         }
     }
 }
@@ -185,6 +194,7 @@
             <span class="self">Self</span>::System(action) =&gt; <span class="macro">write!</span>(f, <span class="string">"Action::System({action:?})"</span>),
             <span class="self">Self</span>::Widget(_action) =&gt; <span class="macro">write!</span>(f, <span class="string">"Action::Widget"</span>),
             <span class="self">Self</span>::LoadFont { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">"Action::LoadFont"</span>),
+            <span class="self">Self</span>::Custom(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Action::Custom"</span>),
         }
     }
 }
