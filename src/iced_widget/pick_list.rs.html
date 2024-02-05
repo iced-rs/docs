@@ -759,6 +759,36 @@
 <a href="#759" id="759">759</a>
 <a href="#760" id="760">760</a>
 <a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
+<a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of selectable values.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
@@ -795,7 +825,9 @@
     Theme: StyleSheet,
     Renderer: text::Renderer,
 {
-    on_selected: Box&lt;<span class="kw">dyn </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>&gt;,
+    on_select: Box&lt;<span class="kw">dyn </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>&gt;,
+    on_open: <span class="prelude-ty">Option</span>&lt;Message&gt;,
+    on_close: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     options: Cow&lt;<span class="lifetime">'a</span>, [T]&gt;,
     placeholder: <span class="prelude-ty">Option</span>&lt;String&gt;,
     selected: <span class="prelude-ty">Option</span>&lt;T&gt;,
@@ -814,6 +846,7 @@
 <span class="kw">where
     </span>T: ToString + PartialEq,
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
+    Message: Clone,
     Theme: StyleSheet
         + scrollable::StyleSheet
         + menu::StyleSheet
@@ -829,10 +862,12 @@
     </span><span class="kw">pub fn </span>new(
         options: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'a</span>, [T]&gt;&gt;,
         selected: <span class="prelude-ty">Option</span>&lt;T&gt;,
-        on_selected: <span class="kw">impl </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>,
+        on_select: <span class="kw">impl </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            on_selected: Box::new(on_selected),
+            on_select: Box::new(on_select),
+            on_open: <span class="prelude-val">None</span>,
+            on_close: <span class="prelude-val">None</span>,
             options: options.into(),
             placeholder: <span class="prelude-val">None</span>,
             selected,
@@ -898,6 +933,18 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Sets the message that will be produced when the [`PickList`] is opened.
+    </span><span class="kw">pub fn </span>on_open(<span class="kw-2">mut </span><span class="self">self</span>, on_open: Message) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.on_open = <span class="prelude-val">Some</span>(on_open);
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the message that will be produced when the [`PickList`] is closed.
+    </span><span class="kw">pub fn </span>on_close(<span class="kw-2">mut </span><span class="self">self</span>, on_close: Message) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.on_close = <span class="prelude-val">Some</span>(on_close);
+        <span class="self">self
+    </span>}
+
     <span class="doccomment">/// Sets the style of the [`PickList`].
     </span><span class="kw">pub fn </span>style(
         <span class="kw-2">mut </span><span class="self">self</span>,
@@ -913,7 +960,7 @@
 <span class="kw">where
     </span>T: Clone + ToString + PartialEq + <span class="lifetime">'static</span>,
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
-    Message: <span class="lifetime">'a</span>,
+    Message: Clone + <span class="lifetime">'a</span>,
     Theme: StyleSheet
         + scrollable::StyleSheet
         + menu::StyleSheet
@@ -973,7 +1020,9 @@
             layout,
             cursor,
             shell,
-            <span class="self">self</span>.on_selected.as_ref(),
+            <span class="self">self</span>.on_select.as_ref(),
+            <span class="self">self</span>.on_open.as_ref(),
+            <span class="self">self</span>.on_close.as_ref(),
             <span class="self">self</span>.selected.as_ref(),
             <span class="kw-2">&amp;</span><span class="self">self</span>.options,
             || tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
@@ -1039,7 +1088,7 @@
             <span class="self">self</span>.text_shaping,
             <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font()),
             <span class="kw-2">&amp;</span><span class="self">self</span>.options,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.on_selected,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.on_select,
             <span class="self">self</span>.style.clone(),
         )
     }
@@ -1051,7 +1100,7 @@
 <span class="kw">where
     </span>T: Clone + ToString + PartialEq + <span class="lifetime">'static</span>,
     [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
-    Message: <span class="lifetime">'a</span>,
+    Message: Clone + <span class="lifetime">'a</span>,
     Theme: StyleSheet
         + scrollable::StyleSheet
         + menu::StyleSheet
@@ -1234,7 +1283,9 @@
     layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
     cursor: mouse::Cursor,
     shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
-    on_selected: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(T) -&gt; Message,
+    on_select: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(T) -&gt; Message,
+    on_open: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Message&gt;,
+    on_close: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Message&gt;,
     selected: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;,
     options: <span class="kw-2">&amp;</span>[T],
     state: <span class="kw">impl </span>FnOnce() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>State&lt;P&gt;,
@@ -1242,6 +1293,7 @@
 <span class="kw">where
     </span>T: PartialEq + Clone + <span class="lifetime">'a</span>,
     P: text::Paragraph + <span class="lifetime">'a</span>,
+    Message: Clone,
 {
     <span class="kw">match </span>event {
         Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
@@ -1253,11 +1305,19 @@
                 // bounds or on the drop-down, either way we close the overlay.
                 </span>state.is_open = <span class="bool-val">false</span>;
 
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(on_close) = on_close {
+                    shell.publish(on_close.clone());
+                }
+
                 event::Status::Captured
             } <span class="kw">else if </span>cursor.is_over(layout.bounds()) {
                 state.is_open = <span class="bool-val">true</span>;
                 state.hovered_option =
                     options.iter().position(|option| <span class="prelude-val">Some</span>(option) == selected);
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(on_open) = on_open {
+                    shell.publish(on_open.clone());
+                }
 
                 event::Status::Captured
             } <span class="kw">else </span>{
@@ -1299,7 +1359,7 @@
                 </span>};
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(next_option) = next_option {
-                    shell.publish((on_selected)(next_option.clone()));
+                    shell.publish((on_select)(next_option.clone()));
                 }
 
                 event::Status::Captured
