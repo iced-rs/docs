@@ -383,6 +383,22 @@
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A container for capturing mouse events.
 
 </span><span class="kw">use </span>iced_renderer::core::Point;
@@ -413,9 +429,10 @@
     on_right_release: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     on_middle_press: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     on_middle_release: <span class="prelude-ty">Option</span>&lt;Message&gt;,
-    on_mouse_enter: <span class="prelude-ty">Option</span>&lt;Message&gt;,
-    on_mouse_move: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Point) -&gt; Message&gt;&gt;,
-    on_mouse_exit: <span class="prelude-ty">Option</span>&lt;Message&gt;,
+    on_enter: <span class="prelude-ty">Option</span>&lt;Message&gt;,
+    on_move: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Point) -&gt; Message&gt;&gt;,
+    on_exit: <span class="prelude-ty">Option</span>&lt;Message&gt;,
+    interaction: <span class="prelude-ty">Option</span>&lt;mouse::Interaction&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; MouseArea&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
@@ -463,25 +480,32 @@
 
     <span class="doccomment">/// The message to emit when the mouse enters the area.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>on_mouse_enter(<span class="kw-2">mut </span><span class="self">self</span>, message: Message) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.on_mouse_enter = <span class="prelude-val">Some</span>(message);
+    </span><span class="kw">pub fn </span>on_enter(<span class="kw-2">mut </span><span class="self">self</span>, message: Message) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.on_enter = <span class="prelude-val">Some</span>(message);
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// The message to emit when the mouse moves in the area.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>on_mouse_move&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, build_message: F) -&gt; <span class="self">Self
+    </span><span class="kw">pub fn </span>on_move&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, build_message: F) -&gt; <span class="self">Self
     </span><span class="kw">where
         </span>F: Fn(Point) -&gt; Message + <span class="lifetime">'static</span>,
     {
-        <span class="self">self</span>.on_mouse_move = <span class="prelude-val">Some</span>(Box::new(build_message));
+        <span class="self">self</span>.on_move = <span class="prelude-val">Some</span>(Box::new(build_message));
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// The message to emit when the mouse exits the area.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>on_mouse_exit(<span class="kw-2">mut </span><span class="self">self</span>, message: Message) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.on_mouse_exit = <span class="prelude-val">Some</span>(message);
+    </span><span class="kw">pub fn </span>on_exit(<span class="kw-2">mut </span><span class="self">self</span>, message: Message) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.on_exit = <span class="prelude-val">Some</span>(message);
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// The [`mouse::Interaction`] to use when hovering the area.
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>interaction(<span class="kw-2">mut </span><span class="self">self</span>, interaction: mouse::Interaction) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.interaction = <span class="prelude-val">Some</span>(interaction);
         <span class="self">self
     </span>}
 }
@@ -505,9 +529,10 @@
             on_right_release: <span class="prelude-val">None</span>,
             on_middle_press: <span class="prelude-val">None</span>,
             on_middle_release: <span class="prelude-val">None</span>,
-            on_mouse_enter: <span class="prelude-val">None</span>,
-            on_mouse_move: <span class="prelude-val">None</span>,
-            on_mouse_exit: <span class="prelude-val">None</span>,
+            on_enter: <span class="prelude-val">None</span>,
+            on_move: <span class="prelude-val">None</span>,
+            on_exit: <span class="prelude-val">None</span>,
+            interaction: <span class="prelude-val">None</span>,
         }
     }
 }
@@ -599,13 +624,22 @@
         viewport: <span class="kw-2">&amp;</span>Rectangle,
         renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; mouse::Interaction {
-        <span class="self">self</span>.content.as_widget().mouse_interaction(
+        <span class="kw">let </span>content_interaction = <span class="self">self</span>.content.as_widget().mouse_interaction(
             <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
             layout,
             cursor,
             viewport,
             renderer,
-        )
+        );
+
+        <span class="kw">match </span>(<span class="self">self</span>.interaction, content_interaction) {
+            (<span class="prelude-val">Some</span>(interaction), mouse::Interaction::Idle)
+                <span class="kw">if </span>cursor.is_over(layout.bounds()) =&gt;
+            {
+                interaction
+            }
+            <span class="kw">_ </span>=&gt; content_interaction,
+        }
     }
 
     <span class="kw">fn </span>draw(
@@ -678,22 +712,20 @@
         state.is_hovered = cursor.is_over(layout.bounds());
 
         <span class="kw">match </span>(
-            widget.on_mouse_enter.as_ref(),
-            widget.on_mouse_move.as_ref(),
-            widget.on_mouse_exit.as_ref(),
+            widget.on_enter.as_ref(),
+            widget.on_move.as_ref(),
+            widget.on_exit.as_ref(),
         ) {
-            (<span class="prelude-val">Some</span>(on_mouse_enter), <span class="kw">_</span>, <span class="kw">_</span>)
-                <span class="kw">if </span>state.is_hovered &amp;&amp; !was_hovered =&gt;
-            {
-                shell.publish(on_mouse_enter.clone());
+            (<span class="prelude-val">Some</span>(on_enter), <span class="kw">_</span>, <span class="kw">_</span>) <span class="kw">if </span>state.is_hovered &amp;&amp; !was_hovered =&gt; {
+                shell.publish(on_enter.clone());
             }
-            (<span class="kw">_</span>, <span class="prelude-val">Some</span>(on_mouse_move), <span class="kw">_</span>) <span class="kw">if </span>state.is_hovered =&gt; {
+            (<span class="kw">_</span>, <span class="prelude-val">Some</span>(on_move), <span class="kw">_</span>) <span class="kw">if </span>state.is_hovered =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(position) = cursor.position_in(layout.bounds()) {
-                    shell.publish(on_mouse_move(position));
+                    shell.publish(on_move(position));
                 }
             }
-            (<span class="kw">_</span>, <span class="kw">_</span>, <span class="prelude-val">Some</span>(on_mouse_exit)) <span class="kw">if </span>!state.is_hovered &amp;&amp; was_hovered =&gt; {
-                shell.publish(on_mouse_exit.clone());
+            (<span class="kw">_</span>, <span class="kw">_</span>, <span class="prelude-val">Some</span>(on_exit)) <span class="kw">if </span>!state.is_hovered &amp;&amp; was_hovered =&gt; {
+                shell.publish(on_exit.clone());
             }
             <span class="kw">_ </span>=&gt; {}
         }
