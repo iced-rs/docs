@@ -371,6 +371,12 @@
 <a href="#371" id="371">371</a>
 <a href="#372" id="372">372</a>
 <a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::text::{LineHeight, Shaping};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
@@ -646,6 +652,7 @@
 
 <span class="kw">impl </span>GlyphCache {
     <span class="kw">const </span>TRIM_INTERVAL: usize = <span class="number">300</span>;
+    <span class="kw">const </span>CAPACITY_LIMIT: usize = <span class="number">16 </span>* <span class="number">1024</span>;
 
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         GlyphCache::default()
@@ -732,11 +739,16 @@
     }
 
     <span class="kw">pub fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if </span><span class="self">self</span>.trim_count &gt; <span class="self">Self</span>::TRIM_INTERVAL {
+        <span class="kw">if </span><span class="self">self</span>.trim_count &gt; <span class="self">Self</span>::TRIM_INTERVAL
+            || <span class="self">self</span>.recently_used.len() &gt;= <span class="self">Self</span>::CAPACITY_LIMIT
+        {
             <span class="self">self</span>.entries
                 .retain(|key, <span class="kw">_</span>| <span class="self">self</span>.recently_used.contains(key));
 
             <span class="self">self</span>.recently_used.clear();
+
+            <span class="self">self</span>.entries.shrink_to(<span class="self">Self</span>::CAPACITY_LIMIT);
+            <span class="self">self</span>.recently_used.shrink_to(<span class="self">Self</span>::CAPACITY_LIMIT);
 
             <span class="self">self</span>.trim_count = <span class="number">0</span>;
         } <span class="kw">else </span>{
