@@ -748,6 +748,28 @@
 <a href="#748" id="748">748</a>
 <a href="#749" id="749">749</a>
 <a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
+<a href="#760" id="760">760</a>
+<a href="#761" id="761">761</a>
+<a href="#762" id="762">762</a>
+<a href="#763" id="763">763</a>
+<a href="#764" id="764">764</a>
+<a href="#765" id="765">765</a>
+<a href="#766" id="766">766</a>
+<a href="#767" id="767">767</a>
+<a href="#768" id="768">768</a>
+<a href="#769" id="769">769</a>
+<a href="#770" id="770">770</a>
+<a href="#771" id="771">771</a>
+<a href="#772" id="772">772</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a multi-line text input for text editing.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -814,7 +836,7 @@
             text_size: <span class="prelude-val">None</span>,
             line_height: LineHeight::default(),
             width: Length::Fill,
-            height: Length::Fill,
+            height: Length::Shrink,
             padding: Padding::new(<span class="number">5.0</span>),
             style: Default::default(),
             on_edit: <span class="prelude-val">None</span>,
@@ -833,6 +855,12 @@
     Theme: StyleSheet,
     Renderer: text::Renderer,
 {
+    <span class="doccomment">/// Sets the height of the [`TextEditor`].
+    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.height = height.into();
+        <span class="self">self
+    </span>}
+
     <span class="doccomment">/// Sets the message that should be produced when some action is performed in
     /// the [`TextEditor`].
     ///
@@ -1102,6 +1130,8 @@
             state.highlighter_settings = <span class="self">self</span>.highlighter_settings.clone();
         }
 
+        <span class="kw">let </span>limits = limits.height(<span class="self">self</span>.height);
+
         internal.editor.update(
             limits.shrink(<span class="self">self</span>.padding).max(),
             <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font()),
@@ -1110,7 +1140,21 @@
             state.highlighter.borrow_mut().deref_mut(),
         );
 
-        layout::Node::new(limits.max())
+        <span class="kw">match </span><span class="self">self</span>.height {
+            Length::Fill | Length::FillPortion(<span class="kw">_</span>) | Length::Fixed(<span class="kw">_</span>) =&gt; {
+                layout::Node::new(limits.max())
+            }
+            Length::Shrink =&gt; {
+                <span class="kw">let </span>min_bounds = internal.editor.min_bounds();
+
+                layout::Node::new(
+                    limits
+                        .height(min_bounds.height)
+                        .max()
+                        .expand(Size::new(<span class="number">0.0</span>, <span class="self">self</span>.padding.vertical())),
+                )
+            }
+        }
     }
 
     <span class="kw">fn </span>on_event(
