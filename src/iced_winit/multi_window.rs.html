@@ -1185,6 +1185,18 @@
 <a href="#1185" id="1185">1185</a>
 <a href="#1186" id="1186">1186</a>
 <a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
@@ -2185,7 +2197,7 @@
 
                         proxy
                             .send_event(tag(mode))
-                            .expect(<span class="string">"Event loop doesn't exist."</span>);
+                            .expect(<span class="string">"Send message to event loop"</span>);
                     }
                 }
                 window::Action::ToggleMaximize(id) =&gt; {
@@ -2221,7 +2233,19 @@
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
                         proxy
                             .send_event(tag(window.raw.id().into()))
-                            .expect(<span class="string">"Event loop doesn't exist."</span>);
+                            .expect(<span class="string">"Send message to event loop"</span>);
+                    }
+                }
+                window::Action::RunWithHandle(id, tag) =&gt; {
+                    <span class="kw">use </span>window::raw_window_handle::HasWindowHandle;
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = window_manager
+                        .get_mut(id)
+                        .and_then(|window| window.raw.window_handle().ok())
+                    {
+                        proxy
+                            .send_event(tag(<span class="kw-2">&amp;</span>handle))
+                            .expect(<span class="string">"Send message to event loop"</span>);
                     }
                 }
                 window::Action::Screenshot(id, tag) =&gt; {

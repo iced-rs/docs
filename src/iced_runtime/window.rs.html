@@ -180,6 +180,23 @@
 <a href="#180" id="180">180</a>
 <a href="#181" id="181">181</a>
 <a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build window-based GUI applications.
 </span><span class="kw">mod </span>action;
 
@@ -196,6 +213,10 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::{Point, Size};
 <span class="kw">use </span><span class="kw">crate</span>::futures::event;
 <span class="kw">use </span><span class="kw">crate</span>::futures::Subscription;
+
+<span class="kw">pub use </span>raw_window_handle;
+
+<span class="kw">use </span>raw_window_handle::WindowHandle;
 
 <span class="doccomment">/// Subscribes to the frames of the window of the running application.
 ///
@@ -350,6 +371,19 @@
 <span class="doccomment">/// Changes the [`Icon`] of the window.
 </span><span class="kw">pub fn </span>change_icon&lt;Message&gt;(id: Id, icon: Icon) -&gt; Command&lt;Message&gt; {
     Command::single(command::Action::Window(Action::ChangeIcon(id, icon)))
+}
+
+<span class="doccomment">/// Runs the given callback with the native window handle for the window with the given id.
+///
+/// Note that if the window closes before this call is processed the callback will not be run.
+</span><span class="kw">pub fn </span>run_with_handle&lt;Message&gt;(
+    id: Id,
+    f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>WindowHandle&lt;<span class="lifetime">'_</span>&gt;) -&gt; Message + <span class="lifetime">'static</span>,
+) -&gt; Command&lt;Message&gt; {
+    Command::single(command::Action::Window(Action::RunWithHandle(
+        id,
+        Box::new(f),
+    )))
 }
 
 <span class="doccomment">/// Captures a [`Screenshot`] from the window.

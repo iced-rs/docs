@@ -201,10 +201,22 @@
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::window::{Icon, Id, Level, Mode, Settings, UserAttention};
 <span class="kw">use </span><span class="kw">crate</span>::core::{Point, Size};
 <span class="kw">use </span><span class="kw">crate</span>::futures::MaybeSend;
 <span class="kw">use </span><span class="kw">crate</span>::window::Screenshot;
+
+<span class="kw">use </span>raw_window_handle::WindowHandle;
 
 <span class="kw">use </span>std::fmt;
 
@@ -299,6 +311,8 @@
     /// - **X11:** Has no universal guidelines for icon sizes, so you're at the whims of the WM. That
     ///   said, it's usually in the same ballpark as on Windows.
     </span>ChangeIcon(Id, Icon),
+    <span class="doccomment">/// Runs the closure with the native window handle of the window with the given [`Id`].
+    </span>RunWithHandle(Id, Box&lt;<span class="kw">dyn </span>FnOnce(<span class="kw-2">&amp;</span>WindowHandle&lt;<span class="lifetime">'_</span>&gt;) -&gt; T + <span class="lifetime">'static</span>&gt;),
     <span class="doccomment">/// Screenshot the viewport of the window.
     </span>Screenshot(Id, Box&lt;<span class="kw">dyn </span>FnOnce(Screenshot) -&gt; T + <span class="lifetime">'static</span>&gt;),
 }
@@ -344,6 +358,9 @@
                 Action::FetchId(id, Box::new(<span class="kw">move </span>|s| f(o(s))))
             }
             <span class="self">Self</span>::ChangeIcon(id, icon) =&gt; Action::ChangeIcon(id, icon),
+            <span class="self">Self</span>::RunWithHandle(id, o) =&gt; {
+                Action::RunWithHandle(id, Box::new(<span class="kw">move </span>|s| f(o(s))))
+            }
             <span class="self">Self</span>::Screenshot(id, tag) =&gt; Action::Screenshot(
                 id,
                 Box::new(<span class="kw">move </span>|screenshot| f(tag(screenshot))),
@@ -399,6 +416,9 @@
             <span class="self">Self</span>::FetchId(id, <span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Action::FetchId({id:?})"</span>),
             <span class="self">Self</span>::ChangeIcon(id, _icon) =&gt; {
                 <span class="macro">write!</span>(f, <span class="string">"Action::ChangeIcon({id:?})"</span>)
+            }
+            <span class="self">Self</span>::RunWithHandle(id, <span class="kw">_</span>) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">"Action::RunWithHandle({id:?})"</span>)
             }
             <span class="self">Self</span>::Screenshot(id, <span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Action::Screenshot({id:?})"</span>),
         }
