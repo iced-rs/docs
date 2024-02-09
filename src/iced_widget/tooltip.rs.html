@@ -450,27 +450,6 @@
 <a href="#450" id="450">450</a>
 <a href="#451" id="451">451</a>
 <a href="#452" id="452">452</a>
-<a href="#453" id="453">453</a>
-<a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a>
-<a href="#456" id="456">456</a>
-<a href="#457" id="457">457</a>
-<a href="#458" id="458">458</a>
-<a href="#459" id="459">459</a>
-<a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
-<a href="#463" id="463">463</a>
-<a href="#464" id="464">464</a>
-<a href="#465" id="465">465</a>
-<a href="#466" id="466">466</a>
-<a href="#467" id="467">467</a>
-<a href="#468" id="468">468</a>
-<a href="#469" id="469">469</a>
-<a href="#470" id="470">470</a>
-<a href="#471" id="471">471</a>
-<a href="#472" id="472">472</a>
-<a href="#473" id="473">473</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a widget over another.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -484,9 +463,6 @@
     Clipboard, Element, Length, Padding, Pixels, Point, Rectangle, Shell, Size,
     Vector,
 };
-<span class="kw">use </span><span class="kw">crate</span>::Text;
-
-<span class="kw">use </span>std::borrow::Cow;
 
 <span class="doccomment">/// An element to display a widget over another.
 </span><span class="attr">#[allow(missing_debug_implementations)]
@@ -500,7 +476,7 @@
     Renderer: text::Renderer,
 {
     content: Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
-    tooltip: Text&lt;<span class="lifetime">'a</span>, Theme, Renderer&gt;,
+    tooltip: Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     position: Position,
     gap: f32,
     padding: f32,
@@ -521,12 +497,12 @@
     /// [`Tooltip`]: struct.Tooltip.html
     </span><span class="kw">pub fn </span>new(
         content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
-        tooltip: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'a</span>, str&gt;&gt;,
+        tooltip: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
         position: Position,
     ) -&gt; <span class="self">Self </span>{
         Tooltip {
             content: content.into(),
-            tooltip: Text::new(tooltip),
+            tooltip: tooltip.into(),
             position,
             gap: <span class="number">0.0</span>,
             padding: <span class="self">Self</span>::DEFAULT_PADDING,
@@ -534,26 +510,6 @@
             style: Default::default(),
         }
     }
-
-    <span class="doccomment">/// Sets the size of the text of the [`Tooltip`].
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">mut </span><span class="self">self</span>, size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.tooltip = <span class="self">self</span>.tooltip.size(size);
-        <span class="self">self
-    </span>}
-
-    <span class="doccomment">/// Sets the [`text::Shaping`] strategy of the [`Tooltip`].
-    </span><span class="kw">pub fn </span>text_shaping(<span class="kw-2">mut </span><span class="self">self</span>, shaping: text::Shaping) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.tooltip = <span class="self">self</span>.tooltip.shaping(shaping);
-        <span class="self">self
-    </span>}
-
-    <span class="doccomment">/// Sets the font of the [`Tooltip`].
-    ///
-    /// [`Font`]: Renderer::Font
-    </span><span class="kw">pub fn </span>font(<span class="kw-2">mut </span><span class="self">self</span>, font: <span class="kw">impl </span>Into&lt;Renderer::Font&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.tooltip = <span class="self">self</span>.tooltip.font(font);
-        <span class="self">self
-    </span>}
 
     <span class="doccomment">/// Sets the gap between the content and its [`Tooltip`].
     </span><span class="kw">pub fn </span>gap(<span class="kw-2">mut </span><span class="self">self</span>, gap: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
@@ -592,12 +548,15 @@
     <span class="kw">fn </span>children(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;widget::Tree&gt; {
         <span class="macro">vec!</span>[
             widget::Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.content),
-            widget::Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.tooltip <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">dyn </span>Widget&lt;Message, <span class="kw">_</span>, <span class="kw">_</span>&gt;),
+            widget::Tree::new(<span class="kw-2">&amp;</span><span class="self">self</span>.tooltip),
         ]
     }
 
     <span class="kw">fn </span>diff(<span class="kw-2">&amp;</span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>widget::Tree) {
-        tree.diff_children(<span class="kw-2">&amp;</span>[<span class="self">self</span>.content.as_widget(), <span class="kw-2">&amp;</span><span class="self">self</span>.tooltip]);
+        tree.diff_children(<span class="kw-2">&amp;</span>[
+            <span class="self">self</span>.content.as_widget(),
+            <span class="self">self</span>.tooltip.as_widget(),
+        ]);
     }
 
     <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; widget::tree::State {
@@ -785,13 +744,13 @@
     },
 }
 
-<span class="kw">struct </span>Overlay&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Theme, Renderer&gt;
+<span class="kw">struct </span>Overlay&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Theme: container::StyleSheet + widget::text::StyleSheet,
     Renderer: text::Renderer,
 {
     position: Point,
-    tooltip: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Text&lt;<span class="lifetime">'a</span>, Theme, Renderer&gt;,
+    tooltip: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     state: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>widget::Tree,
     cursor_position: Point,
     content_bounds: Rectangle,
@@ -804,7 +763,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Message, Theme, Renderer&gt;
     overlay::Overlay&lt;Message, Theme, Renderer&gt;
-    <span class="kw">for </span>Overlay&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Theme, Renderer&gt;
+    <span class="kw">for </span>Overlay&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Theme: container::StyleSheet + widget::text::StyleSheet,
     Renderer: text::Renderer,
@@ -812,8 +771,7 @@
     <span class="kw">fn </span>layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, renderer: <span class="kw-2">&amp;</span>Renderer, bounds: Size) -&gt; layout::Node {
         <span class="kw">let </span>viewport = Rectangle::with_size(bounds);
 
-        <span class="kw">let </span>text_layout = Widget::&lt;(), Theme, Renderer&gt;::layout(
-            <span class="self">self</span>.tooltip,
+        <span class="kw">let </span>tooltip_layout = <span class="self">self</span>.tooltip.as_widget().layout(
             <span class="self">self</span>.state,
             renderer,
             <span class="kw-2">&amp;</span>layout::Limits::new(
@@ -825,7 +783,7 @@
             .shrink(Padding::new(<span class="self">self</span>.padding)),
         );
 
-        <span class="kw">let </span>text_bounds = text_layout.bounds();
+        <span class="kw">let </span>text_bounds = tooltip_layout.bounds();
         <span class="kw">let </span>x_center = <span class="self">self</span>.position.x
             + (<span class="self">self</span>.content_bounds.width - text_bounds.width) / <span class="number">2.0</span>;
         <span class="kw">let </span>y_center = <span class="self">self</span>.position.y
@@ -902,7 +860,8 @@
 
         layout::Node::with_children(
             tooltip_bounds.size(),
-            <span class="macro">vec!</span>[text_layout.translate(Vector::new(<span class="self">self</span>.padding, <span class="self">self</span>.padding))],
+            <span class="macro">vec!</span>[tooltip_layout
+                .translate(Vector::new(<span class="self">self</span>.padding, <span class="self">self</span>.padding))],
         )
         .translate(Vector::new(tooltip_bounds.x, tooltip_bounds.y))
     }
@@ -923,8 +882,7 @@
             text_color: style.text_color.unwrap_or(inherited_style.text_color),
         };
 
-        Widget::&lt;(), Theme, Renderer&gt;::draw(
-            <span class="self">self</span>.tooltip,
+        <span class="self">self</span>.tooltip.as_widget().draw(
             <span class="self">self</span>.state,
             renderer,
             theme,
