@@ -298,18 +298,54 @@
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Encode and display information in a QR code.
 </span><span class="kw">use </span><span class="kw">crate</span>::canvas;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer::{<span class="self">self</span>, Renderer <span class="kw">as _</span>};
-<span class="kw">use </span><span class="kw">crate</span>::core::widget::Tree;
+<span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Color, Element, Layout, Length, Point, Rectangle, Size, Vector, Widget,
+    Element, Layout, Length, Point, Rectangle, Size, Vector, Widget,
 };
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::Renderer <span class="kw">as _</span>;
 <span class="kw">use </span><span class="kw">crate</span>::Renderer;
+
+<span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>thiserror::Error;
+
+<span class="kw">pub use </span><span class="kw">crate</span>::style::qr_code::{Appearance, StyleSheet};
 
 <span class="kw">const </span>DEFAULT_CELL_SIZE: u16 = <span class="number">4</span>;
 <span class="kw">const </span>QUIET_ZONE: usize = <span class="number">2</span>;
@@ -317,39 +353,53 @@
 <span class="doccomment">/// A type of matrix barcode consisting of squares arranged in a grid which
 /// can be read by an imaging device, such as a camera.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>QRCode&lt;<span class="lifetime">'a</span>&gt; {
-    state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>State,
-    dark: Color,
-    light: Color,
+</span><span class="kw">pub struct </span>QRCode&lt;<span class="lifetime">'a</span>, Theme = <span class="kw">crate</span>::Theme&gt;
+<span class="kw">where
+    </span>Theme: StyleSheet,
+{
+    data: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Data,
     cell_size: u16,
+    style: Theme::Style,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; QRCode&lt;<span class="lifetime">'a</span>&gt; {
-    <span class="doccomment">/// Creates a new [`QRCode`] with the provided [`State`].
-    </span><span class="kw">pub fn </span>new(state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>State) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Theme&gt; QRCode&lt;<span class="lifetime">'a</span>, Theme&gt;
+<span class="kw">where
+    </span>Theme: StyleSheet,
+{
+    <span class="doccomment">/// Creates a new [`QRCode`] with the provided [`Data`].
+    </span><span class="kw">pub fn </span>new(data: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Data) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
+            data,
             cell_size: DEFAULT_CELL_SIZE,
-            dark: Color::BLACK,
-            light: Color::WHITE,
-            state,
+            style: Default::default(),
         }
     }
-
-    <span class="doccomment">/// Sets both the dark and light [`Color`]s of the [`QRCode`].
-    </span><span class="kw">pub fn </span>color(<span class="kw-2">mut </span><span class="self">self</span>, dark: Color, light: Color) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.dark = dark;
-        <span class="self">self</span>.light = light;
-        <span class="self">self
-    </span>}
 
     <span class="doccomment">/// Sets the size of the squares of the grid cell of the [`QRCode`].
     </span><span class="kw">pub fn </span>cell_size(<span class="kw-2">mut </span><span class="self">self</span>, cell_size: u16) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.cell_size = cell_size;
         <span class="self">self
     </span>}
+
+    <span class="doccomment">/// Sets the style of the [`QRCode`].
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Theme::Style&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = style.into();
+        <span class="self">self
+    </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme&gt; Widget&lt;Message, Theme, Renderer&gt; <span class="kw">for </span>QRCode&lt;<span class="lifetime">'a</span>&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme&gt; Widget&lt;Message, Theme, Renderer&gt; <span class="kw">for </span>QRCode&lt;<span class="lifetime">'a</span>, Theme&gt;
+<span class="kw">where
+    </span>Theme: StyleSheet,
+{
+    <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
+        tree::Tag::of::&lt;State&gt;()
+    }
+
+    <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
+        tree::State::new(State::default())
+    }
+
     <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
         Size {
             width: Length::Shrink,
@@ -363,7 +413,7 @@
         _renderer: <span class="kw-2">&amp;</span>Renderer,
         _limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        <span class="kw">let </span>side_length = (<span class="self">self</span>.state.width + <span class="number">2 </span>* QUIET_ZONE) <span class="kw">as </span>f32
+        <span class="kw">let </span>side_length = (<span class="self">self</span>.data.width + <span class="number">2 </span>* QUIET_ZONE) <span class="kw">as </span>f32
             * f32::from(<span class="self">self</span>.cell_size);
 
         layout::Node::new(Size::new(side_length, side_length))
@@ -371,53 +421,60 @@
 
     <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        _state: <span class="kw-2">&amp;</span>Tree,
+        tree: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
-        _theme: <span class="kw-2">&amp;</span>Theme,
+        theme: <span class="kw-2">&amp;</span>Theme,
         _style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         _cursor: mouse::Cursor,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
+        <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&gt;();
+
         <span class="kw">let </span>bounds = layout.bounds();
-        <span class="kw">let </span>side_length = <span class="self">self</span>.state.width + <span class="number">2 </span>* QUIET_ZONE;
+        <span class="kw">let </span>side_length = <span class="self">self</span>.data.width + <span class="number">2 </span>* QUIET_ZONE;
+
+        <span class="kw">let </span>appearance = theme.appearance(<span class="kw-2">&amp;</span><span class="self">self</span>.style);
+        <span class="kw">let </span><span class="kw-2">mut </span>last_appearance = state.last_appearance.borrow_mut();
+
+        <span class="kw">if </span><span class="prelude-val">Some</span>(appearance) != <span class="kw-2">*</span>last_appearance {
+            <span class="self">self</span>.data.cache.clear();
+
+            <span class="kw-2">*</span>last_appearance = <span class="prelude-val">Some</span>(appearance);
+        }
 
         <span class="comment">// Reuse cache if possible
-        </span><span class="kw">let </span>geometry =
-            <span class="self">self</span>.state.cache.draw(renderer, bounds.size(), |frame| {
-                <span class="comment">// Scale units to cell size
-                </span>frame.scale(<span class="self">self</span>.cell_size);
+        </span><span class="kw">let </span>geometry = <span class="self">self</span>.data.cache.draw(renderer, bounds.size(), |frame| {
+            <span class="comment">// Scale units to cell size
+            </span>frame.scale(<span class="self">self</span>.cell_size);
 
-                <span class="comment">// Draw background
-                </span>frame.fill_rectangle(
-                    Point::ORIGIN,
-                    Size::new(side_length <span class="kw">as </span>f32, side_length <span class="kw">as </span>f32),
-                    <span class="self">self</span>.light,
-                );
+            <span class="comment">// Draw background
+            </span>frame.fill_rectangle(
+                Point::ORIGIN,
+                Size::new(side_length <span class="kw">as </span>f32, side_length <span class="kw">as </span>f32),
+                appearance.background,
+            );
 
-                <span class="comment">// Avoid drawing on the quiet zone
-                </span>frame.translate(Vector::new(
-                    QUIET_ZONE <span class="kw">as </span>f32,
-                    QUIET_ZONE <span class="kw">as </span>f32,
-                ));
+            <span class="comment">// Avoid drawing on the quiet zone
+            </span>frame.translate(Vector::new(QUIET_ZONE <span class="kw">as </span>f32, QUIET_ZONE <span class="kw">as </span>f32));
 
-                <span class="comment">// Draw contents
-                </span><span class="self">self</span>.state
-                    .contents
-                    .iter()
-                    .enumerate()
-                    .filter(|(<span class="kw">_</span>, value)| <span class="kw-2">**</span>value == qrcode::Color::Dark)
-                    .for_each(|(index, <span class="kw">_</span>)| {
-                        <span class="kw">let </span>row = index / <span class="self">self</span>.state.width;
-                        <span class="kw">let </span>column = index % <span class="self">self</span>.state.width;
+            <span class="comment">// Draw contents
+            </span><span class="self">self</span>.data
+                .contents
+                .iter()
+                .enumerate()
+                .filter(|(<span class="kw">_</span>, value)| <span class="kw-2">**</span>value == qrcode::Color::Dark)
+                .for_each(|(index, <span class="kw">_</span>)| {
+                    <span class="kw">let </span>row = index / <span class="self">self</span>.data.width;
+                    <span class="kw">let </span>column = index % <span class="self">self</span>.data.width;
 
-                        frame.fill_rectangle(
-                            Point::new(column <span class="kw">as </span>f32, row <span class="kw">as </span>f32),
-                            Size::UNIT,
-                            <span class="self">self</span>.dark,
-                        );
-                    });
-            });
+                    frame.fill_rectangle(
+                        Point::new(column <span class="kw">as </span>f32, row <span class="kw">as </span>f32),
+                        Size::UNIT,
+                        appearance.cell,
+                    );
+                });
+        });
 
         renderer.with_translation(
             bounds.position() - Point::ORIGIN,
@@ -428,26 +485,28 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme&gt; From&lt;QRCode&lt;<span class="lifetime">'a</span>&gt;&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme&gt; From&lt;QRCode&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
+<span class="kw">where
+    </span>Theme: StyleSheet + <span class="lifetime">'a</span>,
 {
-    <span class="kw">fn </span>from(qr_code: QRCode&lt;<span class="lifetime">'a</span>&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(qr_code: QRCode&lt;<span class="lifetime">'a</span>, Theme&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(qr_code)
     }
 }
 
-<span class="doccomment">/// The state of a [`QRCode`].
+<span class="doccomment">/// The data of a [`QRCode`].
 ///
-/// It stores the data that will be displayed.
+/// It stores the contents that will be displayed.
 </span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>State {
+</span><span class="kw">pub struct </span>Data {
     contents: Vec&lt;qrcode::Color&gt;,
     width: usize,
     cache: canvas::Cache,
 }
 
-<span class="kw">impl </span>State {
-    <span class="doccomment">/// Creates a new [`State`] with the provided data.
+<span class="kw">impl </span>Data {
+    <span class="doccomment">/// Creates a new [`Data`] with the provided data.
     ///
     /// This method uses an [`ErrorCorrection::Medium`] and chooses the smallest
     /// size to display the data.
@@ -457,7 +516,7 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::build(encoded))
     }
 
-    <span class="doccomment">/// Creates a new [`State`] with the provided [`ErrorCorrection`].
+    <span class="doccomment">/// Creates a new [`Data`] with the provided [`ErrorCorrection`].
     </span><span class="kw">pub fn </span>with_error_correction(
         data: <span class="kw">impl </span>AsRef&lt;[u8]&gt;,
         error_correction: ErrorCorrection,
@@ -470,7 +529,7 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>::build(encoded))
     }
 
-    <span class="doccomment">/// Creates a new [`State`] with the provided [`Version`] and
+    <span class="doccomment">/// Creates a new [`Data`] with the provided [`Version`] and
     /// [`ErrorCorrection`].
     </span><span class="kw">pub fn </span>with_version(
         data: <span class="kw">impl </span>AsRef&lt;[u8]&gt;,
@@ -549,7 +608,7 @@
     }
 }
 
-<span class="doccomment">/// An error that occurred when building a [`State`] for a [`QRCode`].
+<span class="doccomment">/// An error that occurred when building a [`Data`] for a [`QRCode`].
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
 </span><span class="kw">pub enum </span>Error {
     <span class="doccomment">/// The data is too long to encode in a QR code for the chosen [`Version`].
@@ -597,5 +656,10 @@
             QrError::InvalidCharacter =&gt; Error::InvalidCharacter,
         }
     }
+}
+
+<span class="attr">#[derive(Default)]
+</span><span class="kw">struct </span>State {
+    last_appearance: RefCell&lt;<span class="prelude-ty">Option</span>&lt;Appearance&gt;&gt;,
 }
 </code></pre></div></section></main></body></html>
