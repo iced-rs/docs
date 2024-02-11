@@ -1006,14 +1006,24 @@
 <a href="#1006" id="1006">1006</a>
 <a href="#1007" id="1007">1007</a>
 <a href="#1008" id="1008">1008</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>tiny_skia::Size;
-
-<span class="kw">use </span><span class="kw">crate</span>::core::{
-    Background, Color, Gradient, Rectangle, Transformation, Vector,
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{
+    Background, Color, Gradient, Rectangle, Size, Transformation, Vector,
 };
 <span class="kw">use </span><span class="kw">crate</span>::graphics::backend;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text;
-<span class="kw">use </span><span class="kw">crate</span>::graphics::Viewport;
+<span class="kw">use </span><span class="kw">crate</span>::graphics::{Damage, Viewport};
 <span class="kw">use </span><span class="kw">crate</span>::primitive::{<span class="self">self</span>, Primitive};
 
 <span class="kw">use </span>std::borrow::Cow;
@@ -1227,31 +1237,34 @@
                             (x..x + width).map(<span class="kw">move </span>|x| (x <span class="kw">as </span>f32, y <span class="kw">as </span>f32))
                         })
                         .filter_map(|(x, y)| {
-                            Size::from_wh(half_width, half_height).map(|size| {
-                                <span class="kw">let </span>shadow_distance = rounded_box_sdf(
-                                    Vector::new(
-                                        x - physical_bounds.position().x
-                                            - (shadow.offset.x * scale_factor)
-                                            - half_width,
-                                        y - physical_bounds.position().y
-                                            - (shadow.offset.y * scale_factor)
-                                            - half_height,
-                                    ),
-                                    size,
-                                    <span class="kw-2">&amp;</span>radii,
-                                );
-                                <span class="kw">let </span>shadow_alpha = <span class="number">1.0
-                                    </span>- smoothstep(
-                                        -shadow.blur_radius * scale_factor,
-                                        shadow.blur_radius * scale_factor,
-                                        shadow_distance,
+                            tiny_skia::Size::from_wh(half_width, half_height)
+                                .map(|size| {
+                                    <span class="kw">let </span>shadow_distance = rounded_box_sdf(
+                                        Vector::new(
+                                            x - physical_bounds.position().x
+                                                - (shadow.offset.x
+                                                    * scale_factor)
+                                                - half_width,
+                                            y - physical_bounds.position().y
+                                                - (shadow.offset.y
+                                                    * scale_factor)
+                                                - half_height,
+                                        ),
+                                        size,
+                                        <span class="kw-2">&amp;</span>radii,
                                     );
+                                    <span class="kw">let </span>shadow_alpha = <span class="number">1.0
+                                        </span>- smoothstep(
+                                            -shadow.blur_radius * scale_factor,
+                                            shadow.blur_radius * scale_factor,
+                                            shadow_distance,
+                                        );
 
-                                <span class="kw">let </span><span class="kw-2">mut </span>color = into_color(shadow.color);
-                                color.apply_opacity(shadow_alpha);
+                                    <span class="kw">let </span><span class="kw-2">mut </span>color = into_color(shadow.color);
+                                    color.apply_opacity(shadow_alpha);
 
-                                color.to_color_u8().premultiply()
-                            })
+                                    color.to_color_u8().premultiply()
+                                })
                         })
                         .collect();
 
@@ -1455,10 +1468,12 @@
                 paragraph,
                 position,
                 color,
-                clip_bounds: text_clip_bounds,
-            } =&gt; {
+                clip_bounds: <span class="kw">_</span>, <span class="comment">// TODO: Support text clip bounds
+            </span>} =&gt; {
                 <span class="kw">let </span>physical_bounds =
-                    <span class="kw-2">*</span>text_clip_bounds * transformation * scale_factor;
+                    Rectangle::new(<span class="kw-2">*</span>position, paragraph.min_bounds)
+                        * transformation
+                        * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
                     <span class="kw">return</span>;
@@ -1481,10 +1496,11 @@
                 editor,
                 position,
                 color,
-                clip_bounds: text_clip_bounds,
-            } =&gt; {
-                <span class="kw">let </span>physical_bounds =
-                    (<span class="kw-2">*</span>text_clip_bounds * transformation) * scale_factor;
+                clip_bounds: <span class="kw">_</span>, <span class="comment">// TODO: Support text clip bounds
+            </span>} =&gt; {
+                <span class="kw">let </span>physical_bounds = Rectangle::new(<span class="kw-2">*</span>position, editor.bounds)
+                    * transformation
+                    * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
                     <span class="kw">return</span>;
@@ -1513,10 +1529,10 @@
                 horizontal_alignment,
                 vertical_alignment,
                 shaping,
-                clip_bounds: text_clip_bounds,
-            } =&gt; {
+                clip_bounds: <span class="kw">_</span>, <span class="comment">// TODO: Support text clip bounds
+            </span>} =&gt; {
                 <span class="kw">let </span>physical_bounds =
-                    <span class="kw-2">*</span>text_clip_bounds * transformation * scale_factor;
+                    primitive.bounds() * transformation * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
                     <span class="kw">return</span>;
@@ -1545,14 +1561,18 @@
                 buffer,
                 position,
                 color,
-                clip_bounds: text_clip_bounds,
-            }) =&gt; {
+                clip_bounds: <span class="kw">_</span>, <span class="comment">// TODO: Support text clip bounds
+            </span>}) =&gt; {
                 <span class="kw">let </span><span class="prelude-val">Some</span>(buffer) = buffer.upgrade() <span class="kw">else </span>{
                     <span class="kw">return</span>;
                 };
 
+                <span class="kw">let </span>(width, height) = buffer.size();
+
                 <span class="kw">let </span>physical_bounds =
-                    <span class="kw-2">*</span>text_clip_bounds * transformation * scale_factor;
+                    Rectangle::new(<span class="kw-2">*</span>position, Size::new(width, height))
+                        * transformation
+                        * scale_factor;
 
                 <span class="kw">if </span>!clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
                     <span class="kw">return</span>;
@@ -1971,7 +1991,11 @@
     x * x * (<span class="number">3.0 </span>- <span class="number">2.0 </span>* x)
 }
 
-<span class="kw">fn </span>rounded_box_sdf(to_center: Vector, size: Size, radii: <span class="kw-2">&amp;</span>[f32]) -&gt; f32 {
+<span class="kw">fn </span>rounded_box_sdf(
+    to_center: Vector,
+    size: tiny_skia::Size,
+    radii: <span class="kw-2">&amp;</span>[f32],
+) -&gt; f32 {
     <span class="kw">let </span>radius = <span class="kw">match </span>(to_center.x &gt; <span class="number">0.0</span>, to_center.y &gt; <span class="number">0.0</span>) {
         (<span class="bool-val">true</span>, <span class="bool-val">true</span>) =&gt; radii[<span class="number">2</span>],
         (<span class="bool-val">true</span>, <span class="bool-val">false</span>) =&gt; radii[<span class="number">1</span>],
