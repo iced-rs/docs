@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Scrollbar","Scroller"],"trait":["StyleSheet"]};
+window.SIDEBAR_ITEMS = {"struct":["Appearance","Scrollbar","Scroller"],"trait":["StyleSheet"]};

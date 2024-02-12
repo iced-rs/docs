@@ -1566,8 +1566,50 @@
 <a href="#1566" id="1566">1566</a>
 <a href="#1567" id="1567">1567</a>
 <a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
+<a href="#1574" id="1574">1574</a>
+<a href="#1575" id="1575">1575</a>
+<a href="#1576" id="1576">1576</a>
+<a href="#1577" id="1577">1577</a>
+<a href="#1578" id="1578">1578</a>
+<a href="#1579" id="1579">1579</a>
+<a href="#1580" id="1580">1580</a>
+<a href="#1581" id="1581">1581</a>
+<a href="#1582" id="1582">1582</a>
+<a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a>
+<a href="#1589" id="1589">1589</a>
+<a href="#1590" id="1590">1590</a>
+<a href="#1591" id="1591">1591</a>
+<a href="#1592" id="1592">1592</a>
+<a href="#1593" id="1593">1593</a>
+<a href="#1594" id="1594">1594</a>
+<a href="#1595" id="1595">1595</a>
+<a href="#1596" id="1596">1596</a>
+<a href="#1597" id="1597">1597</a>
+<a href="#1598" id="1598">1598</a>
+<a href="#1599" id="1599">1599</a>
+<a href="#1600" id="1600">1600</a>
+<a href="#1601" id="1601">1601</a>
+<a href="#1602" id="1602">1602</a>
+<a href="#1603" id="1603">1603</a>
+<a href="#1604" id="1604">1604</a>
+<a href="#1605" id="1605">1605</a>
+<a href="#1606" id="1606">1606</a>
+<a href="#1607" id="1607">1607</a>
+<a href="#1608" id="1608">1608</a>
+<a href="#1609" id="1609">1609</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
-</span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
+</span><span class="kw">use </span><span class="kw">crate</span>::container;
+<span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
@@ -1583,7 +1625,9 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Command;
 
-<span class="kw">pub use </span><span class="kw">crate</span>::style::scrollable::{Scrollbar, Scroller, StyleSheet};
+<span class="kw">pub use </span><span class="kw">crate</span>::style::scrollable::{
+    Appearance, Scrollbar, Scroller, StyleSheet,
+};
 <span class="kw">pub use </span>operation::scrollable::{AbsoluteOffset, RelativeOffset};
 
 <span class="doccomment">/// A widget that can vertically display an infinite amount of content with a
@@ -2446,6 +2490,24 @@
         <span class="kw">_ </span>=&gt; mouse::Cursor::Unavailable,
     };
 
+    <span class="kw">let </span>appearance = <span class="kw">if </span>state.y_scroller_grabbed_at.is_some()
+        || state.x_scroller_grabbed_at.is_some()
+    {
+        theme.dragging(style)
+    } <span class="kw">else if </span>cursor_over_scrollable.is_some() {
+        theme.hovered(style, mouse_over_y_scrollbar || mouse_over_x_scrollbar)
+    } <span class="kw">else </span>{
+        theme.active(style)
+    };
+
+    <span class="kw">let </span>idle_scrollbar = theme.active(style).scrollbar;
+
+    container::draw_background(
+        renderer,
+        <span class="kw-2">&amp;</span>appearance.container,
+        layout.bounds(),
+    );
+
     <span class="comment">// Draw inner content
     </span><span class="kw">if </span>scrollbars.active() {
         renderer.with_layer(bounds, |renderer| {
@@ -2470,8 +2532,7 @@
             |renderer: <span class="kw-2">&amp;mut </span>Renderer,
              style: Scrollbar,
              scrollbar: <span class="kw-2">&amp;</span>internals::Scrollbar| {
-                <span class="comment">//track
-                </span><span class="kw">if </span>scrollbar.bounds.width &gt; <span class="number">0.0
+                <span class="kw">if </span>scrollbar.bounds.width &gt; <span class="number">0.0
                     </span>&amp;&amp; scrollbar.bounds.height &gt; <span class="number">0.0
                     </span>&amp;&amp; (style.background.is_some()
                         || (style.border.color != Color::TRANSPARENT
@@ -2489,8 +2550,7 @@
                     );
                 }
 
-                <span class="comment">//thumb
-                </span><span class="kw">if </span>scrollbar.scroller.bounds.width &gt; <span class="number">0.0
+                <span class="kw">if </span>scrollbar.scroller.bounds.width &gt; <span class="number">0.0
                     </span>&amp;&amp; scrollbar.scroller.bounds.height &gt; <span class="number">0.0
                     </span>&amp;&amp; (style.scroller.color != Color::TRANSPARENT
                         || (style.scroller.border.color != Color::TRANSPARENT
@@ -2514,30 +2574,52 @@
                 ..bounds
             },
             |renderer| {
-                <span class="comment">//draw y scrollbar
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(scrollbar) = scrollbars.y {
-                    <span class="kw">let </span>style = <span class="kw">if </span>state.y_scroller_grabbed_at.is_some() {
-                        theme.dragging(style)
-                    } <span class="kw">else if </span>cursor_over_scrollable.is_some() {
-                        theme.hovered(style, mouse_over_y_scrollbar)
-                    } <span class="kw">else </span>{
-                        theme.active(style)
-                    };
-
-                    draw_scrollbar(renderer, style, <span class="kw-2">&amp;</span>scrollbar);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(scrollbar) = scrollbars.y {
+                    draw_scrollbar(
+                        renderer,
+                        <span class="kw">if </span>mouse_over_y_scrollbar
+                            || state.y_scroller_grabbed_at.is_some()
+                        {
+                            appearance.scrollbar
+                        } <span class="kw">else </span>{
+                            idle_scrollbar
+                        },
+                        <span class="kw-2">&amp;</span>scrollbar,
+                    );
                 }
 
-                <span class="comment">//draw x scrollbar
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(scrollbar) = scrollbars.x {
-                    <span class="kw">let </span>style = <span class="kw">if </span>state.x_scroller_grabbed_at.is_some() {
-                        theme.dragging_horizontal(style)
-                    } <span class="kw">else if </span>cursor_over_scrollable.is_some() {
-                        theme.hovered_horizontal(style, mouse_over_x_scrollbar)
-                    } <span class="kw">else </span>{
-                        theme.active_horizontal(style)
-                    };
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(scrollbar) = scrollbars.x {
+                    draw_scrollbar(
+                        renderer,
+                        <span class="kw">if </span>mouse_over_x_scrollbar
+                            || state.x_scroller_grabbed_at.is_some()
+                        {
+                            appearance.scrollbar
+                        } <span class="kw">else </span>{
+                            idle_scrollbar
+                        },
+                        <span class="kw-2">&amp;</span>scrollbar,
+                    );
+                }
 
-                    draw_scrollbar(renderer, style, <span class="kw-2">&amp;</span>scrollbar);
+                <span class="kw">if let </span>(<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) = (scrollbars.x, scrollbars.y) {
+                    <span class="kw">let </span>background =
+                        appearance.gap.or(appearance.container.background);
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(background) = background {
+                        renderer.fill_quad(
+                            renderer::Quad {
+                                bounds: Rectangle {
+                                    x: y.bounds.x,
+                                    y: x.bounds.y,
+                                    width: y.bounds.width,
+                                    height: x.bounds.height,
+                                },
+                                ..renderer::Quad::default()
+                            },
+                            background,
+                        );
+                    }
                 }
             },
         );

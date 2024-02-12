@@ -1521,27 +1521,6 @@
 <a href="#1521" id="1521">1521</a>
 <a href="#1522" id="1522">1522</a>
 <a href="#1523" id="1523">1523</a>
-<a href="#1524" id="1524">1524</a>
-<a href="#1525" id="1525">1525</a>
-<a href="#1526" id="1526">1526</a>
-<a href="#1527" id="1527">1527</a>
-<a href="#1528" id="1528">1528</a>
-<a href="#1529" id="1529">1529</a>
-<a href="#1530" id="1530">1530</a>
-<a href="#1531" id="1531">1531</a>
-<a href="#1532" id="1532">1532</a>
-<a href="#1533" id="1533">1533</a>
-<a href="#1534" id="1534">1534</a>
-<a href="#1535" id="1535">1535</a>
-<a href="#1536" id="1536">1536</a>
-<a href="#1537" id="1537">1537</a>
-<a href="#1538" id="1538">1538</a>
-<a href="#1539" id="1539">1539</a>
-<a href="#1540" id="1540">1540</a>
-<a href="#1541" id="1541">1541</a>
-<a href="#1542" id="1542">1542</a>
-<a href="#1543" id="1543">1543</a>
-<a href="#1544" id="1544">1544</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Use the built-in theme and styles.
 </span><span class="kw">pub mod </span>palette;
 
@@ -2732,18 +2711,22 @@
 <span class="kw">impl </span>scrollable::StyleSheet <span class="kw">for </span>Theme {
     <span class="kw">type </span>Style = Scrollable;
 
-    <span class="kw">fn </span>active(<span class="kw-2">&amp;</span><span class="self">self</span>, style: <span class="kw-2">&amp;</span><span class="self">Self</span>::Style) -&gt; scrollable::Scrollbar {
+    <span class="kw">fn </span>active(<span class="kw-2">&amp;</span><span class="self">self</span>, style: <span class="kw-2">&amp;</span><span class="self">Self</span>::Style) -&gt; scrollable::Appearance {
         <span class="kw">match </span>style {
             Scrollable::Default =&gt; {
                 <span class="kw">let </span>palette = <span class="self">self</span>.extended_palette();
 
-                scrollable::Scrollbar {
-                    background: <span class="prelude-val">Some</span>(palette.background.weak.color.into()),
-                    border: Border::with_radius(<span class="number">2</span>),
-                    scroller: scrollable::Scroller {
-                        color: palette.background.strong.color,
+                scrollable::Appearance {
+                    container: container::Appearance::default(),
+                    scrollbar: scrollable::Scrollbar {
+                        background: <span class="prelude-val">Some</span>(palette.background.weak.color.into()),
                         border: Border::with_radius(<span class="number">2</span>),
+                        scroller: scrollable::Scroller {
+                            color: palette.background.strong.color,
+                            border: Border::with_radius(<span class="number">2</span>),
+                        },
                     },
+                    gap: <span class="prelude-val">None</span>,
                 }
             }
             Scrollable::Custom(custom) =&gt; custom.active(<span class="self">self</span>),
@@ -2754,19 +2737,24 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         style: <span class="kw-2">&amp;</span><span class="self">Self</span>::Style,
         is_mouse_over_scrollbar: bool,
-    ) -&gt; scrollable::Scrollbar {
+    ) -&gt; scrollable::Appearance {
         <span class="kw">match </span>style {
             Scrollable::Default =&gt; {
                 <span class="kw">if </span>is_mouse_over_scrollbar {
                     <span class="kw">let </span>palette = <span class="self">self</span>.extended_palette();
 
-                    scrollable::Scrollbar {
-                        background: <span class="prelude-val">Some</span>(palette.background.weak.color.into()),
-                        border: Border::with_radius(<span class="number">2</span>),
-                        scroller: scrollable::Scroller {
-                            color: palette.primary.strong.color,
+                    scrollable::Appearance {
+                        scrollbar: scrollable::Scrollbar {
+                            background: <span class="prelude-val">Some</span>(
+                                palette.background.weak.color.into(),
+                            ),
                             border: Border::with_radius(<span class="number">2</span>),
+                            scroller: scrollable::Scroller {
+                                color: palette.primary.strong.color,
+                                border: Border::with_radius(<span class="number">2</span>),
+                            },
                         },
+                        ..<span class="self">self</span>.active(style)
                     }
                 } <span class="kw">else </span>{
                     <span class="self">self</span>.active(style)
@@ -2778,40 +2766,10 @@
         }
     }
 
-    <span class="kw">fn </span>dragging(<span class="kw-2">&amp;</span><span class="self">self</span>, style: <span class="kw-2">&amp;</span><span class="self">Self</span>::Style) -&gt; scrollable::Scrollbar {
+    <span class="kw">fn </span>dragging(<span class="kw-2">&amp;</span><span class="self">self</span>, style: <span class="kw-2">&amp;</span><span class="self">Self</span>::Style) -&gt; scrollable::Appearance {
         <span class="kw">match </span>style {
             Scrollable::Default =&gt; <span class="self">self</span>.hovered(style, <span class="bool-val">true</span>),
             Scrollable::Custom(custom) =&gt; custom.dragging(<span class="self">self</span>),
-        }
-    }
-
-    <span class="kw">fn </span>active_horizontal(<span class="kw-2">&amp;</span><span class="self">self</span>, style: <span class="kw-2">&amp;</span><span class="self">Self</span>::Style) -&gt; scrollable::Scrollbar {
-        <span class="kw">match </span>style {
-            Scrollable::Default =&gt; <span class="self">self</span>.active(style),
-            Scrollable::Custom(custom) =&gt; custom.active_horizontal(<span class="self">self</span>),
-        }
-    }
-
-    <span class="kw">fn </span>hovered_horizontal(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        style: <span class="kw-2">&amp;</span><span class="self">Self</span>::Style,
-        is_mouse_over_scrollbar: bool,
-    ) -&gt; scrollable::Scrollbar {
-        <span class="kw">match </span>style {
-            Scrollable::Default =&gt; <span class="self">self</span>.hovered(style, is_mouse_over_scrollbar),
-            Scrollable::Custom(custom) =&gt; {
-                custom.hovered_horizontal(<span class="self">self</span>, is_mouse_over_scrollbar)
-            }
-        }
-    }
-
-    <span class="kw">fn </span>dragging_horizontal(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        style: <span class="kw-2">&amp;</span><span class="self">Self</span>::Style,
-    ) -&gt; scrollable::Scrollbar {
-        <span class="kw">match </span>style {
-            Scrollable::Default =&gt; <span class="self">self</span>.hovered_horizontal(style, <span class="bool-val">true</span>),
-            Scrollable::Custom(custom) =&gt; custom.dragging_horizontal(<span class="self">self</span>),
         }
     }
 }
