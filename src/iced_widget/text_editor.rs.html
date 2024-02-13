@@ -770,8 +770,12 @@
 <a href="#770" id="770">770</a>
 <a href="#771" id="771">771</a>
 <a href="#772" id="772">772</a>
+<a href="#773" id="773">773</a>
+<a href="#774" id="774">774</a>
+<a href="#775" id="775">775</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a multi-line text input for text editing.
-</span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
+</span><span class="kw">use </span><span class="kw">crate</span>::core::clipboard::{<span class="self">self</span>, Clipboard};
+<span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard::key;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout::{<span class="self">self</span>, Layout};
@@ -782,7 +786,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::text::{<span class="self">self</span>, LineHeight};
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::{<span class="self">self</span>, Widget};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Clipboard, Element, Length, Padding, Pixels, Rectangle, Shell, Size, Vector,
+    Element, Length, Padding, Pixels, Rectangle, Shell, Size, Vector,
 };
 
 <span class="kw">use </span>std::cell::RefCell;
@@ -1220,17 +1224,19 @@
             }
             Update::Copy =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(selection) = <span class="self">self</span>.content.selection() {
-                    clipboard.write(selection);
+                    clipboard.write(clipboard::Kind::Standard, selection);
                 }
             }
             Update::Cut =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(selection) = <span class="self">self</span>.content.selection() {
-                    clipboard.write(selection.clone());
+                    clipboard.write(clipboard::Kind::Standard, selection);
                     shell.publish(on_edit(Action::Edit(Edit::Delete)));
                 }
             }
             Update::Paste =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(contents) = clipboard.read() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(contents) =
+                    clipboard.read(clipboard::Kind::Standard)
+                {
                     shell.publish(on_edit(Action::Edit(Edit::Paste(
                         Arc::new(contents),
                     ))));

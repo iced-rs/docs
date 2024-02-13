@@ -1463,6 +1463,11 @@
 <a href="#1463" id="1463">1463</a>
 <a href="#1464" id="1464">1464</a>
 <a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -1477,6 +1482,7 @@
 <span class="kw">use </span>editor::Editor;
 
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
+<span class="kw">use </span><span class="kw">crate</span>::core::clipboard::{<span class="self">self</span>, Clipboard};
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard::key;
@@ -1491,8 +1497,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Clipboard, Element, Layout, Length, Padding, Pixels, Point, Rectangle,
-    Shell, Size, Vector, Widget,
+    Element, Layout, Length, Padding, Pixels, Point, Rectangle, Shell, Size,
+    Vector, Widget,
 };
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Command;
 
@@ -2329,8 +2335,10 @@
                         <span class="kw">if let </span><span class="prelude-val">Some</span>((start, end)) =
                             state.cursor.selection(value)
                         {
-                            clipboard
-                                .write(value.select(start, end).to_string());
+                            clipboard.write(
+                                clipboard::Kind::Standard,
+                                value.select(start, end).to_string(),
+                            );
                         }
                     }
                     keyboard::Key::Character(<span class="string">"x"</span>)
@@ -2339,8 +2347,10 @@
                         <span class="kw">if let </span><span class="prelude-val">Some</span>((start, end)) =
                             state.cursor.selection(value)
                         {
-                            clipboard
-                                .write(value.select(start, end).to_string());
+                            clipboard.write(
+                                clipboard::Kind::Standard,
+                                value.select(start, end).to_string(),
+                            );
                         }
 
                         <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
@@ -2359,7 +2369,7 @@
                             <span class="prelude-val">Some</span>(content) =&gt; content,
                             <span class="prelude-val">None </span>=&gt; {
                                 <span class="kw">let </span>content: String = clipboard
-                                    .read()
+                                    .read(clipboard::Kind::Standard)
                                     .unwrap_or_default()
                                     .chars()
                                     .filter(|c| !c.is_control())

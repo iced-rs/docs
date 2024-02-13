@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["read","write"]};
+window.SIDEBAR_ITEMS = {"fn":["read","read_primary","write","write_primary"]};

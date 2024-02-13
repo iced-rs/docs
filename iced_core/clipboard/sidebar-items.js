@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Null"],"trait":["Clipboard"]};
+window.SIDEBAR_ITEMS = {"enum":["Kind"],"struct":["Null"],"trait":["Clipboard"]};
