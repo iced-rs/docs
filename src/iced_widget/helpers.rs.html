@@ -433,6 +433,7 @@
 <a href="#433" id="433">433</a>
 <a href="#434" id="434">434</a>
 <a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Helper functions to create pure widgets.
 </span><span class="kw">use </span><span class="kw">crate</span>::button::{<span class="self">self</span>, Button};
 <span class="kw">use </span><span class="kw">crate</span>::checkbox::{<span class="self">self</span>, Checkbox};
@@ -457,7 +458,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::tooltip::{<span class="self">self</span>, Tooltip};
 <span class="kw">use crate</span>::{Column, MouseArea, Row, Space, Themer, VerticalSlider};
 
-<span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::borrow::Borrow;
 <span class="kw">use </span>std::ops::RangeInclusive;
 
 <span class="doccomment">/// Creates a [`Column`] with the given children.
@@ -699,14 +700,15 @@
 <span class="doccomment">/// Creates a new [`PickList`].
 ///
 /// [`PickList`]: crate::PickList
-</span><span class="kw">pub fn </span>pick_list&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer, T&gt;(
-    options: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'a</span>, [T]&gt;&gt;,
-    selected: <span class="prelude-ty">Option</span>&lt;T&gt;,
+</span><span class="kw">pub fn </span>pick_list&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt;(
+    options: L,
+    selected: <span class="prelude-ty">Option</span>&lt;V&gt;,
     on_selected: <span class="kw">impl </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>,
-) -&gt; PickList&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
+) -&gt; PickList&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>T: ToString + PartialEq + <span class="lifetime">'static</span>,
-    [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
+    </span>T: ToString + PartialEq + Clone + <span class="lifetime">'a</span>,
+    L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
+    V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
     Message: Clone,
     Renderer: core::text::Renderer,
     Theme: pick_list::StyleSheet

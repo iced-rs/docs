@@ -789,6 +789,15 @@
 <a href="#789" id="789">789</a>
 <a href="#790" id="790">790</a>
 <a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of selectable values.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
@@ -808,7 +817,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::overlay::menu::{<span class="self">self</span>, Menu};
 <span class="kw">use </span><span class="kw">crate</span>::scrollable;
 
-<span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::borrow::Borrow;
 
 <span class="kw">pub use </span><span class="kw">crate</span>::style::pick_list::{Appearance, StyleSheet};
 
@@ -817,20 +826,24 @@
 </span><span class="kw">pub struct </span>PickList&lt;
     <span class="lifetime">'a</span>,
     T,
+    L,
+    V,
     Message,
     Theme = <span class="kw">crate</span>::Theme,
     Renderer = <span class="kw">crate</span>::Renderer,
 &gt; <span class="kw">where
-    </span>[T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
+    </span>T: ToString + PartialEq + Clone,
+    L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
+    V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
     Theme: StyleSheet,
     Renderer: text::Renderer,
 {
     on_select: Box&lt;<span class="kw">dyn </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>&gt;,
     on_open: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     on_close: <span class="prelude-ty">Option</span>&lt;Message&gt;,
-    options: Cow&lt;<span class="lifetime">'a</span>, [T]&gt;,
+    options: L,
     placeholder: <span class="prelude-ty">Option</span>&lt;String&gt;,
-    selected: <span class="prelude-ty">Option</span>&lt;T&gt;,
+    selected: <span class="prelude-ty">Option</span>&lt;V&gt;,
     width: Length,
     padding: Padding,
     text_size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
@@ -841,11 +854,12 @@
     style: Theme::Style,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
-    PickList&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt;
+    PickList&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>T: ToString + PartialEq,
-    [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
+    </span>T: ToString + PartialEq + Clone,
+    L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
+    V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
     Message: Clone,
     Theme: StyleSheet
         + scrollable::StyleSheet
@@ -860,15 +874,15 @@
     <span class="doccomment">/// Creates a new [`PickList`] with the given list of options, the current
     /// selected value, and the message to produce when an option is selected.
     </span><span class="kw">pub fn </span>new(
-        options: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'a</span>, [T]&gt;&gt;,
-        selected: <span class="prelude-ty">Option</span>&lt;T&gt;,
+        options: L,
+        selected: <span class="prelude-ty">Option</span>&lt;V&gt;,
         on_select: <span class="kw">impl </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             on_select: Box::new(on_select),
             on_open: <span class="prelude-val">None</span>,
             on_close: <span class="prelude-val">None</span>,
-            options: options.into(),
+            options,
             placeholder: <span class="prelude-val">None</span>,
             selected,
             width: Length::Shrink,
@@ -955,11 +969,12 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
-    <span class="kw">for </span>PickList&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>PickList&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>T: Clone + ToString + PartialEq + <span class="lifetime">'static</span>,
-    [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
+    </span>T: Clone + ToString + PartialEq + <span class="lifetime">'a</span>,
+    L: Borrow&lt;[T]&gt;,
+    V: Borrow&lt;T&gt;,
     Message: Clone + <span class="lifetime">'a</span>,
     Theme: StyleSheet
         + scrollable::StyleSheet
@@ -1000,7 +1015,7 @@
             <span class="self">self</span>.text_shaping,
             <span class="self">self</span>.font,
             <span class="self">self</span>.placeholder.as_deref(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.options,
+            <span class="self">self</span>.options.borrow(),
         )
     }
 
@@ -1023,8 +1038,8 @@
             <span class="self">self</span>.on_select.as_ref(),
             <span class="self">self</span>.on_open.as_ref(),
             <span class="self">self</span>.on_close.as_ref(),
-            <span class="self">self</span>.selected.as_ref(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.options,
+            <span class="self">self</span>.selected.as_ref().map(Borrow::borrow),
+            <span class="self">self</span>.options.borrow(),
             || tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
         )
     }
@@ -1062,7 +1077,7 @@
             <span class="self">self</span>.text_shaping,
             font,
             <span class="self">self</span>.placeholder.as_deref(),
-            <span class="self">self</span>.selected.as_ref(),
+            <span class="self">self</span>.selected.as_ref().map(Borrow::borrow),
             <span class="kw-2">&amp;</span><span class="self">self</span>.handle,
             <span class="kw-2">&amp;</span><span class="self">self</span>.style,
             || tree.state.downcast_ref::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
@@ -1087,19 +1102,20 @@
             <span class="self">self</span>.text_size,
             <span class="self">self</span>.text_shaping,
             <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font()),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.options,
+            <span class="self">self</span>.options.borrow(),
             <span class="kw-2">&amp;</span><span class="self">self</span>.on_select,
             <span class="self">self</span>.style.clone(),
         )
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T: <span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
-    From&lt;PickList&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt;
+    From&lt;PickList&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt;&gt;
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>T: Clone + ToString + PartialEq + <span class="lifetime">'static</span>,
-    [T]: ToOwned&lt;Owned = Vec&lt;T&gt;&gt;,
+    </span>T: Clone + ToString + PartialEq + <span class="lifetime">'a</span>,
+    L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
+    V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
     Message: Clone + <span class="lifetime">'a</span>,
     Theme: StyleSheet
         + scrollable::StyleSheet
@@ -1109,7 +1125,9 @@
     &lt;Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style: From&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
-    <span class="kw">fn </span>from(pick_list: PickList&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;) -&gt; <span class="self">Self </span>{
+    <span class="kw">fn </span>from(
+        pick_list: PickList&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt;,
+    ) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(pick_list)
     }
 }
