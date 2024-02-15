@@ -282,6 +282,25 @@
 <a href="#282" id="282">282</a>
 <a href="#283" id="283">283</a>
 <a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Distribute content vertically.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -304,6 +323,7 @@
     height: Length,
     max_width: f32,
     align_items: Alignment,
+    clip: bool,
     children: Vec&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
 }
 
@@ -320,6 +340,7 @@
             height: Length::Shrink,
             max_width: f32::INFINITY,
             align_items: Alignment::Start,
+            clip: <span class="bool-val">false</span>,
             children: Vec::new(),
         }
     }
@@ -368,6 +389,13 @@
     <span class="doccomment">/// Sets the horizontal alignment of the contents of the [`Column`] .
     </span><span class="kw">pub fn </span>align_items(<span class="kw-2">mut </span><span class="self">self</span>, align: Alignment) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.align_items = align;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets whether the contents of the [`Column`] should be clipped on
+    /// overflow.
+    </span><span class="kw">pub fn </span>clip(<span class="kw-2">mut </span><span class="self">self</span>, clip: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.clip = clip;
         <span class="self">self
     </span>}
 
@@ -524,7 +552,7 @@
         cursor: mouse::Cursor,
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(viewport) = layout.bounds().intersection(viewport) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(clipped_viewport) = layout.bounds().intersection(viewport) {
             <span class="kw">for </span>((child, state), layout) <span class="kw">in </span><span class="self">self
                 </span>.children
                 .iter()
@@ -532,7 +560,17 @@
                 .zip(layout.children())
             {
                 child.as_widget().draw(
-                    state, renderer, theme, style, layout, cursor, <span class="kw-2">&amp;</span>viewport,
+                    state,
+                    renderer,
+                    theme,
+                    style,
+                    layout,
+                    cursor,
+                    <span class="kw">if </span><span class="self">self</span>.clip {
+                        <span class="kw-2">&amp;</span>clipped_viewport
+                    } <span class="kw">else </span>{
+                        viewport
+                    },
                 );
             }
         }

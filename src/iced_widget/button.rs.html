@@ -434,6 +434,21 @@
 <a href="#434" id="434">434</a>
 <a href="#435" id="435">435</a>
 <a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Allow your users to perform actions by pressing a button.
 //!
 //! A [`Button`] has some local [`State`].
@@ -497,6 +512,7 @@
     width: Length,
     height: Length,
     padding: Padding,
+    clip: bool,
     style: Theme::Style,
 }
 
@@ -518,6 +534,7 @@
             width: size.width.fluid(),
             height: size.height.fluid(),
             padding: Padding::new(<span class="number">5.0</span>),
+            clip: <span class="bool-val">false</span>,
             style: Theme::Style::default(),
         }
     }
@@ -560,6 +577,13 @@
     <span class="doccomment">/// Sets the style variant of this [`Button`].
     </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Theme::Style&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets whether the contents of the [`Button`] should be clipped on
+    /// overflow.
+    </span><span class="kw">pub fn </span>clip(<span class="kw-2">mut </span><span class="self">self</span>, clip: bool) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.clip = clip;
         <span class="self">self
     </span>}
 }
@@ -663,7 +687,7 @@
         _style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
-        _viewport: <span class="kw-2">&amp;</span>Rectangle,
+        viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
         <span class="kw">let </span>bounds = layout.bounds();
         <span class="kw">let </span>content_layout = layout.children().next().unwrap();
@@ -678,6 +702,12 @@
             || tree.state.downcast_ref::&lt;State&gt;(),
         );
 
+        <span class="kw">let </span>viewport = <span class="kw">if </span><span class="self">self</span>.clip {
+            bounds.intersection(viewport).unwrap_or(<span class="kw-2">*</span>viewport)
+        } <span class="kw">else </span>{
+            <span class="kw-2">*</span>viewport
+        };
+
         <span class="self">self</span>.content.as_widget().draw(
             <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
             renderer,
@@ -687,7 +717,7 @@
             },
             content_layout,
             cursor,
-            <span class="kw-2">&amp;</span>bounds,
+            <span class="kw-2">&amp;</span>viewport,
         );
     }
 
