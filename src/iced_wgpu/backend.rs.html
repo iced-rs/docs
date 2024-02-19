@@ -393,6 +393,10 @@
 <a href="#393" id="393">393</a>
 <a href="#394" id="394">394</a>
 <a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{Color, Size, Transformation};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::backend;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
@@ -422,7 +426,6 @@
     text_pipeline: text::Pipeline,
     triangle_pipeline: triangle::Pipeline,
     pipeline_storage: pipeline::Storage,
-
     <span class="attr">#[cfg(any(feature = <span class="string">"image"</span>, feature = <span class="string">"svg"</span>))]
     </span>image_pipeline: image::Pipeline,
 }
@@ -430,6 +433,7 @@
 <span class="kw">impl </span>Backend {
     <span class="doccomment">/// Creates a new [`Backend`].
     </span><span class="kw">pub fn </span>new(
+        _adapter: <span class="kw-2">&amp;</span>wgpu::Adapter,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
         queue: <span class="kw-2">&amp;</span>wgpu::Queue,
         settings: Settings,
@@ -441,7 +445,11 @@
             triangle::Pipeline::new(device, format, settings.antialiasing);
 
         <span class="attr">#[cfg(any(feature = <span class="string">"image"</span>, feature = <span class="string">"svg"</span>))]
-        </span><span class="kw">let </span>image_pipeline = image::Pipeline::new(device, format);
+        </span><span class="kw">let </span>image_pipeline = {
+            <span class="kw">let </span>backend = _adapter.get_info().backend;
+
+            image::Pipeline::new(device, format, backend)
+        };
 
         <span class="self">Self </span>{
             quad_pipeline,

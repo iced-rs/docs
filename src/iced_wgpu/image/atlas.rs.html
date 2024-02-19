@@ -408,6 +408,14 @@
 <a href="#408" id="408">408</a>
 <a href="#409" id="409">409</a>
 <a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
 </pre></div><pre class="rust"><code><span class="kw">pub mod </span>entry;
 
 <span class="kw">mod </span>allocation;
@@ -433,11 +441,19 @@
 }
 
 <span class="kw">impl </span>Atlas {
-    <span class="kw">pub fn </span>new(device: <span class="kw-2">&amp;</span>wgpu::Device) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new(device: <span class="kw-2">&amp;</span>wgpu::Device, backend: wgpu::Backend) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>layers = <span class="kw">match </span>backend {
+            <span class="comment">// On the GL backend we start with 2 layers, to help wgpu figure
+            // out that this texture is `GL_TEXTURE_2D_ARRAY` rather than `GL_TEXTURE_2D`
+            // https://github.com/gfx-rs/wgpu/blob/004e3efe84a320d9331371ed31fa50baa2414911/wgpu-hal/src/gles/mod.rs#L371
+            </span>wgpu::Backend::Gl =&gt; <span class="macro">vec!</span>[Layer::Empty, Layer::Empty],
+            <span class="kw">_ </span>=&gt; <span class="macro">vec!</span>[Layer::Empty],
+        };
+
         <span class="kw">let </span>extent = wgpu::Extent3d {
             width: SIZE,
             height: SIZE,
-            depth_or_array_layers: <span class="number">1</span>,
+            depth_or_array_layers: layers.len() <span class="kw">as </span>u32,
         };
 
         <span class="kw">let </span>texture = device.create_texture(<span class="kw-2">&amp;</span>wgpu::TextureDescriptor {
@@ -465,7 +481,7 @@
         Atlas {
             texture,
             texture_view,
-            layers: <span class="macro">vec!</span>[Layer::Empty],
+            layers,
         }
     }
 
