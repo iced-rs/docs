@@ -302,6 +302,27 @@
 <a href="#302" id="302">302</a>
 <a href="#303" id="303">303</a>
 <a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Distribute content horizontally.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout::{<span class="self">self</span>, Layout};
@@ -332,22 +353,35 @@
 {
     <span class="doccomment">/// Creates an empty [`Row`].
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        Row {
-            spacing: <span class="number">0.0</span>,
-            padding: Padding::ZERO,
-            width: Length::Shrink,
-            height: Length::Shrink,
-            align_items: Alignment::Start,
-            clip: <span class="bool-val">false</span>,
-            children: Vec::new(),
-        }
+        <span class="self">Self</span>::from_vec(Vec::new())
     }
 
     <span class="doccomment">/// Creates a [`Row`] with the given elements.
     </span><span class="kw">pub fn </span>with_children(
         children: <span class="kw">impl </span>IntoIterator&lt;Item = Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
-        children.into_iter().fold(<span class="self">Self</span>::new(), <span class="self">Self</span>::push)
+        <span class="self">Self</span>::new().extend(children)
+    }
+
+    <span class="doccomment">/// Creates a [`Row`] from an already allocated [`Vec`].
+    ///
+    /// Keep in mind that the [`Row`] will not inspect the [`Vec`], which means
+    /// it won't automatically adapt to the sizing strategy of its contents.
+    ///
+    /// If any of the children have a [`Length::Fill`] strategy, you will need to
+    /// call [`Row::width`] or [`Row::height`] accordingly.
+    </span><span class="kw">pub fn </span>from_vec(
+        children: Vec&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            spacing: <span class="number">0.0</span>,
+            padding: Padding::ZERO,
+            width: Length::Shrink,
+            height: Length::Shrink,
+            align_items: Alignment::Start,
+            clip: <span class="bool-val">false</span>,
+            children,
+        }
     }
 
     <span class="doccomment">/// Sets the horizontal spacing _between_ elements.
@@ -421,6 +455,14 @@
         } <span class="kw">else </span>{
             <span class="self">self
         </span>}
+    }
+
+    <span class="doccomment">/// Extends the [`Row`] with the given children.
+    </span><span class="kw">pub fn </span>extend(
+        <span class="self">self</span>,
+        children: <span class="kw">impl </span>IntoIterator&lt;Item = Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        children.into_iter().fold(<span class="self">self</span>, <span class="self">Self</span>::push)
     }
 }
 
