@@ -176,8 +176,31 @@
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::graphics::color;
-<span class="kw">use </span><span class="kw">crate</span>::graphics::gradient;
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::graphics::gradient;
 <span class="kw">use </span><span class="kw">crate</span>::quad::{<span class="self">self</span>, Quad};
 <span class="kw">use </span><span class="kw">crate</span>::Buffer;
 
@@ -237,107 +260,129 @@
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Pipeline {
-    pipeline: wgpu::RenderPipeline,
+    <span class="attr">#[cfg(not(target_arch = <span class="string">"wasm32"</span>))]
+    </span>pipeline: wgpu::RenderPipeline,
 }
 
 <span class="kw">impl </span>Pipeline {
-    <span class="kw">pub fn </span>new(
+    <span class="attr">#[allow(unused_variables)]
+    </span><span class="kw">pub fn </span>new(
         device: <span class="kw-2">&amp;</span>wgpu::Device,
         format: wgpu::TextureFormat,
         constants_layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
     ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>layout =
-            device.create_pipeline_layout(<span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.quad.gradient.pipeline"</span>),
-                push_constant_ranges: <span class="kw-2">&amp;</span>[],
-                bind_group_layouts: <span class="kw-2">&amp;</span>[constants_layout],
-            });
+        <span class="attr">#[cfg(not(target_arch = <span class="string">"wasm32"</span>))]
+        </span>{
+            <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 
-        <span class="kw">let </span>shader =
-            device.create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.quad.gradient.shader"</span>),
-                source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(
-                    <span class="kw">if </span>color::GAMMA_CORRECTION {
-                        <span class="macro">concat!</span>(
-                            <span class="macro">include_str!</span>(<span class="string">"../shader/quad.wgsl"</span>),
-                            <span class="string">"\n"</span>,
-                            <span class="macro">include_str!</span>(<span class="string">"../shader/vertex.wgsl"</span>),
-                            <span class="string">"\n"</span>,
-                            <span class="macro">include_str!</span>(<span class="string">"../shader/quad/gradient.wgsl"</span>),
-                            <span class="string">"\n"</span>,
-                            <span class="macro">include_str!</span>(<span class="string">"../shader/color/oklab.wgsl"</span>)
-                        )
-                    } <span class="kw">else </span>{
-                        <span class="macro">concat!</span>(
-                            <span class="macro">include_str!</span>(<span class="string">"../shader/quad.wgsl"</span>),
-                            <span class="string">"\n"</span>,
-                            <span class="macro">include_str!</span>(<span class="string">"../shader/vertex.wgsl"</span>),
-                            <span class="string">"\n"</span>,
-                            <span class="macro">include_str!</span>(<span class="string">"../shader/quad/gradient.wgsl"</span>),
-                            <span class="string">"\n"</span>,
-                            <span class="macro">include_str!</span>(<span class="string">"../shader/color/linear_rgb.wgsl"</span>)
-                        )
-                    },
-                )),
-            });
+            <span class="kw">let </span>layout = device.create_pipeline_layout(
+                <span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
+                    label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.quad.gradient.pipeline"</span>),
+                    push_constant_ranges: <span class="kw-2">&amp;</span>[],
+                    bind_group_layouts: <span class="kw-2">&amp;</span>[constants_layout],
+                },
+            );
 
-        <span class="kw">let </span>pipeline =
-            device.create_render_pipeline(<span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
-                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.quad.gradient.pipeline"</span>),
-                layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
-                vertex: wgpu::VertexState {
-                    module: <span class="kw-2">&amp;</span>shader,
-                    entry_point: <span class="string">"gradient_vs_main"</span>,
-                    buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
-                        array_stride: std::mem::size_of::&lt;Gradient&gt;() <span class="kw">as </span>u64,
-                        step_mode: wgpu::VertexStepMode::Instance,
-                        attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
-                            <span class="comment">// Colors 1-2
-                            </span><span class="number">0 </span>=&gt; Uint32x4,
-                            <span class="comment">// Colors 3-4
-                            </span><span class="number">1 </span>=&gt; Uint32x4,
-                            <span class="comment">// Colors 5-6
-                            </span><span class="number">2 </span>=&gt; Uint32x4,
-                            <span class="comment">// Colors 7-8
-                            </span><span class="number">3 </span>=&gt; Uint32x4,
-                            <span class="comment">// Offsets 1-8
-                            </span><span class="number">4 </span>=&gt; Uint32x4,
-                            <span class="comment">// Direction
-                            </span><span class="number">5 </span>=&gt; Float32x4,
-                            <span class="comment">// Position &amp; Scale
-                            </span><span class="number">6 </span>=&gt; Float32x4,
-                            <span class="comment">// Border color
-                            </span><span class="number">7 </span>=&gt; Float32x4,
-                            <span class="comment">// Border radius
-                            </span><span class="number">8 </span>=&gt; Float32x4,
-                            <span class="comment">// Border width
-                            </span><span class="number">9 </span>=&gt; Float32
+            <span class="kw">let </span>shader =
+                device.create_shader_module(wgpu::ShaderModuleDescriptor {
+                    label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.quad.gradient.shader"</span>),
+                    source: wgpu::ShaderSource::Wgsl(
+                        std::borrow::Cow::Borrowed(
+                            <span class="kw">if </span>color::GAMMA_CORRECTION {
+                                <span class="macro">concat!</span>(
+                                    <span class="macro">include_str!</span>(<span class="string">"../shader/quad.wgsl"</span>),
+                                    <span class="string">"\n"</span>,
+                                    <span class="macro">include_str!</span>(<span class="string">"../shader/vertex.wgsl"</span>),
+                                    <span class="string">"\n"</span>,
+                                    <span class="macro">include_str!</span>(
+                                        <span class="string">"../shader/quad/gradient.wgsl"
+                                    </span>),
+                                    <span class="string">"\n"</span>,
+                                    <span class="macro">include_str!</span>(<span class="string">"../shader/color/oklab.wgsl"</span>)
+                                )
+                            } <span class="kw">else </span>{
+                                <span class="macro">concat!</span>(
+                                    <span class="macro">include_str!</span>(<span class="string">"../shader/quad.wgsl"</span>),
+                                    <span class="string">"\n"</span>,
+                                    <span class="macro">include_str!</span>(<span class="string">"../shader/vertex.wgsl"</span>),
+                                    <span class="string">"\n"</span>,
+                                    <span class="macro">include_str!</span>(
+                                        <span class="string">"../shader/quad/gradient.wgsl"
+                                    </span>),
+                                    <span class="string">"\n"</span>,
+                                    <span class="macro">include_str!</span>(
+                                        <span class="string">"../shader/color/linear_rgb.wgsl"
+                                    </span>)
+                                )
+                            },
                         ),
-                    }],
-                },
-                fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
-                    module: <span class="kw-2">&amp;</span>shader,
-                    entry_point: <span class="string">"gradient_fs_main"</span>,
-                    targets: <span class="kw-2">&amp;</span>quad::color_target_state(format),
-                }),
-                primitive: wgpu::PrimitiveState {
-                    topology: wgpu::PrimitiveTopology::TriangleList,
-                    front_face: wgpu::FrontFace::Cw,
-                    ..Default::default()
-                },
-                depth_stencil: <span class="prelude-val">None</span>,
-                multisample: wgpu::MultisampleState {
-                    count: <span class="number">1</span>,
-                    mask: !<span class="number">0</span>,
-                    alpha_to_coverage_enabled: <span class="bool-val">false</span>,
-                },
-                multiview: <span class="prelude-val">None</span>,
-            });
+                    ),
+                });
 
-        <span class="self">Self </span>{ pipeline }
+            <span class="kw">let </span>pipeline = device.create_render_pipeline(
+                <span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
+                    label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.quad.gradient.pipeline"</span>),
+                    layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
+                    vertex: wgpu::VertexState {
+                        module: <span class="kw-2">&amp;</span>shader,
+                        entry_point: <span class="string">"gradient_vs_main"</span>,
+                        buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
+                            array_stride: std::mem::size_of::&lt;Gradient&gt;()
+                                <span class="kw">as </span>u64,
+                            step_mode: wgpu::VertexStepMode::Instance,
+                            attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
+                                <span class="comment">// Colors 1-2
+                                </span><span class="number">0 </span>=&gt; Uint32x4,
+                                <span class="comment">// Colors 3-4
+                                </span><span class="number">1 </span>=&gt; Uint32x4,
+                                <span class="comment">// Colors 5-6
+                                </span><span class="number">2 </span>=&gt; Uint32x4,
+                                <span class="comment">// Colors 7-8
+                                </span><span class="number">3 </span>=&gt; Uint32x4,
+                                <span class="comment">// Offsets 1-8
+                                </span><span class="number">4 </span>=&gt; Uint32x4,
+                                <span class="comment">// Direction
+                                </span><span class="number">5 </span>=&gt; Float32x4,
+                                <span class="comment">// Position &amp; Scale
+                                </span><span class="number">6 </span>=&gt; Float32x4,
+                                <span class="comment">// Border color
+                                </span><span class="number">7 </span>=&gt; Float32x4,
+                                <span class="comment">// Border radius
+                                </span><span class="number">8 </span>=&gt; Float32x4,
+                                <span class="comment">// Border width
+                                </span><span class="number">9 </span>=&gt; Float32
+                            ),
+                        }],
+                    },
+                    fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
+                        module: <span class="kw-2">&amp;</span>shader,
+                        entry_point: <span class="string">"gradient_fs_main"</span>,
+                        targets: <span class="kw-2">&amp;</span>quad::color_target_state(format),
+                    }),
+                    primitive: wgpu::PrimitiveState {
+                        topology: wgpu::PrimitiveTopology::TriangleList,
+                        front_face: wgpu::FrontFace::Cw,
+                        ..Default::default()
+                    },
+                    depth_stencil: <span class="prelude-val">None</span>,
+                    multisample: wgpu::MultisampleState {
+                        count: <span class="number">1</span>,
+                        mask: !<span class="number">0</span>,
+                        alpha_to_coverage_enabled: <span class="bool-val">false</span>,
+                    },
+                    multiview: <span class="prelude-val">None</span>,
+                },
+            );
+
+            <span class="self">Self </span>{ pipeline }
+        }
+
+        <span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
+        </span><span class="self">Self </span>{}
     }
 
-    <span class="kw">pub fn </span>render&lt;<span class="lifetime">'a</span>&gt;(
+    <span class="attr">#[allow(unused_variables)]
+    </span><span class="kw">pub fn </span>render&lt;<span class="lifetime">'a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
         render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">'a</span>&gt;,
         constants: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>wgpu::BindGroup,
@@ -347,11 +392,14 @@
         <span class="attr">#[cfg(feature = <span class="string">"tracing"</span>)]
         </span><span class="kw">let _ </span>= <span class="macro">tracing::info_span!</span>(<span class="string">"Wgpu::Quad::Gradient"</span>, <span class="string">"DRAW"</span>).entered();
 
-        render_pass.set_pipeline(<span class="kw-2">&amp;</span><span class="self">self</span>.pipeline);
-        render_pass.set_bind_group(<span class="number">0</span>, constants, <span class="kw-2">&amp;</span>[]);
-        render_pass.set_vertex_buffer(<span class="number">0</span>, layer.instances.slice(..));
+        <span class="attr">#[cfg(not(target_arch = <span class="string">"wasm32"</span>))]
+        </span>{
+            render_pass.set_pipeline(<span class="kw-2">&amp;</span><span class="self">self</span>.pipeline);
+            render_pass.set_bind_group(<span class="number">0</span>, constants, <span class="kw-2">&amp;</span>[]);
+            render_pass.set_vertex_buffer(<span class="number">0</span>, layer.instances.slice(..));
 
-        render_pass.draw(<span class="number">0</span>..<span class="number">6</span>, range.start <span class="kw">as </span>u32..range.end <span class="kw">as </span>u32);
+            render_pass.draw(<span class="number">0</span>..<span class="number">6</span>, range.start <span class="kw">as </span>u32..range.end <span class="kw">as </span>u32);
+        }
     }
 }
 </code></pre></div></section></main></body></html>
