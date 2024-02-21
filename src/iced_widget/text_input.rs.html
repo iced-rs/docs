@@ -1467,7 +1467,6 @@
 <a href="#1467" id="1467">1467</a>
 <a href="#1468" id="1468">1468</a>
 <a href="#1469" id="1469">1469</a>
-<a href="#1470" id="1470">1470</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -2232,6 +2231,27 @@
                 <span class="kw">let </span>modifiers = state.keyboard_modifiers;
                 focus.updated_at = Instant::now();
 
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = text {
+                    state.is_pasting = <span class="prelude-val">None</span>;
+
+                    <span class="kw">let </span>c = text.chars().next().unwrap_or_default();
+
+                    <span class="kw">if </span>!c.is_control() {
+                        <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
+
+                        editor.insert(c);
+
+                        <span class="kw">let </span>message = (on_input)(editor.contents());
+                        shell.publish(message);
+
+                        focus.updated_at = Instant::now();
+
+                        update_cache(state, value);
+
+                        <span class="kw">return </span>event::Status::Captured;
+                    }
+                }
+
                 <span class="kw">match </span>key.as_ref() {
                     keyboard::Key::Named(key::Named::Enter) =&gt; {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(on_submit) = on_submit.clone() {
@@ -2414,29 +2434,7 @@
                     ) =&gt; {
                         <span class="kw">return </span>event::Status::Ignored;
                     }
-                    <span class="kw">_ </span>=&gt; {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = text {
-                            state.is_pasting = <span class="prelude-val">None</span>;
-
-                            <span class="kw">let </span>c = text.chars().next().unwrap_or_default();
-
-                            <span class="kw">if </span>!c.is_control() {
-                                <span class="kw">let </span><span class="kw-2">mut </span>editor =
-                                    Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
-
-                                editor.insert(c);
-
-                                <span class="kw">let </span>message = (on_input)(editor.contents());
-                                shell.publish(message);
-
-                                focus.updated_at = Instant::now();
-
-                                update_cache(state, value);
-
-                                <span class="kw">return </span>event::Status::Captured;
-                            }
-                        }
-                    }
+                    <span class="kw">_ </span>=&gt; {}
                 }
 
                 <span class="kw">return </span>event::Status::Captured;
