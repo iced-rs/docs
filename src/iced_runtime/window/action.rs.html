@@ -220,6 +220,14 @@
 <a href="#220" id="220">220</a>
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::window::{Icon, Id, Level, Mode, Settings, UserAttention};
 <span class="kw">use </span><span class="kw">crate</span>::core::{Point, Size};
 <span class="kw">use </span><span class="kw">crate</span>::futures::MaybeSend;
@@ -260,6 +268,8 @@
     </span>FetchMinimized(Id, Box&lt;<span class="kw">dyn </span>FnOnce(<span class="prelude-ty">Option</span>&lt;bool&gt;) -&gt; T + <span class="lifetime">'static</span>&gt;),
     <span class="doccomment">/// Set the window to minimized or back
     </span>Minimize(Id, bool),
+    <span class="doccomment">/// Fetch the current logical coordinates of the window.
+    </span>FetchPosition(Id, Box&lt;<span class="kw">dyn </span>FnOnce(<span class="prelude-ty">Option</span>&lt;Point&gt;) -&gt; T + <span class="lifetime">'static</span>&gt;),
     <span class="doccomment">/// Move the window to the given logical coordinates.
     ///
     /// Unsupported on Wayland.
@@ -356,6 +366,9 @@
                 Action::FetchMinimized(id, Box::new(<span class="kw">move </span>|s| f(o(s))))
             }
             <span class="self">Self</span>::Minimize(id, minimized) =&gt; Action::Minimize(id, minimized),
+            <span class="self">Self</span>::FetchPosition(id, o) =&gt; {
+                Action::FetchPosition(id, Box::new(<span class="kw">move </span>|s| f(o(s))))
+            }
             <span class="self">Self</span>::Move(id, position) =&gt; Action::Move(id, position),
             <span class="self">Self</span>::ChangeMode(id, mode) =&gt; Action::ChangeMode(id, mode),
             <span class="self">Self</span>::FetchMode(id, o) =&gt; {
@@ -407,6 +420,9 @@
             }
             <span class="self">Self</span>::Minimize(id, minimized) =&gt; {
                 <span class="macro">write!</span>(f, <span class="string">"Action::Minimize({id:?}, {minimized}"</span>)
+            }
+            <span class="self">Self</span>::FetchPosition(id, <span class="kw">_</span>) =&gt; {
+                <span class="macro">write!</span>(f, <span class="string">"Action::FetchPosition({id:?})"</span>)
             }
             <span class="self">Self</span>::Move(id, position) =&gt; {
                 <span class="macro">write!</span>(f, <span class="string">"Action::Move({id:?}, {position})"</span>)
