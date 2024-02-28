@@ -1623,6 +1623,8 @@
 <a href="#1623" id="1623">1623</a>
 <a href="#1624" id="1624">1624</a>
 <a href="#1625" id="1625">1625</a>
+<a href="#1626" id="1626">1626</a>
+<a href="#1627" id="1627">1627</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -2532,7 +2534,15 @@
         theme.active(style)
     };
 
-    <span class="kw">let </span>idle_scrollbar = theme.active(style).scrollbar;
+    <span class="kw">let </span>scrollbar_style = |is_dragging: bool, mouse_over_scrollbar: bool| {
+        <span class="kw">if </span>is_dragging {
+            theme.dragging(style).scrollbar
+        } <span class="kw">else if </span>cursor_over_scrollable.is_some() {
+            theme.hovered(style, mouse_over_scrollbar).scrollbar
+        } <span class="kw">else </span>{
+            theme.active(style).scrollbar
+        }
+    };
 
     container::draw_background(
         renderer,
@@ -2609,13 +2619,10 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(scrollbar) = scrollbars.y {
                     draw_scrollbar(
                         renderer,
-                        <span class="kw">if </span>mouse_over_y_scrollbar
-                            || state.y_scroller_grabbed_at.is_some()
-                        {
-                            appearance.scrollbar
-                        } <span class="kw">else </span>{
-                            idle_scrollbar
-                        },
+                        scrollbar_style(
+                            state.y_scroller_grabbed_at.is_some(),
+                            mouse_over_y_scrollbar,
+                        ),
                         <span class="kw-2">&amp;</span>scrollbar,
                     );
                 }
@@ -2623,13 +2630,10 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(scrollbar) = scrollbars.x {
                     draw_scrollbar(
                         renderer,
-                        <span class="kw">if </span>mouse_over_x_scrollbar
-                            || state.x_scroller_grabbed_at.is_some()
-                        {
-                            appearance.scrollbar
-                        } <span class="kw">else </span>{
-                            idle_scrollbar
-                        },
+                        scrollbar_style(
+                            state.x_scroller_grabbed_at.is_some(),
+                            mouse_over_x_scrollbar,
+                        ),
                         <span class="kw-2">&amp;</span>scrollbar,
                     );
                 }
