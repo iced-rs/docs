@@ -217,29 +217,6 @@
 <a href="#217" id="217">217</a>
 <a href="#218" id="218">218</a>
 <a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Distribute elements using a flex-based layout.
 </span><span class="comment">// This code is heavily inspired by the [`druid`] codebase.
 //
@@ -322,14 +299,9 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>fill_main_sum = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>cross = <span class="kw">match </span>axis {
-        Axis::Horizontal =&gt; <span class="kw">match </span>height {
-            Length::Shrink =&gt; <span class="number">0.0</span>,
-            <span class="kw">_ </span>=&gt; max_cross,
-        },
-        Axis::Vertical =&gt; <span class="kw">match </span>width {
-            Length::Shrink =&gt; <span class="number">0.0</span>,
-            <span class="kw">_ </span>=&gt; max_cross,
-        },
+        Axis::Vertical <span class="kw">if </span>width == Length::Shrink =&gt; <span class="number">0.0</span>,
+        Axis::Horizontal <span class="kw">if </span>height == Length::Shrink =&gt; <span class="number">0.0</span>,
+        <span class="kw">_ </span>=&gt; max_cross,
     };
 
     <span class="kw">let </span><span class="kw-2">mut </span>available = axis.main(limits.max()) - total_spacing;
@@ -345,35 +317,14 @@
         };
 
         <span class="kw">if </span>fill_main_factor == <span class="number">0 </span>{
-            <span class="kw">if </span>fill_cross_factor == <span class="number">0 </span>{
-                <span class="kw">let </span>(max_width, max_height) = axis.pack(available, max_cross);
-
-                <span class="kw">let </span>child_limits =
-                    Limits::new(Size::ZERO, Size::new(max_width, max_height));
-
-                <span class="kw">let </span>layout =
-                    child.as_widget().layout(tree, renderer, <span class="kw-2">&amp;</span>child_limits);
-                <span class="kw">let </span>size = layout.size();
-
-                available -= axis.main(size);
-                cross = cross.max(axis.cross(size));
-
-                nodes[i] = layout;
-            }
-        } <span class="kw">else </span>{
-            fill_main_sum += fill_main_factor;
-        }
-    }
-
-    <span class="kw">for </span>(i, (child, tree)) <span class="kw">in </span>items.iter().zip(trees.iter_mut()).enumerate() {
-        <span class="kw">let </span>(fill_main_factor, fill_cross_factor) = {
-            <span class="kw">let </span>size = child.as_widget().size();
-
-            axis.pack(size.width.fill_factor(), size.height.fill_factor())
-        };
-
-        <span class="kw">if </span>fill_main_factor == <span class="number">0 </span>&amp;&amp; fill_cross_factor != <span class="number">0 </span>{
-            <span class="kw">let </span>(max_width, max_height) = axis.pack(available, cross);
+            <span class="kw">let </span>(max_width, max_height) = axis.pack(
+                available,
+                <span class="kw">if </span>fill_cross_factor == <span class="number">0 </span>{
+                    max_cross
+                } <span class="kw">else </span>{
+                    cross
+                },
+            );
 
             <span class="kw">let </span>child_limits =
                 Limits::new(Size::ZERO, Size::new(max_width, max_height));
@@ -383,9 +334,11 @@
             <span class="kw">let </span>size = layout.size();
 
             available -= axis.main(size);
-            cross = cross.max(axis.cross(layout.size()));
+            cross = cross.max(axis.cross(size));
 
             nodes[i] = layout;
+        } <span class="kw">else </span>{
+            fill_main_sum += fill_main_factor;
         }
     }
 
@@ -417,14 +370,15 @@
                 max_main
             };
 
-            <span class="kw">let </span>max_cross = <span class="kw">if </span>fill_cross_factor == <span class="number">0 </span>{
-                max_cross
-            } <span class="kw">else </span>{
-                cross
-            };
-
             <span class="kw">let </span>(min_width, min_height) = axis.pack(min_main, <span class="number">0.0</span>);
-            <span class="kw">let </span>(max_width, max_height) = axis.pack(max_main, max_cross);
+            <span class="kw">let </span>(max_width, max_height) = axis.pack(
+                max_main,
+                <span class="kw">if </span>fill_cross_factor == <span class="number">0 </span>{
+                    max_cross
+                } <span class="kw">else </span>{
+                    cross
+                },
+            );
 
             <span class="kw">let </span>child_limits = Limits::new(
                 Size::new(min_width, min_height),
