@@ -263,12 +263,18 @@
 <a href="#263" id="263">263</a>
 <a href="#264" id="264">264</a>
 <a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::Color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::compositor::{Information, SurfaceError, Window};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::{Error, Viewport};
 <span class="kw">use crate</span>::{Renderer, Settings};
 
 <span class="kw">use </span>std::env;
+<span class="kw">use </span>std::future::Future;
 
 <span class="kw">pub enum </span>Compositor {
     TinySkia(iced_tiny_skia::window::Compositor),
@@ -290,22 +296,25 @@
     <span class="kw">fn </span>new&lt;W: Window + Clone&gt;(
         settings: <span class="self">Self</span>::Settings,
         compatible_window: W,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+    ) -&gt; <span class="kw">impl </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt;&gt; {
         <span class="kw">let </span>candidates =
             Candidate::list_from_env().unwrap_or(Candidate::default_list());
 
-        <span class="kw">let </span><span class="kw-2">mut </span>error = Error::GraphicsAdapterNotFound;
+        <span class="kw">async move </span>{
+            <span class="kw">let </span><span class="kw-2">mut </span>error = Error::GraphicsAdapterNotFound;
 
-        <span class="kw">for </span>candidate <span class="kw">in </span>candidates {
-            <span class="kw">match </span>candidate.build(settings, compatible_window.clone()) {
-                <span class="prelude-val">Ok</span>(compositor) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(compositor),
-                <span class="prelude-val">Err</span>(new_error) =&gt; {
-                    error = new_error;
+            <span class="kw">for </span>candidate <span class="kw">in </span>candidates {
+                <span class="kw">match </span>candidate.build(settings, compatible_window.clone()).<span class="kw">await
+                </span>{
+                    <span class="prelude-val">Ok</span>(compositor) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(compositor),
+                    <span class="prelude-val">Err</span>(new_error) =&gt; {
+                        error = new_error;
+                    }
                 }
             }
-        }
 
-        <span class="prelude-val">Err</span>(error)
+            <span class="prelude-val">Err</span>(error)
+        }
     }
 
     <span class="kw">fn </span>create_renderer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Renderer {
@@ -490,7 +499,7 @@
         )
     }
 
-    <span class="kw">fn </span>build&lt;W: Window&gt;(
+    <span class="kw">async fn </span>build&lt;W: Window&gt;(
         <span class="self">self</span>,
         settings: Settings,
         _compatible_window: W,
@@ -517,7 +526,8 @@
                         ..iced_wgpu::Settings::from_env()
                     },
                     _compatible_window,
-                )<span class="question-mark">?</span>;
+                )
+                .<span class="kw">await</span><span class="question-mark">?</span>;
 
                 <span class="prelude-val">Ok</span>(Compositor::Wgpu(compositor))
             }
