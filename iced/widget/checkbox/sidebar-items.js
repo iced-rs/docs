@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Appearance","Checkbox","Icon"],"trait":["StyleSheet"]};
+window.SIDEBAR_ITEMS = {"enum":["Status"],"fn":["danger","primary","secondary","success"],"struct":["Appearance","Checkbox","Icon"],"trait":["DefaultStyle"],"type":["Style"]};

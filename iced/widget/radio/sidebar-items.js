@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Appearance","Radio"],"trait":["StyleSheet"]};
+window.SIDEBAR_ITEMS = {"enum":["Status"],"fn":["default"],"struct":["Appearance","Radio"],"trait":["DefaultStyle"],"type":["Style"]};

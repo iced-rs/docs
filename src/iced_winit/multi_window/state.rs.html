@@ -237,24 +237,20 @@
 <a href="#237" id="237">237</a>
 <a href="#238" id="238">238</a>
 <a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::conversion;
 <span class="kw">use </span><span class="kw">crate</span>::core::{mouse, window};
 <span class="kw">use </span><span class="kw">crate</span>::core::{Color, Size};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::Viewport;
-<span class="kw">use </span><span class="kw">crate</span>::multi_window::Application;
-<span class="kw">use </span><span class="kw">crate</span>::style::application;
+<span class="kw">use </span><span class="kw">crate</span>::multi_window::{<span class="self">self</span>, Application};
 <span class="kw">use </span>std::fmt::{Debug, Formatter};
 
-<span class="kw">use </span>iced_style::application::StyleSheet;
 <span class="kw">use </span>winit::event::{Touch, WindowEvent};
 <span class="kw">use </span>winit::window::Window;
 
 <span class="doccomment">/// The state of a multi-windowed [`Application`].
 </span><span class="kw">pub struct </span>State&lt;A: Application&gt;
 <span class="kw">where
-    </span>A::Theme: application::StyleSheet,
+    </span>A::Theme: multi_window::DefaultStyle,
 {
     title: String,
     scale_factor: f64,
@@ -263,12 +259,12 @@
     cursor_position: <span class="prelude-ty">Option</span>&lt;winit::dpi::PhysicalPosition&lt;f64&gt;&gt;,
     modifiers: winit::keyboard::ModifiersState,
     theme: A::Theme,
-    appearance: application::Appearance,
+    appearance: multi_window::Appearance,
 }
 
 <span class="kw">impl</span>&lt;A: Application&gt; Debug <span class="kw">for </span>State&lt;A&gt;
 <span class="kw">where
-    </span>A::Theme: application::StyleSheet,
+    </span>A::Theme: multi_window::DefaultStyle,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         f.debug_struct(<span class="string">"multi_window::State"</span>)
@@ -284,7 +280,7 @@
 
 <span class="kw">impl</span>&lt;A: Application&gt; State&lt;A&gt;
 <span class="kw">where
-    </span>A::Theme: application::StyleSheet,
+    </span>A::Theme: multi_window::DefaultStyle,
 {
     <span class="doccomment">/// Creates a new [`State`] for the provided [`Application`]'s `window`.
     </span><span class="kw">pub fn </span>new(
@@ -295,7 +291,7 @@
         <span class="kw">let </span>title = application.title(window_id);
         <span class="kw">let </span>scale_factor = application.scale_factor(window_id);
         <span class="kw">let </span>theme = application.theme(window_id);
-        <span class="kw">let </span>appearance = theme.appearance(<span class="kw-2">&amp;</span>application.style());
+        <span class="kw">let </span>appearance = application.style(<span class="kw-2">&amp;</span>theme);
 
         <span class="kw">let </span>viewport = {
             <span class="kw">let </span>physical_size = window.inner_size();
@@ -477,7 +473,7 @@
 
         <span class="comment">// Update theme and appearance
         </span><span class="self">self</span>.theme = application.theme(window_id);
-        <span class="self">self</span>.appearance = <span class="self">self</span>.theme.appearance(<span class="kw-2">&amp;</span>application.style());
+        <span class="self">self</span>.appearance = application.style(<span class="kw-2">&amp;</span><span class="self">self</span>.theme);
     }
 }
 </code></pre></div></section></main></body></html>

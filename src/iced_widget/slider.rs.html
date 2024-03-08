@@ -555,10 +555,45 @@
 <a href="#555" id="555">555</a>
 <a href="#556" id="556">556</a>
 <a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display an interactive selector of a single value from a range of values.
-//!
-//! A [`Slider`] has some local [`State`].
-</span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
+</span><span class="kw">use </span><span class="kw">crate</span>::core::border;
+<span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard::key::{<span class="self">self</span>, Key};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -567,15 +602,11 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::touch;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Border, Clipboard, Element, Layout, Length, Pixels, Point, Rectangle,
-    Shell, Size, Widget,
+    Border, Clipboard, Color, Element, Layout, Length, Pixels, Point,
+    Rectangle, Shell, Size, Theme, Widget,
 };
 
 <span class="kw">use </span>std::ops::RangeInclusive;
-
-<span class="kw">pub use </span>iced_style::slider::{
-    Appearance, Handle, HandleShape, Rail, StyleSheet,
-};
 
 <span class="doccomment">/// An horizontal bar and a handle that selects a single value from a range of
 /// values.
@@ -587,8 +618,7 @@
 ///
 /// # Example
 /// ```no_run
-/// # type Slider&lt;'a, T, Message&gt; =
-/// #     iced_widget::Slider&lt;'a, Message, T, iced_widget::style::Theme&gt;;
+/// # type Slider&lt;'a, T, Message&gt; = iced_widget::Slider&lt;'a, Message, T&gt;;
 /// #
 /// #[derive(Clone)]
 /// pub enum Message {
@@ -602,10 +632,7 @@
 ///
 /// ![Slider drawn by Coffee's renderer](https://github.com/hecrj/coffee/blob/bda9818f823dfcb8a7ad0ff4940b4d4b387b5208/images/ui/slider.png?raw=true)
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Slider&lt;<span class="lifetime">'a</span>, T, Message, Theme = <span class="kw">crate</span>::Theme&gt;
-<span class="kw">where
-    </span>Theme: StyleSheet,
-{
+</span><span class="kw">pub struct </span>Slider&lt;<span class="lifetime">'a</span>, T, Message, Theme = <span class="kw">crate</span>::Theme&gt; {
     range: RangeInclusive&lt;T&gt;,
     step: T,
     shift_step: <span class="prelude-ty">Option</span>&lt;T&gt;,
@@ -615,17 +642,16 @@
     on_release: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     width: Length,
     height: f32,
-    style: Theme::Style,
+    style: Style&lt;Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt; Slider&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt;
 <span class="kw">where
     </span>T: Copy + From&lt;u8&gt; + PartialOrd,
     Message: Clone,
-    Theme: StyleSheet,
 {
     <span class="doccomment">/// The default height of a [`Slider`].
-    </span><span class="kw">pub const </span>DEFAULT_HEIGHT: f32 = <span class="number">22.0</span>;
+    </span><span class="kw">pub const </span>DEFAULT_HEIGHT: f32 = <span class="number">16.0</span>;
 
     <span class="doccomment">/// Creates a new [`Slider`].
     ///
@@ -637,7 +663,8 @@
     ///   `Message`.
     </span><span class="kw">pub fn </span>new&lt;F&gt;(range: RangeInclusive&lt;T&gt;, value: T, on_change: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>F: <span class="lifetime">'a </span>+ Fn(T) -&gt; Message,
+        </span>Theme: DefaultStyle,
+        F: <span class="lifetime">'a </span>+ Fn(T) -&gt; Message,
     {
         <span class="kw">let </span>value = <span class="kw">if </span>value &gt;= <span class="kw-2">*</span>range.start() {
             value
@@ -661,7 +688,7 @@
             on_release: <span class="prelude-val">None</span>,
             width: Length::Fill,
             height: <span class="self">Self</span>::DEFAULT_HEIGHT,
-            style: Default::default(),
+            style: Theme::default_style(),
         }
     }
 
@@ -697,7 +724,7 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`Slider`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Theme::Style&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
     </span>}
@@ -722,7 +749,6 @@
 <span class="kw">where
     </span>T: Copy + Into&lt;f64&gt; + num_traits::FromPrimitive,
     Message: Clone,
-    Theme: StyleSheet,
     Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
@@ -730,7 +756,7 @@
     }
 
     <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
-        tree::State::new(State::new())
+        tree::State::new(State::default())
     }
 
     <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
@@ -760,20 +786,143 @@
         shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) -&gt; event::Status {
-        update(
-            event,
-            layout,
-            cursor,
-            shell,
-            tree.state.downcast_mut::&lt;State&gt;(),
-            <span class="kw-2">&amp;mut </span><span class="self">self</span>.value,
-            <span class="self">self</span>.default,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.range,
-            <span class="self">self</span>.step,
-            <span class="self">self</span>.shift_step,
-            <span class="self">self</span>.on_change.as_ref(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.on_release,
-        )
+        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&gt;();
+
+        <span class="kw">let </span>is_dragging = state.is_dragging;
+        <span class="kw">let </span>current_value = <span class="self">self</span>.value;
+
+        <span class="kw">let </span>locate = |cursor_position: Point| -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+            <span class="kw">let </span>bounds = layout.bounds();
+            <span class="kw">let </span>new_value = <span class="kw">if </span>cursor_position.x &lt;= bounds.x {
+                <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span>.range.start())
+            } <span class="kw">else if </span>cursor_position.x &gt;= bounds.x + bounds.width {
+                <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span>.range.end())
+            } <span class="kw">else </span>{
+                <span class="kw">let </span>step = <span class="kw">if </span>state.keyboard_modifiers.shift() {
+                    <span class="self">self</span>.shift_step.unwrap_or(<span class="self">self</span>.step)
+                } <span class="kw">else </span>{
+                    <span class="self">self</span>.step
+                }
+                .into();
+
+                <span class="kw">let </span>start = (<span class="kw-2">*</span><span class="self">self</span>.range.start()).into();
+                <span class="kw">let </span>end = (<span class="kw-2">*</span><span class="self">self</span>.range.end()).into();
+
+                <span class="kw">let </span>percent = f64::from(cursor_position.x - bounds.x)
+                    / f64::from(bounds.width);
+
+                <span class="kw">let </span>steps = (percent * (end - start) / step).round();
+                <span class="kw">let </span>value = steps * step + start;
+
+                T::from_f64(value)
+            };
+
+            new_value
+        };
+
+        <span class="kw">let </span>increment = |value: T| -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+            <span class="kw">let </span>step = <span class="kw">if </span>state.keyboard_modifiers.shift() {
+                <span class="self">self</span>.shift_step.unwrap_or(<span class="self">self</span>.step)
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.step
+            }
+            .into();
+
+            <span class="kw">let </span>steps = (value.into() / step).round();
+            <span class="kw">let </span>new_value = step * (steps + <span class="number">1.0</span>);
+
+            <span class="kw">if </span>new_value &gt; (<span class="kw-2">*</span><span class="self">self</span>.range.end()).into() {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span>.range.end());
+            }
+
+            T::from_f64(new_value)
+        };
+
+        <span class="kw">let </span>decrement = |value: T| -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+            <span class="kw">let </span>step = <span class="kw">if </span>state.keyboard_modifiers.shift() {
+                <span class="self">self</span>.shift_step.unwrap_or(<span class="self">self</span>.step)
+            } <span class="kw">else </span>{
+                <span class="self">self</span>.step
+            }
+            .into();
+
+            <span class="kw">let </span>steps = (value.into() / step).round();
+            <span class="kw">let </span>new_value = step * (steps - <span class="number">1.0</span>);
+
+            <span class="kw">if </span>new_value &lt; (<span class="kw-2">*</span><span class="self">self</span>.range.start()).into() {
+                <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span>.range.start());
+            }
+
+            T::from_f64(new_value)
+        };
+
+        <span class="kw">let </span>change = |new_value: T| {
+            <span class="kw">if </span>(<span class="self">self</span>.value.into() - new_value.into()).abs() &gt; f64::EPSILON {
+                shell.publish((<span class="self">self</span>.on_change)(new_value));
+
+                <span class="self">self</span>.value = new_value;
+            }
+        };
+
+        <span class="kw">match </span>event {
+            Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
+            | Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) =
+                    cursor.position_over(layout.bounds())
+                {
+                    <span class="kw">if </span>state.keyboard_modifiers.command() {
+                        <span class="kw">let _ </span>= <span class="self">self</span>.default.map(change);
+                        state.is_dragging = <span class="bool-val">false</span>;
+                    } <span class="kw">else </span>{
+                        <span class="kw">let _ </span>= locate(cursor_position).map(change);
+                        state.is_dragging = <span class="bool-val">true</span>;
+                    }
+
+                    <span class="kw">return </span>event::Status::Captured;
+                }
+            }
+            Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left))
+            | Event::Touch(touch::Event::FingerLifted { .. })
+            | Event::Touch(touch::Event::FingerLost { .. }) =&gt; {
+                <span class="kw">if </span>is_dragging {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(on_release) = <span class="self">self</span>.on_release.clone() {
+                        shell.publish(on_release);
+                    }
+                    state.is_dragging = <span class="bool-val">false</span>;
+
+                    <span class="kw">return </span>event::Status::Captured;
+                }
+            }
+            Event::Mouse(mouse::Event::CursorMoved { .. })
+            | Event::Touch(touch::Event::FingerMoved { .. }) =&gt; {
+                <span class="kw">if </span>is_dragging {
+                    <span class="kw">let _ </span>= cursor.position().and_then(locate).map(change);
+
+                    <span class="kw">return </span>event::Status::Captured;
+                }
+            }
+            Event::Keyboard(keyboard::Event::KeyPressed { key, .. }) =&gt; {
+                <span class="kw">if </span>cursor.position_over(layout.bounds()).is_some() {
+                    <span class="kw">match </span>key {
+                        Key::Named(key::Named::ArrowUp) =&gt; {
+                            <span class="kw">let _ </span>= increment(current_value).map(change);
+                        }
+                        Key::Named(key::Named::ArrowDown) =&gt; {
+                            <span class="kw">let _ </span>= decrement(current_value).map(change);
+                        }
+                        <span class="kw">_ </span>=&gt; (),
+                    }
+
+                    <span class="kw">return </span>event::Status::Captured;
+                }
+            }
+            Event::Keyboard(keyboard::Event::ModifiersChanged(modifiers)) =&gt; {
+                state.keyboard_modifiers = modifiers;
+            }
+            <span class="kw">_ </span>=&gt; {}
+        }
+
+        event::Status::Ignored
     }
 
     <span class="kw">fn </span>draw(
@@ -786,15 +935,92 @@
         cursor: mouse::Cursor,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        draw(
-            renderer,
-            layout,
-            cursor,
-            tree.state.downcast_ref::&lt;State&gt;(),
-            <span class="self">self</span>.value,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.range,
+        <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&gt;();
+        <span class="kw">let </span>bounds = layout.bounds();
+        <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
+
+        <span class="kw">let </span>style = (<span class="self">self</span>.style)(
             theme,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.style,
+            <span class="kw">if </span>state.is_dragging {
+                Status::Dragged
+            } <span class="kw">else if </span>is_mouse_over {
+                Status::Hovered
+            } <span class="kw">else </span>{
+                Status::Active
+            },
+        );
+
+        <span class="kw">let </span>(handle_width, handle_height, handle_border_radius) =
+            <span class="kw">match </span>style.handle.shape {
+                HandleShape::Circle { radius } =&gt; {
+                    (radius * <span class="number">2.0</span>, radius * <span class="number">2.0</span>, radius.into())
+                }
+                HandleShape::Rectangle {
+                    width,
+                    border_radius,
+                } =&gt; (f32::from(width), bounds.height, border_radius),
+            };
+
+        <span class="kw">let </span>value = <span class="self">self</span>.value.into() <span class="kw">as </span>f32;
+        <span class="kw">let </span>(range_start, range_end) = {
+            <span class="kw">let </span>(start, end) = <span class="self">self</span>.range.clone().into_inner();
+
+            (start.into() <span class="kw">as </span>f32, end.into() <span class="kw">as </span>f32)
+        };
+
+        <span class="kw">let </span>offset = <span class="kw">if </span>range_start &gt;= range_end {
+            <span class="number">0.0
+        </span>} <span class="kw">else </span>{
+            (bounds.width - handle_width) * (value - range_start)
+                / (range_end - range_start)
+        };
+
+        <span class="kw">let </span>rail_y = bounds.y + bounds.height / <span class="number">2.0</span>;
+
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds: Rectangle {
+                    x: bounds.x,
+                    y: rail_y - style.rail.width / <span class="number">2.0</span>,
+                    width: offset + handle_width / <span class="number">2.0</span>,
+                    height: style.rail.width,
+                },
+                border: Border::rounded(style.rail.border_radius),
+                ..renderer::Quad::default()
+            },
+            style.rail.colors.<span class="number">0</span>,
+        );
+
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds: Rectangle {
+                    x: bounds.x + offset + handle_width / <span class="number">2.0</span>,
+                    y: rail_y - style.rail.width / <span class="number">2.0</span>,
+                    width: bounds.width - offset - handle_width / <span class="number">2.0</span>,
+                    height: style.rail.width,
+                },
+                border: Border::rounded(style.rail.border_radius),
+                ..renderer::Quad::default()
+            },
+            style.rail.colors.<span class="number">1</span>,
+        );
+
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds: Rectangle {
+                    x: bounds.x + offset,
+                    y: rail_y - handle_height / <span class="number">2.0</span>,
+                    width: handle_width,
+                    height: handle_height,
+                },
+                border: Border {
+                    radius: handle_border_radius,
+                    width: style.handle.border_width,
+                    color: style.handle.border_color,
+                },
+                ..renderer::Quad::default()
+            },
+            style.handle.color,
         );
     }
 
@@ -806,7 +1032,17 @@
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
         _renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; mouse::Interaction {
-        mouse_interaction(layout, cursor, tree.state.downcast_ref::&lt;State&gt;())
+        <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&gt;();
+        <span class="kw">let </span>bounds = layout.bounds();
+        <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
+
+        <span class="kw">if </span>state.is_dragging {
+            mouse::Interaction::Grabbing
+        } <span class="kw">else if </span>is_mouse_over {
+            mouse::Interaction::Grab
+        } <span class="kw">else </span>{
+            mouse::Interaction::default()
+        }
     }
 }
 
@@ -815,7 +1051,7 @@
 <span class="kw">where
     </span>T: Copy + Into&lt;f64&gt; + num_traits::FromPrimitive + <span class="lifetime">'a</span>,
     Message: Clone + <span class="lifetime">'a</span>,
-    Theme: StyleSheet + <span class="lifetime">'a</span>,
+    Theme: <span class="lifetime">'a</span>,
     Renderer: <span class="kw">crate</span>::core::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
@@ -825,291 +1061,127 @@
     }
 }
 
-<span class="doccomment">/// Processes an [`Event`] and updates the [`State`] of a [`Slider`]
-/// accordingly.
-</span><span class="kw">pub fn </span>update&lt;Message, T&gt;(
-    event: Event,
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-    shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
-    state: <span class="kw-2">&amp;mut </span>State,
-    value: <span class="kw-2">&amp;mut </span>T,
-    default: <span class="prelude-ty">Option</span>&lt;T&gt;,
-    range: <span class="kw-2">&amp;</span>RangeInclusive&lt;T&gt;,
-    step: T,
-    shift_step: <span class="prelude-ty">Option</span>&lt;T&gt;,
-    on_change: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(T) -&gt; Message,
-    on_release: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Message&gt;,
-) -&gt; event::Status
-<span class="kw">where
-    </span>T: Copy + Into&lt;f64&gt; + num_traits::FromPrimitive,
-    Message: Clone,
-{
-    <span class="kw">let </span>is_dragging = state.is_dragging;
-    <span class="kw">let </span>current_value = <span class="kw-2">*</span>value;
-
-    <span class="kw">let </span>locate = |cursor_position: Point| -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="kw">let </span>bounds = layout.bounds();
-        <span class="kw">let </span>new_value = <span class="kw">if </span>cursor_position.x &lt;= bounds.x {
-            <span class="prelude-val">Some</span>(<span class="kw-2">*</span>range.start())
-        } <span class="kw">else if </span>cursor_position.x &gt;= bounds.x + bounds.width {
-            <span class="prelude-val">Some</span>(<span class="kw-2">*</span>range.end())
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>step = <span class="kw">if </span>state.keyboard_modifiers.shift() {
-                shift_step.unwrap_or(step)
-            } <span class="kw">else </span>{
-                step
-            }
-            .into();
-
-            <span class="kw">let </span>start = (<span class="kw-2">*</span>range.start()).into();
-            <span class="kw">let </span>end = (<span class="kw-2">*</span>range.end()).into();
-
-            <span class="kw">let </span>percent = f64::from(cursor_position.x - bounds.x)
-                / f64::from(bounds.width);
-
-            <span class="kw">let </span>steps = (percent * (end - start) / step).round();
-            <span class="kw">let </span>value = steps * step + start;
-
-            T::from_f64(value)
-        };
-
-        new_value
-    };
-
-    <span class="kw">let </span>increment = |value: T| -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="kw">let </span>step = <span class="kw">if </span>state.keyboard_modifiers.shift() {
-            shift_step.unwrap_or(step)
-        } <span class="kw">else </span>{
-            step
-        }
-        .into();
-
-        <span class="kw">let </span>steps = (value.into() / step).round();
-        <span class="kw">let </span>new_value = step * (steps + <span class="number">1.0</span>);
-
-        <span class="kw">if </span>new_value &gt; (<span class="kw-2">*</span>range.end()).into() {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">*</span>range.end());
-        }
-
-        T::from_f64(new_value)
-    };
-
-    <span class="kw">let </span>decrement = |value: T| -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="kw">let </span>step = <span class="kw">if </span>state.keyboard_modifiers.shift() {
-            shift_step.unwrap_or(step)
-        } <span class="kw">else </span>{
-            step
-        }
-        .into();
-
-        <span class="kw">let </span>steps = (value.into() / step).round();
-        <span class="kw">let </span>new_value = step * (steps - <span class="number">1.0</span>);
-
-        <span class="kw">if </span>new_value &lt; (<span class="kw-2">*</span>range.start()).into() {
-            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw-2">*</span>range.start());
-        }
-
-        T::from_f64(new_value)
-    };
-
-    <span class="kw">let </span>change = |new_value: T| {
-        <span class="kw">if </span>((<span class="kw-2">*</span>value).into() - new_value.into()).abs() &gt; f64::EPSILON {
-            shell.publish((on_change)(new_value));
-
-            <span class="kw-2">*</span>value = new_value;
-        }
-    };
-
-    <span class="kw">match </span>event {
-        Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
-        | Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) = cursor.position_over(layout.bounds())
-            {
-                <span class="kw">if </span>state.keyboard_modifiers.command() {
-                    <span class="kw">let _ </span>= default.map(change);
-                    state.is_dragging = <span class="bool-val">false</span>;
-                } <span class="kw">else </span>{
-                    <span class="kw">let _ </span>= locate(cursor_position).map(change);
-                    state.is_dragging = <span class="bool-val">true</span>;
-                }
-
-                <span class="kw">return </span>event::Status::Captured;
-            }
-        }
-        Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left))
-        | Event::Touch(touch::Event::FingerLifted { .. })
-        | Event::Touch(touch::Event::FingerLost { .. }) =&gt; {
-            <span class="kw">if </span>is_dragging {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(on_release) = on_release.clone() {
-                    shell.publish(on_release);
-                }
-                state.is_dragging = <span class="bool-val">false</span>;
-
-                <span class="kw">return </span>event::Status::Captured;
-            }
-        }
-        Event::Mouse(mouse::Event::CursorMoved { .. })
-        | Event::Touch(touch::Event::FingerMoved { .. }) =&gt; {
-            <span class="kw">if </span>is_dragging {
-                <span class="kw">let _ </span>= cursor.position().and_then(locate).map(change);
-
-                <span class="kw">return </span>event::Status::Captured;
-            }
-        }
-        Event::Keyboard(keyboard::Event::KeyPressed { key, .. }) =&gt; {
-            <span class="kw">if </span>cursor.position_over(layout.bounds()).is_some() {
-                <span class="kw">match </span>key {
-                    Key::Named(key::Named::ArrowUp) =&gt; {
-                        <span class="kw">let _ </span>= increment(current_value).map(change);
-                    }
-                    Key::Named(key::Named::ArrowDown) =&gt; {
-                        <span class="kw">let _ </span>= decrement(current_value).map(change);
-                    }
-                    <span class="kw">_ </span>=&gt; (),
-                }
-
-                <span class="kw">return </span>event::Status::Captured;
-            }
-        }
-        Event::Keyboard(keyboard::Event::ModifiersChanged(modifiers)) =&gt; {
-            state.keyboard_modifiers = modifiers;
-        }
-        <span class="kw">_ </span>=&gt; {}
-    }
-
-    event::Status::Ignored
-}
-
-<span class="doccomment">/// Draws a [`Slider`].
-</span><span class="kw">pub fn </span>draw&lt;T, Theme, Renderer&gt;(
-    renderer: <span class="kw-2">&amp;mut </span>Renderer,
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-    state: <span class="kw-2">&amp;</span>State,
-    value: T,
-    range: <span class="kw-2">&amp;</span>RangeInclusive&lt;T&gt;,
-    theme: <span class="kw-2">&amp;</span>Theme,
-    style: <span class="kw-2">&amp;</span>Theme::Style,
-) <span class="kw">where
-    </span>T: Into&lt;f64&gt; + Copy,
-    Theme: StyleSheet,
-    Renderer: <span class="kw">crate</span>::core::Renderer,
-{
-    <span class="kw">let </span>bounds = layout.bounds();
-    <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
-
-    <span class="kw">let </span>style = <span class="kw">if </span>state.is_dragging {
-        theme.dragging(style)
-    } <span class="kw">else if </span>is_mouse_over {
-        theme.hovered(style)
-    } <span class="kw">else </span>{
-        theme.active(style)
-    };
-
-    <span class="kw">let </span>(handle_width, handle_height, handle_border_radius) =
-        <span class="kw">match </span>style.handle.shape {
-            HandleShape::Circle { radius } =&gt; {
-                (radius * <span class="number">2.0</span>, radius * <span class="number">2.0</span>, radius.into())
-            }
-            HandleShape::Rectangle {
-                width,
-                border_radius,
-            } =&gt; (f32::from(width), bounds.height, border_radius),
-        };
-
-    <span class="kw">let </span>value = value.into() <span class="kw">as </span>f32;
-    <span class="kw">let </span>(range_start, range_end) = {
-        <span class="kw">let </span>(start, end) = range.clone().into_inner();
-
-        (start.into() <span class="kw">as </span>f32, end.into() <span class="kw">as </span>f32)
-    };
-
-    <span class="kw">let </span>offset = <span class="kw">if </span>range_start &gt;= range_end {
-        <span class="number">0.0
-    </span>} <span class="kw">else </span>{
-        (bounds.width - handle_width) * (value - range_start)
-            / (range_end - range_start)
-    };
-
-    <span class="kw">let </span>rail_y = bounds.y + bounds.height / <span class="number">2.0</span>;
-
-    renderer.fill_quad(
-        renderer::Quad {
-            bounds: Rectangle {
-                x: bounds.x,
-                y: rail_y - style.rail.width / <span class="number">2.0</span>,
-                width: offset + handle_width / <span class="number">2.0</span>,
-                height: style.rail.width,
-            },
-            border: Border::with_radius(style.rail.border_radius),
-            ..renderer::Quad::default()
-        },
-        style.rail.colors.<span class="number">0</span>,
-    );
-
-    renderer.fill_quad(
-        renderer::Quad {
-            bounds: Rectangle {
-                x: bounds.x + offset + handle_width / <span class="number">2.0</span>,
-                y: rail_y - style.rail.width / <span class="number">2.0</span>,
-                width: bounds.width - offset - handle_width / <span class="number">2.0</span>,
-                height: style.rail.width,
-            },
-            border: Border::with_radius(style.rail.border_radius),
-            ..renderer::Quad::default()
-        },
-        style.rail.colors.<span class="number">1</span>,
-    );
-
-    renderer.fill_quad(
-        renderer::Quad {
-            bounds: Rectangle {
-                x: bounds.x + offset,
-                y: rail_y - handle_height / <span class="number">2.0</span>,
-                width: handle_width,
-                height: handle_height,
-            },
-            border: Border {
-                radius: handle_border_radius,
-                width: style.handle.border_width,
-                color: style.handle.border_color,
-            },
-            ..renderer::Quad::default()
-        },
-        style.handle.color,
-    );
-}
-
-<span class="doccomment">/// Computes the current [`mouse::Interaction`] of a [`Slider`].
-</span><span class="kw">pub fn </span>mouse_interaction(
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-    state: <span class="kw-2">&amp;</span>State,
-) -&gt; mouse::Interaction {
-    <span class="kw">let </span>bounds = layout.bounds();
-    <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
-
-    <span class="kw">if </span>state.is_dragging {
-        mouse::Interaction::Grabbing
-    } <span class="kw">else if </span>is_mouse_over {
-        mouse::Interaction::Grab
-    } <span class="kw">else </span>{
-        mouse::Interaction::default()
-    }
-}
-
-<span class="doccomment">/// The local state of a [`Slider`].
-</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-</span><span class="kw">pub struct </span>State {
+<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+</span><span class="kw">struct </span>State {
     is_dragging: bool,
     keyboard_modifiers: keyboard::Modifiers,
 }
 
-<span class="kw">impl </span>State {
-    <span class="doccomment">/// Creates a new [`State`].
-    </span><span class="kw">pub fn </span>new() -&gt; State {
-        State::default()
+<span class="doccomment">/// The possible status of a [`Slider`].
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>Status {
+    <span class="doccomment">/// The [`Slider`] can be interacted with.
+    </span>Active,
+    <span class="doccomment">/// The [`Slider`] is being hovered.
+    </span>Hovered,
+    <span class="doccomment">/// The [`Slider`] is being dragged.
+    </span>Dragged,
+}
+
+<span class="doccomment">/// The appearance of a slider.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>Appearance {
+    <span class="doccomment">/// The colors of the rail of the slider.
+    </span><span class="kw">pub </span>rail: Rail,
+    <span class="doccomment">/// The appearance of the [`Handle`] of the slider.
+    </span><span class="kw">pub </span>handle: Handle,
+}
+
+<span class="kw">impl </span>Appearance {
+    <span class="doccomment">/// Changes the [`HandleShape`] of the [`Appearance`] to a circle
+    /// with the given radius.
+    </span><span class="kw">pub fn </span>with_circular_handle(<span class="kw-2">mut </span><span class="self">self</span>, radius: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.handle.shape = HandleShape::Circle {
+            radius: radius.into().<span class="number">0</span>,
+        };
+        <span class="self">self
+    </span>}
+}
+
+<span class="doccomment">/// The appearance of a slider rail
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>Rail {
+    <span class="doccomment">/// The colors of the rail of the slider.
+    </span><span class="kw">pub </span>colors: (Color, Color),
+    <span class="doccomment">/// The width of the stroke of a slider rail.
+    </span><span class="kw">pub </span>width: f32,
+    <span class="doccomment">/// The border radius of the corners of the rail.
+    </span><span class="kw">pub </span>border_radius: border::Radius,
+}
+
+<span class="doccomment">/// The appearance of the handle of a slider.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>Handle {
+    <span class="doccomment">/// The shape of the handle.
+    </span><span class="kw">pub </span>shape: HandleShape,
+    <span class="doccomment">/// The [`Color`] of the handle.
+    </span><span class="kw">pub </span>color: Color,
+    <span class="doccomment">/// The border width of the handle.
+    </span><span class="kw">pub </span>border_width: f32,
+    <span class="doccomment">/// The border [`Color`] of the handle.
+    </span><span class="kw">pub </span>border_color: Color,
+}
+
+<span class="doccomment">/// The shape of the handle of a slider.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub enum </span>HandleShape {
+    <span class="doccomment">/// A circular handle.
+    </span>Circle {
+        <span class="doccomment">/// The radius of the circle.
+        </span>radius: f32,
+    },
+    <span class="doccomment">/// A rectangular shape.
+    </span>Rectangle {
+        <span class="doccomment">/// The width of the rectangle.
+        </span>width: u16,
+        <span class="doccomment">/// The border radius of the corners of the rectangle.
+        </span>border_radius: border::Radius,
+    },
+}
+
+<span class="doccomment">/// The style of a [`Slider`].
+</span><span class="kw">pub type </span>Style&lt;Theme&gt; = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance;
+
+<span class="doccomment">/// The default style of a [`Slider`].
+</span><span class="kw">pub trait </span>DefaultStyle {
+    <span class="doccomment">/// Returns the default style of a [`Slider`].
+    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+}
+
+<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
+    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
+        default
+    }
+}
+
+<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
+    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
+        |appearance, _status| <span class="kw-2">*</span>appearance
+    }
+}
+
+<span class="doccomment">/// The default style of a [`Slider`].
+</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+    <span class="kw">let </span>palette = theme.extended_palette();
+
+    <span class="kw">let </span>color = <span class="kw">match </span>status {
+        Status::Active =&gt; palette.primary.strong.color,
+        Status::Hovered =&gt; palette.primary.base.color,
+        Status::Dragged =&gt; palette.primary.strong.color,
+    };
+
+    Appearance {
+        rail: Rail {
+            colors: (color, palette.secondary.base.color),
+            width: <span class="number">4.0</span>,
+            border_radius: <span class="number">2.0</span>.into(),
+        },
+        handle: Handle {
+            shape: HandleShape::Circle { radius: <span class="number">7.0 </span>},
+            color,
+            border_color: Color::TRANSPARENT,
+            border_width: <span class="number">0.0</span>,
+        },
     }
 }
 </code></pre></div></section></main></body></html>

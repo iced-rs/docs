@@ -933,6 +933,37 @@
 <a href="#933" id="933">933</a>
 <a href="#934" id="934">934</a>
 <a href="#935" id="935">935</a>
+<a href="#936" id="936">936</a>
+<a href="#937" id="937">937</a>
+<a href="#938" id="938">938</a>
+<a href="#939" id="939">939</a>
+<a href="#940" id="940">940</a>
+<a href="#941" id="941">941</a>
+<a href="#942" id="942">942</a>
+<a href="#943" id="943">943</a>
+<a href="#944" id="944">944</a>
+<a href="#945" id="945">945</a>
+<a href="#946" id="946">946</a>
+<a href="#947" id="947">947</a>
+<a href="#948" id="948">948</a>
+<a href="#949" id="949">949</a>
+<a href="#950" id="950">950</a>
+<a href="#951" id="951">951</a>
+<a href="#952" id="952">952</a>
+<a href="#953" id="953">953</a>
+<a href="#954" id="954">954</a>
+<a href="#955" id="955">955</a>
+<a href="#956" id="956">956</a>
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a>
+<a href="#959" id="959">959</a>
+<a href="#960" id="960">960</a>
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="kw">mod </span>state;
 
@@ -945,7 +976,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::time::Instant;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::operation;
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
-<span class="kw">use </span><span class="kw">crate</span>::core::{Event, Point, Size};
+<span class="kw">use </span><span class="kw">crate</span>::core::{Color, Event, Point, Size, Theme};
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures;
 <span class="kw">use </span><span class="kw">crate</span>::futures::{Executor, Runtime, Subscription};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::compositor::{<span class="self">self</span>, Compositor};
@@ -953,7 +984,6 @@
 <span class="kw">use </span><span class="kw">crate</span>::runtime::program::Program;
 <span class="kw">use </span><span class="kw">crate</span>::runtime::user_interface::{<span class="self">self</span>, UserInterface};
 <span class="kw">use </span><span class="kw">crate</span>::runtime::{Command, Debug};
-<span class="kw">use </span><span class="kw">crate</span>::style::application::{Appearance, StyleSheet};
 <span class="kw">use crate</span>::{Clipboard, Error, Proxy, Settings};
 
 <span class="kw">use </span>futures::channel::mpsc;
@@ -974,7 +1004,7 @@
 /// can be toggled by pressing `F12`.
 </span><span class="kw">pub trait </span>Application: Program
 <span class="kw">where
-    </span><span class="self">Self</span>::Theme: StyleSheet,
+    </span><span class="self">Self</span>::Theme: DefaultStyle,
 {
     <span class="doccomment">/// The data needed to initialize your [`Application`].
     </span><span class="kw">type </span>Flags;
@@ -999,8 +1029,8 @@
     </span><span class="kw">fn </span>theme(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Theme;
 
     <span class="doccomment">/// Returns the `Style` variation of the `Theme`.
-    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; &lt;<span class="self">Self</span>::Theme <span class="kw">as </span>StyleSheet&gt;::Style {
-        Default::default()
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, theme: <span class="kw-2">&amp;</span><span class="self">Self</span>::Theme) -&gt; Appearance {
+        theme.default_style()
     }
 
     <span class="doccomment">/// Returns the event `Subscription` for the current state of the
@@ -1030,6 +1060,38 @@
     </span>}
 }
 
+<span class="doccomment">/// The appearance of an application.
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub struct </span>Appearance {
+    <span class="doccomment">/// The background [`Color`] of the application.
+    </span><span class="kw">pub </span>background_color: Color,
+
+    <span class="doccomment">/// The default text [`Color`] of the application.
+    </span><span class="kw">pub </span>text_color: Color,
+}
+
+<span class="doccomment">/// The default style of an [`Application`].
+</span><span class="kw">pub trait </span>DefaultStyle {
+    <span class="doccomment">/// Returns the default style of an [`Application`].
+    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance;
+}
+
+<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance {
+        default(<span class="self">self</span>)
+    }
+}
+
+<span class="doccomment">/// The default [`Appearance`] of an [`Application`] with the built-in [`Theme`].
+</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Appearance {
+    <span class="kw">let </span>palette = theme.extended_palette();
+
+    Appearance {
+        background_color: palette.background.base.color,
+        text_color: palette.background.base.text,
+    }
+}
+
 <span class="doccomment">/// Runs an [`Application`] with an executor, compositor, and the provided
 /// settings.
 </span><span class="kw">pub async fn </span>run&lt;A, E, C&gt;(
@@ -1040,7 +1102,7 @@
     </span>A: Application + <span class="lifetime">'static</span>,
     E: Executor + <span class="lifetime">'static</span>,
     C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    A::Theme: StyleSheet,
+    A::Theme: DefaultStyle,
 {
     <span class="kw">use </span>futures::task;
     <span class="kw">use </span>futures::Future;
@@ -1224,7 +1286,7 @@
     </span>A: Application + <span class="lifetime">'static</span>,
     E: Executor + <span class="lifetime">'static</span>,
     C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    A::Theme: StyleSheet,
+    A::Theme: DefaultStyle,
 {
     <span class="kw">use </span>futures::stream::StreamExt;
     <span class="kw">use </span>winit::event;
@@ -1547,7 +1609,7 @@
     debug: <span class="kw-2">&amp;mut </span>Debug,
 ) -&gt; UserInterface&lt;<span class="lifetime">'a</span>, A::Message, A::Theme, A::Renderer&gt;
 <span class="kw">where
-    </span>A::Theme: StyleSheet,
+    </span>A::Theme: DefaultStyle,
 {
     debug.view_started();
     <span class="kw">let </span>view = application.view();
@@ -1578,7 +1640,7 @@
     window: <span class="kw-2">&amp;</span>winit::window::Window,
 ) <span class="kw">where
     </span>C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    A::Theme: StyleSheet,
+    A::Theme: DefaultStyle,
 {
     <span class="kw">for </span>message <span class="kw">in </span>messages.drain(..) {
         debug.log_message(<span class="kw-2">&amp;</span>message);
@@ -1629,7 +1691,7 @@
     </span>A: Application,
     E: Executor,
     C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    A::Theme: StyleSheet,
+    A::Theme: DefaultStyle,
 {
     <span class="kw">use </span><span class="kw">crate</span>::runtime::command;
     <span class="kw">use </span><span class="kw">crate</span>::runtime::system;

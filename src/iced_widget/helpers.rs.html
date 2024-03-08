@@ -459,7 +459,6 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::operation;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Element, Length, Pixels};
 <span class="kw">use </span><span class="kw">crate</span>::keyed;
-<span class="kw">use </span><span class="kw">crate</span>::overlay;
 <span class="kw">use </span><span class="kw">crate</span>::pick_list::{<span class="self">self</span>, PickList};
 <span class="kw">use </span><span class="kw">crate</span>::progress_bar::{<span class="self">self</span>, ProgressBar};
 <span class="kw">use </span><span class="kw">crate</span>::radio::{<span class="self">self</span>, Radio};
@@ -467,13 +466,13 @@
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Command;
 <span class="kw">use </span><span class="kw">crate</span>::scrollable::{<span class="self">self</span>, Scrollable};
 <span class="kw">use </span><span class="kw">crate</span>::slider::{<span class="self">self</span>, Slider};
-<span class="kw">use </span><span class="kw">crate</span>::style::application;
-<span class="kw">use </span><span class="kw">crate</span>::text::{<span class="self">self</span>, Text};
+<span class="kw">use </span><span class="kw">crate</span>::text::Text;
 <span class="kw">use </span><span class="kw">crate</span>::text_editor::{<span class="self">self</span>, TextEditor};
 <span class="kw">use </span><span class="kw">crate</span>::text_input::{<span class="self">self</span>, TextInput};
 <span class="kw">use </span><span class="kw">crate</span>::toggler::{<span class="self">self</span>, Toggler};
 <span class="kw">use </span><span class="kw">crate</span>::tooltip::{<span class="self">self</span>, Tooltip};
-<span class="kw">use crate</span>::{Column, MouseArea, Row, Space, Themer, VerticalSlider};
+<span class="kw">use </span><span class="kw">crate</span>::vertical_slider::{<span class="self">self</span>, VerticalSlider};
+<span class="kw">use crate</span>::{Column, MouseArea, Row, Space, Themer};
 
 <span class="kw">use </span>std::borrow::Borrow;
 <span class="kw">use </span>std::ops::RangeInclusive;
@@ -511,7 +510,7 @@
     content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
 ) -&gt; Container&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: container::StyleSheet,
+    </span>Theme: container::DefaultStyle,
     Renderer: core::Renderer,
 {
     Container::new(content)
@@ -557,7 +556,7 @@
     content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
 ) -&gt; Scrollable&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: scrollable::StyleSheet,
+    </span>Theme: scrollable::DefaultStyle,
     Renderer: core::Renderer,
 {
     Scrollable::new(content)
@@ -570,8 +569,8 @@
     content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
 ) -&gt; Button&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: core::Renderer,
-    Theme: button::StyleSheet,
+    </span>Theme: button::DefaultStyle,
+    Renderer: core::Renderer,
 {
     Button::new(content)
 }
@@ -587,7 +586,7 @@
     position: tooltip::Position,
 ) -&gt; <span class="kw">crate</span>::Tooltip&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: container::StyleSheet + text::StyleSheet,
+    </span>Theme: container::DefaultStyle,
     Renderer: core::text::Renderer,
 {
     Tooltip::new(content, tooltip, position)
@@ -600,8 +599,7 @@
     text: <span class="kw">impl </span>ToString,
 ) -&gt; Text&lt;<span class="lifetime">'a</span>, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: text::StyleSheet,
-    Renderer: core::text::Renderer,
+    </span>Renderer: core::text::Renderer,
 {
     Text::new(text.to_string())
 }
@@ -614,7 +612,7 @@
     is_checked: bool,
 ) -&gt; Checkbox&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: checkbox::StyleSheet + text::StyleSheet,
+    </span>Theme: checkbox::DefaultStyle,
     Renderer: core::text::Renderer,
 {
     Checkbox::new(label, is_checked)
@@ -631,7 +629,7 @@
 ) -&gt; Radio&lt;Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
-    Theme: radio::StyleSheet,
+    Theme: radio::DefaultStyle,
     Renderer: core::text::Renderer,
     V: Copy + Eq,
 {
@@ -647,8 +645,8 @@
     f: <span class="kw">impl </span>Fn(bool) -&gt; Message + <span class="lifetime">'a</span>,
 ) -&gt; Toggler&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: core::text::Renderer,
-    Theme: toggler::StyleSheet,
+    </span>Theme: toggler::DefaultStyle,
+    Renderer: core::text::Renderer,
 {
     Toggler::new(label, is_checked, f)
 }
@@ -662,7 +660,7 @@
 ) -&gt; TextInput&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
-    Theme: text_input::StyleSheet,
+    Theme: text_input::DefaultStyle,
     Renderer: core::text::Renderer,
 {
     TextInput::new(placeholder, value)
@@ -676,7 +674,7 @@
 ) -&gt; TextEditor&lt;<span class="lifetime">'_</span>, core::text::highlighter::PlainText, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
-    Theme: text_editor::StyleSheet,
+    Theme: text_editor::DefaultStyle,
     Renderer: core::text::Renderer,
 {
     TextEditor::new(content)
@@ -693,7 +691,7 @@
 <span class="kw">where
     </span>T: Copy + From&lt;u8&gt; + std::cmp::PartialOrd,
     Message: Clone,
-    Theme: slider::StyleSheet,
+    Theme: slider::DefaultStyle,
 {
     Slider::new(range, value, on_change)
 }
@@ -709,7 +707,7 @@
 <span class="kw">where
     </span>T: Copy + From&lt;u8&gt; + std::cmp::PartialOrd,
     Message: Clone,
-    Theme: slider::StyleSheet,
+    Theme: vertical_slider::DefaultStyle,
 {
     VerticalSlider::new(range, value, on_change)
 }
@@ -727,13 +725,8 @@
     L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
     V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
     Message: Clone,
+    Theme: pick_list::DefaultStyle,
     Renderer: core::text::Renderer,
-    Theme: pick_list::StyleSheet
-        + scrollable::StyleSheet
-        + overlay::menu::StyleSheet
-        + container::StyleSheet,
-    &lt;Theme <span class="kw">as </span>overlay::menu::StyleSheet&gt;::Style:
-        From&lt;&lt;Theme <span class="kw">as </span>pick_list::StyleSheet&gt;::Style&gt;,
 {
     PickList::new(options, selected, on_selected)
 }
@@ -749,7 +742,7 @@
 ) -&gt; ComboBox&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>T: std::fmt::Display + Clone,
-    Theme: text_input::StyleSheet + overlay::menu::StyleSheet,
+    Theme: combo_box::DefaultStyle,
     Renderer: core::text::Renderer,
 {
     ComboBox::new(state, placeholder, selection, on_selected)
@@ -776,7 +769,7 @@
 /// [`Rule`]: crate::Rule
 </span><span class="kw">pub fn </span>horizontal_rule&lt;Theme&gt;(height: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; Rule&lt;Theme&gt;
 <span class="kw">where
-    </span>Theme: rule::StyleSheet,
+    </span>Theme: rule::DefaultStyle,
 {
     Rule::horizontal(height)
 }
@@ -786,7 +779,7 @@
 /// [`Rule`]: crate::Rule
 </span><span class="kw">pub fn </span>vertical_rule&lt;Theme&gt;(width: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; Rule&lt;Theme&gt;
 <span class="kw">where
-    </span>Theme: rule::StyleSheet,
+    </span>Theme: rule::DefaultStyle,
 {
     Rule::vertical(width)
 }
@@ -803,7 +796,7 @@
     value: f32,
 ) -&gt; ProgressBar&lt;Theme&gt;
 <span class="kw">where
-    </span>Theme: progress_bar::StyleSheet,
+    </span>Theme: progress_bar::DefaultStyle,
 {
     ProgressBar::new(range, value)
 }
@@ -823,7 +816,7 @@
 </span><span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
 </span><span class="kw">pub fn </span>svg&lt;Theme&gt;(handle: <span class="kw">impl </span>Into&lt;core::svg::Handle&gt;) -&gt; <span class="kw">crate</span>::Svg&lt;Theme&gt;
 <span class="kw">where
-    </span>Theme: <span class="kw">crate</span>::svg::StyleSheet,
+    </span>Theme: <span class="kw">crate</span>::svg::DefaultStyle,
 {
     <span class="kw">crate</span>::Svg::new(handle)
 }
@@ -849,7 +842,7 @@
 </span><span class="attr">#[cfg(feature = <span class="string">"qr_code"</span>)]
 </span><span class="kw">pub fn </span>qr_code&lt;Theme&gt;(data: <span class="kw-2">&amp;</span><span class="kw">crate</span>::qr_code::Data) -&gt; <span class="kw">crate</span>::QRCode&lt;<span class="lifetime">'_</span>, Theme&gt;
 <span class="kw">where
-    </span>Theme: <span class="kw">crate</span>::qr_code::StyleSheet,
+    </span>Theme: <span class="kw">crate</span>::qr_code::DefaultStyle,
 {
     <span class="kw">crate</span>::QRCode::new(data)
 }
@@ -892,14 +885,21 @@
 }
 
 <span class="doccomment">/// A widget that applies any `Theme` to its contents.
-</span><span class="kw">pub fn </span>themer&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;(
-    theme: Theme,
-    content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
-) -&gt; Themer&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
+</span><span class="kw">pub fn </span>themer&lt;<span class="lifetime">'a</span>, Message, OldTheme, NewTheme, Renderer&gt;(
+    new_theme: NewTheme,
+    content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, NewTheme, Renderer&gt;&gt;,
+) -&gt; Themer&lt;
+    <span class="lifetime">'a</span>,
+    Message,
+    OldTheme,
+    NewTheme,
+    <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>OldTheme) -&gt; NewTheme,
+    Renderer,
+&gt;
 <span class="kw">where
     </span>Renderer: core::Renderer,
-    Theme: application::StyleSheet,
+    NewTheme: Clone,
 {
-    Themer::new(theme, content)
+    Themer::new(<span class="kw">move </span>|<span class="kw">_</span>| new_theme.clone(), content)
 }
 </code></pre></div></section></main></body></html>

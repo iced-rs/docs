@@ -775,6 +775,30 @@
 <a href="#775" id="775">775</a>
 <a href="#776" id="776">776</a>
 <a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of searchable and selectable options.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -787,11 +811,11 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::time::Instant;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::{<span class="self">self</span>, Widget};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Clipboard, Element, Length, Padding, Rectangle, Shell, Size, Vector,
+    Clipboard, Element, Length, Padding, Rectangle, Shell, Size, Theme, Vector,
 };
 <span class="kw">use </span><span class="kw">crate</span>::overlay::menu;
 <span class="kw">use </span><span class="kw">crate</span>::text::LineHeight;
-<span class="kw">use crate</span>::{container, scrollable, text_input, TextInput};
+<span class="kw">use </span><span class="kw">crate</span>::text_input::{<span class="self">self</span>, TextInput};
 
 <span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::fmt::Display;
@@ -809,8 +833,7 @@
     Theme = <span class="kw">crate</span>::Theme,
     Renderer = <span class="kw">crate</span>::Renderer,
 &gt; <span class="kw">where
-    </span>Theme: text_input::StyleSheet + menu::StyleSheet,
-    Renderer: text::Renderer,
+    </span>Renderer: text::Renderer,
 {
     state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>State&lt;T&gt;,
     text_input: TextInput&lt;<span class="lifetime">'a</span>, TextInputEvent, Theme, Renderer&gt;,
@@ -820,7 +843,7 @@
     on_option_hovered: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(T) -&gt; Message&gt;&gt;,
     on_close: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     on_input: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(String) -&gt; Message&gt;&gt;,
-    menu_style: &lt;Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style,
+    menu_style: menu::Style&lt;Theme&gt;,
     padding: Padding,
     size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
 }
@@ -828,7 +851,6 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt; ComboBox&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>T: std::fmt::Display + Clone,
-    Theme: text_input::StyleSheet + menu::StyleSheet,
     Renderer: text::Renderer,
 {
     <span class="doccomment">/// Creates a new [`ComboBox`] with the given list of options, a placeholder,
@@ -839,9 +861,18 @@
         placeholder: <span class="kw-2">&amp;</span>str,
         selection: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;,
         on_selected: <span class="kw">impl </span>Fn(T) -&gt; Message + <span class="lifetime">'static</span>,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>text_input = TextInput::new(placeholder, <span class="kw-2">&amp;</span>state.value())
-            .on_input(TextInputEvent::TextChanged);
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme: DefaultStyle,
+    {
+        <span class="kw">let </span>style = Theme::default_style();
+
+        <span class="kw">let </span>text_input = TextInput::with_style(
+            placeholder,
+            <span class="kw-2">&amp;</span>state.value(),
+            style.text_input,
+        )
+        .on_input(TextInputEvent::TextChanged);
 
         <span class="kw">let </span>selection = selection.map(T::to_string).unwrap_or_default();
 
@@ -854,7 +885,7 @@
             on_option_hovered: <span class="prelude-val">None</span>,
             on_input: <span class="prelude-val">None</span>,
             on_close: <span class="prelude-val">None</span>,
-            menu_style: Default::default(),
+            menu_style: style.menu,
             padding: text_input::DEFAULT_PADDING,
             size: <span class="prelude-val">None</span>,
         }
@@ -895,24 +926,11 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`ComboBox`].
-    </span><span class="comment">// TODO: Define its own `StyleSheet` trait
-    </span><span class="kw">pub fn </span>style&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, style: S) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>S: Into&lt;&lt;Theme <span class="kw">as </span>text_input::StyleSheet&gt;::Style&gt;
-            + Into&lt;&lt;Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style&gt;
-            + Clone,
-    {
-        <span class="self">self</span>.menu_style = style.clone().into();
-        <span class="self">self</span>.text_input = <span class="self">self</span>.text_input.style(style);
-        <span class="self">self
-    </span>}
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Style&lt;Theme&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>style = style.into();
 
-    <span class="doccomment">/// Sets the style of the [`TextInput`] of the [`ComboBox`].
-    </span><span class="kw">pub fn </span>text_input_style&lt;S&gt;(<span class="kw-2">mut </span><span class="self">self</span>, style: S) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>S: Into&lt;&lt;Theme <span class="kw">as </span>text_input::StyleSheet&gt;::Style&gt; + Clone,
-    {
-        <span class="self">self</span>.text_input = <span class="self">self</span>.text_input.style(style);
+        <span class="self">self</span>.text_input = <span class="self">self</span>.text_input.style(style.text_input);
+        <span class="self">self</span>.menu_style = style.menu;
         <span class="self">self
     </span>}
 
@@ -1076,10 +1094,6 @@
 <span class="kw">where
     </span>T: Display + Clone + <span class="lifetime">'static</span>,
     Message: Clone,
-    Theme: container::StyleSheet
-        + text_input::StyleSheet
-        + scrollable::StyleSheet
-        + menu::StyleSheet,
     Renderer: text::Renderer,
 {
     <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
@@ -1456,7 +1470,7 @@
 
             <span class="self">self</span>.state.sync_filtered_options(filtered_options);
 
-            <span class="kw">let </span><span class="kw-2">mut </span>menu = menu::Menu::new(
+            <span class="kw">let </span><span class="kw-2">mut </span>menu = menu::Menu::with_style(
                 menu,
                 <span class="kw-2">&amp;</span>filtered_options.options,
                 hovered_option,
@@ -1470,10 +1484,10 @@
                     (<span class="self">self</span>.on_selected)(x)
                 },
                 <span class="self">self</span>.on_option_hovered.as_deref(),
+                <span class="self">self</span>.menu_style,
             )
             .width(bounds.width)
-            .padding(<span class="self">self</span>.padding)
-            .style(<span class="self">self</span>.menu_style.clone());
+            .padding(<span class="self">self</span>.padding);
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(font) = <span class="self">self</span>.font {
                 menu = menu.font(font);
@@ -1496,11 +1510,7 @@
 <span class="kw">where
     </span>T: Display + Clone + <span class="lifetime">'static</span>,
     Message: Clone + <span class="lifetime">'a</span>,
-    Theme: container::StyleSheet
-        + text_input::StyleSheet
-        + scrollable::StyleSheet
-        + menu::StyleSheet
-        + <span class="lifetime">'a</span>,
+    Theme: <span class="lifetime">'a</span>,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(combo_box: ComboBox&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;) -&gt; <span class="self">Self </span>{
@@ -1508,8 +1518,7 @@
     }
 }
 
-<span class="doccomment">/// Search list of options for a given query.
-</span><span class="kw">pub fn </span>search&lt;<span class="lifetime">'a</span>, T, A&gt;(
+<span class="kw">fn </span>search&lt;<span class="lifetime">'a</span>, T, A&gt;(
     options: <span class="kw">impl </span>IntoIterator&lt;Item = T&gt; + <span class="lifetime">'a</span>,
     option_matchers: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>A&gt; + <span class="lifetime">'a</span>,
     query: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>str,
@@ -1536,8 +1545,7 @@
         })
 }
 
-<span class="doccomment">/// Build matchers from given list of options.
-</span><span class="kw">pub fn </span>build_matchers&lt;<span class="lifetime">'a</span>, T&gt;(
+<span class="kw">fn </span>build_matchers&lt;<span class="lifetime">'a</span>, T&gt;(
     options: <span class="kw">impl </span>IntoIterator&lt;Item = T&gt; + <span class="lifetime">'a</span>,
 ) -&gt; Vec&lt;String&gt;
 <span class="kw">where
@@ -1551,5 +1559,45 @@
             matcher.to_lowercase()
         })
         .collect()
+}
+
+<span class="doccomment">/// The style of a [`ComboBox`].
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Style&lt;Theme&gt; {
+    <span class="doccomment">/// The style of the [`TextInput`] of the [`ComboBox`].
+    </span><span class="kw">pub </span>text_input: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, text_input::Status) -&gt; text_input::Appearance,
+
+    <span class="doccomment">/// The style of the [`Menu`] of the [`ComboBox`].
+    ///
+    /// [`Menu`]: menu::Menu
+    </span><span class="kw">pub </span>menu: menu::Style&lt;Theme&gt;,
+}
+
+<span class="kw">impl </span>Style&lt;Theme&gt; {
+    <span class="doccomment">/// The default style of a [`ComboBox`].
+    </span><span class="kw">pub const </span>DEFAULT: <span class="self">Self </span>= <span class="self">Self </span>{
+        text_input: text_input::default,
+        menu: menu::Style::&lt;Theme&gt;::DEFAULT,
+    };
+}
+
+<span class="kw">impl</span>&lt;Theme&gt; Clone <span class="kw">for </span>Style&lt;Theme&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw-2">*</span><span class="self">self
+    </span>}
+}
+
+<span class="kw">impl</span>&lt;Theme&gt; Copy <span class="kw">for </span>Style&lt;Theme&gt; {}
+
+<span class="doccomment">/// The default style of a [`ComboBox`].
+</span><span class="kw">pub trait </span>DefaultStyle: Sized {
+    <span class="doccomment">/// Returns the default style of a [`ComboBox`].
+    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+}
+
+<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
+    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
+        Style::&lt;<span class="self">Self</span>&gt;::DEFAULT
+    }
 }
 </code></pre></div></section></main></body></html>

@@ -279,10 +279,20 @@
 <a href="#279" id="279">279</a>
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build interactive cross-platform applications.
 </span><span class="kw">use crate</span>::{Command, Element, Executor, Settings, Subscription};
 
-<span class="kw">pub use </span><span class="kw">crate</span>::style::application::{Appearance, StyleSheet};
+<span class="kw">use </span><span class="kw">crate</span>::shell::application;
+
+<span class="kw">pub use </span>application::{default, Appearance, DefaultStyle};
 
 <span class="doccomment">/// An interactive cross-platform application.
 ///
@@ -372,7 +382,10 @@
 ///     }
 /// }
 /// ```
-</span><span class="kw">pub trait </span>Application: Sized {
+</span><span class="kw">pub trait </span>Application: Sized
+<span class="kw">where
+    </span><span class="self">Self</span>::Theme: DefaultStyle,
+{
     <span class="doccomment">/// The [`Executor`] that will run commands and subscriptions.
     ///
     /// The [default executor] can be a good starting point!
@@ -385,7 +398,7 @@
     </span><span class="kw">type </span>Message: std::fmt::Debug + Send;
 
     <span class="doccomment">/// The theme of your [`Application`].
-    </span><span class="kw">type </span>Theme: Default + StyleSheet;
+    </span><span class="kw">type </span>Theme: Default;
 
     <span class="doccomment">/// The data needed to initialize your [`Application`].
     </span><span class="kw">type </span>Flags;
@@ -429,11 +442,9 @@
         <span class="self">Self</span>::Theme::default()
     }
 
-    <span class="doccomment">/// Returns the current `Style` of the [`Theme`].
-    ///
-    /// [`Theme`]: Self::Theme
-    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; &lt;<span class="self">Self</span>::Theme <span class="kw">as </span>StyleSheet&gt;::Style {
-        &lt;<span class="self">Self</span>::Theme <span class="kw">as </span>StyleSheet&gt;::Style::default()
+    <span class="doccomment">/// Returns the current [`Appearance`] of the [`Application`].
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, theme: <span class="kw-2">&amp;</span><span class="self">Self</span>::Theme) -&gt; Appearance {
+        theme.default_style()
     }
 
     <span class="doccomment">/// Returns the event [`Subscription`] for the current state of the
@@ -509,11 +520,15 @@
     }
 }
 
-<span class="kw">struct </span>Instance&lt;A: Application&gt;(A);
+<span class="kw">struct </span>Instance&lt;A&gt;(A)
+<span class="kw">where
+    </span>A: Application,
+    A::Theme: DefaultStyle;
 
 <span class="kw">impl</span>&lt;A&gt; <span class="kw">crate</span>::runtime::Program <span class="kw">for </span>Instance&lt;A&gt;
 <span class="kw">where
     </span>A: Application,
+    A::Theme: DefaultStyle,
 {
     <span class="kw">type </span>Message = A::Message;
     <span class="kw">type </span>Theme = A::Theme;
@@ -528,9 +543,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;A&gt; <span class="kw">crate</span>::shell::Application <span class="kw">for </span>Instance&lt;A&gt;
+<span class="kw">impl</span>&lt;A&gt; application::Application <span class="kw">for </span>Instance&lt;A&gt;
 <span class="kw">where
     </span>A: Application,
+    A::Theme: DefaultStyle,
 {
     <span class="kw">type </span>Flags = A::Flags;
 
@@ -548,8 +564,8 @@
         <span class="self">self</span>.<span class="number">0</span>.theme()
     }
 
-    <span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; &lt;A::Theme <span class="kw">as </span>StyleSheet&gt;::Style {
-        <span class="self">self</span>.<span class="number">0</span>.style()
+    <span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, theme: <span class="kw-2">&amp;</span>A::Theme) -&gt; Appearance {
+        <span class="self">self</span>.<span class="number">0</span>.style(theme)
     }
 
     <span class="kw">fn </span>subscription(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Subscription&lt;<span class="self">Self</span>::Message&gt; {

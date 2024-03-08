@@ -740,67 +740,8 @@
 <a href="#740" id="740">740</a>
 <a href="#741" id="741">741</a>
 <a href="#742" id="742">742</a>
-<a href="#743" id="743">743</a>
-<a href="#744" id="744">744</a>
-<a href="#745" id="745">745</a>
-<a href="#746" id="746">746</a>
-<a href="#747" id="747">747</a>
-<a href="#748" id="748">748</a>
-<a href="#749" id="749">749</a>
-<a href="#750" id="750">750</a>
-<a href="#751" id="751">751</a>
-<a href="#752" id="752">752</a>
-<a href="#753" id="753">753</a>
-<a href="#754" id="754">754</a>
-<a href="#755" id="755">755</a>
-<a href="#756" id="756">756</a>
-<a href="#757" id="757">757</a>
-<a href="#758" id="758">758</a>
-<a href="#759" id="759">759</a>
-<a href="#760" id="760">760</a>
-<a href="#761" id="761">761</a>
-<a href="#762" id="762">762</a>
-<a href="#763" id="763">763</a>
-<a href="#764" id="764">764</a>
-<a href="#765" id="765">765</a>
-<a href="#766" id="766">766</a>
-<a href="#767" id="767">767</a>
-<a href="#768" id="768">768</a>
-<a href="#769" id="769">769</a>
-<a href="#770" id="770">770</a>
-<a href="#771" id="771">771</a>
-<a href="#772" id="772">772</a>
-<a href="#773" id="773">773</a>
-<a href="#774" id="774">774</a>
-<a href="#775" id="775">775</a>
-<a href="#776" id="776">776</a>
-<a href="#777" id="777">777</a>
-<a href="#778" id="778">778</a>
-<a href="#779" id="779">779</a>
-<a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a>
-<a href="#782" id="782">782</a>
-<a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a>
-<a href="#785" id="785">785</a>
-<a href="#786" id="786">786</a>
-<a href="#787" id="787">787</a>
-<a href="#788" id="788">788</a>
-<a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a>
-<a href="#791" id="791">791</a>
-<a href="#792" id="792">792</a>
-<a href="#793" id="793">793</a>
-<a href="#794" id="794">794</a>
-<a href="#795" id="795">795</a>
-<a href="#796" id="796">796</a>
-<a href="#797" id="797">797</a>
-<a href="#798" id="798">798</a>
-<a href="#799" id="799">799</a>
-<a href="#800" id="800">800</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of selectable values.
-</span><span class="kw">use </span><span class="kw">crate</span>::container;
-<span class="kw">use </span><span class="kw">crate</span>::core::alignment;
+</span><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -811,15 +752,13 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::touch;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Clipboard, Element, Layout, Length, Padding, Pixels, Point, Rectangle,
-    Shell, Size, Vector, Widget,
+    Background, Border, Clipboard, Color, Element, Layout, Length, Padding,
+    Pixels, Point, Rectangle, Shell, Size, Theme, Vector, Widget,
 };
 <span class="kw">use </span><span class="kw">crate</span>::overlay::menu::{<span class="self">self</span>, Menu};
-<span class="kw">use </span><span class="kw">crate</span>::scrollable;
 
 <span class="kw">use </span>std::borrow::Borrow;
-
-<span class="kw">pub use </span><span class="kw">crate</span>::style::pick_list::{Appearance, StyleSheet};
+<span class="kw">use </span>std::f32;
 
 <span class="doccomment">/// A widget for selecting a single value from a list of options.
 </span><span class="attr">#[allow(missing_debug_implementations)]
@@ -835,7 +774,6 @@
     </span>T: ToString + PartialEq + Clone,
     L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
     V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
-    Theme: StyleSheet,
     Renderer: text::Renderer,
 {
     on_select: Box&lt;<span class="kw">dyn </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>&gt;,
@@ -851,7 +789,7 @@
     text_shaping: text::Shaping,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
     handle: Handle&lt;Renderer::Font&gt;,
-    style: Theme::Style,
+    style: Style&lt;Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt;
@@ -861,23 +799,18 @@
     L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
     V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
     Message: Clone,
-    Theme: StyleSheet
-        + scrollable::StyleSheet
-        + menu::StyleSheet
-        + container::StyleSheet,
-    &lt;Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style: From&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
     Renderer: text::Renderer,
 {
-    <span class="doccomment">/// The default padding of a [`PickList`].
-    </span><span class="kw">pub const </span>DEFAULT_PADDING: Padding = Padding::new(<span class="number">5.0</span>);
-
     <span class="doccomment">/// Creates a new [`PickList`] with the given list of options, the current
     /// selected value, and the message to produce when an option is selected.
     </span><span class="kw">pub fn </span>new(
         options: L,
         selected: <span class="prelude-ty">Option</span>&lt;V&gt;,
         on_select: <span class="kw">impl </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>,
-    ) -&gt; <span class="self">Self </span>{
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme: DefaultStyle,
+    {
         <span class="self">Self </span>{
             on_select: Box::new(on_select),
             on_open: <span class="prelude-val">None</span>,
@@ -886,13 +819,13 @@
             placeholder: <span class="prelude-val">None</span>,
             selected,
             width: Length::Shrink,
-            padding: <span class="self">Self</span>::DEFAULT_PADDING,
+            padding: <span class="kw">crate</span>::button::DEFAULT_PADDING,
             text_size: <span class="prelude-val">None</span>,
             text_line_height: text::LineHeight::default(),
             text_shaping: text::Shaping::Basic,
             font: <span class="prelude-val">None</span>,
             handle: Handle::default(),
-            style: Default::default(),
+            style: Theme::default_style(),
         }
     }
 
@@ -960,10 +893,7 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`PickList`].
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Into&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
-    ) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Style&lt;Theme&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
     </span>}
@@ -976,11 +906,6 @@
     L: Borrow&lt;[T]&gt;,
     V: Borrow&lt;T&gt;,
     Message: Clone + <span class="lifetime">'a</span>,
-    Theme: StyleSheet
-        + scrollable::StyleSheet
-        + menu::StyleSheet
-        + container::StyleSheet,
-    &lt;Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style: From&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
@@ -1004,19 +929,77 @@
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        layout(
-            tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
-            renderer,
-            limits,
-            <span class="self">self</span>.width,
-            <span class="self">self</span>.padding,
-            <span class="self">self</span>.text_size,
-            <span class="self">self</span>.text_line_height,
-            <span class="self">self</span>.text_shaping,
-            <span class="self">self</span>.font,
-            <span class="self">self</span>.placeholder.as_deref(),
-            <span class="self">self</span>.options.borrow(),
-        )
+        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
+
+        <span class="kw">let </span>font = <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font());
+        <span class="kw">let </span>text_size =
+            <span class="self">self</span>.text_size.unwrap_or_else(|| renderer.default_size());
+        <span class="kw">let </span>options = <span class="self">self</span>.options.borrow();
+
+        state.options.resize_with(options.len(), Default::default);
+
+        <span class="kw">let </span>option_text = Text {
+            content: <span class="string">""</span>,
+            bounds: Size::new(
+                f32::INFINITY,
+                <span class="self">self</span>.text_line_height.to_absolute(text_size).into(),
+            ),
+            size: text_size,
+            line_height: <span class="self">self</span>.text_line_height,
+            font,
+            horizontal_alignment: alignment::Horizontal::Left,
+            vertical_alignment: alignment::Vertical::Center,
+            shaping: <span class="self">self</span>.text_shaping,
+        };
+
+        <span class="kw">for </span>(option, paragraph) <span class="kw">in </span>options.iter().zip(state.options.iter_mut())
+        {
+            <span class="kw">let </span>label = option.to_string();
+
+            paragraph.update(Text {
+                content: <span class="kw-2">&amp;</span>label,
+                ..option_text
+            });
+        }
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(placeholder) = <span class="kw-2">&amp;</span><span class="self">self</span>.placeholder {
+            state.placeholder.update(Text {
+                content: placeholder,
+                ..option_text
+            });
+        }
+
+        <span class="kw">let </span>max_width = <span class="kw">match </span><span class="self">self</span>.width {
+            Length::Shrink =&gt; {
+                <span class="kw">let </span>labels_width =
+                    state.options.iter().fold(<span class="number">0.0</span>, |width, paragraph| {
+                        f32::max(width, paragraph.min_width())
+                    });
+
+                labels_width.max(
+                    <span class="self">self</span>.placeholder
+                        .as_ref()
+                        .map(|<span class="kw">_</span>| state.placeholder.min_width())
+                        .unwrap_or(<span class="number">0.0</span>),
+                )
+            }
+            <span class="kw">_ </span>=&gt; <span class="number">0.0</span>,
+        };
+
+        <span class="kw">let </span>size = {
+            <span class="kw">let </span>intrinsic = Size::new(
+                max_width + text_size.<span class="number">0 </span>+ <span class="self">self</span>.padding.left,
+                f32::from(<span class="self">self</span>.text_line_height.to_absolute(text_size)),
+            );
+
+            limits
+                .width(<span class="self">self</span>.width)
+                .shrink(<span class="self">self</span>.padding)
+                .resolve(<span class="self">self</span>.width, Length::Shrink, intrinsic)
+                .expand(<span class="self">self</span>.padding)
+        };
+
+        layout::Node::new(size)
     }
 
     <span class="kw">fn </span>on_event(
@@ -1030,18 +1013,98 @@
         shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) -&gt; event::Status {
-        update(
-            event,
-            layout,
-            cursor,
-            shell,
-            <span class="self">self</span>.on_select.as_ref(),
-            <span class="self">self</span>.on_open.as_ref(),
-            <span class="self">self</span>.on_close.as_ref(),
-            <span class="self">self</span>.selected.as_ref().map(Borrow::borrow),
-            <span class="self">self</span>.options.borrow(),
-            || tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
-        )
+        <span class="kw">match </span>event {
+            Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
+            | Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
+                <span class="kw">let </span>state =
+                    tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
+
+                <span class="kw">if </span>state.is_open {
+                    <span class="comment">// Event wasn't processed by overlay, so cursor was clicked either outside its
+                    // bounds or on the drop-down, either way we close the overlay.
+                    </span>state.is_open = <span class="bool-val">false</span>;
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(on_close) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_close {
+                        shell.publish(on_close.clone());
+                    }
+
+                    event::Status::Captured
+                } <span class="kw">else if </span>cursor.is_over(layout.bounds()) {
+                    <span class="kw">let </span>selected = <span class="self">self</span>.selected.as_ref().map(Borrow::borrow);
+
+                    state.is_open = <span class="bool-val">true</span>;
+                    state.hovered_option = <span class="self">self
+                        </span>.options
+                        .borrow()
+                        .iter()
+                        .position(|option| <span class="prelude-val">Some</span>(option) == selected);
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(on_open) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_open {
+                        shell.publish(on_open.clone());
+                    }
+
+                    event::Status::Captured
+                } <span class="kw">else </span>{
+                    event::Status::Ignored
+                }
+            }
+            Event::Mouse(mouse::Event::WheelScrolled {
+                delta: mouse::ScrollDelta::Lines { y, .. },
+            }) =&gt; {
+                <span class="kw">let </span>state =
+                    tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
+
+                <span class="kw">if </span>state.keyboard_modifiers.command()
+                    &amp;&amp; cursor.is_over(layout.bounds())
+                    &amp;&amp; !state.is_open
+                {
+                    <span class="kw">fn </span>find_next&lt;<span class="lifetime">'a</span>, T: PartialEq&gt;(
+                        selected: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T,
+                        <span class="kw-2">mut </span>options: <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt;,
+                    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt; {
+                        <span class="kw">let _ </span>= options.find(|<span class="kw-2">&amp;</span>option| option == selected);
+
+                        options.next()
+                    }
+
+                    <span class="kw">let </span>options = <span class="self">self</span>.options.borrow();
+                    <span class="kw">let </span>selected = <span class="self">self</span>.selected.as_ref().map(Borrow::borrow);
+
+                    <span class="kw">let </span>next_option = <span class="kw">if </span>y &lt; <span class="number">0.0 </span>{
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(selected) = selected {
+                            find_next(selected, options.iter())
+                        } <span class="kw">else </span>{
+                            options.first()
+                        }
+                    } <span class="kw">else if </span>y &gt; <span class="number">0.0 </span>{
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(selected) = selected {
+                            find_next(selected, options.iter().rev())
+                        } <span class="kw">else </span>{
+                            options.last()
+                        }
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>};
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(next_option) = next_option {
+                        shell.publish((<span class="self">self</span>.on_select)(next_option.clone()));
+                    }
+
+                    event::Status::Captured
+                } <span class="kw">else </span>{
+                    event::Status::Ignored
+                }
+            }
+            Event::Keyboard(keyboard::Event::ModifiersChanged(modifiers)) =&gt; {
+                <span class="kw">let </span>state =
+                    tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
+
+                state.keyboard_modifiers = modifiers;
+
+                event::Status::Ignored
+            }
+            <span class="kw">_ </span>=&gt; event::Status::Ignored,
+        }
     }
 
     <span class="kw">fn </span>mouse_interaction(
@@ -1052,7 +1115,14 @@
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
         _renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; mouse::Interaction {
-        mouse_interaction(layout, cursor)
+        <span class="kw">let </span>bounds = layout.bounds();
+        <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
+
+        <span class="kw">if </span>is_mouse_over {
+            mouse::Interaction::Pointer
+        } <span class="kw">else </span>{
+            mouse::Interaction::default()
+        }
     }
 
     <span class="kw">fn </span>draw(
@@ -1066,23 +1136,124 @@
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
         <span class="kw">let </span>font = <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font());
-        draw(
-            renderer,
-            theme,
-            layout,
-            cursor,
-            <span class="self">self</span>.padding,
-            <span class="self">self</span>.text_size,
-            <span class="self">self</span>.text_line_height,
-            <span class="self">self</span>.text_shaping,
-            font,
-            <span class="self">self</span>.placeholder.as_deref(),
-            <span class="self">self</span>.selected.as_ref().map(Borrow::borrow),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.handle,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.style,
-            || tree.state.downcast_ref::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
-            viewport,
+        <span class="kw">let </span>selected = <span class="self">self</span>.selected.as_ref().map(Borrow::borrow);
+        <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
+
+        <span class="kw">let </span>bounds = layout.bounds();
+        <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
+        <span class="kw">let </span>is_selected = selected.is_some();
+
+        <span class="kw">let </span>status = <span class="kw">if </span>state.is_open {
+            Status::Opened
+        } <span class="kw">else if </span>is_mouse_over {
+            Status::Hovered
+        } <span class="kw">else </span>{
+            Status::Active
+        };
+
+        <span class="kw">let </span>appearance = (<span class="self">self</span>.style.field)(theme, status);
+
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds,
+                border: appearance.border,
+                ..renderer::Quad::default()
+            },
+            appearance.background,
         );
+
+        <span class="kw">let </span>handle = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.handle {
+            Handle::Arrow { size } =&gt; <span class="prelude-val">Some</span>((
+                Renderer::ICON_FONT,
+                Renderer::ARROW_DOWN_ICON,
+                <span class="kw-2">*</span>size,
+                text::LineHeight::default(),
+                text::Shaping::Basic,
+            )),
+            Handle::Static(Icon {
+                font,
+                code_point,
+                size,
+                line_height,
+                shaping,
+            }) =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span>font, <span class="kw-2">*</span>code_point, <span class="kw-2">*</span>size, <span class="kw-2">*</span>line_height, <span class="kw-2">*</span>shaping)),
+            Handle::Dynamic { open, closed } =&gt; {
+                <span class="kw">if </span>state.is_open {
+                    <span class="prelude-val">Some</span>((
+                        open.font,
+                        open.code_point,
+                        open.size,
+                        open.line_height,
+                        open.shaping,
+                    ))
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>((
+                        closed.font,
+                        closed.code_point,
+                        closed.size,
+                        closed.line_height,
+                        closed.shaping,
+                    ))
+                }
+            }
+            Handle::None =&gt; <span class="prelude-val">None</span>,
+        };
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>((font, code_point, size, line_height, shaping)) = handle {
+            <span class="kw">let </span>size = size.unwrap_or_else(|| renderer.default_size());
+
+            renderer.fill_text(
+                Text {
+                    content: <span class="kw-2">&amp;</span>code_point.to_string(),
+                    size,
+                    line_height,
+                    font,
+                    bounds: Size::new(
+                        bounds.width,
+                        f32::from(line_height.to_absolute(size)),
+                    ),
+                    horizontal_alignment: alignment::Horizontal::Right,
+                    vertical_alignment: alignment::Vertical::Center,
+                    shaping,
+                },
+                Point::new(
+                    bounds.x + bounds.width - <span class="self">self</span>.padding.right,
+                    bounds.center_y(),
+                ),
+                appearance.handle_color,
+                <span class="kw-2">*</span>viewport,
+            );
+        }
+
+        <span class="kw">let </span>label = selected.map(ToString::to_string);
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = label.as_deref().or(<span class="self">self</span>.placeholder.as_deref()) {
+            <span class="kw">let </span>text_size =
+                <span class="self">self</span>.text_size.unwrap_or_else(|| renderer.default_size());
+
+            renderer.fill_text(
+                Text {
+                    content: label,
+                    size: text_size,
+                    line_height: <span class="self">self</span>.text_line_height,
+                    font,
+                    bounds: Size::new(
+                        bounds.width - <span class="self">self</span>.padding.horizontal(),
+                        f32::from(<span class="self">self</span>.text_line_height.to_absolute(text_size)),
+                    ),
+                    horizontal_alignment: alignment::Horizontal::Left,
+                    vertical_alignment: alignment::Vertical::Center,
+                    shaping: <span class="self">self</span>.text_shaping,
+                },
+                Point::new(bounds.x + <span class="self">self</span>.padding.left, bounds.center_y()),
+                <span class="kw">if </span>is_selected {
+                    appearance.text_color
+                } <span class="kw">else </span>{
+                    appearance.placeholder_color
+                },
+                <span class="kw-2">*</span>viewport,
+            );
+        }
     }
 
     <span class="kw">fn </span>overlay&lt;<span class="lifetime">'b</span>&gt;(
@@ -1093,19 +1264,38 @@
         translation: Vector,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
         <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
+        <span class="kw">let </span>font = <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font());
 
-        overlay(
-            layout,
-            translation,
-            state,
-            <span class="self">self</span>.padding,
-            <span class="self">self</span>.text_size,
-            <span class="self">self</span>.text_shaping,
-            <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font()),
-            <span class="self">self</span>.options.borrow(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.on_select,
-            <span class="self">self</span>.style.clone(),
-        )
+        <span class="kw">if </span>state.is_open {
+            <span class="kw">let </span>bounds = layout.bounds();
+
+            <span class="kw">let </span>on_select = <span class="kw-2">&amp;</span><span class="self">self</span>.on_select;
+
+            <span class="kw">let </span><span class="kw-2">mut </span>menu = Menu::with_style(
+                <span class="kw-2">&amp;mut </span>state.menu,
+                <span class="self">self</span>.options.borrow(),
+                <span class="kw-2">&amp;mut </span>state.hovered_option,
+                |option| {
+                    state.is_open = <span class="bool-val">false</span>;
+
+                    (on_select)(option)
+                },
+                <span class="prelude-val">None</span>,
+                <span class="self">self</span>.style.menu,
+            )
+            .width(bounds.width)
+            .padding(<span class="self">self</span>.padding)
+            .font(font)
+            .text_shaping(<span class="self">self</span>.text_shaping);
+
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(text_size) = <span class="self">self</span>.text_size {
+                menu = menu.text_size(text_size);
+            }
+
+            <span class="prelude-val">Some</span>(menu.overlay(layout.position() + translation, bounds.height))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
@@ -1117,12 +1307,7 @@
     L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
     V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
     Message: Clone + <span class="lifetime">'a</span>,
-    Theme: StyleSheet
-        + scrollable::StyleSheet
-        + menu::StyleSheet
-        + container::StyleSheet
-        + <span class="lifetime">'a</span>,
-    &lt;Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style: From&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
+    Theme: <span class="lifetime">'a</span>,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
@@ -1132,9 +1317,8 @@
     }
 }
 
-<span class="doccomment">/// The state of a [`PickList`].
-</span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>State&lt;P: text::Paragraph&gt; {
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">struct </span>State&lt;P: text::Paragraph&gt; {
     menu: menu::State,
     keyboard_modifiers: keyboard::Modifiers,
     is_open: bool,
@@ -1207,395 +1391,95 @@
     </span><span class="kw">pub </span>shaping: text::Shaping,
 }
 
-<span class="doccomment">/// Computes the layout of a [`PickList`].
-</span><span class="kw">pub fn </span>layout&lt;Renderer, T&gt;(
-    state: <span class="kw-2">&amp;mut </span>State&lt;Renderer::Paragraph&gt;,
-    renderer: <span class="kw-2">&amp;</span>Renderer,
-    limits: <span class="kw-2">&amp;</span>layout::Limits,
-    width: Length,
-    padding: Padding,
-    text_size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
-    text_line_height: text::LineHeight,
-    text_shaping: text::Shaping,
-    font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
-    placeholder: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-    options: <span class="kw-2">&amp;</span>[T],
-) -&gt; layout::Node
-<span class="kw">where
-    </span>Renderer: text::Renderer,
-    T: ToString,
-{
-    <span class="kw">use </span>std::f32;
-
-    <span class="kw">let </span>font = font.unwrap_or_else(|| renderer.default_font());
-    <span class="kw">let </span>text_size = text_size.unwrap_or_else(|| renderer.default_size());
-
-    state.options.resize_with(options.len(), Default::default);
-
-    <span class="kw">let </span>option_text = Text {
-        content: <span class="string">""</span>,
-        bounds: Size::new(
-            f32::INFINITY,
-            text_line_height.to_absolute(text_size).into(),
-        ),
-        size: text_size,
-        line_height: text_line_height,
-        font,
-        horizontal_alignment: alignment::Horizontal::Left,
-        vertical_alignment: alignment::Vertical::Center,
-        shaping: text_shaping,
-    };
-
-    <span class="kw">for </span>(option, paragraph) <span class="kw">in </span>options.iter().zip(state.options.iter_mut()) {
-        <span class="kw">let </span>label = option.to_string();
-
-        paragraph.update(Text {
-            content: <span class="kw-2">&amp;</span>label,
-            ..option_text
-        });
-    }
-
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(placeholder) = placeholder {
-        state.placeholder.update(Text {
-            content: placeholder,
-            ..option_text
-        });
-    }
-
-    <span class="kw">let </span>max_width = <span class="kw">match </span>width {
-        Length::Shrink =&gt; {
-            <span class="kw">let </span>labels_width =
-                state.options.iter().fold(<span class="number">0.0</span>, |width, paragraph| {
-                    f32::max(width, paragraph.min_width())
-                });
-
-            labels_width.max(
-                placeholder
-                    .map(|<span class="kw">_</span>| state.placeholder.min_width())
-                    .unwrap_or(<span class="number">0.0</span>),
-            )
-        }
-        <span class="kw">_ </span>=&gt; <span class="number">0.0</span>,
-    };
-
-    <span class="kw">let </span>size = {
-        <span class="kw">let </span>intrinsic = Size::new(
-            max_width + text_size.<span class="number">0 </span>+ padding.left,
-            f32::from(text_line_height.to_absolute(text_size)),
-        );
-
-        limits
-            .width(width)
-            .shrink(padding)
-            .resolve(width, Length::Shrink, intrinsic)
-            .expand(padding)
-    };
-
-    layout::Node::new(size)
+<span class="doccomment">/// The possible status of a [`PickList`].
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>Status {
+    <span class="doccomment">/// The [`PickList`] can be interacted with.
+    </span>Active,
+    <span class="doccomment">/// The [`PickList`] is being hovered.
+    </span>Hovered,
+    <span class="doccomment">/// The [`PickList`] is open.
+    </span>Opened,
 }
 
-<span class="doccomment">/// Processes an [`Event`] and updates the [`State`] of a [`PickList`]
-/// accordingly.
-</span><span class="kw">pub fn </span>update&lt;<span class="lifetime">'a</span>, T, P, Message&gt;(
-    event: Event,
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-    shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
-    on_select: <span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(T) -&gt; Message,
-    on_open: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Message&gt;,
-    on_close: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Message&gt;,
-    selected: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;,
-    options: <span class="kw-2">&amp;</span>[T],
-    state: <span class="kw">impl </span>FnOnce() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>State&lt;P&gt;,
-) -&gt; event::Status
-<span class="kw">where
-    </span>T: PartialEq + Clone + <span class="lifetime">'a</span>,
-    P: text::Paragraph + <span class="lifetime">'a</span>,
-    Message: Clone,
-{
-    <span class="kw">match </span>event {
-        Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
-        | Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
-            <span class="kw">let </span>state = state();
-
-            <span class="kw">if </span>state.is_open {
-                <span class="comment">// Event wasn't processed by overlay, so cursor was clicked either outside it's
-                // bounds or on the drop-down, either way we close the overlay.
-                </span>state.is_open = <span class="bool-val">false</span>;
-
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(on_close) = on_close {
-                    shell.publish(on_close.clone());
-                }
-
-                event::Status::Captured
-            } <span class="kw">else if </span>cursor.is_over(layout.bounds()) {
-                state.is_open = <span class="bool-val">true</span>;
-                state.hovered_option =
-                    options.iter().position(|option| <span class="prelude-val">Some</span>(option) == selected);
-
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(on_open) = on_open {
-                    shell.publish(on_open.clone());
-                }
-
-                event::Status::Captured
-            } <span class="kw">else </span>{
-                event::Status::Ignored
-            }
-        }
-        Event::Mouse(mouse::Event::WheelScrolled {
-            delta: mouse::ScrollDelta::Lines { y, .. },
-        }) =&gt; {
-            <span class="kw">let </span>state = state();
-
-            <span class="kw">if </span>state.keyboard_modifiers.command()
-                &amp;&amp; cursor.is_over(layout.bounds())
-                &amp;&amp; !state.is_open
-            {
-                <span class="kw">fn </span>find_next&lt;<span class="lifetime">'a</span>, T: PartialEq&gt;(
-                    selected: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T,
-                    <span class="kw-2">mut </span>options: <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt;,
-                ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>T&gt; {
-                    <span class="kw">let _ </span>= options.find(|<span class="kw-2">&amp;</span>option| option == selected);
-
-                    options.next()
-                }
-
-                <span class="kw">let </span>next_option = <span class="kw">if </span>y &lt; <span class="number">0.0 </span>{
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(selected) = selected {
-                        find_next(selected, options.iter())
-                    } <span class="kw">else </span>{
-                        options.first()
-                    }
-                } <span class="kw">else if </span>y &gt; <span class="number">0.0 </span>{
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(selected) = selected {
-                        find_next(selected, options.iter().rev())
-                    } <span class="kw">else </span>{
-                        options.last()
-                    }
-                } <span class="kw">else </span>{
-                    <span class="prelude-val">None
-                </span>};
-
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(next_option) = next_option {
-                    shell.publish((on_select)(next_option.clone()));
-                }
-
-                event::Status::Captured
-            } <span class="kw">else </span>{
-                event::Status::Ignored
-            }
-        }
-        Event::Keyboard(keyboard::Event::ModifiersChanged(modifiers)) =&gt; {
-            <span class="kw">let </span>state = state();
-
-            state.keyboard_modifiers = modifiers;
-
-            event::Status::Ignored
-        }
-        <span class="kw">_ </span>=&gt; event::Status::Ignored,
-    }
+<span class="doccomment">/// The appearance of a pick list.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>Appearance {
+    <span class="doccomment">/// The text [`Color`] of the pick list.
+    </span><span class="kw">pub </span>text_color: Color,
+    <span class="doccomment">/// The placeholder [`Color`] of the pick list.
+    </span><span class="kw">pub </span>placeholder_color: Color,
+    <span class="doccomment">/// The handle [`Color`] of the pick list.
+    </span><span class="kw">pub </span>handle_color: Color,
+    <span class="doccomment">/// The [`Background`] of the pick list.
+    </span><span class="kw">pub </span>background: Background,
+    <span class="doccomment">/// The [`Border`] of the pick list.
+    </span><span class="kw">pub </span>border: Border,
 }
 
-<span class="doccomment">/// Returns the current [`mouse::Interaction`] of a [`PickList`].
-</span><span class="kw">pub fn </span>mouse_interaction(
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-) -&gt; mouse::Interaction {
-    <span class="kw">let </span>bounds = layout.bounds();
-    <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
+<span class="doccomment">/// The styles of the different parts of a [`PickList`].
+</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Style&lt;Theme&gt; {
+    <span class="doccomment">/// The style of the [`PickList`] itself.
+    </span><span class="kw">pub </span>field: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance,
 
-    <span class="kw">if </span>is_mouse_over {
-        mouse::Interaction::Pointer
-    } <span class="kw">else </span>{
-        mouse::Interaction::default()
-    }
+    <span class="doccomment">/// The style of the [`Menu`] of the pick list.
+    </span><span class="kw">pub </span>menu: menu::Style&lt;Theme&gt;,
 }
 
-<span class="doccomment">/// Returns the current overlay of a [`PickList`].
-</span><span class="kw">pub fn </span>overlay&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;(
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    translation: Vector,
-    state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>State&lt;Renderer::Paragraph&gt;,
-    padding: Padding,
-    text_size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
-    text_shaping: text::Shaping,
-    font: Renderer::Font,
-    options: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[T],
-    on_selected: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">dyn </span>Fn(T) -&gt; Message,
-    style: &lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style,
-) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;
-<span class="kw">where
-    </span>T: Clone + ToString,
-    Message: <span class="lifetime">'a</span>,
-    Theme: StyleSheet
-        + scrollable::StyleSheet
-        + menu::StyleSheet
-        + container::StyleSheet
-        + <span class="lifetime">'a</span>,
-    &lt;Theme <span class="kw">as </span>menu::StyleSheet&gt;::Style: From&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
-    Renderer: text::Renderer + <span class="lifetime">'a</span>,
-{
-    <span class="kw">if </span>state.is_open {
-        <span class="kw">let </span>bounds = layout.bounds();
+<span class="kw">impl </span>Style&lt;Theme&gt; {
+    <span class="doccomment">/// The default style of a [`PickList`] with the built-in [`Theme`].
+    </span><span class="kw">pub const </span>DEFAULT: <span class="self">Self </span>= <span class="self">Self </span>{
+        field: default,
+        menu: menu::Style::&lt;Theme&gt;::DEFAULT,
+    };
+}
 
-        <span class="kw">let </span><span class="kw-2">mut </span>menu = Menu::new(
-            <span class="kw-2">&amp;mut </span>state.menu,
-            options,
-            <span class="kw-2">&amp;mut </span>state.hovered_option,
-            |option| {
-                state.is_open = <span class="bool-val">false</span>;
-
-                (on_selected)(option)
-            },
-            <span class="prelude-val">None</span>,
-        )
-        .width(bounds.width)
-        .padding(padding)
-        .font(font)
-        .text_shaping(text_shaping)
-        .style(style);
-
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(text_size) = text_size {
-            menu = menu.text_size(text_size);
-        }
-
-        <span class="prelude-val">Some</span>(menu.overlay(layout.position() + translation, bounds.height))
-    } <span class="kw">else </span>{
-        <span class="prelude-val">None
+<span class="kw">impl</span>&lt;Theme&gt; Clone <span class="kw">for </span>Style&lt;Theme&gt; {
+    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw-2">*</span><span class="self">self
     </span>}
 }
 
-<span class="doccomment">/// Draws a [`PickList`].
-</span><span class="kw">pub fn </span>draw&lt;<span class="lifetime">'a</span>, T, Theme, Renderer&gt;(
-    renderer: <span class="kw-2">&amp;mut </span>Renderer,
-    theme: <span class="kw-2">&amp;</span>Theme,
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-    padding: Padding,
-    text_size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
-    text_line_height: text::LineHeight,
-    text_shaping: text::Shaping,
-    font: Renderer::Font,
-    placeholder: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-    selected: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;,
-    handle: <span class="kw-2">&amp;</span>Handle&lt;Renderer::Font&gt;,
-    style: <span class="kw-2">&amp;</span>Theme::Style,
-    state: <span class="kw">impl </span>FnOnce() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>State&lt;Renderer::Paragraph&gt;,
-    viewport: <span class="kw-2">&amp;</span>Rectangle,
-) <span class="kw">where
-    </span>Renderer: text::Renderer,
-    Theme: StyleSheet,
-    T: ToString + <span class="lifetime">'a</span>,
-{
-    <span class="kw">let </span>bounds = layout.bounds();
-    <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
-    <span class="kw">let </span>is_selected = selected.is_some();
+<span class="kw">impl</span>&lt;Theme&gt; Copy <span class="kw">for </span>Style&lt;Theme&gt; {}
 
-    <span class="kw">let </span>style = <span class="kw">if </span>is_mouse_over {
-        theme.hovered(style)
-    } <span class="kw">else </span>{
-        theme.active(style)
-    };
+<span class="doccomment">/// The default style of a [`PickList`].
+</span><span class="kw">pub trait </span>DefaultStyle: Sized {
+    <span class="doccomment">/// Returns the default style of a [`PickList`].
+    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+}
 
-    renderer.fill_quad(
-        renderer::Quad {
-            bounds,
-            border: style.border,
-            ..renderer::Quad::default()
-        },
-        style.background,
-    );
-
-    <span class="kw">let </span>handle = <span class="kw">match </span>handle {
-        Handle::Arrow { size } =&gt; <span class="prelude-val">Some</span>((
-            Renderer::ICON_FONT,
-            Renderer::ARROW_DOWN_ICON,
-            <span class="kw-2">*</span>size,
-            text::LineHeight::default(),
-            text::Shaping::Basic,
-        )),
-        Handle::Static(Icon {
-            font,
-            code_point,
-            size,
-            line_height,
-            shaping,
-        }) =&gt; <span class="prelude-val">Some</span>((<span class="kw-2">*</span>font, <span class="kw-2">*</span>code_point, <span class="kw-2">*</span>size, <span class="kw-2">*</span>line_height, <span class="kw-2">*</span>shaping)),
-        Handle::Dynamic { open, closed } =&gt; {
-            <span class="kw">if </span>state().is_open {
-                <span class="prelude-val">Some</span>((
-                    open.font,
-                    open.code_point,
-                    open.size,
-                    open.line_height,
-                    open.shaping,
-                ))
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>((
-                    closed.font,
-                    closed.code_point,
-                    closed.size,
-                    closed.line_height,
-                    closed.shaping,
-                ))
-            }
-        }
-        Handle::None =&gt; <span class="prelude-val">None</span>,
-    };
-
-    <span class="kw">if let </span><span class="prelude-val">Some</span>((font, code_point, size, line_height, shaping)) = handle {
-        <span class="kw">let </span>size = size.unwrap_or_else(|| renderer.default_size());
-
-        renderer.fill_text(
-            Text {
-                content: <span class="kw-2">&amp;</span>code_point.to_string(),
-                size,
-                line_height,
-                font,
-                bounds: Size::new(
-                    bounds.width,
-                    f32::from(line_height.to_absolute(size)),
-                ),
-                horizontal_alignment: alignment::Horizontal::Right,
-                vertical_alignment: alignment::Vertical::Center,
-                shaping,
-            },
-            Point::new(
-                bounds.x + bounds.width - padding.horizontal(),
-                bounds.center_y(),
-            ),
-            style.handle_color,
-            <span class="kw-2">*</span>viewport,
-        );
+<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
+    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
+        Style::&lt;<span class="self">Self</span>&gt;::DEFAULT
     }
+}
 
-    <span class="kw">let </span>label = selected.map(ToString::to_string);
+<span class="doccomment">/// The default style of the field of a [`PickList`].
+</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+    <span class="kw">let </span>palette = theme.extended_palette();
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(label) = label.as_deref().or(placeholder) {
-        <span class="kw">let </span>text_size = text_size.unwrap_or_else(|| renderer.default_size());
+    <span class="kw">let </span>active = Appearance {
+        text_color: palette.background.weak.text,
+        background: palette.background.weak.color.into(),
+        placeholder_color: palette.background.strong.color,
+        handle_color: palette.background.weak.text,
+        border: Border {
+            radius: <span class="number">2.0</span>.into(),
+            width: <span class="number">1.0</span>,
+            color: palette.background.strong.color,
+        },
+    };
 
-        renderer.fill_text(
-            Text {
-                content: label,
-                size: text_size,
-                line_height: text_line_height,
-                font,
-                bounds: Size::new(
-                    bounds.width - padding.horizontal(),
-                    f32::from(text_line_height.to_absolute(text_size)),
-                ),
-                horizontal_alignment: alignment::Horizontal::Left,
-                vertical_alignment: alignment::Vertical::Center,
-                shaping: text_shaping,
+    <span class="kw">match </span>status {
+        Status::Active =&gt; active,
+        Status::Hovered | Status::Opened =&gt; Appearance {
+            border: Border {
+                color: palette.primary.strong.color,
+                ..active.border
             },
-            Point::new(bounds.x + padding.left, bounds.center_y()),
-            <span class="kw">if </span>is_selected {
-                style.text_color
-            } <span class="kw">else </span>{
-                style.placeholder_color
-            },
-            <span class="kw-2">*</span>viewport,
-        );
+            ..active
+        },
     }
 }
 </code></pre></div></section></main></body></html>

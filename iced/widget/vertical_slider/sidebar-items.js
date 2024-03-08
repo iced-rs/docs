@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["HandleShape"],"fn":["draw","mouse_interaction","update"],"struct":["Appearance","Handle","State","VerticalSlider"],"trait":["StyleSheet"]};
+window.SIDEBAR_ITEMS = {"enum":["HandleShape","Status"],"fn":["default"],"struct":["Appearance","Handle","VerticalSlider"],"trait":["DefaultStyle"],"type":["Style"]};

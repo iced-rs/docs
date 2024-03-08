@@ -1472,13 +1472,6 @@
 <a href="#1472" id="1472">1472</a>
 <a href="#1473" id="1473">1473</a>
 <a href="#1474" id="1474">1474</a>
-<a href="#1475" id="1475">1475</a>
-<a href="#1476" id="1476">1476</a>
-<a href="#1477" id="1477">1477</a>
-<a href="#1478" id="1478">1478</a>
-<a href="#1479" id="1479">1479</a>
-<a href="#1480" id="1480">1480</a>
-<a href="#1481" id="1481">1481</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -1508,19 +1501,16 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Element, Layout, Length, Padding, Pixels, Point, Rectangle, Shell, Size,
-    Vector, Widget,
+    Background, Border, Color, Element, Layout, Length, Padding, Pixels, Point,
+    Rectangle, Shell, Size, Theme, Vector, Widget,
 };
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Command;
-
-<span class="kw">pub use </span>iced_style::text_input::{Appearance, StyleSheet};
 
 <span class="doccomment">/// A field that can be filled with text.
 ///
 /// # Example
 /// ```no_run
-/// # pub type TextInput&lt;'a, Message&gt; =
-/// #     iced_widget::TextInput&lt;'a, Message, iced_widget::style::Theme, iced_widget::renderer::Renderer&gt;;
+/// # pub type TextInput&lt;'a, Message&gt; = iced_widget::TextInput&lt;'a, Message&gt;;
 /// #
 /// #[derive(Debug, Clone)]
 /// enum Message {
@@ -1544,8 +1534,7 @@
     Theme = <span class="kw">crate</span>::Theme,
     Renderer = <span class="kw">crate</span>::Renderer,
 &gt; <span class="kw">where
-    </span>Theme: StyleSheet,
-    Renderer: text::Renderer,
+    </span>Renderer: text::Renderer,
 {
     id: <span class="prelude-ty">Option</span>&lt;Id&gt;,
     placeholder: String,
@@ -1560,7 +1549,7 @@
     on_paste: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(String) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
     on_submit: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     icon: <span class="prelude-ty">Option</span>&lt;Icon&lt;Renderer::Font&gt;&gt;,
-    style: Theme::Style,
+    style: Style&lt;Theme&gt;,
 }
 
 <span class="doccomment">/// The default [`Padding`] of a [`TextInput`].
@@ -1569,15 +1558,24 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; TextInput&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
-    Theme: StyleSheet,
     Renderer: text::Renderer,
 {
-    <span class="doccomment">/// Creates a new [`TextInput`].
-    ///
-    /// It expects:
-    /// - a placeholder,
-    /// - the current value
-    </span><span class="kw">pub fn </span>new(placeholder: <span class="kw-2">&amp;</span>str, value: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Creates a new [`TextInput`] with the given placeholder and
+    /// its current value.
+    </span><span class="kw">pub fn </span>new(placeholder: <span class="kw-2">&amp;</span>str, value: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme: DefaultStyle,
+    {
+        <span class="self">Self</span>::with_style(placeholder, value, Theme::default_style())
+    }
+
+    <span class="doccomment">/// Creates a new [`TextInput`] with the given placeholder,
+    /// its current value, and its style.
+    </span><span class="kw">pub fn </span>with_style(
+        placeholder: <span class="kw-2">&amp;</span>str,
+        value: <span class="kw-2">&amp;</span>str,
+        style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance,
+    ) -&gt; <span class="self">Self </span>{
         TextInput {
             id: <span class="prelude-val">None</span>,
             placeholder: String::from(placeholder),
@@ -1592,7 +1590,7 @@
             on_paste: <span class="prelude-val">None</span>,
             on_submit: <span class="prelude-val">None</span>,
             icon: <span class="prelude-val">None</span>,
-            style: Default::default(),
+            style: style.into(),
         }
     }
 
@@ -1679,7 +1677,7 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`TextInput`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Theme::Style&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
     </span>}
@@ -1694,20 +1692,90 @@
         limits: <span class="kw-2">&amp;</span>layout::Limits,
         value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Value&gt;,
     ) -&gt; layout::Node {
-        layout(
-            renderer,
-            limits,
-            <span class="self">self</span>.width,
-            <span class="self">self</span>.padding,
-            <span class="self">self</span>.size,
-            <span class="self">self</span>.font,
-            <span class="self">self</span>.line_height,
-            <span class="self">self</span>.icon.as_ref(),
-            tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
-            value.unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.placeholder,
-            <span class="self">self</span>.is_secure,
-        )
+        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
+        <span class="kw">let </span>value = value.unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+
+        <span class="kw">let </span>font = <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font());
+        <span class="kw">let </span>text_size = <span class="self">self</span>.size.unwrap_or_else(|| renderer.default_size());
+        <span class="kw">let </span>padding = <span class="self">self</span>.padding.fit(Size::ZERO, limits.max());
+        <span class="kw">let </span>height = <span class="self">self</span>.line_height.to_absolute(text_size);
+
+        <span class="kw">let </span>limits = limits.width(<span class="self">self</span>.width).shrink(padding);
+        <span class="kw">let </span>text_bounds = limits.resolve(<span class="self">self</span>.width, height, Size::ZERO);
+
+        <span class="kw">let </span>placeholder_text = Text {
+            font,
+            line_height: <span class="self">self</span>.line_height,
+            content: <span class="kw-2">&amp;</span><span class="self">self</span>.placeholder,
+            bounds: Size::new(f32::INFINITY, text_bounds.height),
+            size: text_size,
+            horizontal_alignment: alignment::Horizontal::Left,
+            vertical_alignment: alignment::Vertical::Center,
+            shaping: text::Shaping::Advanced,
+        };
+
+        state.placeholder.update(placeholder_text);
+
+        <span class="kw">let </span>secure_value = <span class="self">self</span>.is_secure.then(|| value.secure());
+        <span class="kw">let </span>value = secure_value.as_ref().unwrap_or(value);
+
+        state.value.update(Text {
+            content: <span class="kw-2">&amp;</span>value.to_string(),
+            ..placeholder_text
+        });
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(icon) = <span class="kw-2">&amp;</span><span class="self">self</span>.icon {
+            <span class="kw">let </span>icon_text = Text {
+                line_height: <span class="self">self</span>.line_height,
+                content: <span class="kw-2">&amp;</span>icon.code_point.to_string(),
+                font: icon.font,
+                size: icon.size.unwrap_or_else(|| renderer.default_size()),
+                bounds: Size::new(f32::INFINITY, text_bounds.height),
+                horizontal_alignment: alignment::Horizontal::Center,
+                vertical_alignment: alignment::Vertical::Center,
+                shaping: text::Shaping::Advanced,
+            };
+
+            state.icon.update(icon_text);
+
+            <span class="kw">let </span>icon_width = state.icon.min_width();
+
+            <span class="kw">let </span>(text_position, icon_position) = <span class="kw">match </span>icon.side {
+                Side::Left =&gt; (
+                    Point::new(
+                        padding.left + icon_width + icon.spacing,
+                        padding.top,
+                    ),
+                    Point::new(padding.left, padding.top),
+                ),
+                Side::Right =&gt; (
+                    Point::new(padding.left, padding.top),
+                    Point::new(
+                        padding.left + text_bounds.width - icon_width,
+                        padding.top,
+                    ),
+                ),
+            };
+
+            <span class="kw">let </span>text_node = layout::Node::new(
+                text_bounds - Size::new(icon_width + icon.spacing, <span class="number">0.0</span>),
+            )
+            .move_to(text_position);
+
+            <span class="kw">let </span>icon_node =
+                layout::Node::new(Size::new(icon_width, text_bounds.height))
+                    .move_to(icon_position);
+
+            layout::Node::with_children(
+                text_bounds.expand(padding),
+                <span class="macro">vec!</span>[text_node, icon_node],
+            )
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>text = layout::Node::new(text_bounds)
+                .move_to(Point::new(padding.left, padding.top));
+
+            layout::Node::with_children(text_bounds.expand(padding), <span class="macro">vec!</span>[text])
+        }
     }
 
     <span class="doccomment">/// Draws the [`TextInput`] with the given [`Renderer`], overriding its
@@ -1724,19 +1792,173 @@
         value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Value&gt;,
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        draw(
-            renderer,
-            theme,
-            layout,
-            cursor,
-            tree.state.downcast_ref::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
-            value.unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
-            <span class="self">self</span>.on_input.is_none(),
-            <span class="self">self</span>.is_secure,
-            <span class="self">self</span>.icon.as_ref(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.style,
-            viewport,
+        <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&lt;Renderer::Paragraph&gt;&gt;();
+        <span class="kw">let </span>value = value.unwrap_or(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+        <span class="kw">let </span>is_disabled = <span class="self">self</span>.on_input.is_none();
+
+        <span class="kw">let </span>secure_value = <span class="self">self</span>.is_secure.then(|| value.secure());
+        <span class="kw">let </span>value = secure_value.as_ref().unwrap_or(value);
+
+        <span class="kw">let </span>bounds = layout.bounds();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>children_layout = layout.children();
+        <span class="kw">let </span>text_bounds = children_layout.next().unwrap().bounds();
+
+        <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
+
+        <span class="kw">let </span>status = <span class="kw">if </span>is_disabled {
+            Status::Disabled
+        } <span class="kw">else if </span>state.is_focused() {
+            Status::Focused
+        } <span class="kw">else if </span>is_mouse_over {
+            Status::Hovered
+        } <span class="kw">else </span>{
+            Status::Active
+        };
+
+        <span class="kw">let </span>appearance = (<span class="self">self</span>.style)(theme, status);
+
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds,
+                border: appearance.border,
+                ..renderer::Quad::default()
+            },
+            appearance.background,
         );
+
+        <span class="kw">if </span><span class="self">self</span>.icon.is_some() {
+            <span class="kw">let </span>icon_layout = children_layout.next().unwrap();
+
+            renderer.fill_paragraph(
+                <span class="kw-2">&amp;</span>state.icon,
+                icon_layout.bounds().center(),
+                appearance.icon,
+                <span class="kw-2">*</span>viewport,
+            );
+        }
+
+        <span class="kw">let </span>text = value.to_string();
+
+        <span class="kw">let </span>(cursor, offset) = <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = state
+            .is_focused
+            .as_ref()
+            .filter(|focus| focus.is_window_focused)
+        {
+            <span class="kw">match </span>state.cursor.state(value) {
+                cursor::State::Index(position) =&gt; {
+                    <span class="kw">let </span>(text_value_width, offset) =
+                        measure_cursor_and_scroll_offset(
+                            <span class="kw-2">&amp;</span>state.value,
+                            text_bounds,
+                            position,
+                        );
+
+                    <span class="kw">let </span>is_cursor_visible = ((focus.now - focus.updated_at)
+                        .as_millis()
+                        / CURSOR_BLINK_INTERVAL_MILLIS)
+                        % <span class="number">2
+                        </span>== <span class="number">0</span>;
+
+                    <span class="kw">let </span>cursor = <span class="kw">if </span>is_cursor_visible {
+                        <span class="prelude-val">Some</span>((
+                            renderer::Quad {
+                                bounds: Rectangle {
+                                    x: text_bounds.x + text_value_width,
+                                    y: text_bounds.y,
+                                    width: <span class="number">1.0</span>,
+                                    height: text_bounds.height,
+                                },
+                                ..renderer::Quad::default()
+                            },
+                            appearance.value,
+                        ))
+                    } <span class="kw">else </span>{
+                        <span class="prelude-val">None
+                    </span>};
+
+                    (cursor, offset)
+                }
+                cursor::State::Selection { start, end } =&gt; {
+                    <span class="kw">let </span>left = start.min(end);
+                    <span class="kw">let </span>right = end.max(start);
+
+                    <span class="kw">let </span>(left_position, left_offset) =
+                        measure_cursor_and_scroll_offset(
+                            <span class="kw-2">&amp;</span>state.value,
+                            text_bounds,
+                            left,
+                        );
+
+                    <span class="kw">let </span>(right_position, right_offset) =
+                        measure_cursor_and_scroll_offset(
+                            <span class="kw-2">&amp;</span>state.value,
+                            text_bounds,
+                            right,
+                        );
+
+                    <span class="kw">let </span>width = right_position - left_position;
+
+                    (
+                        <span class="prelude-val">Some</span>((
+                            renderer::Quad {
+                                bounds: Rectangle {
+                                    x: text_bounds.x + left_position,
+                                    y: text_bounds.y,
+                                    width,
+                                    height: text_bounds.height,
+                                },
+                                ..renderer::Quad::default()
+                            },
+                            appearance.selection,
+                        )),
+                        <span class="kw">if </span>end == right {
+                            right_offset
+                        } <span class="kw">else </span>{
+                            left_offset
+                        },
+                    )
+                }
+            }
+        } <span class="kw">else </span>{
+            (<span class="prelude-val">None</span>, <span class="number">0.0</span>)
+        };
+
+        <span class="kw">let </span>draw = |renderer: <span class="kw-2">&amp;mut </span>Renderer, viewport| {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((cursor, color)) = cursor {
+                renderer.with_translation(
+                    Vector::new(-offset, <span class="number">0.0</span>),
+                    |renderer| {
+                        renderer.fill_quad(cursor, color);
+                    },
+                );
+            } <span class="kw">else </span>{
+                renderer.with_translation(Vector::ZERO, |<span class="kw">_</span>| {});
+            }
+
+            renderer.fill_paragraph(
+                <span class="kw">if </span>text.is_empty() {
+                    <span class="kw-2">&amp;</span>state.placeholder
+                } <span class="kw">else </span>{
+                    <span class="kw-2">&amp;</span>state.value
+                },
+                Point::new(text_bounds.x, text_bounds.center_y())
+                    - Vector::new(offset, <span class="number">0.0</span>),
+                <span class="kw">if </span>text.is_empty() {
+                    appearance.placeholder
+                } <span class="kw">else </span>{
+                    appearance.value
+                },
+                viewport,
+            );
+        };
+
+        <span class="kw">if </span>cursor.is_some() {
+            renderer
+                .with_layer(text_bounds, |renderer| draw(renderer, <span class="kw-2">*</span>viewport));
+        } <span class="kw">else </span>{
+            draw(renderer, text_bounds);
+        }
     }
 }
 
@@ -1744,7 +1966,6 @@
     <span class="kw">for </span>TextInput&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
-    Theme: StyleSheet,
     Renderer: text::Renderer,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
@@ -1780,20 +2001,7 @@
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        layout(
-            renderer,
-            limits,
-            <span class="self">self</span>.width,
-            <span class="self">self</span>.padding,
-            <span class="self">self</span>.size,
-            <span class="self">self</span>.font,
-            <span class="self">self</span>.line_height,
-            <span class="self">self</span>.icon.as_ref(),
-            tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.value,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.placeholder,
-            <span class="self">self</span>.is_secure,
-        )
+        <span class="self">self</span>.layout(tree, renderer, limits, <span class="prelude-val">None</span>)
     }
 
     <span class="kw">fn </span>operate(
@@ -1820,23 +2028,468 @@
         shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) -&gt; event::Status {
-        update(
-            event,
-            layout,
-            cursor,
-            renderer,
-            clipboard,
-            shell,
-            <span class="kw-2">&amp;mut </span><span class="self">self</span>.value,
-            <span class="self">self</span>.size,
-            <span class="self">self</span>.line_height,
-            <span class="self">self</span>.font,
-            <span class="self">self</span>.is_secure,
-            <span class="self">self</span>.on_input.as_deref(),
-            <span class="self">self</span>.on_paste.as_deref(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.on_submit,
-            || tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
-        )
+        <span class="kw">let </span>update_cache = |state, value| {
+            replace_paragraph(
+                renderer,
+                state,
+                layout,
+                value,
+                <span class="self">self</span>.font,
+                <span class="self">self</span>.size,
+                <span class="self">self</span>.line_height,
+            );
+        };
+
+        <span class="kw">match </span>event {
+            Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
+            | Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
+                <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
+
+                <span class="kw">let </span>click_position = <span class="kw">if </span><span class="self">self</span>.on_input.is_some() {
+                    cursor.position_over(layout.bounds())
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>};
+
+                state.is_focused = <span class="kw">if </span>click_position.is_some() {
+                    state.is_focused.or_else(|| {
+                        <span class="kw">let </span>now = Instant::now();
+
+                        <span class="prelude-val">Some</span>(Focus {
+                            updated_at: now,
+                            now,
+                            is_window_focused: <span class="bool-val">true</span>,
+                        })
+                    })
+                } <span class="kw">else </span>{
+                    <span class="prelude-val">None
+                </span>};
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) = click_position {
+                    <span class="kw">let </span>text_layout = layout.children().next().unwrap();
+                    <span class="kw">let </span>target = cursor_position.x - text_layout.bounds().x;
+
+                    <span class="kw">let </span>click =
+                        mouse::Click::new(cursor_position, state.last_click);
+
+                    <span class="kw">match </span>click.kind() {
+                        click::Kind::Single =&gt; {
+                            <span class="kw">let </span>position = <span class="kw">if </span>target &gt; <span class="number">0.0 </span>{
+                                <span class="kw">let </span>value = <span class="kw">if </span><span class="self">self</span>.is_secure {
+                                    <span class="self">self</span>.value.secure()
+                                } <span class="kw">else </span>{
+                                    <span class="self">self</span>.value.clone()
+                                };
+
+                                find_cursor_position(
+                                    text_layout.bounds(),
+                                    <span class="kw-2">&amp;</span>value,
+                                    state,
+                                    target,
+                                )
+                            } <span class="kw">else </span>{
+                                <span class="prelude-val">None
+                            </span>}
+                            .unwrap_or(<span class="number">0</span>);
+
+                            <span class="kw">if </span>state.keyboard_modifiers.shift() {
+                                state.cursor.select_range(
+                                    state.cursor.start(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
+                                    position,
+                                );
+                            } <span class="kw">else </span>{
+                                state.cursor.move_to(position);
+                            }
+                            state.is_dragging = <span class="bool-val">true</span>;
+                        }
+                        click::Kind::Double =&gt; {
+                            <span class="kw">if </span><span class="self">self</span>.is_secure {
+                                state.cursor.select_all(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                            } <span class="kw">else </span>{
+                                <span class="kw">let </span>position = find_cursor_position(
+                                    text_layout.bounds(),
+                                    <span class="kw-2">&amp;</span><span class="self">self</span>.value,
+                                    state,
+                                    target,
+                                )
+                                .unwrap_or(<span class="number">0</span>);
+
+                                state.cursor.select_range(
+                                    <span class="self">self</span>.value.previous_start_of_word(position),
+                                    <span class="self">self</span>.value.next_end_of_word(position),
+                                );
+                            }
+
+                            state.is_dragging = <span class="bool-val">false</span>;
+                        }
+                        click::Kind::Triple =&gt; {
+                            state.cursor.select_all(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                            state.is_dragging = <span class="bool-val">false</span>;
+                        }
+                    }
+
+                    state.last_click = <span class="prelude-val">Some</span>(click);
+
+                    <span class="kw">return </span>event::Status::Captured;
+                }
+            }
+            Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left))
+            | Event::Touch(touch::Event::FingerLifted { .. })
+            | Event::Touch(touch::Event::FingerLost { .. }) =&gt; {
+                state::&lt;Renderer&gt;(tree).is_dragging = <span class="bool-val">false</span>;
+            }
+            Event::Mouse(mouse::Event::CursorMoved { position })
+            | Event::Touch(touch::Event::FingerMoved { position, .. }) =&gt; {
+                <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
+
+                <span class="kw">if </span>state.is_dragging {
+                    <span class="kw">let </span>text_layout = layout.children().next().unwrap();
+                    <span class="kw">let </span>target = position.x - text_layout.bounds().x;
+
+                    <span class="kw">let </span>value = <span class="kw">if </span><span class="self">self</span>.is_secure {
+                        <span class="self">self</span>.value.secure()
+                    } <span class="kw">else </span>{
+                        <span class="self">self</span>.value.clone()
+                    };
+
+                    <span class="kw">let </span>position = find_cursor_position(
+                        text_layout.bounds(),
+                        <span class="kw-2">&amp;</span>value,
+                        state,
+                        target,
+                    )
+                    .unwrap_or(<span class="number">0</span>);
+
+                    state
+                        .cursor
+                        .select_range(state.cursor.start(<span class="kw-2">&amp;</span>value), position);
+
+                    <span class="kw">return </span>event::Status::Captured;
+                }
+            }
+            Event::Keyboard(keyboard::Event::KeyPressed {
+                key, text, ..
+            }) =&gt; {
+                <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.is_focused {
+                    <span class="kw">let </span><span class="prelude-val">Some</span>(on_input) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_input <span class="kw">else </span>{
+                        <span class="kw">return </span>event::Status::Ignored;
+                    };
+
+                    <span class="kw">let </span>modifiers = state.keyboard_modifiers;
+                    focus.updated_at = Instant::now();
+
+                    <span class="kw">match </span>key.as_ref() {
+                        keyboard::Key::Character(<span class="string">"c"</span>)
+                            <span class="kw">if </span>state.keyboard_modifiers.command() =&gt;
+                        {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>((start, end)) =
+                                state.cursor.selection(<span class="kw-2">&amp;</span><span class="self">self</span>.value)
+                            {
+                                clipboard.write(
+                                    clipboard::Kind::Standard,
+                                    <span class="self">self</span>.value.select(start, end).to_string(),
+                                );
+                            }
+
+                            <span class="kw">return </span>event::Status::Captured;
+                        }
+                        keyboard::Key::Character(<span class="string">"x"</span>)
+                            <span class="kw">if </span>state.keyboard_modifiers.command() =&gt;
+                        {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>((start, end)) =
+                                state.cursor.selection(<span class="kw-2">&amp;</span><span class="self">self</span>.value)
+                            {
+                                clipboard.write(
+                                    clipboard::Kind::Standard,
+                                    <span class="self">self</span>.value.select(start, end).to_string(),
+                                );
+                            }
+
+                            <span class="kw">let </span><span class="kw-2">mut </span>editor =
+                                Editor::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.value, <span class="kw-2">&amp;mut </span>state.cursor);
+                            editor.delete();
+
+                            <span class="kw">let </span>message = (on_input)(editor.contents());
+                            shell.publish(message);
+
+                            update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
+
+                            <span class="kw">return </span>event::Status::Captured;
+                        }
+                        keyboard::Key::Character(<span class="string">"v"</span>)
+                            <span class="kw">if </span>state.keyboard_modifiers.command()
+                                &amp;&amp; !state.keyboard_modifiers.alt() =&gt;
+                        {
+                            <span class="kw">let </span>content = <span class="kw">match </span>state.is_pasting.take() {
+                                <span class="prelude-val">Some</span>(content) =&gt; content,
+                                <span class="prelude-val">None </span>=&gt; {
+                                    <span class="kw">let </span>content: String = clipboard
+                                        .read(clipboard::Kind::Standard)
+                                        .unwrap_or_default()
+                                        .chars()
+                                        .filter(|c| !c.is_control())
+                                        .collect();
+
+                                    Value::new(<span class="kw-2">&amp;</span>content)
+                                }
+                            };
+
+                            <span class="kw">let </span><span class="kw-2">mut </span>editor =
+                                Editor::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.value, <span class="kw-2">&amp;mut </span>state.cursor);
+
+                            editor.paste(content.clone());
+
+                            <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(paste) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_paste {
+                                (paste)(editor.contents())
+                            } <span class="kw">else </span>{
+                                (on_input)(editor.contents())
+                            };
+                            shell.publish(message);
+
+                            state.is_pasting = <span class="prelude-val">Some</span>(content);
+
+                            update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
+
+                            <span class="kw">return </span>event::Status::Captured;
+                        }
+                        keyboard::Key::Character(<span class="string">"a"</span>)
+                            <span class="kw">if </span>state.keyboard_modifiers.command() =&gt;
+                        {
+                            state.cursor.select_all(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+
+                            <span class="kw">return </span>event::Status::Captured;
+                        }
+                        <span class="kw">_ </span>=&gt; {}
+                    }
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = text {
+                        state.is_pasting = <span class="prelude-val">None</span>;
+
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(c) =
+                            text.chars().next().filter(|c| !c.is_control())
+                        {
+                            <span class="kw">let </span><span class="kw-2">mut </span>editor =
+                                Editor::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.value, <span class="kw-2">&amp;mut </span>state.cursor);
+
+                            editor.insert(c);
+
+                            <span class="kw">let </span>message = (on_input)(editor.contents());
+                            shell.publish(message);
+
+                            focus.updated_at = Instant::now();
+
+                            update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
+
+                            <span class="kw">return </span>event::Status::Captured;
+                        }
+                    }
+
+                    <span class="kw">match </span>key.as_ref() {
+                        keyboard::Key::Named(key::Named::Enter) =&gt; {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(on_submit) = <span class="self">self</span>.on_submit.clone() {
+                                shell.publish(on_submit);
+                            }
+                        }
+                        keyboard::Key::Named(key::Named::Backspace) =&gt; {
+                            <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
+                                &amp;&amp; state.cursor.selection(<span class="kw-2">&amp;</span><span class="self">self</span>.value).is_none()
+                            {
+                                <span class="kw">if </span><span class="self">self</span>.is_secure {
+                                    <span class="kw">let </span>cursor_pos =
+                                        state.cursor.end(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                    state.cursor.select_range(<span class="number">0</span>, cursor_pos);
+                                } <span class="kw">else </span>{
+                                    state
+                                        .cursor
+                                        .select_left_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                }
+                            }
+
+                            <span class="kw">let </span><span class="kw-2">mut </span>editor =
+                                Editor::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.value, <span class="kw-2">&amp;mut </span>state.cursor);
+                            editor.backspace();
+
+                            <span class="kw">let </span>message = (on_input)(editor.contents());
+                            shell.publish(message);
+
+                            update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                        }
+                        keyboard::Key::Named(key::Named::Delete) =&gt; {
+                            <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
+                                &amp;&amp; state.cursor.selection(<span class="kw-2">&amp;</span><span class="self">self</span>.value).is_none()
+                            {
+                                <span class="kw">if </span><span class="self">self</span>.is_secure {
+                                    <span class="kw">let </span>cursor_pos =
+                                        state.cursor.end(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                    state.cursor.select_range(
+                                        cursor_pos,
+                                        <span class="self">self</span>.value.len(),
+                                    );
+                                } <span class="kw">else </span>{
+                                    state
+                                        .cursor
+                                        .select_right_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                }
+                            }
+
+                            <span class="kw">let </span><span class="kw-2">mut </span>editor =
+                                Editor::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.value, <span class="kw-2">&amp;mut </span>state.cursor);
+                            editor.delete();
+
+                            <span class="kw">let </span>message = (on_input)(editor.contents());
+                            shell.publish(message);
+
+                            update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                        }
+                        keyboard::Key::Named(key::Named::ArrowLeft) =&gt; {
+                            <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
+                                &amp;&amp; !<span class="self">self</span>.is_secure
+                            {
+                                <span class="kw">if </span>modifiers.shift() {
+                                    state
+                                        .cursor
+                                        .select_left_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                } <span class="kw">else </span>{
+                                    state
+                                        .cursor
+                                        .move_left_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                }
+                            } <span class="kw">else if </span>modifiers.shift() {
+                                state.cursor.select_left(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                            } <span class="kw">else </span>{
+                                state.cursor.move_left(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                            }
+                        }
+                        keyboard::Key::Named(key::Named::ArrowRight) =&gt; {
+                            <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
+                                &amp;&amp; !<span class="self">self</span>.is_secure
+                            {
+                                <span class="kw">if </span>modifiers.shift() {
+                                    state
+                                        .cursor
+                                        .select_right_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                } <span class="kw">else </span>{
+                                    state
+                                        .cursor
+                                        .move_right_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                }
+                            } <span class="kw">else if </span>modifiers.shift() {
+                                state.cursor.select_right(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                            } <span class="kw">else </span>{
+                                state.cursor.move_right(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                            }
+                        }
+                        keyboard::Key::Named(key::Named::Home) =&gt; {
+                            <span class="kw">if </span>modifiers.shift() {
+                                state.cursor.select_range(
+                                    state.cursor.start(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
+                                    <span class="number">0</span>,
+                                );
+                            } <span class="kw">else </span>{
+                                state.cursor.move_to(<span class="number">0</span>);
+                            }
+                        }
+                        keyboard::Key::Named(key::Named::End) =&gt; {
+                            <span class="kw">if </span>modifiers.shift() {
+                                state.cursor.select_range(
+                                    state.cursor.start(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
+                                    <span class="self">self</span>.value.len(),
+                                );
+                            } <span class="kw">else </span>{
+                                state.cursor.move_to(<span class="self">self</span>.value.len());
+                            }
+                        }
+                        keyboard::Key::Named(key::Named::Escape) =&gt; {
+                            state.is_focused = <span class="prelude-val">None</span>;
+                            state.is_dragging = <span class="bool-val">false</span>;
+                            state.is_pasting = <span class="prelude-val">None</span>;
+
+                            state.keyboard_modifiers =
+                                keyboard::Modifiers::default();
+                        }
+                        keyboard::Key::Named(
+                            key::Named::Tab
+                            | key::Named::ArrowUp
+                            | key::Named::ArrowDown,
+                        ) =&gt; {
+                            <span class="kw">return </span>event::Status::Ignored;
+                        }
+                        <span class="kw">_ </span>=&gt; {}
+                    }
+
+                    <span class="kw">return </span>event::Status::Captured;
+                }
+            }
+            Event::Keyboard(keyboard::Event::KeyReleased { key, .. }) =&gt; {
+                <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
+
+                <span class="kw">if </span>state.is_focused.is_some() {
+                    <span class="kw">match </span>key.as_ref() {
+                        keyboard::Key::Character(<span class="string">"v"</span>) =&gt; {
+                            state.is_pasting = <span class="prelude-val">None</span>;
+                        }
+                        keyboard::Key::Named(
+                            key::Named::Tab
+                            | key::Named::ArrowUp
+                            | key::Named::ArrowDown,
+                        ) =&gt; {
+                            <span class="kw">return </span>event::Status::Ignored;
+                        }
+                        <span class="kw">_ </span>=&gt; {}
+                    }
+
+                    <span class="kw">return </span>event::Status::Captured;
+                }
+
+                state.is_pasting = <span class="prelude-val">None</span>;
+            }
+            Event::Keyboard(keyboard::Event::ModifiersChanged(modifiers)) =&gt; {
+                <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
+
+                state.keyboard_modifiers = modifiers;
+            }
+            Event::Window(<span class="kw">_</span>, window::Event::Unfocused) =&gt; {
+                <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.is_focused {
+                    focus.is_window_focused = <span class="bool-val">false</span>;
+                }
+            }
+            Event::Window(<span class="kw">_</span>, window::Event::Focused) =&gt; {
+                <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.is_focused {
+                    focus.is_window_focused = <span class="bool-val">true</span>;
+                    focus.updated_at = Instant::now();
+
+                    shell.request_redraw(window::RedrawRequest::NextFrame);
+                }
+            }
+            Event::Window(<span class="kw">_</span>, window::Event::RedrawRequested(now)) =&gt; {
+                <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.is_focused {
+                    <span class="kw">if </span>focus.is_window_focused {
+                        focus.now = now;
+
+                        <span class="kw">let </span>millis_until_redraw = CURSOR_BLINK_INTERVAL_MILLIS
+                            - (now - focus.updated_at).as_millis()
+                                % CURSOR_BLINK_INTERVAL_MILLIS;
+
+                        shell.request_redraw(window::RedrawRequest::At(
+                            now + Duration::from_millis(
+                                millis_until_redraw <span class="kw">as </span>u64,
+                            ),
+                        ));
+                    }
+                }
+            }
+            <span class="kw">_ </span>=&gt; {}
+        }
+
+        event::Status::Ignored
     }
 
     <span class="kw">fn </span>draw(
@@ -1849,19 +2502,7 @@
         cursor: mouse::Cursor,
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        draw(
-            renderer,
-            theme,
-            layout,
-            cursor,
-            tree.state.downcast_ref::&lt;State&lt;Renderer::Paragraph&gt;&gt;(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.value,
-            <span class="self">self</span>.on_input.is_none(),
-            <span class="self">self</span>.is_secure,
-            <span class="self">self</span>.icon.as_ref(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.style,
-            viewport,
-        );
+        <span class="self">self</span>.draw(tree, renderer, theme, layout, cursor, <span class="prelude-val">None</span>, viewport);
     }
 
     <span class="kw">fn </span>mouse_interaction(
@@ -1872,7 +2513,15 @@
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
         _renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; mouse::Interaction {
-        mouse_interaction(layout, cursor, <span class="self">self</span>.on_input.is_none())
+        <span class="kw">if </span>cursor.is_over(layout.bounds()) {
+            <span class="kw">if </span><span class="self">self</span>.on_input.is_none() {
+                mouse::Interaction::NotAllowed
+            } <span class="kw">else </span>{
+                mouse::Interaction::Text
+            }
+        } <span class="kw">else </span>{
+            mouse::Interaction::default()
+        }
     }
 }
 
@@ -1880,7 +2529,7 @@
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a </span>+ Clone,
-    Theme: StyleSheet + <span class="lifetime">'a</span>,
+    Theme: <span class="lifetime">'a</span>,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
@@ -1969,767 +2618,6 @@
     Command::widget(operation::text_input::select_all(id.<span class="number">0</span>))
 }
 
-<span class="doccomment">/// Computes the layout of a [`TextInput`].
-</span><span class="kw">pub fn </span>layout&lt;Renderer&gt;(
-    renderer: <span class="kw-2">&amp;</span>Renderer,
-    limits: <span class="kw-2">&amp;</span>layout::Limits,
-    width: Length,
-    padding: Padding,
-    size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
-    font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
-    line_height: text::LineHeight,
-    icon: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Icon&lt;Renderer::Font&gt;&gt;,
-    state: <span class="kw-2">&amp;mut </span>State&lt;Renderer::Paragraph&gt;,
-    value: <span class="kw-2">&amp;</span>Value,
-    placeholder: <span class="kw-2">&amp;</span>str,
-    is_secure: bool,
-) -&gt; layout::Node
-<span class="kw">where
-    </span>Renderer: text::Renderer,
-{
-    <span class="kw">let </span>font = font.unwrap_or_else(|| renderer.default_font());
-    <span class="kw">let </span>text_size = size.unwrap_or_else(|| renderer.default_size());
-    <span class="kw">let </span>padding = padding.fit(Size::ZERO, limits.max());
-    <span class="kw">let </span>height = line_height.to_absolute(text_size);
-
-    <span class="kw">let </span>limits = limits.width(width).shrink(padding);
-    <span class="kw">let </span>text_bounds = limits.resolve(width, height, Size::ZERO);
-
-    <span class="kw">let </span>placeholder_text = Text {
-        font,
-        line_height,
-        content: placeholder,
-        bounds: Size::new(f32::INFINITY, text_bounds.height),
-        size: text_size,
-        horizontal_alignment: alignment::Horizontal::Left,
-        vertical_alignment: alignment::Vertical::Center,
-        shaping: text::Shaping::Advanced,
-    };
-
-    state.placeholder.update(placeholder_text);
-
-    <span class="kw">let </span>secure_value = is_secure.then(|| value.secure());
-    <span class="kw">let </span>value = secure_value.as_ref().unwrap_or(value);
-
-    state.value.update(Text {
-        content: <span class="kw-2">&amp;</span>value.to_string(),
-        ..placeholder_text
-    });
-
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(icon) = icon {
-        <span class="kw">let </span>icon_text = Text {
-            line_height,
-            content: <span class="kw-2">&amp;</span>icon.code_point.to_string(),
-            font: icon.font,
-            size: icon.size.unwrap_or_else(|| renderer.default_size()),
-            bounds: Size::new(f32::INFINITY, text_bounds.height),
-            horizontal_alignment: alignment::Horizontal::Center,
-            vertical_alignment: alignment::Vertical::Center,
-            shaping: text::Shaping::Advanced,
-        };
-
-        state.icon.update(icon_text);
-
-        <span class="kw">let </span>icon_width = state.icon.min_width();
-
-        <span class="kw">let </span>(text_position, icon_position) = <span class="kw">match </span>icon.side {
-            Side::Left =&gt; (
-                Point::new(
-                    padding.left + icon_width + icon.spacing,
-                    padding.top,
-                ),
-                Point::new(padding.left, padding.top),
-            ),
-            Side::Right =&gt; (
-                Point::new(padding.left, padding.top),
-                Point::new(
-                    padding.left + text_bounds.width - icon_width,
-                    padding.top,
-                ),
-            ),
-        };
-
-        <span class="kw">let </span>text_node = layout::Node::new(
-            text_bounds - Size::new(icon_width + icon.spacing, <span class="number">0.0</span>),
-        )
-        .move_to(text_position);
-
-        <span class="kw">let </span>icon_node =
-            layout::Node::new(Size::new(icon_width, text_bounds.height))
-                .move_to(icon_position);
-
-        layout::Node::with_children(
-            text_bounds.expand(padding),
-            <span class="macro">vec!</span>[text_node, icon_node],
-        )
-    } <span class="kw">else </span>{
-        <span class="kw">let </span>text = layout::Node::new(text_bounds)
-            .move_to(Point::new(padding.left, padding.top));
-
-        layout::Node::with_children(text_bounds.expand(padding), <span class="macro">vec!</span>[text])
-    }
-}
-
-<span class="doccomment">/// Processes an [`Event`] and updates the [`State`] of a [`TextInput`]
-/// accordingly.
-</span><span class="kw">pub fn </span>update&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;(
-    event: Event,
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-    renderer: <span class="kw-2">&amp;</span>Renderer,
-    clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
-    shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
-    value: <span class="kw-2">&amp;mut </span>Value,
-    size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
-    line_height: text::LineHeight,
-    font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
-    is_secure: bool,
-    on_input: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(String) -&gt; Message&gt;,
-    on_paste: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="kw">dyn </span>Fn(String) -&gt; Message&gt;,
-    on_submit: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Message&gt;,
-    state: <span class="kw">impl </span>FnOnce() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>State&lt;Renderer::Paragraph&gt;,
-) -&gt; event::Status
-<span class="kw">where
-    </span>Message: Clone,
-    Renderer: text::Renderer,
-{
-    <span class="kw">let </span>update_cache = |state, value| {
-        replace_paragraph(
-            renderer,
-            state,
-            layout,
-            value,
-            font,
-            size,
-            line_height,
-        );
-    };
-
-    <span class="kw">match </span>event {
-        Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
-        | Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
-            <span class="kw">let </span>state = state();
-
-            <span class="kw">let </span>click_position = <span class="kw">if </span>on_input.is_some() {
-                cursor.position_over(layout.bounds())
-            } <span class="kw">else </span>{
-                <span class="prelude-val">None
-            </span>};
-
-            state.is_focused = <span class="kw">if </span>click_position.is_some() {
-                state.is_focused.or_else(|| {
-                    <span class="kw">let </span>now = Instant::now();
-
-                    <span class="prelude-val">Some</span>(Focus {
-                        updated_at: now,
-                        now,
-                        is_window_focused: <span class="bool-val">true</span>,
-                    })
-                })
-            } <span class="kw">else </span>{
-                <span class="prelude-val">None
-            </span>};
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) = click_position {
-                <span class="kw">let </span>text_layout = layout.children().next().unwrap();
-                <span class="kw">let </span>target = cursor_position.x - text_layout.bounds().x;
-
-                <span class="kw">let </span>click =
-                    mouse::Click::new(cursor_position, state.last_click);
-
-                <span class="kw">match </span>click.kind() {
-                    click::Kind::Single =&gt; {
-                        <span class="kw">let </span>position = <span class="kw">if </span>target &gt; <span class="number">0.0 </span>{
-                            <span class="kw">let </span>value = <span class="kw">if </span>is_secure {
-                                value.secure()
-                            } <span class="kw">else </span>{
-                                value.clone()
-                            };
-
-                            find_cursor_position(
-                                text_layout.bounds(),
-                                <span class="kw-2">&amp;</span>value,
-                                state,
-                                target,
-                            )
-                        } <span class="kw">else </span>{
-                            <span class="prelude-val">None
-                        </span>}
-                        .unwrap_or(<span class="number">0</span>);
-
-                        <span class="kw">if </span>state.keyboard_modifiers.shift() {
-                            state.cursor.select_range(
-                                state.cursor.start(value),
-                                position,
-                            );
-                        } <span class="kw">else </span>{
-                            state.cursor.move_to(position);
-                        }
-                        state.is_dragging = <span class="bool-val">true</span>;
-                    }
-                    click::Kind::Double =&gt; {
-                        <span class="kw">if </span>is_secure {
-                            state.cursor.select_all(value);
-                        } <span class="kw">else </span>{
-                            <span class="kw">let </span>position = find_cursor_position(
-                                text_layout.bounds(),
-                                value,
-                                state,
-                                target,
-                            )
-                            .unwrap_or(<span class="number">0</span>);
-
-                            state.cursor.select_range(
-                                value.previous_start_of_word(position),
-                                value.next_end_of_word(position),
-                            );
-                        }
-
-                        state.is_dragging = <span class="bool-val">false</span>;
-                    }
-                    click::Kind::Triple =&gt; {
-                        state.cursor.select_all(value);
-                        state.is_dragging = <span class="bool-val">false</span>;
-                    }
-                }
-
-                state.last_click = <span class="prelude-val">Some</span>(click);
-
-                <span class="kw">return </span>event::Status::Captured;
-            }
-        }
-        Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left))
-        | Event::Touch(touch::Event::FingerLifted { .. })
-        | Event::Touch(touch::Event::FingerLost { .. }) =&gt; {
-            state().is_dragging = <span class="bool-val">false</span>;
-        }
-        Event::Mouse(mouse::Event::CursorMoved { position })
-        | Event::Touch(touch::Event::FingerMoved { position, .. }) =&gt; {
-            <span class="kw">let </span>state = state();
-
-            <span class="kw">if </span>state.is_dragging {
-                <span class="kw">let </span>text_layout = layout.children().next().unwrap();
-                <span class="kw">let </span>target = position.x - text_layout.bounds().x;
-
-                <span class="kw">let </span>value = <span class="kw">if </span>is_secure {
-                    value.secure()
-                } <span class="kw">else </span>{
-                    value.clone()
-                };
-
-                <span class="kw">let </span>position = find_cursor_position(
-                    text_layout.bounds(),
-                    <span class="kw-2">&amp;</span>value,
-                    state,
-                    target,
-                )
-                .unwrap_or(<span class="number">0</span>);
-
-                state
-                    .cursor
-                    .select_range(state.cursor.start(<span class="kw-2">&amp;</span>value), position);
-
-                <span class="kw">return </span>event::Status::Captured;
-            }
-        }
-        Event::Keyboard(keyboard::Event::KeyPressed { key, text, .. }) =&gt; {
-            <span class="kw">let </span>state = state();
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.is_focused {
-                <span class="kw">let </span><span class="prelude-val">Some</span>(on_input) = on_input <span class="kw">else </span>{
-                    <span class="kw">return </span>event::Status::Ignored;
-                };
-
-                <span class="kw">let </span>modifiers = state.keyboard_modifiers;
-                focus.updated_at = Instant::now();
-
-                <span class="kw">match </span>key.as_ref() {
-                    keyboard::Key::Character(<span class="string">"c"</span>)
-                        <span class="kw">if </span>state.keyboard_modifiers.command() =&gt;
-                    {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>((start, end)) =
-                            state.cursor.selection(value)
-                        {
-                            clipboard.write(
-                                clipboard::Kind::Standard,
-                                value.select(start, end).to_string(),
-                            );
-                        }
-
-                        <span class="kw">return </span>event::Status::Captured;
-                    }
-                    keyboard::Key::Character(<span class="string">"x"</span>)
-                        <span class="kw">if </span>state.keyboard_modifiers.command() =&gt;
-                    {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>((start, end)) =
-                            state.cursor.selection(value)
-                        {
-                            clipboard.write(
-                                clipboard::Kind::Standard,
-                                value.select(start, end).to_string(),
-                            );
-                        }
-
-                        <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
-                        editor.delete();
-
-                        <span class="kw">let </span>message = (on_input)(editor.contents());
-                        shell.publish(message);
-
-                        update_cache(state, value);
-
-                        <span class="kw">return </span>event::Status::Captured;
-                    }
-                    keyboard::Key::Character(<span class="string">"v"</span>)
-                        <span class="kw">if </span>state.keyboard_modifiers.command()
-                            &amp;&amp; !state.keyboard_modifiers.alt() =&gt;
-                    {
-                        <span class="kw">let </span>content = <span class="kw">match </span>state.is_pasting.take() {
-                            <span class="prelude-val">Some</span>(content) =&gt; content,
-                            <span class="prelude-val">None </span>=&gt; {
-                                <span class="kw">let </span>content: String = clipboard
-                                    .read(clipboard::Kind::Standard)
-                                    .unwrap_or_default()
-                                    .chars()
-                                    .filter(|c| !c.is_control())
-                                    .collect();
-
-                                Value::new(<span class="kw-2">&amp;</span>content)
-                            }
-                        };
-
-                        <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
-
-                        editor.paste(content.clone());
-
-                        <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(paste) = <span class="kw-2">&amp;</span>on_paste {
-                            (paste)(editor.contents())
-                        } <span class="kw">else </span>{
-                            (on_input)(editor.contents())
-                        };
-                        shell.publish(message);
-
-                        state.is_pasting = <span class="prelude-val">Some</span>(content);
-
-                        update_cache(state, value);
-
-                        <span class="kw">return </span>event::Status::Captured;
-                    }
-                    keyboard::Key::Character(<span class="string">"a"</span>)
-                        <span class="kw">if </span>state.keyboard_modifiers.command() =&gt;
-                    {
-                        state.cursor.select_all(value);
-
-                        <span class="kw">return </span>event::Status::Captured;
-                    }
-                    <span class="kw">_ </span>=&gt; {}
-                }
-
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = text {
-                    state.is_pasting = <span class="prelude-val">None</span>;
-
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(c) =
-                        text.chars().next().filter(|c| !c.is_control())
-                    {
-                        <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
-
-                        editor.insert(c);
-
-                        <span class="kw">let </span>message = (on_input)(editor.contents());
-                        shell.publish(message);
-
-                        focus.updated_at = Instant::now();
-
-                        update_cache(state, value);
-
-                        <span class="kw">return </span>event::Status::Captured;
-                    }
-                }
-
-                <span class="kw">match </span>key.as_ref() {
-                    keyboard::Key::Named(key::Named::Enter) =&gt; {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(on_submit) = on_submit.clone() {
-                            shell.publish(on_submit);
-                        }
-                    }
-                    keyboard::Key::Named(key::Named::Backspace) =&gt; {
-                        <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
-                            &amp;&amp; state.cursor.selection(value).is_none()
-                        {
-                            <span class="kw">if </span>is_secure {
-                                <span class="kw">let </span>cursor_pos = state.cursor.end(value);
-                                state.cursor.select_range(<span class="number">0</span>, cursor_pos);
-                            } <span class="kw">else </span>{
-                                state.cursor.select_left_by_words(value);
-                            }
-                        }
-
-                        <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
-                        editor.backspace();
-
-                        <span class="kw">let </span>message = (on_input)(editor.contents());
-                        shell.publish(message);
-
-                        update_cache(state, value);
-                    }
-                    keyboard::Key::Named(key::Named::Delete) =&gt; {
-                        <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
-                            &amp;&amp; state.cursor.selection(value).is_none()
-                        {
-                            <span class="kw">if </span>is_secure {
-                                <span class="kw">let </span>cursor_pos = state.cursor.end(value);
-                                state
-                                    .cursor
-                                    .select_range(cursor_pos, value.len());
-                            } <span class="kw">else </span>{
-                                state.cursor.select_right_by_words(value);
-                            }
-                        }
-
-                        <span class="kw">let </span><span class="kw-2">mut </span>editor = Editor::new(value, <span class="kw-2">&amp;mut </span>state.cursor);
-                        editor.delete();
-
-                        <span class="kw">let </span>message = (on_input)(editor.contents());
-                        shell.publish(message);
-
-                        update_cache(state, value);
-                    }
-                    keyboard::Key::Named(key::Named::ArrowLeft) =&gt; {
-                        <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
-                            &amp;&amp; !is_secure
-                        {
-                            <span class="kw">if </span>modifiers.shift() {
-                                state.cursor.select_left_by_words(value);
-                            } <span class="kw">else </span>{
-                                state.cursor.move_left_by_words(value);
-                            }
-                        } <span class="kw">else if </span>modifiers.shift() {
-                            state.cursor.select_left(value);
-                        } <span class="kw">else </span>{
-                            state.cursor.move_left(value);
-                        }
-                    }
-                    keyboard::Key::Named(key::Named::ArrowRight) =&gt; {
-                        <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
-                            &amp;&amp; !is_secure
-                        {
-                            <span class="kw">if </span>modifiers.shift() {
-                                state.cursor.select_right_by_words(value);
-                            } <span class="kw">else </span>{
-                                state.cursor.move_right_by_words(value);
-                            }
-                        } <span class="kw">else if </span>modifiers.shift() {
-                            state.cursor.select_right(value);
-                        } <span class="kw">else </span>{
-                            state.cursor.move_right(value);
-                        }
-                    }
-                    keyboard::Key::Named(key::Named::Home) =&gt; {
-                        <span class="kw">if </span>modifiers.shift() {
-                            state
-                                .cursor
-                                .select_range(state.cursor.start(value), <span class="number">0</span>);
-                        } <span class="kw">else </span>{
-                            state.cursor.move_to(<span class="number">0</span>);
-                        }
-                    }
-                    keyboard::Key::Named(key::Named::End) =&gt; {
-                        <span class="kw">if </span>modifiers.shift() {
-                            state.cursor.select_range(
-                                state.cursor.start(value),
-                                value.len(),
-                            );
-                        } <span class="kw">else </span>{
-                            state.cursor.move_to(value.len());
-                        }
-                    }
-                    keyboard::Key::Named(key::Named::Escape) =&gt; {
-                        state.is_focused = <span class="prelude-val">None</span>;
-                        state.is_dragging = <span class="bool-val">false</span>;
-                        state.is_pasting = <span class="prelude-val">None</span>;
-
-                        state.keyboard_modifiers =
-                            keyboard::Modifiers::default();
-                    }
-                    keyboard::Key::Named(
-                        key::Named::Tab
-                        | key::Named::ArrowUp
-                        | key::Named::ArrowDown,
-                    ) =&gt; {
-                        <span class="kw">return </span>event::Status::Ignored;
-                    }
-                    <span class="kw">_ </span>=&gt; {}
-                }
-
-                <span class="kw">return </span>event::Status::Captured;
-            }
-        }
-        Event::Keyboard(keyboard::Event::KeyReleased { key, .. }) =&gt; {
-            <span class="kw">let </span>state = state();
-
-            <span class="kw">if </span>state.is_focused.is_some() {
-                <span class="kw">match </span>key.as_ref() {
-                    keyboard::Key::Character(<span class="string">"v"</span>) =&gt; {
-                        state.is_pasting = <span class="prelude-val">None</span>;
-                    }
-                    keyboard::Key::Named(
-                        key::Named::Tab
-                        | key::Named::ArrowUp
-                        | key::Named::ArrowDown,
-                    ) =&gt; {
-                        <span class="kw">return </span>event::Status::Ignored;
-                    }
-                    <span class="kw">_ </span>=&gt; {}
-                }
-
-                <span class="kw">return </span>event::Status::Captured;
-            }
-
-            state.is_pasting = <span class="prelude-val">None</span>;
-        }
-        Event::Keyboard(keyboard::Event::ModifiersChanged(modifiers)) =&gt; {
-            <span class="kw">let </span>state = state();
-
-            state.keyboard_modifiers = modifiers;
-        }
-        Event::Window(<span class="kw">_</span>, window::Event::Unfocused) =&gt; {
-            <span class="kw">let </span>state = state();
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.is_focused {
-                focus.is_window_focused = <span class="bool-val">false</span>;
-            }
-        }
-        Event::Window(<span class="kw">_</span>, window::Event::Focused) =&gt; {
-            <span class="kw">let </span>state = state();
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.is_focused {
-                focus.is_window_focused = <span class="bool-val">true</span>;
-                focus.updated_at = Instant::now();
-
-                shell.request_redraw(window::RedrawRequest::NextFrame);
-            }
-        }
-        Event::Window(<span class="kw">_</span>, window::Event::RedrawRequested(now)) =&gt; {
-            <span class="kw">let </span>state = state();
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.is_focused {
-                <span class="kw">if </span>focus.is_window_focused {
-                    focus.now = now;
-
-                    <span class="kw">let </span>millis_until_redraw = CURSOR_BLINK_INTERVAL_MILLIS
-                        - (now - focus.updated_at).as_millis()
-                            % CURSOR_BLINK_INTERVAL_MILLIS;
-
-                    shell.request_redraw(window::RedrawRequest::At(
-                        now + Duration::from_millis(millis_until_redraw <span class="kw">as </span>u64),
-                    ));
-                }
-            }
-        }
-        <span class="kw">_ </span>=&gt; {}
-    }
-
-    event::Status::Ignored
-}
-
-<span class="doccomment">/// Draws the [`TextInput`] with the given [`Renderer`], overriding its
-/// [`Value`] if provided.
-///
-/// [`Renderer`]: text::Renderer
-</span><span class="kw">pub fn </span>draw&lt;Theme, Renderer&gt;(
-    renderer: <span class="kw-2">&amp;mut </span>Renderer,
-    theme: <span class="kw-2">&amp;</span>Theme,
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-    state: <span class="kw-2">&amp;</span>State&lt;Renderer::Paragraph&gt;,
-    value: <span class="kw-2">&amp;</span>Value,
-    is_disabled: bool,
-    is_secure: bool,
-    icon: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Icon&lt;Renderer::Font&gt;&gt;,
-    style: <span class="kw-2">&amp;</span>Theme::Style,
-    viewport: <span class="kw-2">&amp;</span>Rectangle,
-) <span class="kw">where
-    </span>Theme: StyleSheet,
-    Renderer: text::Renderer,
-{
-    <span class="kw">let </span>secure_value = is_secure.then(|| value.secure());
-    <span class="kw">let </span>value = secure_value.as_ref().unwrap_or(value);
-
-    <span class="kw">let </span>bounds = layout.bounds();
-
-    <span class="kw">let </span><span class="kw-2">mut </span>children_layout = layout.children();
-    <span class="kw">let </span>text_bounds = children_layout.next().unwrap().bounds();
-
-    <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
-
-    <span class="kw">let </span>appearance = <span class="kw">if </span>is_disabled {
-        theme.disabled(style)
-    } <span class="kw">else if </span>state.is_focused() {
-        theme.focused(style)
-    } <span class="kw">else if </span>is_mouse_over {
-        theme.hovered(style)
-    } <span class="kw">else </span>{
-        theme.active(style)
-    };
-
-    renderer.fill_quad(
-        renderer::Quad {
-            bounds,
-            border: appearance.border,
-            ..renderer::Quad::default()
-        },
-        appearance.background,
-    );
-
-    <span class="kw">if </span>icon.is_some() {
-        <span class="kw">let </span>icon_layout = children_layout.next().unwrap();
-
-        renderer.fill_paragraph(
-            <span class="kw-2">&amp;</span>state.icon,
-            icon_layout.bounds().center(),
-            appearance.icon_color,
-            <span class="kw-2">*</span>viewport,
-        );
-    }
-
-    <span class="kw">let </span>text = value.to_string();
-
-    <span class="kw">let </span>(cursor, offset) = <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = state
-        .is_focused
-        .as_ref()
-        .filter(|focus| focus.is_window_focused)
-    {
-        <span class="kw">match </span>state.cursor.state(value) {
-            cursor::State::Index(position) =&gt; {
-                <span class="kw">let </span>(text_value_width, offset) =
-                    measure_cursor_and_scroll_offset(
-                        <span class="kw-2">&amp;</span>state.value,
-                        text_bounds,
-                        position,
-                    );
-
-                <span class="kw">let </span>is_cursor_visible = ((focus.now - focus.updated_at)
-                    .as_millis()
-                    / CURSOR_BLINK_INTERVAL_MILLIS)
-                    % <span class="number">2
-                    </span>== <span class="number">0</span>;
-
-                <span class="kw">let </span>cursor = <span class="kw">if </span>is_cursor_visible {
-                    <span class="prelude-val">Some</span>((
-                        renderer::Quad {
-                            bounds: Rectangle {
-                                x: text_bounds.x + text_value_width,
-                                y: text_bounds.y,
-                                width: <span class="number">1.0</span>,
-                                height: text_bounds.height,
-                            },
-                            ..renderer::Quad::default()
-                        },
-                        theme.value_color(style),
-                    ))
-                } <span class="kw">else </span>{
-                    <span class="prelude-val">None
-                </span>};
-
-                (cursor, offset)
-            }
-            cursor::State::Selection { start, end } =&gt; {
-                <span class="kw">let </span>left = start.min(end);
-                <span class="kw">let </span>right = end.max(start);
-
-                <span class="kw">let </span>(left_position, left_offset) =
-                    measure_cursor_and_scroll_offset(
-                        <span class="kw-2">&amp;</span>state.value,
-                        text_bounds,
-                        left,
-                    );
-
-                <span class="kw">let </span>(right_position, right_offset) =
-                    measure_cursor_and_scroll_offset(
-                        <span class="kw-2">&amp;</span>state.value,
-                        text_bounds,
-                        right,
-                    );
-
-                <span class="kw">let </span>width = right_position - left_position;
-
-                (
-                    <span class="prelude-val">Some</span>((
-                        renderer::Quad {
-                            bounds: Rectangle {
-                                x: text_bounds.x + left_position,
-                                y: text_bounds.y,
-                                width,
-                                height: text_bounds.height,
-                            },
-                            ..renderer::Quad::default()
-                        },
-                        theme.selection_color(style),
-                    )),
-                    <span class="kw">if </span>end == right {
-                        right_offset
-                    } <span class="kw">else </span>{
-                        left_offset
-                    },
-                )
-            }
-        }
-    } <span class="kw">else </span>{
-        (<span class="prelude-val">None</span>, <span class="number">0.0</span>)
-    };
-
-    <span class="kw">let </span>draw = |renderer: <span class="kw-2">&amp;mut </span>Renderer, viewport| {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((cursor, color)) = cursor {
-            renderer.with_translation(Vector::new(-offset, <span class="number">0.0</span>), |renderer| {
-                renderer.fill_quad(cursor, color);
-            });
-        } <span class="kw">else </span>{
-            renderer.with_translation(Vector::ZERO, |<span class="kw">_</span>| {});
-        }
-
-        renderer.fill_paragraph(
-            <span class="kw">if </span>text.is_empty() {
-                <span class="kw-2">&amp;</span>state.placeholder
-            } <span class="kw">else </span>{
-                <span class="kw-2">&amp;</span>state.value
-            },
-            Point::new(text_bounds.x, text_bounds.center_y())
-                - Vector::new(offset, <span class="number">0.0</span>),
-            <span class="kw">if </span>text.is_empty() {
-                theme.placeholder_color(style)
-            } <span class="kw">else if </span>is_disabled {
-                theme.disabled_color(style)
-            } <span class="kw">else </span>{
-                theme.value_color(style)
-            },
-            viewport,
-        );
-    };
-
-    <span class="kw">if </span>cursor.is_some() {
-        renderer.with_layer(text_bounds, |renderer| draw(renderer, <span class="kw-2">*</span>viewport));
-    } <span class="kw">else </span>{
-        draw(renderer, text_bounds);
-    }
-}
-
-<span class="doccomment">/// Computes the current [`mouse::Interaction`] of the [`TextInput`].
-</span><span class="kw">pub fn </span>mouse_interaction(
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-    is_disabled: bool,
-) -&gt; mouse::Interaction {
-    <span class="kw">if </span>cursor.is_over(layout.bounds()) {
-        <span class="kw">if </span>is_disabled {
-            mouse::Interaction::NotAllowed
-        } <span class="kw">else </span>{
-            mouse::Interaction::Text
-        }
-    } <span class="kw">else </span>{
-        mouse::Interaction::default()
-    }
-}
-
 <span class="doccomment">/// The state of a [`TextInput`].
 </span><span class="attr">#[derive(Debug, Default, Clone)]
 </span><span class="kw">pub struct </span>State&lt;P: text::Paragraph&gt; {
@@ -2744,6 +2632,12 @@
     keyboard_modifiers: keyboard::Modifiers,
     <span class="comment">// TODO: Add stateful horizontal scrolling offset
 </span>}
+
+<span class="kw">fn </span>state&lt;Renderer: text::Renderer&gt;(
+    tree: <span class="kw-2">&amp;mut </span>Tree,
+) -&gt; <span class="kw-2">&amp;mut </span>State&lt;Renderer::Paragraph&gt; {
+    tree.state.downcast_mut::&lt;State&lt;Renderer::Paragraph&gt;&gt;()
+}
 
 <span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">struct </span>Focus {
@@ -2960,4 +2854,96 @@
 }
 
 <span class="kw">const </span>CURSOR_BLINK_INTERVAL_MILLIS: u128 = <span class="number">500</span>;
+
+<span class="doccomment">/// The possible status of a [`TextInput`].
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>Status {
+    <span class="doccomment">/// The [`TextInput`] can be interacted with.
+    </span>Active,
+    <span class="doccomment">/// The [`TextInput`] is being hovered.
+    </span>Hovered,
+    <span class="doccomment">/// The [`TextInput`] is focused.
+    </span>Focused,
+    <span class="doccomment">/// The [`TextInput`] cannot be interacted with.
+    </span>Disabled,
+}
+
+<span class="doccomment">/// The appearance of a text input.
+</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="kw">pub struct </span>Appearance {
+    <span class="doccomment">/// The [`Background`] of the text input.
+    </span><span class="kw">pub </span>background: Background,
+    <span class="doccomment">/// The [`Border`] of the text input.
+    </span><span class="kw">pub </span>border: Border,
+    <span class="doccomment">/// The [`Color`] of the icon of the text input.
+    </span><span class="kw">pub </span>icon: Color,
+    <span class="doccomment">/// The [`Color`] of the placeholder of the text input.
+    </span><span class="kw">pub </span>placeholder: Color,
+    <span class="doccomment">/// The [`Color`] of the value of the text input.
+    </span><span class="kw">pub </span>value: Color,
+    <span class="doccomment">/// The [`Color`] of the selection of the text input.
+    </span><span class="kw">pub </span>selection: Color,
+}
+
+<span class="doccomment">/// The style of a [`TextInput`].
+</span><span class="kw">pub type </span>Style&lt;Theme&gt; = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance;
+
+<span class="doccomment">/// The default style of a [`TextInput`].
+</span><span class="kw">pub trait </span>DefaultStyle {
+    <span class="doccomment">/// Returns the default style of a [`TextInput`].
+    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+}
+
+<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
+    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
+        default
+    }
+}
+
+<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
+    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
+        |appearance, _status| <span class="kw-2">*</span>appearance
+    }
+}
+
+<span class="doccomment">/// The default style of a [`TextInput`].
+</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+    <span class="kw">let </span>palette = theme.extended_palette();
+
+    <span class="kw">let </span>active = Appearance {
+        background: Background::Color(palette.background.base.color),
+        border: Border {
+            radius: <span class="number">2.0</span>.into(),
+            width: <span class="number">1.0</span>,
+            color: palette.background.strong.color,
+        },
+        icon: palette.background.weak.text,
+        placeholder: palette.background.strong.color,
+        value: palette.background.base.text,
+        selection: palette.primary.weak.color,
+    };
+
+    <span class="kw">match </span>status {
+        Status::Active =&gt; active,
+        Status::Hovered =&gt; Appearance {
+            border: Border {
+                color: palette.background.base.text,
+                ..active.border
+            },
+            ..active
+        },
+        Status::Focused =&gt; Appearance {
+            border: Border {
+                color: palette.primary.strong.color,
+                ..active.border
+            },
+            ..active
+        },
+        Status::Disabled =&gt; Appearance {
+            background: Background::Color(palette.background.weak.color),
+            value: active.placeholder,
+            ..active
+        },
+    }
+}
 </code></pre></div></section></main></body></html>

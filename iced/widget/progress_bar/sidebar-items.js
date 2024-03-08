@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Appearance","ProgressBar"],"trait":["StyleSheet"]};
+window.SIDEBAR_ITEMS = {"fn":["danger","primary","secondary","success"],"struct":["Appearance","ProgressBar"],"trait":["DefaultStyle"],"type":["Style"]};

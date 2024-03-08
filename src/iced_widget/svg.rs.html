@@ -191,6 +191,48 @@
 <a href="#191" id="191">191</a>
 <a href="#192" id="192">192</a>
 <a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display vector graphics in your application.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
@@ -198,13 +240,13 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::svg;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::Tree;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    ContentFit, Element, Layout, Length, Rectangle, Size, Vector, Widget,
+    Color, ContentFit, Element, Layout, Length, Rectangle, Size, Theme, Vector,
+    Widget,
 };
 
 <span class="kw">use </span>std::path::PathBuf;
 
-<span class="kw">pub use </span><span class="kw">crate</span>::style::svg::{Appearance, StyleSheet};
-<span class="kw">pub use </span>svg::Handle;
+<span class="kw">pub use </span><span class="kw">crate</span>::core::svg::Handle;
 
 <span class="doccomment">/// A vector graphics image.
 ///
@@ -213,36 +255,36 @@
 /// [`Svg`] images can have a considerable rendering cost when resized,
 /// specially when they are complex.
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Svg&lt;Theme = <span class="kw">crate</span>::Theme&gt;
-<span class="kw">where
-    </span>Theme: StyleSheet,
-{
+</span><span class="kw">pub struct </span>Svg&lt;Theme = <span class="kw">crate</span>::Theme&gt; {
     handle: Handle,
     width: Length,
     height: Length,
     content_fit: ContentFit,
-    style: &lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: Style&lt;Theme&gt;,
 }
 
-<span class="kw">impl</span>&lt;Theme&gt; Svg&lt;Theme&gt;
-<span class="kw">where
-    </span>Theme: StyleSheet,
-{
+<span class="kw">impl</span>&lt;Theme&gt; Svg&lt;Theme&gt; {
     <span class="doccomment">/// Creates a new [`Svg`] from the given [`Handle`].
-    </span><span class="kw">pub fn </span>new(handle: <span class="kw">impl </span>Into&lt;Handle&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(handle: <span class="kw">impl </span>Into&lt;Handle&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme: DefaultStyle,
+    {
         Svg {
             handle: handle.into(),
             width: Length::Fill,
             height: Length::Shrink,
             content_fit: ContentFit::Contain,
-            style: Default::default(),
+            style: Theme::default_style(),
         }
     }
 
     <span class="doccomment">/// Creates a new [`Svg`] that will display the contents of the file at the
     /// provided path.
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>from_path(path: <span class="kw">impl </span>Into&lt;PathBuf&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>from_path(path: <span class="kw">impl </span>Into&lt;PathBuf&gt;) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme: DefaultStyle,
+    {
         <span class="self">Self</span>::new(Handle::from_path(path))
     }
 
@@ -273,16 +315,15 @@
 
     <span class="doccomment">/// Sets the style variant of this [`Svg`].
     </span><span class="attr">#[must_use]
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Theme::Style&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style.into();
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = style;
         <span class="self">self
     </span>}
 }
 
 <span class="kw">impl</span>&lt;Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt; <span class="kw">for </span>Svg&lt;Theme&gt;
 <span class="kw">where
-    </span>Theme: iced_style::svg::StyleSheet,
-    Renderer: svg::Renderer,
+    </span>Renderer: svg::Renderer,
 {
     <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
         Size {
@@ -351,11 +392,13 @@
                 ..bounds
             };
 
-            <span class="kw">let </span>appearance = <span class="kw">if </span>is_mouse_over {
-                theme.hovered(<span class="kw-2">&amp;</span><span class="self">self</span>.style)
+            <span class="kw">let </span>status = <span class="kw">if </span>is_mouse_over {
+                Status::Hovered
             } <span class="kw">else </span>{
-                theme.appearance(<span class="kw-2">&amp;</span><span class="self">self</span>.style)
+                Status::Idle
             };
+
+            <span class="kw">let </span>appearance = (<span class="self">self</span>.style)(theme, status);
 
             renderer.draw(
                 <span class="self">self</span>.handle.clone(),
@@ -377,11 +420,52 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; From&lt;Svg&lt;Theme&gt;&gt;
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: iced_style::svg::StyleSheet + <span class="lifetime">'a</span>,
+    </span>Theme: <span class="lifetime">'a</span>,
     Renderer: svg::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(icon: Svg&lt;Theme&gt;) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         Element::new(icon)
+    }
+}
+
+<span class="doccomment">/// The possible status of an [`Svg`].
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>Status {
+    <span class="doccomment">/// The [`Svg`] is idle.
+    </span>Idle,
+    <span class="doccomment">/// The [`Svg`] is being hovered.
+    </span>Hovered,
+}
+
+<span class="doccomment">/// The appearance of an [`Svg`].
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Default)]
+</span><span class="kw">pub struct </span>Appearance {
+    <span class="doccomment">/// The [`Color`] filter of an [`Svg`].
+    ///
+    /// Useful for coloring a symbolic icon.
+    ///
+    /// `None` keeps the original color.
+    </span><span class="kw">pub </span>color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
+}
+
+<span class="doccomment">/// The style of an [`Svg`].
+</span><span class="kw">pub type </span>Style&lt;Theme&gt; = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance;
+
+<span class="doccomment">/// The default style of an [`Svg`].
+</span><span class="kw">pub trait </span>DefaultStyle {
+    <span class="doccomment">/// Returns the default style of an [`Svg`].
+    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+}
+
+<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
+    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
+        |_theme, _status| Appearance::default()
+    }
+}
+
+<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
+    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
+        |appearance, _status| <span class="kw-2">*</span>appearance
     }
 }
 </code></pre></div></section></main></body></html>

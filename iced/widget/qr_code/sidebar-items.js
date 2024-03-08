@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Error","ErrorCorrection","Version"],"struct":["Appearance","Data","QRCode"],"trait":["StyleSheet"]};
+window.SIDEBAR_ITEMS = {"enum":["Error","ErrorCorrection","Version"],"fn":["default"],"struct":["Appearance","Data","QRCode"],"trait":["DefaultStyle"],"type":["Style"]};

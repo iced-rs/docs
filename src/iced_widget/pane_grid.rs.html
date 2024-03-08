@@ -1192,29 +1192,6 @@
 <a href="#1192" id="1192">1192</a>
 <a href="#1193" id="1193">1193</a>
 <a href="#1194" id="1194">1194</a>
-<a href="#1195" id="1195">1195</a>
-<a href="#1196" id="1196">1196</a>
-<a href="#1197" id="1197">1197</a>
-<a href="#1198" id="1198">1198</a>
-<a href="#1199" id="1199">1199</a>
-<a href="#1200" id="1200">1200</a>
-<a href="#1201" id="1201">1201</a>
-<a href="#1202" id="1202">1202</a>
-<a href="#1203" id="1203">1203</a>
-<a href="#1204" id="1204">1204</a>
-<a href="#1205" id="1205">1205</a>
-<a href="#1206" id="1206">1206</a>
-<a href="#1207" id="1207">1207</a>
-<a href="#1208" id="1208">1208</a>
-<a href="#1209" id="1209">1209</a>
-<a href="#1210" id="1210">1210</a>
-<a href="#1211" id="1211">1211</a>
-<a href="#1212" id="1212">1212</a>
-<a href="#1213" id="1213">1213</a>
-<a href="#1214" id="1214">1214</a>
-<a href="#1215" id="1215">1215</a>
-<a href="#1216" id="1216">1216</a>
-<a href="#1217" id="1217">1217</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Let your users split regions of your application and organize layout dynamically.
 //!
 //! ![Pane grid - Iced](https://iced.rs/examples/pane_grid.gif)
@@ -1247,9 +1224,6 @@
 <span class="kw">pub use </span>state::State;
 <span class="kw">pub use </span>title_bar::TitleBar;
 
-<span class="kw">pub use </span><span class="kw">crate</span>::style::pane_grid::{Appearance, Line, StyleSheet};
-
-<span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
@@ -1259,8 +1233,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Clipboard, Element, Layout, Length, Pixels, Point, Rectangle, Shell, Size,
-    Vector, Widget,
+    Background, Border, Clipboard, Color, Element, Layout, Length, Pixels,
+    Point, Rectangle, Shell, Size, Theme, Vector, Widget,
 };
 
 <span class="kw">const </span>DRAG_DEADBAND_DISTANCE: f32 = <span class="number">10.0</span>;
@@ -1290,8 +1264,7 @@
 /// ```no_run
 /// # use iced_widget::{pane_grid, text};
 /// #
-/// # type PaneGrid&lt;'a, Message&gt; =
-/// #     iced_widget::PaneGrid&lt;'a, Message, iced_widget::style::Theme, iced_widget::renderer::Renderer&gt;;
+/// # type PaneGrid&lt;'a, Message&gt; = iced_widget::PaneGrid&lt;'a, Message&gt;;
 /// #
 /// enum PaneState {
 ///     SomePane,
@@ -1322,8 +1295,7 @@
     Theme = <span class="kw">crate</span>::Theme,
     Renderer = <span class="kw">crate</span>::Renderer,
 &gt; <span class="kw">where
-    </span>Theme: StyleSheet + container::StyleSheet,
-    Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     contents: Contents&lt;<span class="lifetime">'a</span>, Content&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
     width: Length,
@@ -1332,13 +1304,12 @@
     on_click: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Pane) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
     on_drag: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(DragEvent) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
     on_resize: <span class="prelude-ty">Option</span>&lt;(f32, Box&lt;<span class="kw">dyn </span>Fn(ResizeEvent) -&gt; Message + <span class="lifetime">'a</span>&gt;)&gt;,
-    style: &lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style,
+    style: Style&lt;Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; PaneGrid&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: StyleSheet + container::StyleSheet,
-    Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     <span class="doccomment">/// Creates a [`PaneGrid`] with the given [`State`] and view function.
     ///
@@ -1347,7 +1318,10 @@
     </span><span class="kw">pub fn </span>new&lt;T&gt;(
         state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>State&lt;T&gt;,
         view: <span class="kw">impl </span>Fn(Pane, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T, bool) -&gt; Content&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
-    ) -&gt; <span class="self">Self </span>{
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme: DefaultStyle,
+    {
         <span class="kw">let </span>contents = <span class="kw">if let </span><span class="prelude-val">Some</span>((pane, pane_state)) =
             state.maximized.and_then(|pane| {
                 state.panes.get(<span class="kw-2">&amp;</span>pane).map(|pane_state| (pane, pane_state))
@@ -1378,7 +1352,7 @@
             on_click: <span class="prelude-val">None</span>,
             on_drag: <span class="prelude-val">None</span>,
             on_resize: <span class="prelude-val">None</span>,
-            style: Default::default(),
+            style: Theme::default_style(),
         }
     }
 
@@ -1438,11 +1412,8 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`PaneGrid`].
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Into&lt;&lt;Theme <span class="kw">as </span>StyleSheet&gt;::Style&gt;,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style.into();
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = style;
         <span class="self">self
     </span>}
 
@@ -1457,7 +1428,6 @@
     <span class="kw">for </span>PaneGrid&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-    Theme: StyleSheet + container::StyleSheet,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
         tree::Tag::of::&lt;state::Action&gt;()
@@ -1502,19 +1472,29 @@
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        layout(
-            tree,
-            renderer,
-            limits,
-            <span class="self">self</span>.contents.layout(),
-            <span class="self">self</span>.width,
-            <span class="self">self</span>.height,
-            <span class="self">self</span>.spacing,
-            <span class="self">self</span>.contents.iter(),
-            |content, tree, renderer, limits| {
-                content.layout(tree, renderer, limits)
-            },
-        )
+        <span class="kw">let </span>size = limits.resolve(<span class="self">self</span>.width, <span class="self">self</span>.height, Size::ZERO);
+        <span class="kw">let </span>node = <span class="self">self</span>.contents.layout();
+        <span class="kw">let </span>regions = node.pane_regions(<span class="self">self</span>.spacing, size);
+
+        <span class="kw">let </span>children = <span class="self">self
+            </span>.contents
+            .iter()
+            .zip(tree.children.iter_mut())
+            .filter_map(|((pane, content), tree)| {
+                <span class="kw">let </span>region = regions.get(<span class="kw-2">&amp;</span>pane)<span class="question-mark">?</span>;
+                <span class="kw">let </span>size = Size::new(region.width, region.height);
+
+                <span class="kw">let </span>node = content.layout(
+                    tree,
+                    renderer,
+                    <span class="kw-2">&amp;</span>layout::Limits::new(size, size),
+                );
+
+                <span class="prelude-val">Some</span>(node.move_to(Point::new(region.x, region.y)))
+            })
+            .collect();
+
+        layout::Node::with_children(size, children)
     }
 
     <span class="kw">fn </span>operate(
@@ -1546,7 +1526,10 @@
         shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) -&gt; event::Status {
+        <span class="kw">let </span><span class="kw-2">mut </span>event_status = event::Status::Ignored;
+
         <span class="kw">let </span>action = tree.state.downcast_mut::&lt;state::Action&gt;();
+        <span class="kw">let </span>node = <span class="self">self</span>.contents.layout();
 
         <span class="kw">let </span>on_drag = <span class="kw">if </span><span class="self">self</span>.drag_enabled() {
             <span class="kw-2">&amp;</span><span class="self">self</span>.on_drag
@@ -1554,19 +1537,164 @@
             <span class="kw-2">&amp;</span><span class="prelude-val">None
         </span>};
 
-        <span class="kw">let </span>event_status = update(
-            action,
-            <span class="self">self</span>.contents.layout(),
-            <span class="kw-2">&amp;</span>event,
-            layout,
-            cursor,
-            shell,
-            <span class="self">self</span>.spacing,
-            <span class="self">self</span>.contents.iter(),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.on_click,
-            on_drag,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.on_resize,
-        );
+        <span class="kw">match </span>event {
+            Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
+            | Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
+                <span class="kw">let </span>bounds = layout.bounds();
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) = cursor.position_over(bounds) {
+                    event_status = event::Status::Captured;
+
+                    <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.on_resize {
+                        <span class="prelude-val">Some</span>((leeway, <span class="kw">_</span>)) =&gt; {
+                            <span class="kw">let </span>relative_cursor = Point::new(
+                                cursor_position.x - bounds.x,
+                                cursor_position.y - bounds.y,
+                            );
+
+                            <span class="kw">let </span>splits = node.split_regions(
+                                <span class="self">self</span>.spacing,
+                                Size::new(bounds.width, bounds.height),
+                            );
+
+                            <span class="kw">let </span>clicked_split = hovered_split(
+                                splits.iter(),
+                                <span class="self">self</span>.spacing + leeway,
+                                relative_cursor,
+                            );
+
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>((split, axis, <span class="kw">_</span>)) = clicked_split {
+                                <span class="kw">if </span>action.picked_pane().is_none() {
+                                    <span class="kw-2">*</span>action =
+                                        state::Action::Resizing { split, axis };
+                                }
+                            } <span class="kw">else </span>{
+                                click_pane(
+                                    action,
+                                    layout,
+                                    cursor_position,
+                                    shell,
+                                    <span class="self">self</span>.contents.iter(),
+                                    <span class="kw-2">&amp;</span><span class="self">self</span>.on_click,
+                                    on_drag,
+                                );
+                            }
+                        }
+                        <span class="prelude-val">None </span>=&gt; {
+                            click_pane(
+                                action,
+                                layout,
+                                cursor_position,
+                                shell,
+                                <span class="self">self</span>.contents.iter(),
+                                <span class="kw-2">&amp;</span><span class="self">self</span>.on_click,
+                                on_drag,
+                            );
+                        }
+                    }
+                }
+            }
+            Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left))
+            | Event::Touch(touch::Event::FingerLifted { .. })
+            | Event::Touch(touch::Event::FingerLost { .. }) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((pane, origin)) = action.picked_pane() {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(on_drag) = on_drag {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) = cursor.position() {
+                            <span class="kw">if </span>cursor_position.distance(origin)
+                                &gt; DRAG_DEADBAND_DISTANCE
+                            {
+                                <span class="kw">let </span>event = <span class="kw">if let </span><span class="prelude-val">Some</span>(edge) =
+                                    in_edge(layout, cursor_position)
+                                {
+                                    DragEvent::Dropped {
+                                        pane,
+                                        target: Target::Edge(edge),
+                                    }
+                                } <span class="kw">else </span>{
+                                    <span class="kw">let </span>dropped_region = <span class="self">self
+                                        </span>.contents
+                                        .iter()
+                                        .zip(layout.children())
+                                        .find_map(|(target, layout)| {
+                                            layout_region(
+                                                layout,
+                                                cursor_position,
+                                            )
+                                            .map(|region| (target, region))
+                                        });
+
+                                    <span class="kw">match </span>dropped_region {
+                                        <span class="prelude-val">Some</span>(((target, <span class="kw">_</span>), region))
+                                            <span class="kw">if </span>pane != target =&gt;
+                                        {
+                                            DragEvent::Dropped {
+                                                pane,
+                                                target: Target::Pane(
+                                                    target, region,
+                                                ),
+                                            }
+                                        }
+                                        <span class="kw">_ </span>=&gt; DragEvent::Canceled { pane },
+                                    }
+                                };
+
+                                shell.publish(on_drag(event));
+                            }
+                        }
+                    }
+
+                    event_status = event::Status::Captured;
+                } <span class="kw">else if </span>action.picked_split().is_some() {
+                    event_status = event::Status::Captured;
+                }
+
+                <span class="kw-2">*</span>action = state::Action::Idle;
+            }
+            Event::Mouse(mouse::Event::CursorMoved { .. })
+            | Event::Touch(touch::Event::FingerMoved { .. }) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, on_resize)) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_resize {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>((split, <span class="kw">_</span>)) = action.picked_split() {
+                        <span class="kw">let </span>bounds = layout.bounds();
+
+                        <span class="kw">let </span>splits = node.split_regions(
+                            <span class="self">self</span>.spacing,
+                            Size::new(bounds.width, bounds.height),
+                        );
+
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>((axis, rectangle, <span class="kw">_</span>)) = splits.get(<span class="kw-2">&amp;</span>split) {
+                            <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) = cursor.position() {
+                                <span class="kw">let </span>ratio = <span class="kw">match </span>axis {
+                                    Axis::Horizontal =&gt; {
+                                        <span class="kw">let </span>position = cursor_position.y
+                                            - bounds.y
+                                            - rectangle.y;
+
+                                        (position / rectangle.height)
+                                            .clamp(<span class="number">0.1</span>, <span class="number">0.9</span>)
+                                    }
+                                    Axis::Vertical =&gt; {
+                                        <span class="kw">let </span>position = cursor_position.x
+                                            - bounds.x
+                                            - rectangle.x;
+
+                                        (position / rectangle.width)
+                                            .clamp(<span class="number">0.1</span>, <span class="number">0.9</span>)
+                                    }
+                                };
+
+                                shell.publish(on_resize(ResizeEvent {
+                                    split,
+                                    ratio,
+                                }));
+
+                                event_status = event::Status::Captured;
+                            }
+                        }
+                    }
+                }
+            }
+            <span class="kw">_ </span>=&gt; {}
+        }
 
         <span class="kw">let </span>picked_pane = action.picked_pane().map(|(pane, <span class="kw">_</span>)| pane);
 
@@ -1600,32 +1728,61 @@
         viewport: <span class="kw-2">&amp;</span>Rectangle,
         renderer: <span class="kw-2">&amp;</span>Renderer,
     ) -&gt; mouse::Interaction {
-        mouse_interaction(
-            tree.state.downcast_ref(),
-            <span class="self">self</span>.contents.layout(),
-            layout,
-            cursor,
-            <span class="self">self</span>.spacing,
-            <span class="self">self</span>.on_resize.as_ref().map(|(leeway, <span class="kw">_</span>)| <span class="kw-2">*</span>leeway),
-        )
-        .unwrap_or_else(|| {
-            <span class="self">self</span>.contents
-                .iter()
-                .zip(<span class="kw-2">&amp;</span>tree.children)
-                .zip(layout.children())
-                .map(|(((_pane, content), tree), layout)| {
-                    content.mouse_interaction(
-                        tree,
-                        layout,
-                        cursor,
-                        viewport,
-                        renderer,
-                        <span class="self">self</span>.drag_enabled(),
+        <span class="kw">let </span>action = tree.state.downcast_ref::&lt;state::Action&gt;();
+
+        <span class="kw">if </span>action.picked_pane().is_some() {
+            <span class="kw">return </span>mouse::Interaction::Grabbing;
+        }
+
+        <span class="kw">let </span>resize_leeway = <span class="self">self</span>.on_resize.as_ref().map(|(leeway, <span class="kw">_</span>)| <span class="kw-2">*</span>leeway);
+        <span class="kw">let </span>node = <span class="self">self</span>.contents.layout();
+
+        <span class="kw">let </span>resize_axis =
+            action.picked_split().map(|(<span class="kw">_</span>, axis)| axis).or_else(|| {
+                resize_leeway.and_then(|leeway| {
+                    <span class="kw">let </span>cursor_position = cursor.position()<span class="question-mark">?</span>;
+                    <span class="kw">let </span>bounds = layout.bounds();
+
+                    <span class="kw">let </span>splits =
+                        node.split_regions(<span class="self">self</span>.spacing, bounds.size());
+
+                    <span class="kw">let </span>relative_cursor = Point::new(
+                        cursor_position.x - bounds.x,
+                        cursor_position.y - bounds.y,
+                    );
+
+                    hovered_split(
+                        splits.iter(),
+                        <span class="self">self</span>.spacing + leeway,
+                        relative_cursor,
                     )
+                    .map(|(<span class="kw">_</span>, axis, <span class="kw">_</span>)| axis)
                 })
-                .max()
-                .unwrap_or_default()
-        })
+            });
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(resize_axis) = resize_axis {
+            <span class="kw">return match </span>resize_axis {
+                Axis::Horizontal =&gt; mouse::Interaction::ResizingVertically,
+                Axis::Vertical =&gt; mouse::Interaction::ResizingHorizontally,
+            };
+        }
+
+        <span class="self">self</span>.contents
+            .iter()
+            .zip(<span class="kw-2">&amp;</span>tree.children)
+            .zip(layout.children())
+            .map(|(((_pane, content), tree), layout)| {
+                content.mouse_interaction(
+                    tree,
+                    layout,
+                    cursor,
+                    viewport,
+                    renderer,
+                    <span class="self">self</span>.drag_enabled(),
+                )
+            })
+            .max()
+            .unwrap_or_default()
     }
 
     <span class="kw">fn </span>draw(
@@ -1638,28 +1795,210 @@
         cursor: mouse::Cursor,
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        draw(
-            tree.state.downcast_ref(),
-            <span class="self">self</span>.contents.layout(),
-            layout,
-            cursor,
-            renderer,
-            theme,
-            style,
-            viewport,
-            <span class="self">self</span>.spacing,
-            <span class="self">self</span>.on_resize.as_ref().map(|(leeway, <span class="kw">_</span>)| <span class="kw-2">*</span>leeway),
-            <span class="kw-2">&amp;</span><span class="self">self</span>.style,
-            <span class="self">self</span>.contents
-                .iter()
-                .zip(<span class="kw-2">&amp;</span>tree.children)
-                .map(|((pane, content), tree)| (pane, (content, tree))),
-            |(content, tree), renderer, style, layout, cursor, rectangle| {
-                content.draw(
-                    tree, renderer, theme, style, layout, cursor, rectangle,
+        <span class="kw">let </span>action = tree.state.downcast_ref::&lt;state::Action&gt;();
+        <span class="kw">let </span>node = <span class="self">self</span>.contents.layout();
+        <span class="kw">let </span>resize_leeway = <span class="self">self</span>.on_resize.as_ref().map(|(leeway, <span class="kw">_</span>)| <span class="kw-2">*</span>leeway);
+
+        <span class="kw">let </span>contents = <span class="self">self
+            </span>.contents
+            .iter()
+            .zip(<span class="kw-2">&amp;</span>tree.children)
+            .map(|((pane, content), tree)| (pane, (content, tree)));
+
+        <span class="kw">let </span>picked_pane = action.picked_pane().filter(|(<span class="kw">_</span>, origin)| {
+            cursor
+                .position()
+                .map(|position| position.distance(<span class="kw-2">*</span>origin))
+                .unwrap_or_default()
+                &gt; DRAG_DEADBAND_DISTANCE
+        });
+
+        <span class="kw">let </span>picked_split = action
+            .picked_split()
+            .and_then(|(split, axis)| {
+                <span class="kw">let </span>bounds = layout.bounds();
+
+                <span class="kw">let </span>splits = node.split_regions(<span class="self">self</span>.spacing, bounds.size());
+
+                <span class="kw">let </span>(_axis, region, ratio) = splits.get(<span class="kw-2">&amp;</span>split)<span class="question-mark">?</span>;
+
+                <span class="kw">let </span>region =
+                    axis.split_line_bounds(<span class="kw-2">*</span>region, <span class="kw-2">*</span>ratio, <span class="self">self</span>.spacing);
+
+                <span class="prelude-val">Some</span>((axis, region + Vector::new(bounds.x, bounds.y), <span class="bool-val">true</span>))
+            })
+            .or_else(|| <span class="kw">match </span>resize_leeway {
+                <span class="prelude-val">Some</span>(leeway) =&gt; {
+                    <span class="kw">let </span>cursor_position = cursor.position()<span class="question-mark">?</span>;
+                    <span class="kw">let </span>bounds = layout.bounds();
+
+                    <span class="kw">let </span>relative_cursor = Point::new(
+                        cursor_position.x - bounds.x,
+                        cursor_position.y - bounds.y,
+                    );
+
+                    <span class="kw">let </span>splits =
+                        node.split_regions(<span class="self">self</span>.spacing, bounds.size());
+
+                    <span class="kw">let </span>(_split, axis, region) = hovered_split(
+                        splits.iter(),
+                        <span class="self">self</span>.spacing + leeway,
+                        relative_cursor,
+                    )<span class="question-mark">?</span>;
+
+                    <span class="prelude-val">Some</span>((
+                        axis,
+                        region + Vector::new(bounds.x, bounds.y),
+                        <span class="bool-val">false</span>,
+                    ))
+                }
+                <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
+            });
+
+        <span class="kw">let </span>pane_cursor = <span class="kw">if </span>picked_pane.is_some() {
+            mouse::Cursor::Unavailable
+        } <span class="kw">else </span>{
+            cursor
+        };
+
+        <span class="kw">let </span><span class="kw-2">mut </span>render_picked_pane = <span class="prelude-val">None</span>;
+
+        <span class="kw">let </span>pane_in_edge = <span class="kw">if </span>picked_pane.is_some() {
+            cursor
+                .position()
+                .and_then(|cursor_position| in_edge(layout, cursor_position))
+        } <span class="kw">else </span>{
+            <span class="prelude-val">None
+        </span>};
+
+        <span class="kw">let </span>appearance = (<span class="self">self</span>.style)(theme);
+
+        <span class="kw">for </span>((id, (content, tree)), pane_layout) <span class="kw">in
+            </span>contents.zip(layout.children())
+        {
+            <span class="kw">match </span>picked_pane {
+                <span class="prelude-val">Some</span>((dragging, origin)) <span class="kw">if </span>id == dragging =&gt; {
+                    render_picked_pane =
+                        <span class="prelude-val">Some</span>(((content, tree), origin, pane_layout));
+                }
+                <span class="prelude-val">Some</span>((dragging, <span class="kw">_</span>)) <span class="kw">if </span>id != dragging =&gt; {
+                    content.draw(
+                        tree,
+                        renderer,
+                        theme,
+                        style,
+                        pane_layout,
+                        pane_cursor,
+                        viewport,
+                    );
+
+                    <span class="kw">if </span>picked_pane.is_some() &amp;&amp; pane_in_edge.is_none() {
+                        <span class="kw">if let </span><span class="prelude-val">Some</span>(region) =
+                            cursor.position().and_then(|cursor_position| {
+                                layout_region(pane_layout, cursor_position)
+                            })
+                        {
+                            <span class="kw">let </span>bounds =
+                                layout_region_bounds(pane_layout, region);
+
+                            renderer.fill_quad(
+                                renderer::Quad {
+                                    bounds,
+                                    border: appearance.hovered_region.border,
+                                    ..renderer::Quad::default()
+                                },
+                                appearance.hovered_region.background,
+                            );
+                        }
+                    }
+                }
+                <span class="kw">_ </span>=&gt; {
+                    content.draw(
+                        tree,
+                        renderer,
+                        theme,
+                        style,
+                        pane_layout,
+                        pane_cursor,
+                        viewport,
+                    );
+                }
+            }
+        }
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(edge) = pane_in_edge {
+            <span class="kw">let </span>bounds = edge_bounds(layout, edge);
+
+            renderer.fill_quad(
+                renderer::Quad {
+                    bounds,
+                    border: appearance.hovered_region.border,
+                    ..renderer::Quad::default()
+                },
+                appearance.hovered_region.background,
+            );
+        }
+
+        <span class="comment">// Render picked pane last
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(((content, tree), origin, layout)) = render_picked_pane {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) = cursor.position() {
+                <span class="kw">let </span>bounds = layout.bounds();
+
+                <span class="kw">let </span>translation =
+                    cursor_position - Point::new(origin.x, origin.y);
+
+                renderer.with_translation(translation, |renderer| {
+                    renderer.with_layer(bounds, |renderer| {
+                        content.draw(
+                            tree,
+                            renderer,
+                            theme,
+                            style,
+                            layout,
+                            pane_cursor,
+                            viewport,
+                        );
+                    });
+                });
+            }
+        }
+
+        <span class="kw">if </span>picked_pane.is_none() {
+            <span class="kw">if let </span><span class="prelude-val">Some</span>((axis, split_region, is_picked)) = picked_split {
+                <span class="kw">let </span>highlight = <span class="kw">if </span>is_picked {
+                    appearance.picked_split
+                } <span class="kw">else </span>{
+                    appearance.hovered_split
+                };
+
+                renderer.fill_quad(
+                    renderer::Quad {
+                        bounds: <span class="kw">match </span>axis {
+                            Axis::Horizontal =&gt; Rectangle {
+                                x: split_region.x,
+                                y: (split_region.y
+                                    + (split_region.height - highlight.width)
+                                        / <span class="number">2.0</span>)
+                                    .round(),
+                                width: split_region.width,
+                                height: highlight.width,
+                            },
+                            Axis::Vertical =&gt; Rectangle {
+                                x: (split_region.x
+                                    + (split_region.width - highlight.width)
+                                        / <span class="number">2.0</span>)
+                                    .round(),
+                                y: split_region.y,
+                                width: highlight.width,
+                                height: split_region.height,
+                            },
+                        },
+                        ..renderer::Quad::default()
+                    },
+                    highlight.color,
                 );
-            },
-        );
+            }
+        }
     }
 
     <span class="kw">fn </span>overlay&lt;<span class="lifetime">'b</span>&gt;(
@@ -1687,7 +2026,7 @@
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a</span>,
-    Theme: StyleSheet + container::StyleSheet + <span class="lifetime">'a</span>,
+    Theme: <span class="lifetime">'a</span>,
     Renderer: <span class="kw">crate</span>::core::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
@@ -1695,219 +2034,6 @@
     ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         Element::new(pane_grid)
     }
-}
-
-<span class="doccomment">/// Calculates the [`Layout`] of a [`PaneGrid`].
-</span><span class="kw">pub fn </span>layout&lt;Renderer, T&gt;(
-    tree: <span class="kw-2">&amp;mut </span>Tree,
-    renderer: <span class="kw-2">&amp;</span>Renderer,
-    limits: <span class="kw-2">&amp;</span>layout::Limits,
-    node: <span class="kw-2">&amp;</span>Node,
-    width: Length,
-    height: Length,
-    spacing: f32,
-    contents: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
-    layout_content: <span class="kw">impl </span>Fn(
-        T,
-        <span class="kw-2">&amp;mut </span>Tree,
-        <span class="kw-2">&amp;</span>Renderer,
-        <span class="kw-2">&amp;</span>layout::Limits,
-    ) -&gt; layout::Node,
-) -&gt; layout::Node {
-    <span class="kw">let </span>size = limits.resolve(width, height, Size::ZERO);
-
-    <span class="kw">let </span>regions = node.pane_regions(spacing, size);
-    <span class="kw">let </span>children = contents
-        .zip(tree.children.iter_mut())
-        .filter_map(|((pane, content), tree)| {
-            <span class="kw">let </span>region = regions.get(<span class="kw-2">&amp;</span>pane)<span class="question-mark">?</span>;
-            <span class="kw">let </span>size = Size::new(region.width, region.height);
-
-            <span class="kw">let </span>node = layout_content(
-                content,
-                tree,
-                renderer,
-                <span class="kw-2">&amp;</span>layout::Limits::new(size, size),
-            );
-
-            <span class="prelude-val">Some</span>(node.move_to(Point::new(region.x, region.y)))
-        })
-        .collect();
-
-    layout::Node::with_children(size, children)
-}
-
-<span class="doccomment">/// Processes an [`Event`] and updates the [`state`] of a [`PaneGrid`]
-/// accordingly.
-</span><span class="kw">pub fn </span>update&lt;<span class="lifetime">'a</span>, Message, T: Draggable&gt;(
-    action: <span class="kw-2">&amp;mut </span>state::Action,
-    node: <span class="kw-2">&amp;</span>Node,
-    event: <span class="kw-2">&amp;</span>Event,
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-    shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
-    spacing: f32,
-    contents: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
-    on_click: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Pane) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
-    on_drag: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(DragEvent) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
-    on_resize: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;(f32, Box&lt;<span class="kw">dyn </span>Fn(ResizeEvent) -&gt; Message + <span class="lifetime">'a</span>&gt;)&gt;,
-) -&gt; event::Status {
-    <span class="kw">let </span><span class="kw-2">mut </span>event_status = event::Status::Ignored;
-
-    <span class="kw">match </span>event {
-        Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
-        | Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
-            <span class="kw">let </span>bounds = layout.bounds();
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) = cursor.position_over(bounds) {
-                event_status = event::Status::Captured;
-
-                <span class="kw">match </span>on_resize {
-                    <span class="prelude-val">Some</span>((leeway, <span class="kw">_</span>)) =&gt; {
-                        <span class="kw">let </span>relative_cursor = Point::new(
-                            cursor_position.x - bounds.x,
-                            cursor_position.y - bounds.y,
-                        );
-
-                        <span class="kw">let </span>splits = node.split_regions(
-                            spacing,
-                            Size::new(bounds.width, bounds.height),
-                        );
-
-                        <span class="kw">let </span>clicked_split = hovered_split(
-                            splits.iter(),
-                            spacing + leeway,
-                            relative_cursor,
-                        );
-
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>((split, axis, <span class="kw">_</span>)) = clicked_split {
-                            <span class="kw">if </span>action.picked_pane().is_none() {
-                                <span class="kw-2">*</span>action =
-                                    state::Action::Resizing { split, axis };
-                            }
-                        } <span class="kw">else </span>{
-                            click_pane(
-                                action,
-                                layout,
-                                cursor_position,
-                                shell,
-                                contents,
-                                on_click,
-                                on_drag,
-                            );
-                        }
-                    }
-                    <span class="prelude-val">None </span>=&gt; {
-                        click_pane(
-                            action,
-                            layout,
-                            cursor_position,
-                            shell,
-                            contents,
-                            on_click,
-                            on_drag,
-                        );
-                    }
-                }
-            }
-        }
-        Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left))
-        | Event::Touch(touch::Event::FingerLifted { .. })
-        | Event::Touch(touch::Event::FingerLost { .. }) =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((pane, origin)) = action.picked_pane() {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(on_drag) = on_drag {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) = cursor.position() {
-                        <span class="kw">if </span>cursor_position.distance(origin)
-                            &gt; DRAG_DEADBAND_DISTANCE
-                        {
-                            <span class="kw">let </span>event = <span class="kw">if let </span><span class="prelude-val">Some</span>(edge) =
-                                in_edge(layout, cursor_position)
-                            {
-                                DragEvent::Dropped {
-                                    pane,
-                                    target: Target::Edge(edge),
-                                }
-                            } <span class="kw">else </span>{
-                                <span class="kw">let </span>dropped_region = contents
-                                    .zip(layout.children())
-                                    .find_map(|(target, layout)| {
-                                        layout_region(layout, cursor_position)
-                                            .map(|region| (target, region))
-                                    });
-
-                                <span class="kw">match </span>dropped_region {
-                                    <span class="prelude-val">Some</span>(((target, <span class="kw">_</span>), region))
-                                        <span class="kw">if </span>pane != target =&gt;
-                                    {
-                                        DragEvent::Dropped {
-                                            pane,
-                                            target: Target::Pane(
-                                                target, region,
-                                            ),
-                                        }
-                                    }
-                                    <span class="kw">_ </span>=&gt; DragEvent::Canceled { pane },
-                                }
-                            };
-
-                            shell.publish(on_drag(event));
-                        }
-                    }
-                }
-
-                event_status = event::Status::Captured;
-            } <span class="kw">else if </span>action.picked_split().is_some() {
-                event_status = event::Status::Captured;
-            }
-
-            <span class="kw-2">*</span>action = state::Action::Idle;
-        }
-        Event::Mouse(mouse::Event::CursorMoved { .. })
-        | Event::Touch(touch::Event::FingerMoved { .. }) =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, on_resize)) = on_resize {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>((split, <span class="kw">_</span>)) = action.picked_split() {
-                    <span class="kw">let </span>bounds = layout.bounds();
-
-                    <span class="kw">let </span>splits = node.split_regions(
-                        spacing,
-                        Size::new(bounds.width, bounds.height),
-                    );
-
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>((axis, rectangle, <span class="kw">_</span>)) = splits.get(<span class="kw-2">&amp;</span>split) {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) = cursor.position() {
-                            <span class="kw">let </span>ratio = <span class="kw">match </span>axis {
-                                Axis::Horizontal =&gt; {
-                                    <span class="kw">let </span>position = cursor_position.y
-                                        - bounds.y
-                                        - rectangle.y;
-
-                                    (position / rectangle.height)
-                                        .clamp(<span class="number">0.1</span>, <span class="number">0.9</span>)
-                                }
-                                Axis::Vertical =&gt; {
-                                    <span class="kw">let </span>position = cursor_position.x
-                                        - bounds.x
-                                        - rectangle.x;
-
-                                    (position / rectangle.width).clamp(<span class="number">0.1</span>, <span class="number">0.9</span>)
-                                }
-                            };
-
-                            shell.publish(on_resize(ResizeEvent {
-                                split,
-                                ratio,
-                            }));
-
-                            event_status = event::Status::Captured;
-                        }
-                    }
-                }
-            }
-        }
-        <span class="kw">_ </span>=&gt; {}
-    }
-
-    event_status
 }
 
 <span class="kw">fn </span>layout_region(layout: Layout&lt;<span class="lifetime">'_</span>&gt;, cursor_position: Point) -&gt; <span class="prelude-ty">Option</span>&lt;Region&gt; {
@@ -1960,257 +2086,6 @@
                 };
 
                 shell.publish(on_drag(DragEvent::Picked { pane }));
-            }
-        }
-    }
-}
-
-<span class="doccomment">/// Returns the current [`mouse::Interaction`] of a [`PaneGrid`].
-</span><span class="kw">pub fn </span>mouse_interaction(
-    action: <span class="kw-2">&amp;</span>state::Action,
-    node: <span class="kw-2">&amp;</span>Node,
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-    spacing: f32,
-    resize_leeway: <span class="prelude-ty">Option</span>&lt;f32&gt;,
-) -&gt; <span class="prelude-ty">Option</span>&lt;mouse::Interaction&gt; {
-    <span class="kw">if </span>action.picked_pane().is_some() {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(mouse::Interaction::Grabbing);
-    }
-
-    <span class="kw">let </span>resize_axis =
-        action.picked_split().map(|(<span class="kw">_</span>, axis)| axis).or_else(|| {
-            resize_leeway.and_then(|leeway| {
-                <span class="kw">let </span>cursor_position = cursor.position()<span class="question-mark">?</span>;
-                <span class="kw">let </span>bounds = layout.bounds();
-
-                <span class="kw">let </span>splits = node.split_regions(spacing, bounds.size());
-
-                <span class="kw">let </span>relative_cursor = Point::new(
-                    cursor_position.x - bounds.x,
-                    cursor_position.y - bounds.y,
-                );
-
-                hovered_split(splits.iter(), spacing + leeway, relative_cursor)
-                    .map(|(<span class="kw">_</span>, axis, <span class="kw">_</span>)| axis)
-            })
-        });
-
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(resize_axis) = resize_axis {
-        <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="kw">match </span>resize_axis {
-            Axis::Horizontal =&gt; mouse::Interaction::ResizingVertically,
-            Axis::Vertical =&gt; mouse::Interaction::ResizingHorizontally,
-        });
-    }
-
-    <span class="prelude-val">None
-</span>}
-
-<span class="doccomment">/// Draws a [`PaneGrid`].
-</span><span class="kw">pub fn </span>draw&lt;Theme, Renderer, T&gt;(
-    action: <span class="kw-2">&amp;</span>state::Action,
-    node: <span class="kw-2">&amp;</span>Node,
-    layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-    cursor: mouse::Cursor,
-    renderer: <span class="kw-2">&amp;mut </span>Renderer,
-    theme: <span class="kw-2">&amp;</span>Theme,
-    default_style: <span class="kw-2">&amp;</span>renderer::Style,
-    viewport: <span class="kw-2">&amp;</span>Rectangle,
-    spacing: f32,
-    resize_leeway: <span class="prelude-ty">Option</span>&lt;f32&gt;,
-    style: <span class="kw-2">&amp;</span>Theme::Style,
-    contents: <span class="kw">impl </span>Iterator&lt;Item = (Pane, T)&gt;,
-    draw_pane: <span class="kw">impl </span>Fn(
-        T,
-        <span class="kw-2">&amp;mut </span>Renderer,
-        <span class="kw-2">&amp;</span>renderer::Style,
-        Layout&lt;<span class="lifetime">'_</span>&gt;,
-        mouse::Cursor,
-        <span class="kw-2">&amp;</span>Rectangle,
-    ),
-) <span class="kw">where
-    </span>Theme: StyleSheet,
-    Renderer: <span class="kw">crate</span>::core::Renderer,
-{
-    <span class="kw">let </span>picked_pane = action.picked_pane().filter(|(<span class="kw">_</span>, origin)| {
-        cursor
-            .position()
-            .map(|position| position.distance(<span class="kw-2">*</span>origin))
-            .unwrap_or_default()
-            &gt; DRAG_DEADBAND_DISTANCE
-    });
-
-    <span class="kw">let </span>picked_split = action
-        .picked_split()
-        .and_then(|(split, axis)| {
-            <span class="kw">let </span>bounds = layout.bounds();
-
-            <span class="kw">let </span>splits = node.split_regions(spacing, bounds.size());
-
-            <span class="kw">let </span>(_axis, region, ratio) = splits.get(<span class="kw-2">&amp;</span>split)<span class="question-mark">?</span>;
-
-            <span class="kw">let </span>region = axis.split_line_bounds(<span class="kw-2">*</span>region, <span class="kw-2">*</span>ratio, spacing);
-
-            <span class="prelude-val">Some</span>((axis, region + Vector::new(bounds.x, bounds.y), <span class="bool-val">true</span>))
-        })
-        .or_else(|| <span class="kw">match </span>resize_leeway {
-            <span class="prelude-val">Some</span>(leeway) =&gt; {
-                <span class="kw">let </span>cursor_position = cursor.position()<span class="question-mark">?</span>;
-                <span class="kw">let </span>bounds = layout.bounds();
-
-                <span class="kw">let </span>relative_cursor = Point::new(
-                    cursor_position.x - bounds.x,
-                    cursor_position.y - bounds.y,
-                );
-
-                <span class="kw">let </span>splits = node.split_regions(spacing, bounds.size());
-
-                <span class="kw">let </span>(_split, axis, region) = hovered_split(
-                    splits.iter(),
-                    spacing + leeway,
-                    relative_cursor,
-                )<span class="question-mark">?</span>;
-
-                <span class="prelude-val">Some</span>((axis, region + Vector::new(bounds.x, bounds.y), <span class="bool-val">false</span>))
-            }
-            <span class="prelude-val">None </span>=&gt; <span class="prelude-val">None</span>,
-        });
-
-    <span class="kw">let </span>pane_cursor = <span class="kw">if </span>picked_pane.is_some() {
-        mouse::Cursor::Unavailable
-    } <span class="kw">else </span>{
-        cursor
-    };
-
-    <span class="kw">let </span><span class="kw-2">mut </span>render_picked_pane = <span class="prelude-val">None</span>;
-
-    <span class="kw">let </span>pane_in_edge = <span class="kw">if </span>picked_pane.is_some() {
-        cursor
-            .position()
-            .and_then(|cursor_position| in_edge(layout, cursor_position))
-    } <span class="kw">else </span>{
-        <span class="prelude-val">None
-    </span>};
-
-    <span class="kw">for </span>((id, pane), pane_layout) <span class="kw">in </span>contents.zip(layout.children()) {
-        <span class="kw">match </span>picked_pane {
-            <span class="prelude-val">Some</span>((dragging, origin)) <span class="kw">if </span>id == dragging =&gt; {
-                render_picked_pane = <span class="prelude-val">Some</span>((pane, origin, pane_layout));
-            }
-            <span class="prelude-val">Some</span>((dragging, <span class="kw">_</span>)) <span class="kw">if </span>id != dragging =&gt; {
-                draw_pane(
-                    pane,
-                    renderer,
-                    default_style,
-                    pane_layout,
-                    pane_cursor,
-                    viewport,
-                );
-
-                <span class="kw">if </span>picked_pane.is_some() &amp;&amp; pane_in_edge.is_none() {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(region) =
-                        cursor.position().and_then(|cursor_position| {
-                            layout_region(pane_layout, cursor_position)
-                        })
-                    {
-                        <span class="kw">let </span>bounds = layout_region_bounds(pane_layout, region);
-                        <span class="kw">let </span>hovered_region_style = theme.hovered_region(style);
-
-                        renderer.fill_quad(
-                            renderer::Quad {
-                                bounds,
-                                border: hovered_region_style.border,
-                                ..renderer::Quad::default()
-                            },
-                            theme.hovered_region(style).background,
-                        );
-                    }
-                }
-            }
-            <span class="kw">_ </span>=&gt; {
-                draw_pane(
-                    pane,
-                    renderer,
-                    default_style,
-                    pane_layout,
-                    pane_cursor,
-                    viewport,
-                );
-            }
-        }
-    }
-
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(edge) = pane_in_edge {
-        <span class="kw">let </span>hovered_region_style = theme.hovered_region(style);
-        <span class="kw">let </span>bounds = edge_bounds(layout, edge);
-
-        renderer.fill_quad(
-            renderer::Quad {
-                bounds,
-                border: hovered_region_style.border,
-                ..renderer::Quad::default()
-            },
-            theme.hovered_region(style).background,
-        );
-    }
-
-    <span class="comment">// Render picked pane last
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>((pane, origin, layout)) = render_picked_pane {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(cursor_position) = cursor.position() {
-            <span class="kw">let </span>bounds = layout.bounds();
-
-            <span class="kw">let </span>translation = cursor_position - Point::new(origin.x, origin.y);
-
-            renderer.with_translation(translation, |renderer| {
-                renderer.with_layer(bounds, |renderer| {
-                    draw_pane(
-                        pane,
-                        renderer,
-                        default_style,
-                        layout,
-                        pane_cursor,
-                        viewport,
-                    );
-                });
-            });
-        }
-    }
-
-    <span class="kw">if </span>picked_pane.is_none() {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>((axis, split_region, is_picked)) = picked_split {
-            <span class="kw">let </span>highlight = <span class="kw">if </span>is_picked {
-                theme.picked_split(style)
-            } <span class="kw">else </span>{
-                theme.hovered_split(style)
-            };
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(highlight) = highlight {
-                renderer.fill_quad(
-                    renderer::Quad {
-                        bounds: <span class="kw">match </span>axis {
-                            Axis::Horizontal =&gt; Rectangle {
-                                x: split_region.x,
-                                y: (split_region.y
-                                    + (split_region.height - highlight.width)
-                                        / <span class="number">2.0</span>)
-                                    .round(),
-                                width: split_region.width,
-                                height: highlight.width,
-                            },
-                            Axis::Vertical =&gt; Rectangle {
-                                x: (split_region.x
-                                    + (split_region.width - highlight.width)
-                                        / <span class="number">2.0</span>)
-                                    .round(),
-                                y: split_region.y,
-                                width: highlight.width,
-                                height: split_region.height,
-                            },
-                        },
-                        ..renderer::Quad::default()
-                    },
-                    highlight.color,
-                );
             }
         }
     }
@@ -2430,6 +2305,85 @@
 
     <span class="kw">fn </span>is_maximized(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span>::Maximized(..))
+    }
+}
+
+<span class="doccomment">/// The appearance of a [`PaneGrid`].
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub struct </span>Appearance {
+    <span class="doccomment">/// The appearance of a hovered region highlight.
+    </span>hovered_region: Highlight,
+    <span class="doccomment">/// The appearance of a picked split.
+    </span>picked_split: Line,
+    <span class="doccomment">/// The appearance of a hovered split.
+    </span>hovered_split: Line,
+}
+
+<span class="doccomment">/// The appearance of a highlight of the [`PaneGrid`].
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub struct </span>Highlight {
+    <span class="doccomment">/// The [`Background`] of the pane region.
+    </span><span class="kw">pub </span>background: Background,
+    <span class="doccomment">/// The [`Border`] of the pane region.
+    </span><span class="kw">pub </span>border: Border,
+}
+
+<span class="doccomment">/// A line.
+///
+/// It is normally used to define the highlight of something, like a split.
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
+</span><span class="kw">pub struct </span>Line {
+    <span class="doccomment">/// The [`Color`] of the [`Line`].
+    </span><span class="kw">pub </span>color: Color,
+    <span class="doccomment">/// The width of the [`Line`].
+    </span><span class="kw">pub </span>width: f32,
+}
+
+<span class="doccomment">/// The style of a [`PaneGrid`].
+</span><span class="kw">pub type </span>Style&lt;Theme&gt; = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance;
+
+<span class="doccomment">/// The default style of a [`PaneGrid`].
+</span><span class="kw">pub trait </span>DefaultStyle {
+    <span class="doccomment">/// Returns the default style of a [`PaneGrid`].
+    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+}
+
+<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
+    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
+        default
+    }
+}
+
+<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
+    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
+        |appearance| <span class="kw-2">*</span>appearance
+    }
+}
+
+<span class="doccomment">/// The default style of a [`PaneGrid`].
+</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Appearance {
+    <span class="kw">let </span>palette = theme.extended_palette();
+
+    Appearance {
+        hovered_region: Highlight {
+            background: Background::Color(Color {
+                a: <span class="number">0.5</span>,
+                ..palette.primary.base.color
+            }),
+            border: Border {
+                width: <span class="number">2.0</span>,
+                color: palette.primary.strong.color,
+                radius: <span class="number">0.0</span>.into(),
+            },
+        },
+        hovered_split: Line {
+            color: palette.primary.base.color,
+            width: <span class="number">2.0</span>,
+        },
+        picked_split: Line {
+            color: palette.primary.strong.color,
+            width: <span class="number">2.0</span>,
+        },
     }
 }
 </code></pre></div></section></main></body></html>

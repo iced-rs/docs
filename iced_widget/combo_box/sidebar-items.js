@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["build_matchers","search"],"struct":["ComboBox","State"]};
+window.SIDEBAR_ITEMS = {"struct":["ComboBox","State","Style"],"trait":["DefaultStyle"]};

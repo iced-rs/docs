@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["FillMode"],"struct":["Appearance"],"trait":["StyleSheet"]};

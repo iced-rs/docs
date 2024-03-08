@@ -1262,6 +1262,7 @@
 <a href="#1262" id="1262">1262</a>
 <a href="#1263" id="1263">1263</a>
 <a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
@@ -1286,8 +1287,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::runtime::multi_window::Program;
 <span class="kw">use </span><span class="kw">crate</span>::runtime::user_interface::{<span class="self">self</span>, UserInterface};
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Debug;
-<span class="kw">use </span><span class="kw">crate</span>::style::application::StyleSheet;
 <span class="kw">use crate</span>::{Clipboard, Error, Proxy, Settings};
+
+<span class="kw">pub use </span><span class="kw">crate</span>::application::{default, Appearance, DefaultStyle};
 
 <span class="kw">use </span>std::collections::HashMap;
 <span class="kw">use </span>std::mem::ManuallyDrop;
@@ -1307,7 +1309,7 @@
 /// can be toggled by pressing `F12`.
 </span><span class="kw">pub trait </span>Application: Program
 <span class="kw">where
-    </span><span class="self">Self</span>::Theme: StyleSheet,
+    </span><span class="self">Self</span>::Theme: DefaultStyle,
 {
     <span class="doccomment">/// The data needed to initialize your [`Application`].
     </span><span class="kw">type </span>Flags;
@@ -1332,8 +1334,8 @@
     </span><span class="kw">fn </span>theme(<span class="kw-2">&amp;</span><span class="self">self</span>, window: window::Id) -&gt; <span class="self">Self</span>::Theme;
 
     <span class="doccomment">/// Returns the `Style` variation of the `Theme`.
-    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; &lt;<span class="self">Self</span>::Theme <span class="kw">as </span>StyleSheet&gt;::Style {
-        Default::default()
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, theme: <span class="kw-2">&amp;</span><span class="self">Self</span>::Theme) -&gt; Appearance {
+        theme.default_style()
     }
 
     <span class="doccomment">/// Returns the event `Subscription` for the current state of the
@@ -1374,7 +1376,7 @@
     </span>A: Application + <span class="lifetime">'static</span>,
     E: Executor + <span class="lifetime">'static</span>,
     C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    A::Theme: StyleSheet,
+    A::Theme: DefaultStyle,
 {
     <span class="kw">use </span>winit::event_loop::EventLoopBuilder;
 
@@ -1616,7 +1618,7 @@
     </span>A: Application + <span class="lifetime">'static</span>,
     E: Executor + <span class="lifetime">'static</span>,
     C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    A::Theme: StyleSheet,
+    A::Theme: DefaultStyle,
 {
     <span class="kw">use </span>winit::event;
     <span class="kw">use </span>winit::event_loop::ControlFlow;
@@ -2086,7 +2088,7 @@
     id: window::Id,
 ) -&gt; UserInterface&lt;<span class="lifetime">'a</span>, A::Message, A::Theme, A::Renderer&gt;
 <span class="kw">where
-    </span>A::Theme: StyleSheet,
+    </span>A::Theme: DefaultStyle,
 {
     debug.view_started();
     <span class="kw">let </span>view = application.view(id);
@@ -2114,7 +2116,7 @@
     ui_caches: <span class="kw-2">&amp;mut </span>HashMap&lt;window::Id, user_interface::Cache&gt;,
 ) <span class="kw">where
     </span>C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    A::Theme: StyleSheet,
+    A::Theme: DefaultStyle,
 {
     <span class="kw">for </span>message <span class="kw">in </span>messages.drain(..) {
         debug.log_message(<span class="kw-2">&amp;</span>message);
@@ -2157,7 +2159,7 @@
     </span>A: Application,
     E: Executor,
     C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    A::Theme: StyleSheet,
+    A::Theme: DefaultStyle,
 {
     <span class="kw">use </span><span class="kw">crate</span>::runtime::clipboard;
     <span class="kw">use </span><span class="kw">crate</span>::runtime::system;
@@ -2483,8 +2485,8 @@
     <span class="kw-2">mut </span>cached_user_interfaces: HashMap&lt;window::Id, user_interface::Cache&gt;,
 ) -&gt; HashMap&lt;window::Id, UserInterface&lt;<span class="lifetime">'a</span>, A::Message, A::Theme, A::Renderer&gt;&gt;
 <span class="kw">where
-    </span>A::Theme: StyleSheet,
-    C: Compositor&lt;Renderer = A::Renderer&gt;,
+    </span>C: Compositor&lt;Renderer = A::Renderer&gt;,
+    A::Theme: DefaultStyle,
 {
     cached_user_interfaces
         .drain()

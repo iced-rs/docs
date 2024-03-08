@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Appearance","Handle","Svg"],"trait":["StyleSheet"]};
+window.SIDEBAR_ITEMS = {"enum":["Status"],"struct":["Appearance","Handle","Svg"],"trait":["DefaultStyle"],"type":["Style"]};
