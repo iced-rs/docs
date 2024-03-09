@@ -583,27 +583,6 @@
 <a href="#583" id="583">583</a>
 <a href="#584" id="584">584</a>
 <a href="#585" id="585">585</a>
-<a href="#586" id="586">586</a>
-<a href="#587" id="587">587</a>
-<a href="#588" id="588">588</a>
-<a href="#589" id="589">589</a>
-<a href="#590" id="590">590</a>
-<a href="#591" id="591">591</a>
-<a href="#592" id="592">592</a>
-<a href="#593" id="593">593</a>
-<a href="#594" id="594">594</a>
-<a href="#595" id="595">595</a>
-<a href="#596" id="596">596</a>
-<a href="#597" id="597">597</a>
-<a href="#598" id="598">598</a>
-<a href="#599" id="599">599</a>
-<a href="#600" id="600">600</a>
-<a href="#601" id="601">601</a>
-<a href="#602" id="602">602</a>
-<a href="#603" id="603">603</a>
-<a href="#604" id="604">604</a>
-<a href="#605" id="605">605</a>
-<a href="#606" id="606">606</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::layout;
 <span class="kw">use </span><span class="kw">crate</span>::mouse;
@@ -700,52 +679,34 @@
     /// producing them. Let's implement our __view logic__ now:
     ///
     /// ```no_run
-    /// # mod counter {
-    /// #     #[derive(Debug, Clone, Copy)]
-    /// #     pub enum Message {}
-    /// #     pub struct Counter;
+    /// # mod iced {
+    /// #     pub type Element&lt;'a, Message&gt; = iced_core::Element&lt;'a, Message, iced_core::Theme, iced_core::renderer::Null&gt;;
     /// #
-    /// #     impl Counter {
-    /// #         pub fn view(
-    /// #             &amp;self,
-    /// #         ) -&gt; iced_core::Element&lt;Message, (), iced_core::renderer::Null&gt; {
+    /// #     pub mod widget {
+    /// #         pub fn row&lt;'a, Message&gt;(iter: impl IntoIterator&lt;Item = super::Element&lt;'a, Message&gt;&gt;) -&gt; super::Element&lt;'a, Message&gt; {
     /// #             unimplemented!()
     /// #         }
     /// #     }
     /// # }
     /// #
-    /// # mod iced {
-    /// #     pub use iced_core::renderer::Null as Renderer;
-    /// #     pub use iced_core::Element;
+    /// # mod counter {
+    /// #     #[derive(Debug, Clone, Copy)]
+    /// #     pub enum Message {}
+    /// #     pub struct Counter;
     /// #
-    /// #     pub mod widget {
-    /// #         pub struct Row&lt;Message&gt; {
-    /// #             _t: std::marker::PhantomData&lt;Message&gt;,
-    /// #         }
+    /// #     pub type Element&lt;'a, Message&gt; = iced_core::Element&lt;'a, Message, iced_core::Theme, iced_core::renderer::Null&gt;;
     /// #
-    /// #         impl&lt;Message&gt; Row&lt;Message&gt; {
-    /// #             pub fn new() -&gt; Self {
-    /// #                 unimplemented!()
-    /// #             }
-    /// #
-    /// #             pub fn spacing(mut self, _: u32) -&gt; Self {
-    /// #                 unimplemented!()
-    /// #             }
-    /// #
-    /// #             pub fn push(
-    /// #                 mut self,
-    /// #                 _: iced_core::Element&lt;Message, (), iced_core::renderer::Null&gt;,
-    /// #             ) -&gt; Self {
-    /// #                 unimplemented!()
-    /// #             }
+    /// #     impl Counter {
+    /// #         pub fn view(&amp;self) -&gt; Element&lt;Message&gt; {
+    /// #             unimplemented!()
     /// #         }
     /// #     }
     /// # }
     /// #
     /// use counter::Counter;
     ///
-    /// use iced::widget::Row;
-    /// use iced::{Element, Renderer};
+    /// use iced::widget::row;
+    /// use iced::Element;
     ///
     /// struct ManyCounters {
     ///     counters: Vec&lt;Counter&gt;,
@@ -757,24 +718,21 @@
     /// }
     ///
     /// impl ManyCounters {
-    ///     pub fn view(&amp;mut self) -&gt; Row&lt;Message&gt; {
-    ///         // We can quickly populate a `Row` by folding over our counters
-    ///         self.counters.iter_mut().enumerate().fold(
-    ///             Row::new().spacing(20),
-    ///             |row, (index, counter)| {
-    ///                 // We display the counter
-    ///                 let element: Element&lt;counter::Message, _, _&gt; =
-    ///                     counter.view().into();
-    ///
-    ///                 row.push(
+    ///     pub fn view(&amp;self) -&gt; Element&lt;Message&gt; {
+    ///         // We can quickly populate a `row` by mapping our counters
+    ///         row(
+    ///             self.counters
+    ///                 .iter()
+    ///                 .map(Counter::view)
+    ///                 .enumerate()
+    ///                 .map(|(index, counter)| {
     ///                     // Here we turn our `Element&lt;counter::Message&gt;` into
     ///                     // an `Element&lt;Message&gt;` by combining the `index` and the
     ///                     // message of the `element`.
-    ///                     element
-    ///                         .map(move |message| Message::Counter(index, message)),
-    ///                 )
-    ///             },
+    ///                     counter.map(move |message| Message::Counter(index, message))
+    ///                 }),
     ///         )
+    ///         .into()
     ///     }
     /// }
     /// ```
