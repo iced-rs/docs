@@ -477,7 +477,7 @@
     controls: <span class="prelude-ty">Option</span>&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
     padding: Padding,
     always_show_controls: bool,
-    style: container::Style&lt;Theme&gt;,
+    style: container::Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; TitleBar&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
@@ -489,14 +489,14 @@
         content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: container::DefaultStyle,
+        </span>Theme: container::DefaultStyle + <span class="lifetime">'a</span>,
     {
         <span class="self">Self </span>{
             content: content.into(),
             controls: <span class="prelude-val">None</span>,
             padding: Padding::ZERO,
             always_show_controls: <span class="bool-val">false</span>,
-            style: Theme::default_style(),
+            style: Box::new(Theme::default_style),
         }
     }
 
@@ -518,9 +518,9 @@
     <span class="doccomment">/// Sets the style of the [`TitleBar`].
     </span><span class="kw">pub fn </span>style(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, container::Status) -&gt; container::Appearance,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, container::Status) -&gt; container::Appearance + <span class="lifetime">'a</span>,
     ) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style.into();
+        <span class="self">self</span>.style = Box::new(style);
         <span class="self">self
     </span>}
 

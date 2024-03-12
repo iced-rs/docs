@@ -439,6 +439,9 @@
 <a href="#439" id="439">439</a>
 <a href="#440" id="440">440</a>
 <a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create choices using radio buttons.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -458,8 +461,8 @@
 ///
 /// # Example
 /// ```no_run
-/// # type Radio&lt;Message&gt; =
-/// #     iced_widget::Radio&lt;Message, iced_widget::Theme, iced_widget::renderer::Renderer&gt;;
+/// # type Radio&lt;'a, Message&gt; =
+/// #     iced_widget::Radio&lt;'a, Message, iced_widget::Theme, iced_widget::renderer::Renderer&gt;;
 /// #
 /// # use iced_widget::column;
 /// #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -508,7 +511,7 @@
 /// let content = column![a, b, c, all];
 /// ```
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Radio&lt;Message, Theme = <span class="kw">crate</span>::Theme, Renderer = <span class="kw">crate</span>::Renderer&gt;
+</span><span class="kw">pub struct </span>Radio&lt;<span class="lifetime">'a</span>, Message, Theme = <span class="kw">crate</span>::Theme, Renderer = <span class="kw">crate</span>::Renderer&gt;
 <span class="kw">where
     </span>Renderer: text::Renderer,
 {
@@ -522,10 +525,10 @@
     text_line_height: text::LineHeight,
     text_shaping: text::Shaping,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
-    style: Style&lt;Theme&gt;,
+    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
 
-<span class="kw">impl</span>&lt;Message, Theme, Renderer&gt; Radio&lt;Message, Theme, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Radio&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
     Renderer: text::Renderer,
@@ -551,7 +554,7 @@
         f: F,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: DefaultStyle,
+        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
         V: Eq + Copy,
         F: FnOnce(V) -&gt; Message,
     {
@@ -566,7 +569,7 @@
             text_line_height: text::LineHeight::default(),
             text_shaping: text::Shaping::Basic,
             font: <span class="prelude-val">None</span>,
-            style: Theme::default_style(),
+            style: Box::new(Theme::default_style),
         }
     }
 
@@ -616,14 +619,17 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`Radio`] button.
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style;
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = Box::new(style);
         <span class="self">self
     </span>}
 }
 
-<span class="kw">impl</span>&lt;Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
-    <span class="kw">for </span>Radio&lt;Message, Theme, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>Radio&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
     Renderer: text::Renderer,
@@ -794,7 +800,7 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; From&lt;Radio&lt;Message, Theme, Renderer&gt;&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; From&lt;Radio&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a </span>+ Clone,
@@ -802,7 +808,7 @@
     Renderer: <span class="lifetime">'a </span>+ text::Renderer,
 {
     <span class="kw">fn </span>from(
-        radio: Radio&lt;Message, Theme, Renderer&gt;,
+        radio: Radio&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         Element::new(radio)
     }
@@ -839,24 +845,24 @@
 }
 
 <span class="doccomment">/// The style of a [`Radio`] button.
-</span><span class="kw">pub type </span>Style&lt;Theme&gt; = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance;
+</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
 
 <span class="doccomment">/// The default style of a [`Radio`] button.
 </span><span class="kw">pub trait </span>DefaultStyle {
     <span class="doccomment">/// Returns the default style of a [`Radio`] button.
-    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance;
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        default
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance {
+        default(<span class="self">self</span>, status)
     }
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        |appearance, _status| <span class="kw-2">*</span>appearance
-    }
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
+        <span class="kw-2">*</span><span class="self">self
+    </span>}
 }
 
 <span class="doccomment">/// The default style of a [`Radio`] button.

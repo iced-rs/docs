@@ -1304,7 +1304,7 @@
     on_click: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Pane) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
     on_drag: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(DragEvent) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
     on_resize: <span class="prelude-ty">Option</span>&lt;(f32, Box&lt;<span class="kw">dyn </span>Fn(ResizeEvent) -&gt; Message + <span class="lifetime">'a</span>&gt;)&gt;,
-    style: Style&lt;Theme&gt;,
+    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; PaneGrid&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
@@ -1320,7 +1320,7 @@
         view: <span class="kw">impl </span>Fn(Pane, <span class="kw-2">&amp;</span><span class="lifetime">'a </span>T, bool) -&gt; Content&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: DefaultStyle,
+        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
     {
         <span class="kw">let </span>contents = <span class="kw">if let </span><span class="prelude-val">Some</span>((pane, pane_state)) =
             state.maximized.and_then(|pane| {
@@ -1352,7 +1352,7 @@
             on_click: <span class="prelude-val">None</span>,
             on_drag: <span class="prelude-val">None</span>,
             on_resize: <span class="prelude-val">None</span>,
-            style: Theme::default_style(),
+            style: Box::new(Theme::default_style),
         }
     }
 
@@ -1412,8 +1412,8 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`PaneGrid`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style;
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance + <span class="lifetime">'a</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = Box::new(style);
         <span class="self">self
     </span>}
 
@@ -2340,24 +2340,24 @@
 }
 
 <span class="doccomment">/// The style of a [`PaneGrid`].
-</span><span class="kw">pub type </span>Style&lt;Theme&gt; = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance;
+</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
 
 <span class="doccomment">/// The default style of a [`PaneGrid`].
 </span><span class="kw">pub trait </span>DefaultStyle {
     <span class="doccomment">/// Returns the default style of a [`PaneGrid`].
-    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance;
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        default
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance {
+        default(<span class="self">self</span>)
     }
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        |appearance| <span class="kw-2">*</span>appearance
-    }
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance {
+        <span class="kw-2">*</span><span class="self">self
+    </span>}
 }
 
 <span class="doccomment">/// The default style of a [`PaneGrid`].

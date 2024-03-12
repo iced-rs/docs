@@ -1698,7 +1698,6 @@
 <a href="#1698" id="1698">1698</a>
 <a href="#1699" id="1699">1699</a>
 <a href="#1700" id="1700">1700</a>
-<a href="#1701" id="1701">1701</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
 </span><span class="comment">// use crate::container;
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
@@ -1737,7 +1736,7 @@
     direction: Direction,
     content: Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     on_scroll: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Viewport) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
-    style: Style&lt;Theme&gt;,
+    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Scrollable&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
@@ -1749,7 +1748,7 @@
         content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: DefaultStyle,
+        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
     {
         <span class="self">Self</span>::with_direction(content, Direction::default())
     }
@@ -1760,20 +1759,16 @@
         direction: Direction,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: DefaultStyle,
+        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
     {
-        <span class="self">Self</span>::with_direction_and_style(
-            content,
-            direction,
-            Theme::default_style(),
-        )
+        <span class="self">Self</span>::with_direction_and_style(content, direction, Theme::default_style)
     }
 
     <span class="doccomment">/// Creates a new [`Scrollable`] with the given [`Direction`] and style.
     </span><span class="kw">pub fn </span>with_direction_and_style(
         content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
         direction: Direction,
-        style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>content = content.into();
 
@@ -1796,7 +1791,7 @@
             direction,
             content,
             on_scroll: <span class="prelude-val">None</span>,
-            style: style.into(),
+            style: Box::new(style),
         }
     }
 
@@ -1827,8 +1822,11 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`Scrollable`] .
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style.into();
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = Box::new(style);
         <span class="self">self
     </span>}
 }
@@ -3304,24 +3302,24 @@
 }
 
 <span class="doccomment">/// The style of a [`Scrollable`].
-</span><span class="kw">pub type </span>Style&lt;Theme&gt; = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance;
+</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
 
 <span class="doccomment">/// The default style of a [`Scrollable`].
 </span><span class="kw">pub trait </span>DefaultStyle {
     <span class="doccomment">/// Returns the default style of a [`Scrollable`].
-    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance;
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        default
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance {
+        default(<span class="self">self</span>, status)
     }
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        |appearance, _status| <span class="kw-2">*</span>appearance
-    }
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
+        <span class="kw-2">*</span><span class="self">self
+    </span>}
 }
 
 <span class="doccomment">/// The default style of a [`Scrollable`].

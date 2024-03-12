@@ -562,6 +562,9 @@
 <a href="#562" id="562">562</a>
 <a href="#563" id="563">563</a>
 <a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Allow your users to perform actions by pressing a button.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -620,7 +623,7 @@
     height: Length,
     padding: Padding,
     clip: bool,
-    style: Style&lt;Theme&gt;,
+    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Button&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
@@ -632,7 +635,7 @@
         content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: DefaultStyle,
+        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
     {
         <span class="kw">let </span>content = content.into();
         <span class="kw">let </span>size = content.as_widget().size_hint();
@@ -644,7 +647,7 @@
             height: size.height.fluid(),
             padding: DEFAULT_PADDING,
             clip: <span class="bool-val">false</span>,
-            style: Theme::default_style(),
+            style: Box::new(Theme::default_style),
         }
     }
 
@@ -684,8 +687,11 @@
     </span>}
 
     <span class="doccomment">/// Sets the style variant of this [`Button`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style;
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = Box::new(style);
         <span class="self">self
     </span>}
 
@@ -1003,29 +1009,29 @@
 }
 
 <span class="doccomment">/// The style of a [`Button`].
-</span><span class="kw">pub type </span>Style&lt;Theme&gt; = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance;
+</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
 
 <span class="doccomment">/// The default style of a [`Button`].
 </span><span class="kw">pub trait </span>DefaultStyle {
     <span class="doccomment">/// Returns the default style of a [`Button`].
-    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance;
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        primary
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance {
+        primary(<span class="self">self</span>, status)
     }
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        |appearance, _status| <span class="kw-2">*</span>appearance
-    }
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
+        <span class="kw-2">*</span><span class="self">self
+    </span>}
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Color {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        |color, _status| Appearance::default().with_background(<span class="kw-2">*</span>color)
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
+        Appearance::default().with_background(<span class="kw-2">*</span><span class="self">self</span>)
     }
 }
 

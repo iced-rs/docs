@@ -461,6 +461,9 @@
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
 <a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Show toggle controls using togglers.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::event;
@@ -511,7 +514,7 @@
     text_shaping: text::Shaping,
     spacing: f32,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
-    style: Style&lt;Theme&gt;,
+    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Toggler&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
@@ -535,7 +538,7 @@
         f: F,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: DefaultStyle,
+        </span>Theme: <span class="lifetime">'a </span>+ DefaultStyle,
         F: <span class="lifetime">'a </span>+ Fn(bool) -&gt; Message,
     {
         Toggler {
@@ -550,7 +553,7 @@
             text_shaping: text::Shaping::Basic,
             spacing: <span class="self">Self</span>::DEFAULT_SIZE / <span class="number">2.0</span>,
             font: <span class="prelude-val">None</span>,
-            style: Theme::default_style(),
+            style: Box::new(Theme::default_style),
         }
     }
 
@@ -608,8 +611,11 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`Toggler`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style.into();
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = Box::new(style);
         <span class="self">self
     </span>}
 }
@@ -861,24 +867,24 @@
 }
 
 <span class="doccomment">/// The style of a [`Toggler`].
-</span><span class="kw">pub type </span>Style&lt;Theme&gt; = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance;
+</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
 
 <span class="doccomment">/// The default style of a [`Toggler`].
 </span><span class="kw">pub trait </span>DefaultStyle {
     <span class="doccomment">/// Returns the default style of a [`Toggler`].
-    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance;
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        default
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance {
+        default(<span class="self">self</span>, status)
     }
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        |appearance, _status| <span class="kw-2">*</span>appearance
-    }
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
+        <span class="kw-2">*</span><span class="self">self
+    </span>}
 }
 
 <span class="doccomment">/// The default style of a [`Toggler`].

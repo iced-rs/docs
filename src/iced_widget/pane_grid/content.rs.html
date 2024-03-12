@@ -436,7 +436,7 @@
 {
     title_bar: <span class="prelude-ty">Option</span>&lt;TitleBar&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
     body: Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
-    style: container::Style&lt;Theme&gt;,
+    style: container::Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Content&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
@@ -446,12 +446,12 @@
     <span class="doccomment">/// Creates a new [`Content`] with the provided body.
     </span><span class="kw">pub fn </span>new(body: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: container::DefaultStyle,
+        </span>Theme: container::DefaultStyle + <span class="lifetime">'a</span>,
     {
         <span class="self">Self </span>{
             title_bar: <span class="prelude-val">None</span>,
             body: body.into(),
-            style: Theme::default_style(),
+            style: Box::new(Theme::default_style),
         }
     }
 
@@ -467,9 +467,9 @@
     <span class="doccomment">/// Sets the style of the [`Content`].
     </span><span class="kw">pub fn </span>style(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, container::Status) -&gt; container::Appearance,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, container::Status) -&gt; container::Appearance + <span class="lifetime">'a</span>,
     ) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style.into();
+        <span class="self">self</span>.style = Box::new(style);
         <span class="self">self
     </span>}
 }
@@ -815,7 +815,7 @@
     <span class="kw">for </span>Content&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>T: Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
-    Theme: container::DefaultStyle,
+    Theme: container::DefaultStyle + <span class="lifetime">'a</span>,
     Renderer: <span class="kw">crate</span>::core::Renderer,
 {
     <span class="kw">fn </span>from(element: T) -&gt; <span class="self">Self </span>{

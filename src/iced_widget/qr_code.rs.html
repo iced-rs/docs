@@ -386,23 +386,23 @@
 
 <span class="doccomment">/// A type of matrix barcode consisting of squares arranged in a grid which
 /// can be read by an imaging device, such as a camera.
-</span><span class="attr">#[derive(Debug)]
+</span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>QRCode&lt;<span class="lifetime">'a</span>, Theme = <span class="kw">crate</span>::Theme&gt; {
     data: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Data,
     cell_size: u16,
-    style: Style&lt;Theme&gt;,
+    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Theme&gt; QRCode&lt;<span class="lifetime">'a</span>, Theme&gt; {
     <span class="doccomment">/// Creates a new [`QRCode`] with the provided [`Data`].
     </span><span class="kw">pub fn </span>new(data: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Data) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: DefaultStyle,
+        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
     {
         <span class="self">Self </span>{
             data,
             cell_size: DEFAULT_CELL_SIZE,
-            style: Theme::default_style(),
+            style: Box::new(Theme::default_style),
         }
     }
 
@@ -413,8 +413,8 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`QRCode`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style.into();
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance + <span class="lifetime">'a</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = Box::new(style);
         <span class="self">self
     </span>}
 }
@@ -703,24 +703,24 @@
 }
 
 <span class="doccomment">/// The style of a [`QRCode`].
-</span><span class="kw">pub type </span>Style&lt;Theme&gt; = <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance;
+</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
 
 <span class="doccomment">/// The default style of a [`QRCode`].
 </span><span class="kw">pub trait </span>DefaultStyle {
     <span class="doccomment">/// Returns the default style of a [`QRCode`].
-    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance;
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        default
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance {
+        default(<span class="self">self</span>)
     }
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        |appearance| <span class="kw-2">*</span>appearance
-    }
+    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance {
+        <span class="kw-2">*</span><span class="self">self
+    </span>}
 }
 
 <span class="doccomment">/// The default style of a [`QRCode`].

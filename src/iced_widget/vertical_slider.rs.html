@@ -479,6 +479,9 @@
 <a href="#479" id="479">479</a>
 <a href="#480" id="480">480</a>
 <a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display an interactive selector of a single value from a range of values.
 </span><span class="kw">use </span>std::ops::RangeInclusive;
 
@@ -532,7 +535,7 @@
     on_release: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     width: f32,
     height: Length,
-    style: Style&lt;Theme&gt;,
+    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt; VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt;
@@ -553,7 +556,7 @@
     ///   `Message`.
     </span><span class="kw">pub fn </span>new&lt;F&gt;(range: RangeInclusive&lt;T&gt;, value: T, on_change: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: DefaultStyle,
+        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
         F: <span class="lifetime">'a </span>+ Fn(T) -&gt; Message,
     {
         <span class="kw">let </span>value = <span class="kw">if </span>value &gt;= <span class="kw-2">*</span>range.start() {
@@ -578,7 +581,7 @@
             on_release: <span class="prelude-val">None</span>,
             width: <span class="self">Self</span>::DEFAULT_WIDTH,
             height: Length::Fill,
-            style: Theme::default_style(),
+            style: Box::new(Theme::default_style),
         }
     }
 
@@ -614,8 +617,11 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`VerticalSlider`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style.into();
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.style = Box::new(style);
         <span class="self">self
     </span>}
 

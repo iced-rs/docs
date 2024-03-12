@@ -452,6 +452,7 @@
 <a href="#452" id="452">452</a>
 <a href="#453" id="453">453</a>
 <a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a widget over another.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -482,7 +483,7 @@
     gap: f32,
     padding: f32,
     snap_within_viewport: bool,
-    style: container::Style&lt;Theme&gt;,
+    style: container::Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Tooltip&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
@@ -501,7 +502,7 @@
         position: Position,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: container::DefaultStyle,
+        </span>Theme: container::DefaultStyle + <span class="lifetime">'a</span>,
     {
         Tooltip {
             content: content.into(),
@@ -510,7 +511,7 @@
             gap: <span class="number">0.0</span>,
             padding: <span class="self">Self</span>::DEFAULT_PADDING,
             snap_within_viewport: <span class="bool-val">true</span>,
-            style: Theme::default_style(),
+            style: Box::new(Theme::default_style),
         }
     }
 
@@ -535,9 +536,9 @@
     <span class="doccomment">/// Sets the style of the [`Tooltip`].
     </span><span class="kw">pub fn </span>style(
         <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, container::Status) -&gt; container::Appearance,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, container::Status) -&gt; container::Appearance + <span class="lifetime">'a</span>,
     ) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style.into();
+        <span class="self">self</span>.style = Box::new(style);
         <span class="self">self
     </span>}
 }
@@ -693,7 +694,7 @@
                 positioning: <span class="self">self</span>.position,
                 gap: <span class="self">self</span>.gap,
                 padding: <span class="self">self</span>.padding,
-                style: <span class="self">self</span>.style,
+                style: <span class="kw-2">&amp;</span><span class="self">self</span>.style,
             })))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -763,7 +764,8 @@
     positioning: Position,
     gap: f32,
     padding: f32,
-    style: container::Style&lt;Theme&gt;,
+    style:
+        <span class="kw-2">&amp;</span><span class="lifetime">'b </span>(<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, container::Status) -&gt; container::Appearance + <span class="lifetime">'a</span>),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Message, Theme, Renderer&gt;

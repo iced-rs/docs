@@ -727,19 +727,6 @@
 <a href="#727" id="727">727</a>
 <a href="#728" id="728">728</a>
 <a href="#729" id="729">729</a>
-<a href="#730" id="730">730</a>
-<a href="#731" id="731">731</a>
-<a href="#732" id="732">732</a>
-<a href="#733" id="733">733</a>
-<a href="#734" id="734">734</a>
-<a href="#735" id="735">735</a>
-<a href="#736" id="736">736</a>
-<a href="#737" id="737">737</a>
-<a href="#738" id="738">738</a>
-<a href="#739" id="739">739</a>
-<a href="#740" id="740">740</a>
-<a href="#741" id="741">741</a>
-<a href="#742" id="742">742</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of selectable values.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -789,7 +776,7 @@
     text_shaping: text::Shaping,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
     handle: Handle&lt;Renderer::Font&gt;,
-    style: Style&lt;Theme&gt;,
+    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt;
@@ -893,7 +880,7 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`PickList`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Style&lt;Theme&gt;&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Style&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.style = style.into();
         <span class="self">self
     </span>}
@@ -1271,7 +1258,7 @@
 
             <span class="kw">let </span>on_select = <span class="kw-2">&amp;</span><span class="self">self</span>.on_select;
 
-            <span class="kw">let </span><span class="kw-2">mut </span>menu = Menu::with_style(
+            <span class="kw">let </span><span class="kw-2">mut </span>menu = Menu::new(
                 <span class="kw-2">&amp;mut </span>state.menu,
                 <span class="self">self</span>.options.borrow(),
                 <span class="kw-2">&amp;mut </span>state.hovered_option,
@@ -1281,7 +1268,7 @@
                     (on_select)(option)
                 },
                 <span class="prelude-val">None</span>,
-                <span class="self">self</span>.style.menu,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.style.menu,
             )
             .width(bounds.width)
             .padding(<span class="self">self</span>.padding)
@@ -1418,40 +1405,27 @@
 }
 
 <span class="doccomment">/// The styles of the different parts of a [`PickList`].
-</span><span class="attr">#[derive(Debug, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>Style&lt;Theme&gt; {
+</span><span class="attr">#[allow(missing_debug_implementations)]
+</span><span class="kw">pub struct </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; {
     <span class="doccomment">/// The style of the [`PickList`] itself.
-    </span><span class="kw">pub </span>field: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance,
+    </span><span class="kw">pub </span>field: Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>&gt;,
 
     <span class="doccomment">/// The style of the [`Menu`] of the pick list.
-    </span><span class="kw">pub </span>menu: menu::Style&lt;Theme&gt;,
+    </span><span class="kw">pub </span>menu: menu::Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
 }
-
-<span class="kw">impl </span>Style&lt;Theme&gt; {
-    <span class="doccomment">/// The default style of a [`PickList`] with the built-in [`Theme`].
-    </span><span class="kw">pub const </span>DEFAULT: <span class="self">Self </span>= <span class="self">Self </span>{
-        field: default,
-        menu: menu::Style::&lt;Theme&gt;::DEFAULT,
-    };
-}
-
-<span class="kw">impl</span>&lt;Theme&gt; Clone <span class="kw">for </span>Style&lt;Theme&gt; {
-    <span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="kw-2">*</span><span class="self">self
-    </span>}
-}
-
-<span class="kw">impl</span>&lt;Theme&gt; Copy <span class="kw">for </span>Style&lt;Theme&gt; {}
 
 <span class="doccomment">/// The default style of a [`PickList`].
 </span><span class="kw">pub trait </span>DefaultStyle: Sized {
     <span class="doccomment">/// Returns the default style of a [`PickList`].
-    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt;;
+    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="lifetime">'static</span>, <span class="self">Self</span>&gt;;
 }
 
 <span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="self">Self</span>&gt; {
-        Style::&lt;<span class="self">Self</span>&gt;::DEFAULT
+    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="lifetime">'static</span>, <span class="self">Self</span>&gt; {
+        Style {
+            field: Box::new(default),
+            menu: menu::DefaultStyle::default_style(),
+        }
     }
 }
 
