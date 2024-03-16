@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["application","sandbox"],"struct":["Program"],"trait":["Definition","Title","View"]};
