@@ -824,6 +824,35 @@
 <a href="#824" id="824">824</a>
 <a href="#825" id="825">825</a>
 <a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
+<a href="#842" id="842">842</a>
+<a href="#843" id="843">843</a>
+<a href="#844" id="844">844</a>
+<a href="#845" id="845">845</a>
+<a href="#846" id="846">846</a>
+<a href="#847" id="847">847</a>
+<a href="#848" id="848">848</a>
+<a href="#849" id="849">849</a>
+<a href="#850" id="850">850</a>
+<a href="#851" id="851">851</a>
+<a href="#852" id="852">852</a>
+<a href="#853" id="853">853</a>
+<a href="#854" id="854">854</a>
+<a href="#855" id="855">855</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//!
 //! # Example
 //! ```no_run
@@ -896,7 +925,7 @@
     view: <span class="kw">impl for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="self">self</span>::View&lt;<span class="lifetime">'a</span>, State, Message, Theme&gt;,
 ) -&gt; Program&lt;<span class="kw">impl </span>Definition&lt;State = State, Message = Message, Theme = Theme&gt;&gt;
 <span class="kw">where
-    </span>State: Default + <span class="lifetime">'static</span>,
+    </span>State: <span class="lifetime">'static</span>,
     Message: Send + std::fmt::Debug,
     Theme: Default + application::DefaultStyle,
 {
@@ -913,8 +942,7 @@
     <span class="kw">impl</span>&lt;State, Message, Theme, Update, View&gt; Definition
         <span class="kw">for </span>Application&lt;State, Message, Theme, Update, View&gt;
     <span class="kw">where
-        </span>State: Default,
-        Message: Send + std::fmt::Debug,
+        </span>Message: Send + std::fmt::Debug,
         Theme: Default + application::DefaultStyle,
         Update: <span class="self">self</span>::Update&lt;State, Message&gt;,
         View: <span class="kw">for</span>&lt;<span class="lifetime">'a</span>&gt; <span class="self">self</span>::View&lt;<span class="lifetime">'a</span>, State, Message, Theme&gt;,
@@ -924,8 +952,8 @@
         <span class="kw">type </span>Theme = Theme;
         <span class="kw">type </span>Executor = executor::Default;
 
-        <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::State, Command&lt;<span class="self">Self</span>::Message&gt;) {
-            (<span class="self">Self</span>::State::default(), Command::none())
+        <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Command&lt;<span class="self">Self</span>::Message&gt; {
+            Command::none()
         }
 
         <span class="kw">fn </span>update(
@@ -977,25 +1005,57 @@
 
 <span class="kw">impl</span>&lt;P: Definition&gt; Program&lt;P&gt; {
     <span class="doccomment">/// Runs the underlying [`Application`] of the [`Program`].
+    ///
+    /// The state of the [`Program`] must implement [`Default`].
+    /// If your state does not implement [`Default`], use [`run_with`]
+    /// instead.
+    ///
+    /// [`run_with`]: Self::run_with
     </span><span class="kw">pub fn </span>run(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result
     </span><span class="kw">where
         </span><span class="self">Self</span>: <span class="lifetime">'static</span>,
+        P::State: Default,
     {
-        <span class="kw">struct </span>Instance&lt;P: Definition&gt; {
+        <span class="self">self</span>.run_with(P::State::default)
+    }
+
+    <span class="doccomment">/// Runs the underlying [`Application`] of the [`Program`] with a
+    /// closure that creates the initial state.
+    </span><span class="kw">pub fn </span>run_with(
+        <span class="self">self</span>,
+        initialize: <span class="kw">impl </span>Fn() -&gt; P::State + Clone + <span class="lifetime">'static</span>,
+    ) -&gt; <span class="prelude-ty">Result
+    </span><span class="kw">where
+        </span><span class="self">Self</span>: <span class="lifetime">'static</span>,
+    {
+        <span class="kw">use </span>std::marker::PhantomData;
+
+        <span class="kw">struct </span>Instance&lt;P: Definition, I&gt; {
             program: P,
             state: P::State,
+            _initialize: PhantomData&lt;I&gt;,
         }
 
-        <span class="kw">impl</span>&lt;P: Definition&gt; Application <span class="kw">for </span>Instance&lt;P&gt; {
+        <span class="kw">impl</span>&lt;P: Definition, I: Fn() -&gt; P::State&gt; Application <span class="kw">for </span>Instance&lt;P, I&gt; {
             <span class="kw">type </span>Message = P::Message;
             <span class="kw">type </span>Theme = P::Theme;
-            <span class="kw">type </span>Flags = P;
+            <span class="kw">type </span>Flags = (P, I);
             <span class="kw">type </span>Executor = P::Executor;
 
-            <span class="kw">fn </span>new(program: <span class="self">Self</span>::Flags) -&gt; (<span class="self">Self</span>, Command&lt;<span class="self">Self</span>::Message&gt;) {
-                <span class="kw">let </span>(state, command) = P::build(<span class="kw-2">&amp;</span>program);
+            <span class="kw">fn </span>new(
+                (program, initialize): <span class="self">Self</span>::Flags,
+            ) -&gt; (<span class="self">Self</span>, Command&lt;<span class="self">Self</span>::Message&gt;) {
+                <span class="kw">let </span>state = initialize();
+                <span class="kw">let </span>command = program.load();
 
-                (<span class="self">Self </span>{ program, state }, command)
+                (
+                    <span class="self">Self </span>{
+                        program,
+                        state,
+                        _initialize: PhantomData,
+                    },
+                    command,
+                )
             }
 
             <span class="kw">fn </span>title(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
@@ -1032,7 +1092,7 @@
         <span class="kw">let </span><span class="self">Self </span>{ raw, settings } = <span class="self">self</span>;
 
         Instance::run(Settings {
-            flags: raw,
+            flags: (raw, initialize),
             id: settings.id,
             window: settings.window,
             fonts: settings.fonts,
@@ -1215,7 +1275,7 @@
     <span class="doccomment">/// The executor of the program.
     </span><span class="kw">type </span>Executor: Executor;
 
-    <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::State, Command&lt;<span class="self">Self</span>::Message&gt;);
+    <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Command&lt;<span class="self">Self</span>::Message&gt;;
 
     <span class="kw">fn </span>update(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -1271,8 +1331,8 @@
         <span class="kw">type </span>Theme = P::Theme;
         <span class="kw">type </span>Executor = P::Executor;
 
-        <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::State, Command&lt;<span class="self">Self</span>::Message&gt;) {
-            <span class="self">self</span>.program.build()
+        <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Command&lt;<span class="self">Self</span>::Message&gt; {
+            <span class="self">self</span>.program.load()
         }
 
         <span class="kw">fn </span>title(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;</span><span class="self">Self</span>::State) -&gt; String {
@@ -1335,10 +1395,8 @@
         <span class="kw">type </span>Theme = P::Theme;
         <span class="kw">type </span>Executor = executor::Default;
 
-        <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::State, Command&lt;<span class="self">Self</span>::Message&gt;) {
-            <span class="kw">let </span>(state, command) = <span class="self">self</span>.program.build();
-
-            (state, Command::batch([command, (<span class="self">self</span>.load)()]))
+        <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Command&lt;<span class="self">Self</span>::Message&gt; {
+            Command::batch([<span class="self">self</span>.program.load(), (<span class="self">self</span>.load)()])
         }
 
         <span class="kw">fn </span>update(
@@ -1408,8 +1466,8 @@
             (<span class="self">self</span>.subscription)(state)
         }
 
-        <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::State, Command&lt;<span class="self">Self</span>::Message&gt;) {
-            <span class="self">self</span>.program.build()
+        <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Command&lt;<span class="self">Self</span>::Message&gt; {
+            <span class="self">self</span>.program.load()
         }
 
         <span class="kw">fn </span>update(
@@ -1472,8 +1530,8 @@
             (<span class="self">self</span>.theme)(state)
         }
 
-        <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::State, Command&lt;<span class="self">Self</span>::Message&gt;) {
-            <span class="self">self</span>.program.build()
+        <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Command&lt;<span class="self">Self</span>::Message&gt; {
+            <span class="self">self</span>.program.load()
         }
 
         <span class="kw">fn </span>title(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;</span><span class="self">Self</span>::State) -&gt; String {
@@ -1540,8 +1598,8 @@
             (<span class="self">self</span>.style)(state, theme)
         }
 
-        <span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="self">Self</span>::State, Command&lt;<span class="self">Self</span>::Message&gt;) {
-            <span class="self">self</span>.program.build()
+        <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Command&lt;<span class="self">Self</span>::Message&gt; {
+            <span class="self">self</span>.program.load()
         }
 
         <span class="kw">fn </span>title(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;</span><span class="self">Self</span>::State) -&gt; String {
