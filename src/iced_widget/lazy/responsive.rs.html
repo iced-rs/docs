@@ -430,6 +430,29 @@
 <a href="#430" id="430">430</a>
 <a href="#431" id="431">431</a>
 <a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a>
+<a href="#441" id="441">441</a>
+<a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
+<a href="#447" id="447">447</a>
+<a href="#448" id="448">448</a>
+<a href="#449" id="449">449</a>
+<a href="#450" id="450">450</a>
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout::{<span class="self">self</span>, Layout};
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
@@ -740,10 +763,13 @@
                     content_layout_node.as_ref().unwrap(),
                 );
 
-                element
-                    .as_widget_mut()
-                    .overlay(tree, content_layout, renderer, translation)
-                    .map(|overlay| RefCell::new(Nested::new(overlay)))
+                (
+                    element
+                        .as_widget_mut()
+                        .overlay(tree, content_layout, renderer, translation)
+                        .map(|overlay| RefCell::new(Nested::new(overlay))),
+                    content_layout_node,
+                )
             },
         }
         .build();
@@ -773,7 +799,10 @@
 
     <span class="attr">#[borrows(<span class="kw-2">mut </span>content, <span class="kw-2">mut </span>tree)]
     #[not_covariant]
-    </span>overlay: <span class="prelude-ty">Option</span>&lt;RefCell&lt;Nested&lt;<span class="lifetime">'this</span>, Message, Theme, Renderer&gt;&gt;&gt;,
+    </span>overlay: (
+        <span class="prelude-ty">Option</span>&lt;RefCell&lt;Nested&lt;<span class="lifetime">'this</span>, Message, Theme, Renderer&gt;&gt;&gt;,
+        <span class="kw-2">&amp;</span><span class="lifetime">'this </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;layout::Node&gt;,
+    ),
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Message, Theme, Renderer&gt;
@@ -783,7 +812,7 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Nested&lt;<span class="lifetime">'_</span>, Message, Theme, Renderer&gt;) -&gt; T,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="self">self</span>.with_overlay(|overlay| {
+        <span class="self">self</span>.with_overlay(|(overlay, _layout)| {
             overlay.as_ref().map(|nested| (f)(<span class="kw-2">&amp;mut </span>nested.borrow_mut()))
         })
     }
@@ -792,7 +821,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Nested&lt;<span class="lifetime">'_</span>, Message, Theme, Renderer&gt;) -&gt; T,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-        <span class="self">self</span>.with_overlay_mut(|overlay| {
+        <span class="self">self</span>.with_overlay_mut(|(overlay, _layout)| {
             overlay.as_mut().map(|nested| (f)(nested.get_mut()))
         })
     }
@@ -844,10 +873,27 @@
         clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
         shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
     ) -&gt; event::Status {
-        <span class="self">self</span>.with_overlay_mut_maybe(|overlay| {
-            overlay.on_event(event, layout, cursor, renderer, clipboard, shell)
-        })
-        .unwrap_or(event::Status::Ignored)
+        <span class="kw">let </span><span class="kw-2">mut </span>is_layout_invalid = <span class="bool-val">false</span>;
+
+        <span class="kw">let </span>event_status = <span class="self">self
+            </span>.with_overlay_mut_maybe(|overlay| {
+                <span class="kw">let </span>event_status = overlay.on_event(
+                    event, layout, cursor, renderer, clipboard, shell,
+                );
+
+                is_layout_invalid = shell.is_layout_invalid();
+
+                event_status
+            })
+            .unwrap_or(event::Status::Ignored);
+
+        <span class="kw">if </span>is_layout_invalid {
+            <span class="self">self</span>.with_overlay_mut(|(_overlay, layout)| {
+                <span class="kw-2">**</span>layout = <span class="prelude-val">None</span>;
+            });
+        }
+
+        event_status
     }
 
     <span class="kw">fn </span>is_over(
