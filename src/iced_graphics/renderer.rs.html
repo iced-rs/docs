@@ -250,8 +250,26 @@
 <a href="#250" id="250">250</a>
 <a href="#251" id="251">251</a>
 <a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create a renderer from a [`Backend`].
 </span><span class="kw">use </span><span class="kw">crate</span>::backend::{<span class="self">self</span>, Backend};
+<span class="kw">use </span><span class="kw">crate</span>::compositor;
 <span class="kw">use </span><span class="kw">crate</span>::core;
 <span class="kw">use </span><span class="kw">crate</span>::core::image;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
@@ -260,8 +278,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::{
     Background, Color, Font, Pixels, Point, Rectangle, Size, Transformation,
 };
+<span class="kw">use </span><span class="kw">crate</span>::mesh;
 <span class="kw">use </span><span class="kw">crate</span>::text;
-<span class="kw">use </span><span class="kw">crate</span>::Primitive;
+<span class="kw">use crate</span>::{Mesh, Primitive};
 
 <span class="kw">use </span>std::borrow::Cow;
 
@@ -272,6 +291,7 @@
     default_font: Font,
     default_text_size: Pixels,
     primitives: Vec&lt;Primitive&lt;B::Primitive&gt;&gt;,
+    stack: Vec&lt;Vec&lt;Primitive&lt;B::Primitive&gt;&gt;&gt;,
 }
 
 <span class="kw">impl</span>&lt;B: Backend&gt; Renderer&lt;B&gt; {
@@ -286,6 +306,7 @@
             default_font,
             default_text_size,
             primitives: Vec::new(),
+            stack: Vec::new(),
         }
     }
 
@@ -307,60 +328,34 @@
     ) -&gt; O {
         f(<span class="kw-2">&amp;mut </span><span class="self">self</span>.backend, <span class="kw-2">&amp;</span><span class="self">self</span>.primitives)
     }
+}
 
-    <span class="doccomment">/// Starts recording a new layer.
-    </span><span class="kw">pub fn </span>start_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Primitive&lt;B::Primitive&gt;&gt; {
-        std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives)
+<span class="kw">impl</span>&lt;B: Backend&gt; iced_core::Renderer <span class="kw">for </span>Renderer&lt;B&gt; {
+    <span class="kw">fn </span>start_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.stack.push(std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives));
     }
 
-    <span class="doccomment">/// Ends the recording of a layer.
-    </span><span class="kw">pub fn </span>end_layer(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        primitives: Vec&lt;Primitive&lt;B::Primitive&gt;&gt;,
-        bounds: Rectangle,
-    ) {
-        <span class="kw">let </span>layer = std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives, primitives);
+    <span class="kw">fn </span>end_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle) {
+        <span class="kw">let </span>layer = std::mem::replace(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives,
+            <span class="self">self</span>.stack.pop().expect(<span class="string">"a layer should be recording"</span>),
+        );
 
         <span class="self">self</span>.primitives.push(Primitive::group(layer).clip(bounds));
     }
 
-    <span class="doccomment">/// Starts recording a translation.
-    </span><span class="kw">pub fn </span>start_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;Primitive&lt;B::Primitive&gt;&gt; {
-        std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives)
+    <span class="kw">fn </span>start_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.stack.push(std::mem::take(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives));
     }
 
-    <span class="doccomment">/// Ends the recording of a translation.
-    </span><span class="kw">pub fn </span>end_transformation(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        primitives: Vec&lt;Primitive&lt;B::Primitive&gt;&gt;,
-        transformation: Transformation,
-    ) {
-        <span class="kw">let </span>layer = std::mem::replace(<span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives, primitives);
+    <span class="kw">fn </span>end_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, transformation: Transformation) {
+        <span class="kw">let </span>layer = std::mem::replace(
+            <span class="kw-2">&amp;mut </span><span class="self">self</span>.primitives,
+            <span class="self">self</span>.stack.pop().expect(<span class="string">"a layer should be recording"</span>),
+        );
 
         <span class="self">self</span>.primitives
             .push(Primitive::group(layer).transform(transformation));
-    }
-}
-
-<span class="kw">impl</span>&lt;B: Backend&gt; iced_core::Renderer <span class="kw">for </span>Renderer&lt;B&gt; {
-    <span class="kw">fn </span>with_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>)) {
-        <span class="kw">let </span>current = <span class="self">self</span>.start_layer();
-
-        f(<span class="self">self</span>);
-
-        <span class="self">self</span>.end_layer(current, bounds);
-    }
-
-    <span class="kw">fn </span>with_transformation(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        transformation: Transformation,
-        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>),
-    ) {
-        <span class="kw">let </span>current = <span class="self">self</span>.start_transformation();
-
-        f(<span class="self">self</span>);
-
-        <span class="self">self</span>.end_transformation(current, transformation);
     }
 
     <span class="kw">fn </span>fill_quad(
@@ -463,11 +458,11 @@
 {
     <span class="kw">type </span>Handle = image::Handle;
 
-    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle) -&gt; Size&lt;u32&gt; {
+    <span class="kw">fn </span>measure_image(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>image::Handle) -&gt; Size&lt;u32&gt; {
         <span class="self">self</span>.backend().dimensions(handle)
     }
 
-    <span class="kw">fn </span>draw(
+    <span class="kw">fn </span>draw_image(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         handle: image::Handle,
         filter_method: image::FilterMethod,
@@ -485,11 +480,11 @@
 <span class="kw">where
     </span>B: Backend + backend::Svg,
 {
-    <span class="kw">fn </span>dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>svg::Handle) -&gt; Size&lt;u32&gt; {
+    <span class="kw">fn </span>measure_svg(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>svg::Handle) -&gt; Size&lt;u32&gt; {
         <span class="self">self</span>.backend().viewport_dimensions(handle)
     }
 
-    <span class="kw">fn </span>draw(
+    <span class="kw">fn </span>draw_svg(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         handle: svg::Handle,
         color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
@@ -501,5 +496,44 @@
             bounds,
         });
     }
+}
+
+<span class="kw">impl</span>&lt;B: Backend&gt; mesh::Renderer <span class="kw">for </span>Renderer&lt;B&gt; {
+    <span class="kw">fn </span>draw_mesh(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mesh: Mesh) {
+        <span class="kw">match </span>B::Primitive::try_from(mesh) {
+            <span class="prelude-val">Ok</span>(primitive) =&gt; {
+                <span class="self">self</span>.draw_primitive(Primitive::Custom(primitive));
+            }
+            <span class="prelude-val">Err</span>(error) =&gt; {
+                <span class="macro">log::warn!</span>(<span class="string">"mesh primitive could not be drawn: {error:?}"</span>);
+            }
+        }
+    }
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"geometry"</span>)]
+</span><span class="kw">impl</span>&lt;B&gt; <span class="kw">crate</span>::geometry::Renderer <span class="kw">for </span>Renderer&lt;B&gt;
+<span class="kw">where
+    </span>B: Backend + <span class="kw">crate</span>::geometry::Backend,
+    B::Frame:
+        <span class="kw">crate</span>::geometry::frame::Backend&lt;Geometry = Primitive&lt;B::Primitive&gt;&gt;,
+{
+    <span class="kw">type </span>Frame = B::Frame;
+    <span class="kw">type </span>Geometry = Primitive&lt;B::Primitive&gt;;
+
+    <span class="kw">fn </span>new_frame(<span class="kw-2">&amp;</span><span class="self">self</span>, size: Size) -&gt; <span class="self">Self</span>::Frame {
+        <span class="self">self</span>.backend.new_frame(size)
+    }
+
+    <span class="kw">fn </span>draw_geometry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, geometry: <span class="self">Self</span>::Geometry) {
+        <span class="self">self</span>.draw_primitive(geometry);
+    }
+}
+
+<span class="kw">impl</span>&lt;B&gt; compositor::Default <span class="kw">for </span>Renderer&lt;B&gt;
+<span class="kw">where
+    </span>B: Backend,
+{
+    <span class="kw">type </span>Compositor = B::Compositor;
 }
 </code></pre></div></section></main></body></html>

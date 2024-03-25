@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Renderer"],"mod":["compositor","geometry"],"struct":["Settings"]};
+window.SIDEBAR_ITEMS = {"mod":["fallback","geometry"],"type":["Compositor","Renderer"]};

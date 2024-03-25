@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"iced_wgpu":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html\" title=\"trait core::convert::TryFrom\">TryFrom</a>&lt;<a class=\"enum\" href=\"iced_graphics/mesh/enum.Mesh.html\" title=\"enum iced_graphics::mesh::Mesh\">Mesh</a>&gt; for <a class=\"enum\" href=\"iced_wgpu/primitive/enum.Custom.html\" title=\"enum iced_wgpu::primitive::Custom\">Custom</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

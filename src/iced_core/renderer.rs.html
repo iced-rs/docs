@@ -79,30 +79,72 @@
 <a href="#79" id="79">79</a>
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Write your own renderer.
 </span><span class="attr">#[cfg(debug_assertions)]
 </span><span class="kw">mod </span>null;
-
-<span class="attr">#[cfg(debug_assertions)]
-</span><span class="kw">pub use </span>null::Null;
 
 <span class="kw">use crate</span>::{
     Background, Border, Color, Rectangle, Shadow, Size, Transformation, Vector,
 };
 
 <span class="doccomment">/// A component that can be used by widgets to draw themselves on a screen.
-</span><span class="kw">pub trait </span>Renderer: Sized {
+</span><span class="kw">pub trait </span>Renderer {
+    <span class="doccomment">/// Starts recording a new layer.
+    </span><span class="kw">fn </span>start_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
+
+    <span class="doccomment">/// Ends recording a new layer.
+    ///
+    /// The new layer will clip its contents to the provided `bounds`.
+    </span><span class="kw">fn </span>end_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle);
+
     <span class="doccomment">/// Draws the primitives recorded in the given closure in a new layer.
     ///
     /// The layer will clip its contents to the provided `bounds`.
-    </span><span class="kw">fn </span>with_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>));
+    </span><span class="kw">fn </span>with_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>)) {
+        <span class="self">self</span>.start_layer();
+        f(<span class="self">self</span>);
+        <span class="self">self</span>.end_layer(bounds);
+    }
+
+    <span class="doccomment">/// Starts recording with a new [`Transformation`].
+    </span><span class="kw">fn </span>start_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>);
+
+    <span class="doccomment">/// Ends recording a new layer.
+    ///
+    /// The new layer will clip its contents to the provided `bounds`.
+    </span><span class="kw">fn </span>end_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, transformation: Transformation);
 
     <span class="doccomment">/// Applies a [`Transformation`] to the primitives recorded in the given closure.
     </span><span class="kw">fn </span>with_transformation(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         transformation: Transformation,
         f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>),
-    );
+    ) {
+        <span class="self">self</span>.start_transformation();
+        f(<span class="self">self</span>);
+        <span class="self">self</span>.end_transformation(transformation);
+    }
 
     <span class="doccomment">/// Applies a translation to the primitives recorded in the given closure.
     </span><span class="kw">fn </span>with_translation(

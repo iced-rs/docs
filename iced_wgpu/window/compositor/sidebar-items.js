@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["new","present","screenshot"],"struct":["Compositor"]};
+window.SIDEBAR_ITEMS = {"enum":["Error"],"fn":["new","present","screenshot"],"struct":["Compositor"]};

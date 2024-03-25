@@ -619,66 +619,6 @@
 <a href="#619" id="619">619</a>
 <a href="#620" id="620">620</a>
 <a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a>
-<a href="#626" id="626">626</a>
-<a href="#627" id="627">627</a>
-<a href="#628" id="628">628</a>
-<a href="#629" id="629">629</a>
-<a href="#630" id="630">630</a>
-<a href="#631" id="631">631</a>
-<a href="#632" id="632">632</a>
-<a href="#633" id="633">633</a>
-<a href="#634" id="634">634</a>
-<a href="#635" id="635">635</a>
-<a href="#636" id="636">636</a>
-<a href="#637" id="637">637</a>
-<a href="#638" id="638">638</a>
-<a href="#639" id="639">639</a>
-<a href="#640" id="640">640</a>
-<a href="#641" id="641">641</a>
-<a href="#642" id="642">642</a>
-<a href="#643" id="643">643</a>
-<a href="#644" id="644">644</a>
-<a href="#645" id="645">645</a>
-<a href="#646" id="646">646</a>
-<a href="#647" id="647">647</a>
-<a href="#648" id="648">648</a>
-<a href="#649" id="649">649</a>
-<a href="#650" id="650">650</a>
-<a href="#651" id="651">651</a>
-<a href="#652" id="652">652</a>
-<a href="#653" id="653">653</a>
-<a href="#654" id="654">654</a>
-<a href="#655" id="655">655</a>
-<a href="#656" id="656">656</a>
-<a href="#657" id="657">657</a>
-<a href="#658" id="658">658</a>
-<a href="#659" id="659">659</a>
-<a href="#660" id="660">660</a>
-<a href="#661" id="661">661</a>
-<a href="#662" id="662">662</a>
-<a href="#663" id="663">663</a>
-<a href="#664" id="664">664</a>
-<a href="#665" id="665">665</a>
-<a href="#666" id="666">666</a>
-<a href="#667" id="667">667</a>
-<a href="#668" id="668">668</a>
-<a href="#669" id="669">669</a>
-<a href="#670" id="670">670</a>
-<a href="#671" id="671">671</a>
-<a href="#672" id="672">672</a>
-<a href="#673" id="673">673</a>
-<a href="#674" id="674">674</a>
-<a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a>
-<a href="#677" id="677">677</a>
-<a href="#678" id="678">678</a>
-<a href="#679" id="679">679</a>
-<a href="#680" id="680">680</a>
-<a href="#681" id="681">681</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and draw geometry.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::text::LineHeight;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
@@ -687,7 +627,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::fill::{<span class="self">self</span>, Fill};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{
-    LineCap, LineDash, LineJoin, Path, Stroke, Style, Text,
+    <span class="self">self</span>, LineCap, LineDash, LineJoin, Path, Stroke, Style, Text,
 };
 <span class="kw">use </span><span class="kw">crate</span>::graphics::gradient::{<span class="self">self</span>, Gradient};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::mesh::{<span class="self">self</span>, Mesh};
@@ -695,6 +635,7 @@
 
 <span class="kw">use </span>lyon::geom::euclid;
 <span class="kw">use </span>lyon::tessellation;
+
 <span class="kw">use </span>std::borrow::Cow;
 
 <span class="doccomment">/// A frame for drawing some geometry.
@@ -706,6 +647,325 @@
     transforms: Transforms,
     fill_tessellator: tessellation::FillTessellator,
     stroke_tessellator: tessellation::StrokeTessellator,
+}
+
+<span class="kw">impl </span>Frame {
+    <span class="doccomment">/// Creates a new [`Frame`] with the given [`Size`].
+    </span><span class="kw">pub fn </span>new(size: Size) -&gt; Frame {
+        Frame {
+            size,
+            buffers: BufferStack::new(),
+            primitives: Vec::new(),
+            transforms: Transforms {
+                previous: Vec::new(),
+                current: Transform(lyon::math::Transform::identity()),
+            },
+            fill_tessellator: tessellation::FillTessellator::new(),
+            stroke_tessellator: tessellation::StrokeTessellator::new(),
+        }
+    }
+
+    <span class="kw">fn </span>into_primitives(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Vec&lt;Primitive&gt; {
+        <span class="kw">for </span>buffer <span class="kw">in </span><span class="self">self</span>.buffers.stack {
+            <span class="kw">match </span>buffer {
+                Buffer::Solid(buffer) =&gt; {
+                    <span class="kw">if </span>!buffer.indices.is_empty() {
+                        <span class="self">self</span>.primitives.push(Primitive::Custom(
+                            primitive::Custom::Mesh(Mesh::Solid {
+                                buffers: mesh::Indexed {
+                                    vertices: buffer.vertices,
+                                    indices: buffer.indices,
+                                },
+                                size: <span class="self">self</span>.size,
+                            }),
+                        ));
+                    }
+                }
+                Buffer::Gradient(buffer) =&gt; {
+                    <span class="kw">if </span>!buffer.indices.is_empty() {
+                        <span class="self">self</span>.primitives.push(Primitive::Custom(
+                            primitive::Custom::Mesh(Mesh::Gradient {
+                                buffers: mesh::Indexed {
+                                    vertices: buffer.vertices,
+                                    indices: buffer.indices,
+                                },
+                                size: <span class="self">self</span>.size,
+                            }),
+                        ));
+                    }
+                }
+            }
+        }
+
+        <span class="self">self</span>.primitives
+    }
+}
+
+<span class="kw">impl </span>geometry::frame::Backend <span class="kw">for </span>Frame {
+    <span class="kw">type </span>Geometry = Primitive;
+
+    <span class="doccomment">/// Creates a new empty [`Frame`] with the given dimensions.
+    ///
+    /// The default coordinate system of a [`Frame`] has its origin at the
+    /// top-left corner of its bounds.
+
+    </span><span class="attr">#[inline]
+    </span><span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
+        <span class="self">self</span>.size.width
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
+        <span class="self">self</span>.size.height
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size {
+        <span class="self">self</span>.size
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>center(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Point {
+        Point::new(<span class="self">self</span>.size.width / <span class="number">2.0</span>, <span class="self">self</span>.size.height / <span class="number">2.0</span>)
+    }
+
+    <span class="kw">fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path, fill: <span class="kw">impl </span>Into&lt;Fill&gt;) {
+        <span class="kw">let </span>Fill { style, rule } = fill.into();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="self">self
+            </span>.buffers
+            .get_fill(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.transform_style(style));
+
+        <span class="kw">let </span>options = tessellation::FillOptions::default()
+            .with_fill_rule(into_fill_rule(rule));
+
+        <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity() {
+            <span class="self">self</span>.fill_tessellator.tessellate_path(
+                path.raw(),
+                <span class="kw-2">&amp;</span>options,
+                buffer.as_mut(),
+            )
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>path = path.transform(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.<span class="number">0</span>);
+
+            <span class="self">self</span>.fill_tessellator.tessellate_path(
+                path.raw(),
+                <span class="kw-2">&amp;</span>options,
+                buffer.as_mut(),
+            )
+        }
+        .expect(<span class="string">"Tessellate path."</span>);
+    }
+
+    <span class="kw">fn </span>fill_rectangle(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        top_left: Point,
+        size: Size,
+        fill: <span class="kw">impl </span>Into&lt;Fill&gt;,
+    ) {
+        <span class="kw">let </span>Fill { style, rule } = fill.into();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="self">self
+            </span>.buffers
+            .get_fill(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.transform_style(style));
+
+        <span class="kw">let </span>top_left = <span class="self">self
+            </span>.transforms
+            .current
+            .<span class="number">0
+            </span>.transform_point(lyon::math::Point::new(top_left.x, top_left.y));
+
+        <span class="kw">let </span>size =
+            <span class="self">self</span>.transforms.current.<span class="number">0</span>.transform_vector(
+                lyon::math::Vector::new(size.width, size.height),
+            );
+
+        <span class="kw">let </span>options = tessellation::FillOptions::default()
+            .with_fill_rule(into_fill_rule(rule));
+
+        <span class="self">self</span>.fill_tessellator
+            .tessellate_rectangle(
+                <span class="kw-2">&amp;</span>lyon::math::Box2D::new(top_left, top_left + size),
+                <span class="kw-2">&amp;</span>options,
+                buffer.as_mut(),
+            )
+            .expect(<span class="string">"Fill rectangle"</span>);
+    }
+
+    <span class="kw">fn </span>stroke&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path, stroke: <span class="kw">impl </span>Into&lt;Stroke&lt;<span class="lifetime">'a</span>&gt;&gt;) {
+        <span class="kw">let </span>stroke = stroke.into();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="self">self
+            </span>.buffers
+            .get_stroke(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.transform_style(stroke.style));
+
+        <span class="kw">let </span><span class="kw-2">mut </span>options = tessellation::StrokeOptions::default();
+        options.line_width = stroke.width;
+        options.start_cap = into_line_cap(stroke.line_cap);
+        options.end_cap = into_line_cap(stroke.line_cap);
+        options.line_join = into_line_join(stroke.line_join);
+
+        <span class="kw">let </span>path = <span class="kw">if </span>stroke.line_dash.segments.is_empty() {
+            Cow::Borrowed(path)
+        } <span class="kw">else </span>{
+            Cow::Owned(dashed(path, stroke.line_dash))
+        };
+
+        <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity() {
+            <span class="self">self</span>.stroke_tessellator.tessellate_path(
+                path.raw(),
+                <span class="kw-2">&amp;</span>options,
+                buffer.as_mut(),
+            )
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>path = path.transform(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.<span class="number">0</span>);
+
+            <span class="self">self</span>.stroke_tessellator.tessellate_path(
+                path.raw(),
+                <span class="kw-2">&amp;</span>options,
+                buffer.as_mut(),
+            )
+        }
+        .expect(<span class="string">"Stroke path"</span>);
+    }
+
+    <span class="kw">fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: <span class="kw">impl </span>Into&lt;Text&gt;) {
+        <span class="kw">let </span>text = text.into();
+
+        <span class="kw">let </span>(scale_x, scale_y) = <span class="self">self</span>.transforms.current.scale();
+
+        <span class="kw">if </span><span class="self">self</span>.transforms.current.is_scale_translation()
+            &amp;&amp; scale_x == scale_y
+            &amp;&amp; scale_x &gt; <span class="number">0.0
+            </span>&amp;&amp; scale_y &gt; <span class="number">0.0
+        </span>{
+            <span class="kw">let </span>(position, size, line_height) =
+                <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity() {
+                    (text.position, text.size, text.line_height)
+                } <span class="kw">else </span>{
+                    <span class="kw">let </span>position =
+                        <span class="self">self</span>.transforms.current.transform_point(text.position);
+
+                    <span class="kw">let </span>size = Pixels(text.size.<span class="number">0 </span>* scale_y);
+
+                    <span class="kw">let </span>line_height = <span class="kw">match </span>text.line_height {
+                        LineHeight::Absolute(size) =&gt; {
+                            LineHeight::Absolute(Pixels(size.<span class="number">0 </span>* scale_y))
+                        }
+                        LineHeight::Relative(factor) =&gt; {
+                            LineHeight::Relative(factor)
+                        }
+                    };
+
+                    (position, size, line_height)
+                };
+
+            <span class="kw">let </span>bounds = Rectangle {
+                x: position.x,
+                y: position.y,
+                width: f32::INFINITY,
+                height: f32::INFINITY,
+            };
+
+            <span class="comment">// TODO: Honor layering!
+            </span><span class="self">self</span>.primitives.push(Primitive::Text {
+                content: text.content,
+                bounds,
+                color: text.color,
+                size,
+                line_height,
+                font: text.font,
+                horizontal_alignment: text.horizontal_alignment,
+                vertical_alignment: text.vertical_alignment,
+                shaping: text.shaping,
+                clip_bounds: Rectangle::with_size(Size::INFINITY),
+            });
+        } <span class="kw">else </span>{
+            text.draw_with(|path, color| <span class="self">self</span>.fill(<span class="kw-2">&amp;</span>path, color));
+        }
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>translate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, translation: Vector) {
+        <span class="self">self</span>.transforms.current.<span class="number">0 </span>=
+            <span class="self">self</span>.transforms
+                .current
+                .<span class="number">0
+                </span>.pre_translate(lyon::math::Vector::new(
+                    translation.x,
+                    translation.y,
+                ));
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>rotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, angle: <span class="kw">impl </span>Into&lt;Radians&gt;) {
+        <span class="self">self</span>.transforms.current.<span class="number">0 </span>= <span class="self">self
+            </span>.transforms
+            .current
+            .<span class="number">0
+            </span>.pre_rotate(lyon::math::Angle::radians(angle.into().<span class="number">0</span>));
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>scale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, scale: <span class="kw">impl </span>Into&lt;f32&gt;) {
+        <span class="kw">let </span>scale = scale.into();
+
+        <span class="self">self</span>.scale_nonuniform(Vector { x: scale, y: scale });
+    }
+
+    <span class="attr">#[inline]
+    </span><span class="kw">fn </span>scale_nonuniform(<span class="kw-2">&amp;mut </span><span class="self">self</span>, scale: <span class="kw">impl </span>Into&lt;Vector&gt;) {
+        <span class="kw">let </span>scale = scale.into();
+
+        <span class="self">self</span>.transforms.current.<span class="number">0 </span>=
+            <span class="self">self</span>.transforms.current.<span class="number">0</span>.pre_scale(scale.x, scale.y);
+    }
+
+    <span class="kw">fn </span>push_transform(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.transforms.previous.push(<span class="self">self</span>.transforms.current);
+    }
+
+    <span class="kw">fn </span>pop_transform(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.transforms.current = <span class="self">self</span>.transforms.previous.pop().unwrap();
+    }
+
+    <span class="kw">fn </span>draft(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: Size) -&gt; Frame {
+        Frame::new(size)
+    }
+
+    <span class="kw">fn </span>paste(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: Frame, at: Point) {
+        <span class="kw">let </span>size = frame.size();
+        <span class="kw">let </span>primitives = frame.into_primitives();
+        <span class="kw">let </span>transformation = Transformation::translate(at.x, at.y);
+
+        <span class="kw">let </span>(text, meshes) = primitives
+            .into_iter()
+            .partition(|primitive| <span class="macro">matches!</span>(primitive, Primitive::Text { .. }));
+
+        <span class="self">self</span>.primitives.push(Primitive::Group {
+            primitives: <span class="macro">vec!</span>[
+                Primitive::Transform {
+                    transformation,
+                    content: Box::new(Primitive::Group { primitives: meshes }),
+                },
+                Primitive::Transform {
+                    transformation,
+                    content: Box::new(Primitive::Clip {
+                        bounds: Rectangle::with_size(size),
+                        content: Box::new(Primitive::Group {
+                            primitives: text,
+                        }),
+                    }),
+                },
+            ],
+        });
+    }
+
+    <span class="kw">fn </span>into_geometry(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Geometry {
+        Primitive::Group {
+            primitives: <span class="self">self</span>.into_primitives(),
+        }
+    }
 }
 
 <span class="kw">enum </span>Buffer {
@@ -846,386 +1106,6 @@
         gradient
     }
 }
-
-<span class="kw">impl </span>Frame {
-    <span class="doccomment">/// Creates a new empty [`Frame`] with the given dimensions.
-    ///
-    /// The default coordinate system of a [`Frame`] has its origin at the
-    /// top-left corner of its bounds.
-    </span><span class="kw">pub fn </span>new(size: Size) -&gt; Frame {
-        Frame {
-            size,
-            buffers: BufferStack::new(),
-            primitives: Vec::new(),
-            transforms: Transforms {
-                previous: Vec::new(),
-                current: Transform(lyon::math::Transform::identity()),
-            },
-            fill_tessellator: tessellation::FillTessellator::new(),
-            stroke_tessellator: tessellation::StrokeTessellator::new(),
-        }
-    }
-
-    <span class="doccomment">/// Returns the width of the [`Frame`].
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
-        <span class="self">self</span>.size.width
-    }
-
-    <span class="doccomment">/// Returns the height of the [`Frame`].
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
-        <span class="self">self</span>.size.height
-    }
-
-    <span class="doccomment">/// Returns the dimensions of the [`Frame`].
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size {
-        <span class="self">self</span>.size
-    }
-
-    <span class="doccomment">/// Returns the coordinate of the center of the [`Frame`].
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>center(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Point {
-        Point::new(<span class="self">self</span>.size.width / <span class="number">2.0</span>, <span class="self">self</span>.size.height / <span class="number">2.0</span>)
-    }
-
-    <span class="doccomment">/// Draws the given [`Path`] on the [`Frame`] by filling it with the
-    /// provided style.
-    </span><span class="kw">pub fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path, fill: <span class="kw">impl </span>Into&lt;Fill&gt;) {
-        <span class="kw">let </span>Fill { style, rule } = fill.into();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="self">self
-            </span>.buffers
-            .get_fill(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.transform_style(style));
-
-        <span class="kw">let </span>options = tessellation::FillOptions::default()
-            .with_fill_rule(into_fill_rule(rule));
-
-        <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity() {
-            <span class="self">self</span>.fill_tessellator.tessellate_path(
-                path.raw(),
-                <span class="kw-2">&amp;</span>options,
-                buffer.as_mut(),
-            )
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>path = path.transform(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.<span class="number">0</span>);
-
-            <span class="self">self</span>.fill_tessellator.tessellate_path(
-                path.raw(),
-                <span class="kw-2">&amp;</span>options,
-                buffer.as_mut(),
-            )
-        }
-        .expect(<span class="string">"Tessellate path."</span>);
-    }
-
-    <span class="doccomment">/// Draws an axis-aligned rectangle given its top-left corner coordinate and
-    /// its `Size` on the [`Frame`] by filling it with the provided style.
-    </span><span class="kw">pub fn </span>fill_rectangle(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        top_left: Point,
-        size: Size,
-        fill: <span class="kw">impl </span>Into&lt;Fill&gt;,
-    ) {
-        <span class="kw">let </span>Fill { style, rule } = fill.into();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="self">self
-            </span>.buffers
-            .get_fill(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.transform_style(style));
-
-        <span class="kw">let </span>top_left = <span class="self">self
-            </span>.transforms
-            .current
-            .<span class="number">0
-            </span>.transform_point(lyon::math::Point::new(top_left.x, top_left.y));
-
-        <span class="kw">let </span>size =
-            <span class="self">self</span>.transforms.current.<span class="number">0</span>.transform_vector(
-                lyon::math::Vector::new(size.width, size.height),
-            );
-
-        <span class="kw">let </span>options = tessellation::FillOptions::default()
-            .with_fill_rule(into_fill_rule(rule));
-
-        <span class="self">self</span>.fill_tessellator
-            .tessellate_rectangle(
-                <span class="kw-2">&amp;</span>lyon::math::Box2D::new(top_left, top_left + size),
-                <span class="kw-2">&amp;</span>options,
-                buffer.as_mut(),
-            )
-            .expect(<span class="string">"Fill rectangle"</span>);
-    }
-
-    <span class="doccomment">/// Draws the stroke of the given [`Path`] on the [`Frame`] with the
-    /// provided style.
-    </span><span class="kw">pub fn </span>stroke&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path, stroke: <span class="kw">impl </span>Into&lt;Stroke&lt;<span class="lifetime">'a</span>&gt;&gt;) {
-        <span class="kw">let </span>stroke = stroke.into();
-
-        <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="self">self
-            </span>.buffers
-            .get_stroke(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.transform_style(stroke.style));
-
-        <span class="kw">let </span><span class="kw-2">mut </span>options = tessellation::StrokeOptions::default();
-        options.line_width = stroke.width;
-        options.start_cap = into_line_cap(stroke.line_cap);
-        options.end_cap = into_line_cap(stroke.line_cap);
-        options.line_join = into_line_join(stroke.line_join);
-
-        <span class="kw">let </span>path = <span class="kw">if </span>stroke.line_dash.segments.is_empty() {
-            Cow::Borrowed(path)
-        } <span class="kw">else </span>{
-            Cow::Owned(dashed(path, stroke.line_dash))
-        };
-
-        <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity() {
-            <span class="self">self</span>.stroke_tessellator.tessellate_path(
-                path.raw(),
-                <span class="kw-2">&amp;</span>options,
-                buffer.as_mut(),
-            )
-        } <span class="kw">else </span>{
-            <span class="kw">let </span>path = path.transform(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.<span class="number">0</span>);
-
-            <span class="self">self</span>.stroke_tessellator.tessellate_path(
-                path.raw(),
-                <span class="kw-2">&amp;</span>options,
-                buffer.as_mut(),
-            )
-        }
-        .expect(<span class="string">"Stroke path"</span>);
-    }
-
-    <span class="doccomment">/// Draws the characters of the given [`Text`] on the [`Frame`], filling
-    /// them with the given color.
-    ///
-    /// __Warning:__ Text currently does not work well with rotations and scale
-    /// transforms! The position will be correctly transformed, but the
-    /// resulting glyphs will not be rotated or scaled properly.
-    ///
-    /// Additionally, all text will be rendered on top of all the layers of
-    /// a `Canvas`. Therefore, it is currently only meant to be used for
-    /// overlays, which is the most common use case.
-    ///
-    /// Support for vectorial text is planned, and should address all these
-    /// limitations.
-    </span><span class="kw">pub fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: <span class="kw">impl </span>Into&lt;Text&gt;) {
-        <span class="kw">let </span>text = text.into();
-
-        <span class="kw">let </span>(scale_x, scale_y) = <span class="self">self</span>.transforms.current.scale();
-
-        <span class="kw">if </span><span class="self">self</span>.transforms.current.is_scale_translation()
-            &amp;&amp; scale_x == scale_y
-            &amp;&amp; scale_x &gt; <span class="number">0.0
-            </span>&amp;&amp; scale_y &gt; <span class="number">0.0
-        </span>{
-            <span class="kw">let </span>(position, size, line_height) =
-                <span class="kw">if </span><span class="self">self</span>.transforms.current.is_identity() {
-                    (text.position, text.size, text.line_height)
-                } <span class="kw">else </span>{
-                    <span class="kw">let </span>position =
-                        <span class="self">self</span>.transforms.current.transform_point(text.position);
-
-                    <span class="kw">let </span>size = Pixels(text.size.<span class="number">0 </span>* scale_y);
-
-                    <span class="kw">let </span>line_height = <span class="kw">match </span>text.line_height {
-                        LineHeight::Absolute(size) =&gt; {
-                            LineHeight::Absolute(Pixels(size.<span class="number">0 </span>* scale_y))
-                        }
-                        LineHeight::Relative(factor) =&gt; {
-                            LineHeight::Relative(factor)
-                        }
-                    };
-
-                    (position, size, line_height)
-                };
-
-            <span class="kw">let </span>bounds = Rectangle {
-                x: position.x,
-                y: position.y,
-                width: f32::INFINITY,
-                height: f32::INFINITY,
-            };
-
-            <span class="comment">// TODO: Honor layering!
-            </span><span class="self">self</span>.primitives.push(Primitive::Text {
-                content: text.content,
-                bounds,
-                color: text.color,
-                size,
-                line_height,
-                font: text.font,
-                horizontal_alignment: text.horizontal_alignment,
-                vertical_alignment: text.vertical_alignment,
-                shaping: text.shaping,
-                clip_bounds: Rectangle::with_size(Size::INFINITY),
-            });
-        } <span class="kw">else </span>{
-            text.draw_with(|path, color| <span class="self">self</span>.fill(<span class="kw-2">&amp;</span>path, color));
-        }
-    }
-
-    <span class="doccomment">/// Stores the current transform of the [`Frame`] and executes the given
-    /// drawing operations, restoring the transform afterwards.
-    ///
-    /// This method is useful to compose transforms and perform drawing
-    /// operations in different coordinate systems.
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>with_save&lt;R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Frame) -&gt; R) -&gt; R {
-        <span class="self">self</span>.push_transform();
-
-        <span class="kw">let </span>result = f(<span class="self">self</span>);
-
-        <span class="self">self</span>.pop_transform();
-
-        result
-    }
-
-    <span class="doccomment">/// Pushes the current transform in the transform stack.
-    </span><span class="kw">pub fn </span>push_transform(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.transforms.previous.push(<span class="self">self</span>.transforms.current);
-    }
-
-    <span class="doccomment">/// Pops a transform from the transform stack and sets it as the current transform.
-    </span><span class="kw">pub fn </span>pop_transform(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.transforms.current = <span class="self">self</span>.transforms.previous.pop().unwrap();
-    }
-
-    <span class="doccomment">/// Executes the given drawing operations within a [`Rectangle`] region,
-    /// clipping any geometry that overflows its bounds. Any transformations
-    /// performed are local to the provided closure.
-    ///
-    /// This method is useful to perform drawing operations that need to be
-    /// clipped.
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>with_clip&lt;R&gt;(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        region: Rectangle,
-        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Frame) -&gt; R,
-    ) -&gt; R {
-        <span class="kw">let </span><span class="kw-2">mut </span>frame = Frame::new(region.size());
-
-        <span class="kw">let </span>result = f(<span class="kw-2">&amp;mut </span>frame);
-
-        <span class="kw">let </span>origin = Point::new(region.x, region.y);
-
-        <span class="self">self</span>.clip(frame, origin);
-
-        result
-    }
-
-    <span class="doccomment">/// Draws the clipped contents of the given [`Frame`] with origin at the given [`Point`].
-    </span><span class="kw">pub fn </span>clip(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: Frame, at: Point) {
-        <span class="kw">let </span>size = frame.size();
-        <span class="kw">let </span>primitives = frame.into_primitives();
-        <span class="kw">let </span>transformation = Transformation::translate(at.x, at.y);
-
-        <span class="kw">let </span>(text, meshes) = primitives
-            .into_iter()
-            .partition(|primitive| <span class="macro">matches!</span>(primitive, Primitive::Text { .. }));
-
-        <span class="self">self</span>.primitives.push(Primitive::Group {
-            primitives: <span class="macro">vec!</span>[
-                Primitive::Transform {
-                    transformation,
-                    content: Box::new(Primitive::Group { primitives: meshes }),
-                },
-                Primitive::Transform {
-                    transformation,
-                    content: Box::new(Primitive::Clip {
-                        bounds: Rectangle::with_size(size),
-                        content: Box::new(Primitive::Group {
-                            primitives: text,
-                        }),
-                    }),
-                },
-            ],
-        });
-    }
-
-    <span class="doccomment">/// Applies a translation to the current transform of the [`Frame`].
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>translate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, translation: Vector) {
-        <span class="self">self</span>.transforms.current.<span class="number">0 </span>=
-            <span class="self">self</span>.transforms
-                .current
-                .<span class="number">0
-                </span>.pre_translate(lyon::math::Vector::new(
-                    translation.x,
-                    translation.y,
-                ));
-    }
-
-    <span class="doccomment">/// Applies a rotation in radians to the current transform of the [`Frame`].
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>rotate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, angle: <span class="kw">impl </span>Into&lt;Radians&gt;) {
-        <span class="self">self</span>.transforms.current.<span class="number">0 </span>= <span class="self">self
-            </span>.transforms
-            .current
-            .<span class="number">0
-            </span>.pre_rotate(lyon::math::Angle::radians(angle.into().<span class="number">0</span>));
-    }
-
-    <span class="doccomment">/// Applies a uniform scaling to the current transform of the [`Frame`].
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>scale(<span class="kw-2">&amp;mut </span><span class="self">self</span>, scale: <span class="kw">impl </span>Into&lt;f32&gt;) {
-        <span class="kw">let </span>scale = scale.into();
-
-        <span class="self">self</span>.scale_nonuniform(Vector { x: scale, y: scale });
-    }
-
-    <span class="doccomment">/// Applies a non-uniform scaling to the current transform of the [`Frame`].
-    </span><span class="attr">#[inline]
-    </span><span class="kw">pub fn </span>scale_nonuniform(<span class="kw-2">&amp;mut </span><span class="self">self</span>, scale: <span class="kw">impl </span>Into&lt;Vector&gt;) {
-        <span class="kw">let </span>scale = scale.into();
-
-        <span class="self">self</span>.transforms.current.<span class="number">0 </span>=
-            <span class="self">self</span>.transforms.current.<span class="number">0</span>.pre_scale(scale.x, scale.y);
-    }
-
-    <span class="doccomment">/// Produces the [`Primitive`] representing everything drawn on the [`Frame`].
-    </span><span class="kw">pub fn </span>into_primitive(<span class="self">self</span>) -&gt; Primitive {
-        Primitive::Group {
-            primitives: <span class="self">self</span>.into_primitives(),
-        }
-    }
-
-    <span class="kw">fn </span>into_primitives(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Vec&lt;Primitive&gt; {
-        <span class="kw">for </span>buffer <span class="kw">in </span><span class="self">self</span>.buffers.stack {
-            <span class="kw">match </span>buffer {
-                Buffer::Solid(buffer) =&gt; {
-                    <span class="kw">if </span>!buffer.indices.is_empty() {
-                        <span class="self">self</span>.primitives.push(Primitive::Custom(
-                            primitive::Custom::Mesh(Mesh::Solid {
-                                buffers: mesh::Indexed {
-                                    vertices: buffer.vertices,
-                                    indices: buffer.indices,
-                                },
-                                size: <span class="self">self</span>.size,
-                            }),
-                        ));
-                    }
-                }
-                Buffer::Gradient(buffer) =&gt; {
-                    <span class="kw">if </span>!buffer.indices.is_empty() {
-                        <span class="self">self</span>.primitives.push(Primitive::Custom(
-                            primitive::Custom::Mesh(Mesh::Gradient {
-                                buffers: mesh::Indexed {
-                                    vertices: buffer.vertices,
-                                    indices: buffer.indices,
-                                },
-                                size: <span class="self">self</span>.size,
-                            }),
-                        ));
-                    }
-                }
-            }
-        }
-
-        <span class="self">self</span>.primitives
-    }
-}
-
 <span class="kw">struct </span>GradientVertex2DBuilder {
     gradient: gradient::Packed,
 }

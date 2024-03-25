@@ -285,8 +285,16 @@
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
 <a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build interactive cross-platform applications.
-</span><span class="kw">use </span><span class="kw">crate</span>::shell::application;
+</span><span class="kw">use </span><span class="kw">crate</span>::core::text;
+<span class="kw">use </span><span class="kw">crate</span>::graphics::compositor;
+<span class="kw">use </span><span class="kw">crate</span>::shell::application;
 <span class="kw">use crate</span>::{Command, Element, Executor, Settings, Subscription};
 
 <span class="kw">pub use </span>application::{Appearance, DefaultStyle};
@@ -347,7 +355,7 @@
 /// ```no_run
 /// use iced::advanced::Application;
 /// use iced::executor;
-/// use iced::{Command, Element, Settings, Theme};
+/// use iced::{Command, Element, Settings, Theme, Renderer};
 ///
 /// pub fn main() -&gt; iced::Result {
 ///     Hello::run(Settings::default())
@@ -360,6 +368,7 @@
 ///     type Flags = ();
 ///     type Message = ();
 ///     type Theme = Theme;
+///     type Renderer = Renderer;
 ///
 ///     fn new(_flags: ()) -&gt; (Hello, Command&lt;Self::Message&gt;) {
 ///         (Hello, Command::none())
@@ -396,6 +405,9 @@
     <span class="doccomment">/// The theme of your [`Application`].
     </span><span class="kw">type </span>Theme: Default;
 
+    <span class="doccomment">/// The renderer of your [`Application`].
+    </span><span class="kw">type </span>Renderer: text::Renderer + compositor::Default;
+
     <span class="doccomment">/// The data needed to initialize your [`Application`].
     </span><span class="kw">type </span>Flags;
 
@@ -429,7 +441,7 @@
     <span class="doccomment">/// Returns the widgets to display in the [`Application`].
     ///
     /// These widgets can produce __messages__ based on user interaction.
-    </span><span class="kw">fn </span>view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Element&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>::Message, <span class="self">Self</span>::Theme, <span class="kw">crate</span>::Renderer&gt;;
+    </span><span class="kw">fn </span>view(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Element&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>::Message, <span class="self">Self</span>::Theme, <span class="self">Self</span>::Renderer&gt;;
 
     <span class="doccomment">/// Returns the current [`Theme`] of the [`Application`].
     ///
@@ -482,7 +494,7 @@
         </span><span class="self">Self</span>: <span class="lifetime">'static</span>,
     {
         <span class="attr">#[allow(clippy::needless_update)]
-        </span><span class="kw">let </span>renderer_settings = <span class="kw">crate</span>::renderer::Settings {
+        </span><span class="kw">let </span>renderer_settings = <span class="kw">crate</span>::graphics::Settings {
             default_font: settings.default_font,
             default_text_size: settings.default_text_size,
             antialiasing: <span class="kw">if </span>settings.antialiasing {
@@ -490,13 +502,13 @@
             } <span class="kw">else </span>{
                 <span class="prelude-val">None
             </span>},
-            ..<span class="kw">crate</span>::renderer::Settings::default()
+            ..<span class="kw">crate</span>::graphics::Settings::default()
         };
 
         <span class="kw">let </span>run = <span class="kw">crate</span>::shell::application::run::&lt;
             Instance&lt;<span class="self">Self</span>&gt;,
             <span class="self">Self</span>::Executor,
-            <span class="kw">crate</span>::renderer::Compositor,
+            &lt;<span class="self">Self</span>::Renderer <span class="kw">as </span>compositor::Default&gt;::Compositor,
         &gt;(settings.into(), renderer_settings);
 
         <span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
@@ -528,7 +540,7 @@
 {
     <span class="kw">type </span>Message = A::Message;
     <span class="kw">type </span>Theme = A::Theme;
-    <span class="kw">type </span>Renderer = <span class="kw">crate</span>::Renderer;
+    <span class="kw">type </span>Renderer = A::Renderer;
 
     <span class="kw">fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, message: <span class="self">Self</span>::Message) -&gt; Command&lt;<span class="self">Self</span>::Message&gt; {
         <span class="self">self</span>.<span class="number">0</span>.update(message)

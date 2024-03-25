@@ -174,8 +174,28 @@
 <a href="#174" id="174">174</a>
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::alignment;
+<span class="kw">use </span><span class="kw">crate</span>::image;
 <span class="kw">use </span><span class="kw">crate</span>::renderer::{<span class="self">self</span>, Renderer};
+<span class="kw">use </span><span class="kw">crate</span>::svg;
 <span class="kw">use </span><span class="kw">crate</span>::text::{<span class="self">self</span>, Text};
 <span class="kw">use crate</span>::{
     Background, Color, Font, Pixels, Point, Rectangle, Size, Transformation,
@@ -183,28 +203,14 @@
 
 <span class="kw">use </span>std::borrow::Cow;
 
-<span class="doccomment">/// A renderer that does nothing.
-///
-/// It can be useful if you are writing tests!
-</span><span class="attr">#[derive(Debug, Clone, Copy, Default)]
-</span><span class="kw">pub struct </span>Null;
+<span class="kw">impl </span>Renderer <span class="kw">for </span>() {
+    <span class="kw">fn </span>start_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {}
 
-<span class="kw">impl </span>Null {
-    <span class="doccomment">/// Creates a new [`Null`] renderer.
-    </span><span class="kw">pub fn </span>new() -&gt; Null {
-        Null
-    }
-}
+    <span class="kw">fn </span>end_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _bounds: Rectangle) {}
 
-<span class="kw">impl </span>Renderer <span class="kw">for </span>Null {
-    <span class="kw">fn </span>with_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _bounds: Rectangle, _f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>)) {}
+    <span class="kw">fn </span>start_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {}
 
-    <span class="kw">fn </span>with_transformation(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        _transformation: Transformation,
-        _f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span><span class="self">Self</span>),
-    ) {
-    }
+    <span class="kw">fn </span>end_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _transformation: Transformation) {}
 
     <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {}
 
@@ -216,7 +222,7 @@
     }
 }
 
-<span class="kw">impl </span>text::Renderer <span class="kw">for </span>Null {
+<span class="kw">impl </span>text::Renderer <span class="kw">for </span>() {
     <span class="kw">type </span>Font = Font;
     <span class="kw">type </span>Paragraph = ();
     <span class="kw">type </span>Editor = ();
@@ -347,6 +353,36 @@
         _format_highlight: <span class="kw">impl </span>Fn(
             <span class="kw-2">&amp;</span>H::Highlight,
         ) -&gt; text::highlighter::Format&lt;<span class="self">Self</span>::Font&gt;,
+    ) {
+    }
+}
+
+<span class="kw">impl </span>image::Renderer <span class="kw">for </span>() {
+    <span class="kw">type </span>Handle = ();
+
+    <span class="kw">fn </span>measure_image(<span class="kw-2">&amp;</span><span class="self">self</span>, _handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; Size&lt;u32&gt; {
+        Size::default()
+    }
+
+    <span class="kw">fn </span>draw_image(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _handle: <span class="self">Self</span>::Handle,
+        _filter_method: image::FilterMethod,
+        _bounds: Rectangle,
+    ) {
+    }
+}
+
+<span class="kw">impl </span>svg::Renderer <span class="kw">for </span>() {
+    <span class="kw">fn </span>measure_svg(<span class="kw-2">&amp;</span><span class="self">self</span>, _handle: <span class="kw-2">&amp;</span>svg::Handle) -&gt; Size&lt;u32&gt; {
+        Size::default()
+    }
+
+    <span class="kw">fn </span>draw_svg(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        _handle: svg::Handle,
+        _color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
+        _bounds: Rectangle,
     ) {
     }
 }

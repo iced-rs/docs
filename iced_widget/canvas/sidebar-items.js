@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Frame","Geometry","Gradient","LineCap","LineJoin","Style"],"mod":["event","fill","gradient","path","stroke"],"struct":["Cache","Canvas","Fill","LineDash","Path","Stroke","Text"],"trait":["Program","Renderer"]};
+window.SIDEBAR_ITEMS = {"enum":["Gradient","LineCap","LineJoin","Style"],"mod":["event","fill","gradient","path","stroke"],"struct":["Canvas","Fill","LineDash","Path","Stroke","Text"],"trait":["Program"],"type":["Cache","Frame","Geometry"]};

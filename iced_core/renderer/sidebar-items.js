@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Null","Quad","Style"],"trait":["Renderer"]};
+window.SIDEBAR_ITEMS = {"struct":["Quad","Style"],"trait":["Renderer"]};

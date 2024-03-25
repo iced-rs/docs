@@ -17,8 +17,33 @@
 <a href="#17" id="17">17</a>
 <a href="#18" id="18">18</a>
 <a href="#19" id="19">19</a>
-</pre></div><pre class="rust"><code><span class="doccomment">/// An error that occurred while creating an application's graphical context.
-</span><span class="attr">#[derive(Debug, thiserror::Error)]
+<a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
+<a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
+<a href="#26" id="26">26</a>
+<a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
+<a href="#36" id="36">36</a>
+<a href="#37" id="37">37</a>
+<a href="#38" id="38">38</a>
+<a href="#39" id="39">39</a>
+<a href="#40" id="40">40</a>
+<a href="#41" id="41">41</a>
+<a href="#42" id="42">42</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! See what can go wrong when creating graphical backends.
+
+/// An error that occurred while creating an application's graphical context.
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
 </span><span class="kw">pub enum </span>Error {
     <span class="doccomment">/// The requested backend version is not supported.
     </span><span class="attr">#[error(<span class="string">"the requested backend version is not supported"</span>)]
@@ -30,10 +55,31 @@
 
     <span class="doccomment">/// A suitable graphics adapter or device could not be found.
     </span><span class="attr">#[error(<span class="string">"a suitable graphics adapter or device could not be found"</span>)]
-    </span>GraphicsAdapterNotFound,
+    </span>GraphicsAdapterNotFound {
+        <span class="doccomment">/// The name of the backend where the error happened
+        </span>backend: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str,
+        <span class="doccomment">/// The reason why this backend could not be used
+        </span>reason: Reason,
+    },
 
     <span class="doccomment">/// An error occurred in the context's internal backend
     </span><span class="attr">#[error(<span class="string">"an error occurred in the context's internal backend"</span>)]
     </span>BackendError(String),
+
+    <span class="doccomment">/// Multiple errors occurred
+    </span><span class="attr">#[error(<span class="string">"multiple errors occurred: {0:?}"</span>)]
+    </span>List(Vec&lt;<span class="self">Self</span>&gt;),
+}
+
+<span class="doccomment">/// The reason why a graphics adapter could not be found
+</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>Reason {
+    <span class="doccomment">/// The backend did not match the preference
+    </span>DidNotMatch {
+        <span class="doccomment">/// The preferred backend
+        </span>preferred_backend: String,
+    },
+    <span class="doccomment">/// The request to create the backend failed
+    </span>RequestFailed(String),
 }
 </code></pre></div></section></main></body></html>

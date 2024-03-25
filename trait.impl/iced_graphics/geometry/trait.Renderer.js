@@ -1,5 +1,4 @@
 (function() {var implementors = {
-"iced":[],
-"iced_renderer":[["impl <a class=\"trait\" href=\"iced_graphics/geometry/trait.Renderer.html\" title=\"trait iced_graphics::geometry::Renderer\">Renderer</a> for <a class=\"enum\" href=\"iced_renderer/enum.Renderer.html\" title=\"enum iced_renderer::Renderer\">Renderer</a>"]],
-"iced_widget":[]
+"iced_graphics":[],
+"iced_renderer":[["impl&lt;L, R&gt; <a class=\"trait\" href=\"iced_renderer/geometry/trait.Renderer.html\" title=\"trait iced_renderer::geometry::Renderer\">Renderer</a> for <a class=\"enum\" href=\"iced_renderer/fallback/enum.Renderer.html\" title=\"enum iced_renderer::fallback::Renderer\">Renderer</a>&lt;L, R&gt;<div class=\"where\">where\n    L: <a class=\"trait\" href=\"iced_renderer/geometry/trait.Renderer.html\" title=\"trait iced_renderer::geometry::Renderer\">Renderer</a>,\n    R: <a class=\"trait\" href=\"iced_renderer/geometry/trait.Renderer.html\" title=\"trait iced_renderer::geometry::Renderer\">Renderer</a>,</div>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
