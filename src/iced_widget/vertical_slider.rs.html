@@ -482,14 +482,25 @@
 <a href="#482" id="482">482</a>
 <a href="#483" id="483">483</a>
 <a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display an interactive selector of a single value from a range of values.
 </span><span class="kw">use </span>std::ops::RangeInclusive;
 
 <span class="kw">pub use </span><span class="kw">crate</span>::slider::{
-    default, Appearance, DefaultStyle, Handle, HandleShape, Status, Style,
+    default, Catalog, Handle, HandleShape, Status, Style, StyleFn,
 };
 
-<span class="kw">use </span><span class="kw">crate</span>::core;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard::key::{<span class="self">self</span>, Key};
@@ -499,8 +510,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::touch;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Border, Clipboard, Element, Length, Pixels, Point, Rectangle, Shell, Size,
-    Widget,
+    <span class="self">self</span>, Border, Clipboard, Element, Length, Pixels, Point, Rectangle, Shell,
+    Size, Widget,
 };
 
 <span class="doccomment">/// An vertical bar and a handle that selects a single value from a range of
@@ -525,7 +536,10 @@
 /// VerticalSlider::new(0.0..=100.0, value, Message::SliderChanged);
 /// ```
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Theme = <span class="kw">crate</span>::Theme&gt; {
+</span><span class="kw">pub struct </span>VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Theme = <span class="kw">crate</span>::Theme&gt;
+<span class="kw">where
+    </span>Theme: Catalog,
+{
     range: RangeInclusive&lt;T&gt;,
     step: T,
     shift_step: <span class="prelude-ty">Option</span>&lt;T&gt;,
@@ -535,13 +549,14 @@
     on_release: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     width: f32,
     height: Length,
-    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt; VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt;
 <span class="kw">where
     </span>T: Copy + From&lt;u8&gt; + std::cmp::PartialOrd,
     Message: Clone,
+    Theme: Catalog,
 {
     <span class="doccomment">/// The default width of a [`VerticalSlider`].
     </span><span class="kw">pub const </span>DEFAULT_WIDTH: f32 = <span class="number">16.0</span>;
@@ -556,8 +571,7 @@
     ///   `Message`.
     </span><span class="kw">pub fn </span>new&lt;F&gt;(range: RangeInclusive&lt;T&gt;, value: T, on_change: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
-        F: <span class="lifetime">'a </span>+ Fn(T) -&gt; Message,
+        </span>F: <span class="lifetime">'a </span>+ Fn(T) -&gt; Message,
     {
         <span class="kw">let </span>value = <span class="kw">if </span>value &gt;= <span class="kw-2">*</span>range.start() {
             value
@@ -581,7 +595,7 @@
             on_release: <span class="prelude-val">None</span>,
             width: <span class="self">Self</span>::DEFAULT_WIDTH,
             height: Length::Fill,
-            style: Box::new(Theme::default_style),
+            class: Theme::default(),
         }
     }
 
@@ -616,15 +630,6 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the style of the [`VerticalSlider`].
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = Box::new(style);
-        <span class="self">self
-    </span>}
-
     <span class="doccomment">/// Sets the step size of the [`VerticalSlider`].
     </span><span class="kw">pub fn </span>step(<span class="kw-2">mut </span><span class="self">self</span>, step: T) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.step = step;
@@ -638,6 +643,24 @@
         <span class="self">self</span>.shift_step = <span class="prelude-val">Some</span>(shift_step.into());
         <span class="self">self
     </span>}
+
+    <span class="doccomment">/// Sets the style of the [`VerticalSlider`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Style + <span class="lifetime">'a</span>) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme::Class&lt;<span class="lifetime">'a</span>&gt;: From&lt;StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.class = (Box::new(style) <span class="kw">as </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;).into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the [`VerticalSlider`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>class(<span class="kw-2">mut </span><span class="self">self</span>, class: <span class="kw">impl </span>Into&lt;Theme::Class&lt;<span class="lifetime">'a</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.class = class.into();
+        <span class="self">self
+    </span>}
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
@@ -645,6 +668,7 @@
 <span class="kw">where
     </span>T: Copy + Into&lt;f64&gt; + num_traits::FromPrimitive,
     Message: Clone,
+    Theme: Catalog,
     Renderer: core::Renderer,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
@@ -838,8 +862,8 @@
         <span class="kw">let </span>bounds = layout.bounds();
         <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
 
-        <span class="kw">let </span>style = (<span class="self">self</span>.style)(
-            theme,
+        <span class="kw">let </span>style = theme.style(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.class,
             <span class="kw">if </span>state.is_dragging {
                 Status::Dragged
             } <span class="kw">else if </span>is_mouse_over {
@@ -951,7 +975,7 @@
 <span class="kw">where
     </span>T: Copy + Into&lt;f64&gt; + num_traits::FromPrimitive + <span class="lifetime">'a</span>,
     Message: Clone + <span class="lifetime">'a</span>,
-    Theme: <span class="lifetime">'a</span>,
+    Theme: Catalog + <span class="lifetime">'a</span>,
     Renderer: core::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(

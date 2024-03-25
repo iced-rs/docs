@@ -727,6 +727,36 @@
 <a href="#727" id="727">727</a>
 <a href="#728" id="728">728</a>
 <a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a>
+<a href="#756" id="756">756</a>
+<a href="#757" id="757">757</a>
+<a href="#758" id="758">758</a>
+<a href="#759" id="759">759</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of selectable values.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -761,6 +791,7 @@
     </span>T: ToString + PartialEq + Clone,
     L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
     V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
+    Theme: Catalog,
     Renderer: text::Renderer,
 {
     on_select: Box&lt;<span class="kw">dyn </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>&gt;,
@@ -776,7 +807,8 @@
     text_shaping: text::Shaping,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
     handle: Handle&lt;Renderer::Font&gt;,
-    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    class: &lt;Theme <span class="kw">as </span>Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt;,
+    menu_class: &lt;Theme <span class="kw">as </span>menu::Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, L, V, Message, Theme, Renderer&gt;
@@ -786,6 +818,7 @@
     L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
     V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
     Message: Clone,
+    Theme: Catalog,
     Renderer: text::Renderer,
 {
     <span class="doccomment">/// Creates a new [`PickList`] with the given list of options, the current
@@ -794,10 +827,7 @@
         options: L,
         selected: <span class="prelude-ty">Option</span>&lt;V&gt;,
         on_select: <span class="kw">impl </span>Fn(T) -&gt; Message + <span class="lifetime">'a</span>,
-    ) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>Theme: DefaultStyle,
-    {
+    ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             on_select: Box::new(on_select),
             on_open: <span class="prelude-val">None</span>,
@@ -812,7 +842,8 @@
             text_shaping: text::Shaping::Basic,
             font: <span class="prelude-val">None</span>,
             handle: Handle::default(),
-            style: Theme::default_style(),
+            class: &lt;Theme <span class="kw">as </span>Catalog&gt;::default(),
+            menu_class: &lt;Theme <span class="kw">as </span>Catalog&gt;::default_menu(),
         }
     }
 
@@ -880,8 +911,23 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`PickList`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Style&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = style.into();
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Style + <span class="lifetime">'a</span>) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>&lt;Theme <span class="kw">as </span>Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt;: From&lt;StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.class = (Box::new(style) <span class="kw">as </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;).into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the [`PickList`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>class(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        class: <span class="kw">impl </span>Into&lt;&lt;Theme <span class="kw">as </span>Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt;&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.class = class.into();
         <span class="self">self
     </span>}
 }
@@ -893,6 +939,7 @@
     L: Borrow&lt;[T]&gt;,
     V: Borrow&lt;T&gt;,
     Message: Clone + <span class="lifetime">'a</span>,
+    Theme: Catalog + <span class="lifetime">'a</span>,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
@@ -1138,15 +1185,15 @@
             Status::Active
         };
 
-        <span class="kw">let </span>appearance = (<span class="self">self</span>.style.field)(theme, status);
+        <span class="kw">let </span>style = Catalog::style(theme, <span class="kw-2">&amp;</span><span class="self">self</span>.class, status);
 
         renderer.fill_quad(
             renderer::Quad {
                 bounds,
-                border: appearance.border,
+                border: style.border,
                 ..renderer::Quad::default()
             },
-            appearance.background,
+            style.background,
         );
 
         <span class="kw">let </span>handle = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.handle {
@@ -1207,7 +1254,7 @@
                     bounds.x + bounds.width - <span class="self">self</span>.padding.right,
                     bounds.center_y(),
                 ),
-                appearance.handle_color,
+                style.handle_color,
                 <span class="kw-2">*</span>viewport,
             );
         }
@@ -1234,9 +1281,9 @@
                 },
                 Point::new(bounds.x + <span class="self">self</span>.padding.left, bounds.center_y()),
                 <span class="kw">if </span>is_selected {
-                    appearance.text_color
+                    style.text_color
                 } <span class="kw">else </span>{
-                    appearance.placeholder_color
+                    style.placeholder_color
                 },
                 <span class="kw-2">*</span>viewport,
             );
@@ -1268,7 +1315,7 @@
                     (on_select)(option)
                 },
                 <span class="prelude-val">None</span>,
-                <span class="kw-2">&amp;</span><span class="self">self</span>.style.menu,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.menu_class,
             )
             .width(bounds.width)
             .padding(<span class="self">self</span>.padding)
@@ -1294,7 +1341,7 @@
     L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
     V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
     Message: Clone + <span class="lifetime">'a</span>,
-    Theme: <span class="lifetime">'a</span>,
+    Theme: Catalog + <span class="lifetime">'a</span>,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
@@ -1391,7 +1438,7 @@
 
 <span class="doccomment">/// The appearance of a pick list.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>Appearance {
+</span><span class="kw">pub struct </span>Style {
     <span class="doccomment">/// The text [`Color`] of the pick list.
     </span><span class="kw">pub </span>text_color: Color,
     <span class="doccomment">/// The placeholder [`Color`] of the pick list.
@@ -1404,36 +1451,49 @@
     </span><span class="kw">pub </span>border: Border,
 }
 
-<span class="doccomment">/// The styles of the different parts of a [`PickList`].
-</span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; {
-    <span class="doccomment">/// The style of the [`PickList`] itself.
-    </span><span class="kw">pub </span>field: Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>&gt;,
+<span class="doccomment">/// The theme catalog of a [`PickList`].
+</span><span class="kw">pub trait </span>Catalog: menu::Catalog {
+    <span class="doccomment">/// The item class of the [`Catalog`].
+    </span><span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt;;
 
-    <span class="doccomment">/// The style of the [`Menu`] of the pick list.
-    </span><span class="kw">pub </span>menu: menu::Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    <span class="doccomment">/// The default class produced by the [`Catalog`].
+    </span><span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; &lt;<span class="self">Self </span><span class="kw">as </span>Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt;;
+
+    <span class="doccomment">/// The default class for the menu of the [`PickList`].
+    </span><span class="kw">fn </span>default_menu&lt;<span class="lifetime">'a</span>&gt;() -&gt; &lt;<span class="self">Self </span><span class="kw">as </span>menu::Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt; {
+        &lt;<span class="self">Self </span><span class="kw">as </span>menu::Catalog&gt;::default()
+    }
+
+    <span class="doccomment">/// The [`Style`] of a class with the given status.
+    </span><span class="kw">fn </span>style(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        class: <span class="kw-2">&amp;</span>&lt;<span class="self">Self </span><span class="kw">as </span>Catalog&gt;::Class&lt;<span class="lifetime">'_</span>&gt;,
+        status: Status,
+    ) -&gt; Style;
 }
 
-<span class="doccomment">/// The default style of a [`PickList`].
-</span><span class="kw">pub trait </span>DefaultStyle: Sized {
-    <span class="doccomment">/// Returns the default style of a [`PickList`].
-    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="lifetime">'static</span>, <span class="self">Self</span>&gt;;
-}
+<span class="doccomment">/// A styling function for a [`PickList`].
+///
+/// This is just a boxed closure: `Fn(&amp;Theme, Status) -&gt; Style`.
+</span><span class="kw">pub type </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Style + <span class="lifetime">'a</span>&gt;;
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="lifetime">'static</span>, <span class="self">Self</span>&gt; {
-        Style {
-            field: Box::new(default),
-            menu: menu::DefaultStyle::default_style(),
-        }
+<span class="kw">impl </span>Catalog <span class="kw">for </span>Theme {
+    <span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt; = StyleFn&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;;
+
+    <span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; StyleFn&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt; {
+        Box::new(default)
+    }
+
+    <span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span>StyleFn&lt;<span class="lifetime">'_</span>, <span class="self">Self</span>&gt;, status: Status) -&gt; Style {
+        class(<span class="self">self</span>, status)
     }
 }
 
 <span class="doccomment">/// The default style of the field of a [`PickList`].
-</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
-    <span class="kw">let </span>active = Appearance {
+    <span class="kw">let </span>active = Style {
         text_color: palette.background.weak.text,
         background: palette.background.weak.color.into(),
         placeholder_color: palette.background.strong.color,
@@ -1447,7 +1507,7 @@
 
     <span class="kw">match </span>status {
         Status::Active =&gt; active,
-        Status::Hovered | Status::Opened =&gt; Appearance {
+        Status::Hovered | Status::Opened =&gt; Style {
             border: Border {
                 color: palette.primary.strong.color,
                 ..active.border

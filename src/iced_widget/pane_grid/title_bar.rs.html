@@ -450,6 +450,10 @@
 <a href="#450" id="450">450</a>
 <a href="#451" id="451">451</a>
 <a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a>
+<a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -458,7 +462,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Clipboard, Element, Layout, Padding, Point, Rectangle, Shell, Size, Vector,
+    <span class="self">self</span>, Clipboard, Element, Layout, Padding, Point, Rectangle, Shell, Size,
+    Vector,
 };
 
 <span class="doccomment">/// The title bar of a [`Pane`].
@@ -471,32 +476,31 @@
     Theme = <span class="kw">crate</span>::Theme,
     Renderer = <span class="kw">crate</span>::Renderer,
 &gt; <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Theme: container::Catalog,
+    Renderer: core::Renderer,
 {
     content: Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     controls: <span class="prelude-ty">Option</span>&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
     padding: Padding,
     always_show_controls: bool,
-    style: container::Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; TitleBar&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Theme: container::Catalog,
+    Renderer: core::Renderer,
 {
     <span class="doccomment">/// Creates a new [`TitleBar`] with the given content.
     </span><span class="kw">pub fn </span>new(
         content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
-    ) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>Theme: container::DefaultStyle + <span class="lifetime">'a</span>,
-    {
+    ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             content: content.into(),
             controls: <span class="prelude-val">None</span>,
             padding: Padding::ZERO,
             always_show_controls: <span class="bool-val">false</span>,
-            style: Box::new(Theme::default_style),
+            class: Theme::default(),
         }
     }
 
@@ -515,15 +519,6 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the style of the [`TitleBar`].
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, container::Status) -&gt; container::Appearance + <span class="lifetime">'a</span>,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = Box::new(style);
-        <span class="self">self
-    </span>}
-
     <span class="doccomment">/// Sets whether or not the [`controls`] attached to this [`TitleBar`] are
     /// always visible.
     ///
@@ -536,11 +531,33 @@
         <span class="self">self</span>.always_show_controls = <span class="bool-val">true</span>;
         <span class="self">self
     </span>}
+
+    <span class="doccomment">/// Sets the style of the [`TitleBar`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; container::Style + <span class="lifetime">'a</span>,
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme::Class&lt;<span class="lifetime">'a</span>&gt;: From&lt;container::StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.class = (Box::new(style) <span class="kw">as </span>container::StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;).into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the [`TitleBar`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>class(<span class="kw-2">mut </span><span class="self">self</span>, class: <span class="kw">impl </span>Into&lt;Theme::Class&lt;<span class="lifetime">'a</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.class = class.into();
+        <span class="self">self
+    </span>}
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; TitleBar&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Theme: container::Catalog,
+    Renderer: core::Renderer,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Tree {
         <span class="kw">let </span>children = <span class="kw">if let </span><span class="prelude-val">Some</span>(controls) = <span class="self">self</span>.controls.as_ref() {
@@ -569,7 +586,7 @@
 
     <span class="doccomment">/// Draws the [`TitleBar`] with the provided [`Renderer`] and [`Layout`].
     ///
-    /// [`Renderer`]: crate::core::Renderer
+    /// [`Renderer`]: core::Renderer
     </span><span class="kw">pub fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;</span>Tree,
@@ -582,16 +599,7 @@
         show_controls: bool,
     ) {
         <span class="kw">let </span>bounds = layout.bounds();
-
-        <span class="kw">let </span>style = {
-            <span class="kw">let </span>status = <span class="kw">if </span>cursor.is_over(bounds) {
-                container::Status::Hovered
-            } <span class="kw">else </span>{
-                container::Status::Idle
-            };
-
-            (<span class="self">self</span>.style)(theme, status)
-        };
+        <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class);
 
         <span class="kw">let </span>inherited_style = renderer::Style {
             text_color: style.text_color.unwrap_or(inherited_style.text_color),

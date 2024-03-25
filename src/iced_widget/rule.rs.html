@@ -248,8 +248,30 @@
 <a href="#248" id="248">248</a>
 <a href="#249" id="249">249</a>
 <a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a horizontal or vertical rule for dividing content.
-</span><span class="kw">use </span><span class="kw">crate</span>::core::border::{<span class="self">self</span>, Border};
+</span><span class="kw">use </span><span class="kw">crate</span>::core;
+<span class="kw">use </span><span class="kw">crate</span>::core::border::{<span class="self">self</span>, Border};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
@@ -260,43 +282,55 @@
 
 <span class="doccomment">/// Display a horizontal or vertical rule for dividing content.
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Rule&lt;<span class="lifetime">'a</span>, Theme = <span class="kw">crate</span>::Theme&gt; {
+</span><span class="kw">pub struct </span>Rule&lt;<span class="lifetime">'a</span>, Theme = <span class="kw">crate</span>::Theme&gt;
+<span class="kw">where
+    </span>Theme: Catalog,
+{
     width: Length,
     height: Length,
     is_horizontal: bool,
-    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Theme&gt; Rule&lt;<span class="lifetime">'a</span>, Theme&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Theme&gt; Rule&lt;<span class="lifetime">'a</span>, Theme&gt;
+<span class="kw">where
+    </span>Theme: Catalog,
+{
     <span class="doccomment">/// Creates a horizontal [`Rule`] with the given height.
-    </span><span class="kw">pub fn </span>horizontal(height: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
-    {
+    </span><span class="kw">pub fn </span>horizontal(height: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
         Rule {
             width: Length::Fill,
             height: Length::Fixed(height.into().<span class="number">0</span>),
             is_horizontal: <span class="bool-val">true</span>,
-            style: Box::new(Theme::default_style),
+            class: Theme::default(),
         }
     }
 
     <span class="doccomment">/// Creates a vertical [`Rule`] with the given width.
-    </span><span class="kw">pub fn </span>vertical(width: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
-    {
+    </span><span class="kw">pub fn </span>vertical(width: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
         Rule {
             width: Length::Fixed(width.into().<span class="number">0</span>),
             height: Length::Fill,
             is_horizontal: <span class="bool-val">false</span>,
-            style: Box::new(Theme::default_style),
+            class: Theme::default(),
         }
     }
 
     <span class="doccomment">/// Sets the style of the [`Rule`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance + <span class="lifetime">'a</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = Box::new(style);
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Style + <span class="lifetime">'a</span>) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme::Class&lt;<span class="lifetime">'a</span>&gt;: From&lt;StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.class = (Box::new(style) <span class="kw">as </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;).into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the [`Rule`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>class(<span class="kw-2">mut </span><span class="self">self</span>, class: <span class="kw">impl </span>Into&lt;Theme::Class&lt;<span class="lifetime">'a</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.class = class.into();
         <span class="self">self
     </span>}
 }
@@ -304,7 +338,8 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
     <span class="kw">for </span>Rule&lt;<span class="lifetime">'a</span>, Theme&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Renderer: core::Renderer,
+    Theme: Catalog,
 {
     <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
         Size {
@@ -333,35 +368,34 @@
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
         <span class="kw">let </span>bounds = layout.bounds();
-        <span class="kw">let </span>appearance = (<span class="self">self</span>.style)(theme);
+        <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class);
 
         <span class="kw">let </span>bounds = <span class="kw">if </span><span class="self">self</span>.is_horizontal {
             <span class="kw">let </span>line_y = (bounds.y + (bounds.height / <span class="number">2.0</span>)
-                - (appearance.width <span class="kw">as </span>f32 / <span class="number">2.0</span>))
+                - (style.width <span class="kw">as </span>f32 / <span class="number">2.0</span>))
                 .round();
 
-            <span class="kw">let </span>(offset, line_width) = appearance.fill_mode.fill(bounds.width);
+            <span class="kw">let </span>(offset, line_width) = style.fill_mode.fill(bounds.width);
             <span class="kw">let </span>line_x = bounds.x + offset;
 
             Rectangle {
                 x: line_x,
                 y: line_y,
                 width: line_width,
-                height: appearance.width <span class="kw">as </span>f32,
+                height: style.width <span class="kw">as </span>f32,
             }
         } <span class="kw">else </span>{
             <span class="kw">let </span>line_x = (bounds.x + (bounds.width / <span class="number">2.0</span>)
-                - (appearance.width <span class="kw">as </span>f32 / <span class="number">2.0</span>))
+                - (style.width <span class="kw">as </span>f32 / <span class="number">2.0</span>))
                 .round();
 
-            <span class="kw">let </span>(offset, line_height) =
-                appearance.fill_mode.fill(bounds.height);
+            <span class="kw">let </span>(offset, line_height) = style.fill_mode.fill(bounds.height);
             <span class="kw">let </span>line_y = bounds.y + offset;
 
             Rectangle {
                 x: line_x,
                 y: line_y,
-                width: appearance.width <span class="kw">as </span>f32,
+                width: style.width <span class="kw">as </span>f32,
                 height: line_height,
             }
         };
@@ -369,10 +403,10 @@
         renderer.fill_quad(
             renderer::Quad {
                 bounds,
-                border: Border::rounded(appearance.radius),
+                border: Border::rounded(style.radius),
                 ..renderer::Quad::default()
             },
-            appearance.color,
+            style.color,
         );
     }
 }
@@ -381,8 +415,8 @@
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a</span>,
-    Theme: <span class="lifetime">'a</span>,
-    Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::core::Renderer,
+    Theme: <span class="lifetime">'a </span>+ Catalog,
+    Renderer: <span class="lifetime">'a </span>+ core::Renderer,
 {
     <span class="kw">fn </span>from(rule: Rule&lt;<span class="lifetime">'a</span>, Theme&gt;) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         Element::new(rule)
@@ -391,7 +425,7 @@
 
 <span class="doccomment">/// The appearance of a rule.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>Appearance {
+</span><span class="kw">pub struct </span>Style {
     <span class="doccomment">/// The color of the rule.
     </span><span class="kw">pub </span>color: Color,
     <span class="doccomment">/// The width (thickness) of the rule line.
@@ -466,32 +500,40 @@
     }
 }
 
-<span class="doccomment">/// The style of a [`Rule`].
-</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
+<span class="doccomment">/// The theme catalog of a [`Rule`].
+</span><span class="kw">pub trait </span>Catalog: Sized {
+    <span class="doccomment">/// The item class of the [`Catalog`].
+    </span><span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt;;
 
-<span class="doccomment">/// The default style of a [`Rule`].
-</span><span class="kw">pub trait </span>DefaultStyle {
-    <span class="doccomment">/// Returns the default style of a [`Rule`].
-    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance;
+    <span class="doccomment">/// The default class produced by the [`Catalog`].
+    </span><span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt;;
+
+    <span class="doccomment">/// The [`Style`] of a class with the given status.
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;) -&gt; Style;
 }
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance {
-        default(<span class="self">self</span>)
+<span class="doccomment">/// A styling function for a [`Rule`].
+///
+/// This is just a boxed closure: `Fn(&amp;Theme, Status) -&gt; Style`.
+</span><span class="kw">pub type </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Style + <span class="lifetime">'a</span>&gt;;
+
+<span class="kw">impl </span>Catalog <span class="kw">for </span>Theme {
+    <span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt; = StyleFn&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;;
+
+    <span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt; {
+        Box::new(default)
+    }
+
+    <span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;) -&gt; Style {
+        class(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance {
-        <span class="kw-2">*</span><span class="self">self
-    </span>}
-}
-
 <span class="doccomment">/// The default styling of a [`Rule`].
-</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Appearance {
+</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
-    Appearance {
+    Style {
         color: palette.background.strong.color,
         width: <span class="number">1</span>,
         radius: <span class="number">0.0</span>.into(),

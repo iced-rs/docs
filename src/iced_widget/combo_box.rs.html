@@ -789,6 +789,26 @@
 <a href="#789" id="789">789</a>
 <a href="#790" id="790">790</a>
 <a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of searchable and selectable options.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -823,7 +843,8 @@
     Theme = <span class="kw">crate</span>::Theme,
     Renderer = <span class="kw">crate</span>::Renderer,
 &gt; <span class="kw">where
-    </span>Renderer: text::Renderer,
+    </span>Theme: Catalog,
+    Renderer: text::Renderer,
 {
     state: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>State&lt;T&gt;,
     text_input: TextInput&lt;<span class="lifetime">'a</span>, TextInputEvent, Theme, Renderer&gt;,
@@ -833,7 +854,7 @@
     on_option_hovered: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(T) -&gt; Message&gt;&gt;,
     on_close: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     on_input: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(String) -&gt; Message&gt;&gt;,
-    menu_style: menu::Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    menu_class: &lt;Theme <span class="kw">as </span>menu::Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt;,
     padding: Padding,
     size: <span class="prelude-ty">Option</span>&lt;f32&gt;,
 }
@@ -841,6 +862,7 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt; ComboBox&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>T: std::fmt::Display + Clone,
+    Theme: Catalog,
     Renderer: text::Renderer,
 {
     <span class="doccomment">/// Creates a new [`ComboBox`] with the given list of options, a placeholder,
@@ -851,18 +873,10 @@
         placeholder: <span class="kw-2">&amp;</span>str,
         selection: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;,
         on_selected: <span class="kw">impl </span>Fn(T) -&gt; Message + <span class="lifetime">'static</span>,
-    ) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
-    {
-        <span class="kw">let </span>style = Theme::default_style();
-
-        <span class="kw">let </span>text_input = TextInput::with_style(
-            placeholder,
-            <span class="kw-2">&amp;</span>state.value(),
-            style.text_input,
-        )
-        .on_input(TextInputEvent::TextChanged);
+    ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>text_input = TextInput::new(placeholder, <span class="kw-2">&amp;</span>state.value())
+            .on_input(TextInputEvent::TextChanged)
+            .class(Theme::default_input());
 
         <span class="kw">let </span>selection = selection.map(T::to_string).unwrap_or_default();
 
@@ -875,7 +889,7 @@
             on_option_hovered: <span class="prelude-val">None</span>,
             on_input: <span class="prelude-val">None</span>,
             on_close: <span class="prelude-val">None</span>,
-            menu_style: style.menu,
+            menu_class: &lt;Theme <span class="kw">as </span>Catalog&gt;::default_menu(),
             padding: text_input::DEFAULT_PADDING,
             size: <span class="prelude-val">None</span>,
         }
@@ -912,18 +926,6 @@
     </span><span class="kw">pub fn </span>padding(<span class="kw-2">mut </span><span class="self">self</span>, padding: <span class="kw">impl </span>Into&lt;Padding&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.padding = padding.into();
         <span class="self">self</span>.text_input = <span class="self">self</span>.text_input.padding(<span class="self">self</span>.padding);
-        <span class="self">self
-    </span>}
-
-    <span class="doccomment">/// Sets the style of the [`ComboBox`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Into&lt;Style&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>Theme: <span class="lifetime">'a</span>,
-    {
-        <span class="kw">let </span>style = style.into();
-
-        <span class="self">self</span>.text_input = <span class="self">self</span>.text_input.style(style.text_input);
-        <span class="self">self</span>.menu_style = style.menu;
         <span class="self">self
     </span>}
 
@@ -964,6 +966,55 @@
             ..<span class="self">self
         </span>}
     }
+
+    <span class="doccomment">/// Sets the style of the input of the [`ComboBox`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>input_style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, text_input::Status) -&gt; text_input::Style + <span class="lifetime">'a</span>,
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>&lt;Theme <span class="kw">as </span>text_input::Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt;:
+            From&lt;text_input::StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.text_input = <span class="self">self</span>.text_input.style(style);
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style of the menu of the [`ComboBox`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>menu_style(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; menu::Style + <span class="lifetime">'a</span>,
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>&lt;Theme <span class="kw">as </span>menu::Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt;: From&lt;menu::StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.menu_class = (Box::new(style) <span class="kw">as </span>menu::StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;).into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the input of the [`ComboBox`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>input_class(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        class: <span class="kw">impl </span>Into&lt;&lt;Theme <span class="kw">as </span>text_input::Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt;&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.text_input = <span class="self">self</span>.text_input.class(class);
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the menu of the [`ComboBox`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>menu_class(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        class: <span class="kw">impl </span>Into&lt;&lt;Theme <span class="kw">as </span>menu::Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt;&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.menu_class = class.into();
+        <span class="self">self
+    </span>}
 }
 
 <span class="doccomment">/// The local state of a [`ComboBox`].
@@ -1087,6 +1138,7 @@
 <span class="kw">where
     </span>T: Display + Clone + <span class="lifetime">'static</span>,
     Message: Clone,
+    Theme: Catalog,
     Renderer: text::Renderer,
 {
     <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
@@ -1477,7 +1529,7 @@
                     (<span class="self">self</span>.on_selected)(x)
                 },
                 <span class="self">self</span>.on_option_hovered.as_deref(),
-                <span class="kw-2">&amp;</span><span class="self">self</span>.menu_style,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.menu_class,
             )
             .width(bounds.width)
             .padding(<span class="self">self</span>.padding);
@@ -1503,13 +1555,28 @@
 <span class="kw">where
     </span>T: Display + Clone + <span class="lifetime">'static</span>,
     Message: Clone + <span class="lifetime">'a</span>,
-    Theme: <span class="lifetime">'a</span>,
+    Theme: Catalog + <span class="lifetime">'a</span>,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(combo_box: ComboBox&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new(combo_box)
     }
 }
+
+<span class="doccomment">/// The theme catalog of a [`ComboBox`].
+</span><span class="kw">pub trait </span>Catalog: text_input::Catalog + menu::Catalog {
+    <span class="doccomment">/// The default class for the text input of the [`ComboBox`].
+    </span><span class="kw">fn </span>default_input&lt;<span class="lifetime">'a</span>&gt;() -&gt; &lt;<span class="self">Self </span><span class="kw">as </span>text_input::Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt; {
+        &lt;<span class="self">Self </span><span class="kw">as </span>text_input::Catalog&gt;::default()
+    }
+
+    <span class="doccomment">/// The default class for the menu of the [`ComboBox`].
+    </span><span class="kw">fn </span>default_menu&lt;<span class="lifetime">'a</span>&gt;() -&gt; &lt;<span class="self">Self </span><span class="kw">as </span>menu::Catalog&gt;::Class&lt;<span class="lifetime">'a</span>&gt; {
+        &lt;<span class="self">Self </span><span class="kw">as </span>menu::Catalog&gt;::default()
+    }
+}
+
+<span class="kw">impl </span>Catalog <span class="kw">for </span>Theme {}
 
 <span class="kw">fn </span>search&lt;<span class="lifetime">'a</span>, T, A&gt;(
     options: <span class="kw">impl </span>IntoIterator&lt;Item = T&gt; + <span class="lifetime">'a</span>,
@@ -1552,32 +1619,5 @@
             matcher.to_lowercase()
         })
         .collect()
-}
-
-<span class="doccomment">/// The style of a [`ComboBox`].
-</span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; {
-    <span class="doccomment">/// The style of the [`TextInput`] of the [`ComboBox`].
-    </span><span class="kw">pub </span>text_input: text_input::Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
-
-    <span class="doccomment">/// The style of the [`Menu`] of the [`ComboBox`].
-    ///
-    /// [`Menu`]: menu::Menu
-    </span><span class="kw">pub </span>menu: menu::Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
-}
-
-<span class="doccomment">/// The default style of a [`ComboBox`].
-</span><span class="kw">pub trait </span>DefaultStyle: Sized {
-    <span class="doccomment">/// Returns the default style of a [`ComboBox`].
-    </span><span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="lifetime">'static</span>, <span class="self">Self</span>&gt;;
-}
-
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style() -&gt; Style&lt;<span class="lifetime">'static</span>, <span class="self">Self</span>&gt; {
-        Style {
-            text_input: Box::new(text_input::default),
-            menu: menu::DefaultStyle::default_style(),
-        }
-    }
 }
 </code></pre></div></section></main></body></html>

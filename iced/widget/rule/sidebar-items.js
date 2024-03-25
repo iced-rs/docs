@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["FillMode"],"fn":["default"],"struct":["Appearance","Rule"],"trait":["DefaultStyle"],"type":["Style"]};
+window.SIDEBAR_ITEMS = {"enum":["FillMode"],"fn":["default"],"struct":["Rule","Style"],"trait":["Catalog"],"type":["StyleFn"]};

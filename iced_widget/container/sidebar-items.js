@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Status"],"fn":["bordered_box","draw_background","layout","rounded_box","transparent","visible_bounds"],"struct":["Appearance","Container","Id"],"trait":["DefaultStyle"],"type":["Style"]};
+window.SIDEBAR_ITEMS = {"fn":["bordered_box","draw_background","layout","rounded_box","transparent","visible_bounds"],"struct":["Container","Id","Style"],"trait":["Catalog"],"type":["StyleFn"]};

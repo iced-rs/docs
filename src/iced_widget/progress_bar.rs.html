@@ -233,13 +233,39 @@
 <a href="#233" id="233">233</a>
 <a href="#234" id="234">234</a>
 <a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Provide progress feedback to your users.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::Tree;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Background, Border, Element, Layout, Length, Rectangle, Size, Theme, Widget,
+    <span class="self">self</span>, Background, Border, Element, Layout, Length, Rectangle, Size, Theme,
+    Widget,
 };
 
 <span class="kw">use </span>std::ops::RangeInclusive;
@@ -257,15 +283,21 @@
 ///
 /// ![Progress bar drawn with `iced_wgpu`](https://user-images.githubusercontent.com/18618951/71662391-a316c200-2d51-11ea-9cef-52758cab85e3.png)
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>ProgressBar&lt;<span class="lifetime">'a</span>, Theme = <span class="kw">crate</span>::Theme&gt; {
+</span><span class="kw">pub struct </span>ProgressBar&lt;<span class="lifetime">'a</span>, Theme = <span class="kw">crate</span>::Theme&gt;
+<span class="kw">where
+    </span>Theme: Catalog,
+{
     range: RangeInclusive&lt;f32&gt;,
     value: f32,
     width: Length,
     height: <span class="prelude-ty">Option</span>&lt;Length&gt;,
-    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Theme&gt; ProgressBar&lt;<span class="lifetime">'a</span>, Theme&gt; {
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Theme&gt; ProgressBar&lt;<span class="lifetime">'a</span>, Theme&gt;
+<span class="kw">where
+    </span>Theme: Catalog,
+{
     <span class="doccomment">/// The default height of a [`ProgressBar`].
     </span><span class="kw">pub const </span>DEFAULT_HEIGHT: f32 = <span class="number">30.0</span>;
 
@@ -274,16 +306,13 @@
     /// It expects:
     ///   * an inclusive range of possible values
     ///   * the current value of the [`ProgressBar`]
-    </span><span class="kw">pub fn </span>new(range: RangeInclusive&lt;f32&gt;, value: f32) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
-    {
+    </span><span class="kw">pub fn </span>new(range: RangeInclusive&lt;f32&gt;, value: f32) -&gt; <span class="self">Self </span>{
         ProgressBar {
             value: value.clamp(<span class="kw-2">*</span>range.start(), <span class="kw-2">*</span>range.end()),
             range,
             width: Length::Fill,
             height: <span class="prelude-val">None</span>,
-            style: Box::new(Theme::default_style),
+            class: Theme::default(),
         }
     }
 
@@ -300,8 +329,20 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`ProgressBar`].
-    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance + <span class="lifetime">'a</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = Box::new(style);
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Style + <span class="lifetime">'a</span>) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme::Class&lt;<span class="lifetime">'a</span>&gt;: From&lt;StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.class = (Box::new(style) <span class="kw">as </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;).into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the [`ProgressBar`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>class(<span class="kw-2">mut </span><span class="self">self</span>, class: <span class="kw">impl </span>Into&lt;Theme::Class&lt;<span class="lifetime">'a</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.class = class.into();
         <span class="self">self
     </span>}
 }
@@ -309,7 +350,8 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
     <span class="kw">for </span>ProgressBar&lt;<span class="lifetime">'a</span>, Theme&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Theme: Catalog,
+    Renderer: core::Renderer,
 {
     <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
         Size {
@@ -351,15 +393,15 @@
                 / (range_end - range_start)
         };
 
-        <span class="kw">let </span>appearance = (<span class="self">self</span>.style)(theme);
+        <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class);
 
         renderer.fill_quad(
             renderer::Quad {
                 bounds: Rectangle { ..bounds },
-                border: appearance.border,
+                border: style.border,
                 ..renderer::Quad::default()
             },
-            appearance.background,
+            style.background,
         );
 
         <span class="kw">if </span>active_progress_width &gt; <span class="number">0.0 </span>{
@@ -369,10 +411,10 @@
                         width: active_progress_width,
                         ..bounds
                     },
-                    border: Border::rounded(appearance.border.radius),
+                    border: Border::rounded(style.border.radius),
                     ..renderer::Quad::default()
                 },
-                appearance.bar,
+                style.bar,
             );
         }
     }
@@ -382,8 +424,8 @@
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a</span>,
-    Theme: <span class="lifetime">'a</span>,
-    Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::core::Renderer,
+    Theme: <span class="lifetime">'a </span>+ Catalog,
+    Renderer: <span class="lifetime">'a </span>+ core::Renderer,
 {
     <span class="kw">fn </span>from(
         progress_bar: ProgressBar&lt;<span class="lifetime">'a</span>, Theme&gt;,
@@ -394,7 +436,7 @@
 
 <span class="doccomment">/// The appearance of a progress bar.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>Appearance {
+</span><span class="kw">pub struct </span>Style {
     <span class="doccomment">/// The [`Background`] of the progress bar.
     </span><span class="kw">pub </span>background: Background,
     <span class="doccomment">/// The [`Background`] of the bar of the progress bar.
@@ -403,29 +445,37 @@
     </span><span class="kw">pub </span>border: Border,
 }
 
-<span class="doccomment">/// The style of a [`ProgressBar`].
-</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
+<span class="doccomment">/// The theme catalog of a [`ProgressBar`].
+</span><span class="kw">pub trait </span>Catalog: Sized {
+    <span class="doccomment">/// The item class of the [`Catalog`].
+    </span><span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt;;
 
-<span class="doccomment">/// The default style of a [`ProgressBar`].
-</span><span class="kw">pub trait </span>DefaultStyle {
-    <span class="doccomment">/// Returns the default style of a [`ProgressBar`].
-    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance;
+    <span class="doccomment">/// The default class produced by the [`Catalog`].
+    </span><span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt;;
+
+    <span class="doccomment">/// The [`Style`] of a class with the given status.
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;) -&gt; Style;
 }
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance {
-        primary(<span class="self">self</span>)
+<span class="doccomment">/// A styling function for a [`ProgressBar`].
+///
+/// This is just a boxed closure: `Fn(&amp;Theme, Status) -&gt; Style`.
+</span><span class="kw">pub type </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Style + <span class="lifetime">'a</span>&gt;;
+
+<span class="kw">impl </span>Catalog <span class="kw">for </span>Theme {
+    <span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt; = StyleFn&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;;
+
+    <span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt; {
+        Box::new(primary)
+    }
+
+    <span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;) -&gt; Style {
+        class(<span class="self">self</span>)
     }
 }
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Appearance {
-        <span class="kw-2">*</span><span class="self">self
-    </span>}
-}
-
 <span class="doccomment">/// The primary style of a [`ProgressBar`].
-</span><span class="kw">pub fn </span>primary(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Appearance {
+</span><span class="kw">pub fn </span>primary(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
     styled(
@@ -435,7 +485,7 @@
 }
 
 <span class="doccomment">/// The secondary style of a [`ProgressBar`].
-</span><span class="kw">pub fn </span>secondary(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Appearance {
+</span><span class="kw">pub fn </span>secondary(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
     styled(
@@ -445,14 +495,14 @@
 }
 
 <span class="doccomment">/// The success style of a [`ProgressBar`].
-</span><span class="kw">pub fn </span>success(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Appearance {
+</span><span class="kw">pub fn </span>success(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
     styled(palette.background.strong.color, palette.success.base.color)
 }
 
 <span class="doccomment">/// The danger style of a [`ProgressBar`].
-</span><span class="kw">pub fn </span>danger(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Appearance {
+</span><span class="kw">pub fn </span>danger(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
     styled(palette.background.strong.color, palette.danger.base.color)
@@ -461,8 +511,8 @@
 <span class="kw">fn </span>styled(
     background: <span class="kw">impl </span>Into&lt;Background&gt;,
     bar: <span class="kw">impl </span>Into&lt;Background&gt;,
-) -&gt; Appearance {
-    Appearance {
+) -&gt; Style {
+    Style {
         background: background.into(),
         bar: bar.into(),
         border: Border::rounded(<span class="number">2</span>),

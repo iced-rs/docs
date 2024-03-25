@@ -565,6 +565,15 @@
 <a href="#565" id="565">565</a>
 <a href="#566" id="566">566</a>
 <a href="#567" id="567">567</a>
+<a href="#568" id="568">568</a>
+<a href="#569" id="569">569</a>
+<a href="#570" id="570">570</a>
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Allow your users to perform actions by pressing a button.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -616,6 +625,7 @@
 </span><span class="kw">pub struct </span>Button&lt;<span class="lifetime">'a</span>, Message, Theme = <span class="kw">crate</span>::Theme, Renderer = <span class="kw">crate</span>::Renderer&gt;
 <span class="kw">where
     </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    Theme: Catalog,
 {
     content: Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     on_press: <span class="prelude-ty">Option</span>&lt;Message&gt;,
@@ -623,20 +633,18 @@
     height: Length,
     padding: Padding,
     clip: bool,
-    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Button&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    Theme: Catalog,
 {
     <span class="doccomment">/// Creates a new [`Button`] with the given content.
     </span><span class="kw">pub fn </span>new(
         content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
-    ) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
-    {
+    ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>content = content.into();
         <span class="kw">let </span>size = content.as_widget().size_hint();
 
@@ -647,7 +655,7 @@
             height: size.height.fluid(),
             padding: DEFAULT_PADDING,
             clip: <span class="bool-val">false</span>,
-            style: Box::new(Theme::default_style),
+            class: Theme::default(),
         }
     }
 
@@ -686,19 +694,28 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the style variant of this [`Button`].
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = Box::new(style);
-        <span class="self">self
-    </span>}
-
     <span class="doccomment">/// Sets whether the contents of the [`Button`] should be clipped on
     /// overflow.
     </span><span class="kw">pub fn </span>clip(<span class="kw-2">mut </span><span class="self">self</span>, clip: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.clip = clip;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style of the [`Button`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Style + <span class="lifetime">'a</span>) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme::Class&lt;<span class="lifetime">'a</span>&gt;: From&lt;StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.class = (Box::new(style) <span class="kw">as </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;).into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the [`Button`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>class(<span class="kw-2">mut </span><span class="self">self</span>, class: <span class="kw">impl </span>Into&lt;Theme::Class&lt;<span class="lifetime">'a</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.class = class.into();
         <span class="self">self
     </span>}
 }
@@ -713,6 +730,7 @@
 <span class="kw">where
     </span>Message: <span class="lifetime">'a </span>+ Clone,
     Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::core::Renderer,
+    Theme: Catalog,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
         tree::Tag::of::&lt;State&gt;()
@@ -871,19 +889,19 @@
             Status::Active
         };
 
-        <span class="kw">let </span>styling = (<span class="self">self</span>.style)(theme, status);
+        <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class, status);
 
-        <span class="kw">if </span>styling.background.is_some()
-            || styling.border.width &gt; <span class="number">0.0
-            </span>|| styling.shadow.color.a &gt; <span class="number">0.0
+        <span class="kw">if </span>style.background.is_some()
+            || style.border.width &gt; <span class="number">0.0
+            </span>|| style.shadow.color.a &gt; <span class="number">0.0
         </span>{
             renderer.fill_quad(
                 renderer::Quad {
                     bounds,
-                    border: styling.border,
-                    shadow: styling.shadow,
+                    border: style.border,
+                    shadow: style.shadow,
                 },
-                styling
+                style
                     .background
                     .unwrap_or(Background::Color(Color::TRANSPARENT)),
             );
@@ -900,7 +918,7 @@
             renderer,
             theme,
             <span class="kw-2">&amp;</span>renderer::Style {
-                text_color: styling.text_color,
+                text_color: style.text_color,
             },
             content_layout,
             cursor,
@@ -945,7 +963,7 @@
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone + <span class="lifetime">'a</span>,
-    Theme: <span class="lifetime">'a</span>,
+    Theme: Catalog + <span class="lifetime">'a</span>,
     Renderer: <span class="kw">crate</span>::core::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(button: Button&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;) -&gt; <span class="self">Self </span>{
@@ -974,9 +992,9 @@
     </span>Disabled,
 }
 
-<span class="doccomment">/// The appearance of a button.
+<span class="doccomment">/// The style of a button.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
-</span><span class="kw">pub struct </span>Appearance {
+</span><span class="kw">pub struct </span>Style {
     <span class="doccomment">/// The [`Background`] of the button.
     </span><span class="kw">pub </span>background: <span class="prelude-ty">Option</span>&lt;Background&gt;,
     <span class="doccomment">/// The text [`Color`] of the button.
@@ -987,8 +1005,8 @@
     </span><span class="kw">pub </span>shadow: Shadow,
 }
 
-<span class="kw">impl </span>Appearance {
-    <span class="doccomment">/// Updates the [`Appearance`] with the given [`Background`].
+<span class="kw">impl </span>Style {
+    <span class="doccomment">/// Updates the [`Style`] with the given [`Background`].
     </span><span class="kw">pub fn </span>with_background(<span class="self">self</span>, background: <span class="kw">impl </span>Into&lt;Background&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             background: <span class="prelude-val">Some</span>(background.into()),
@@ -997,7 +1015,7 @@
     }
 }
 
-<span class="kw">impl </span>std::default::Default <span class="kw">for </span>Appearance {
+<span class="kw">impl </span>Default <span class="kw">for </span>Style {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             background: <span class="prelude-val">None</span>,
@@ -1008,41 +1026,41 @@
     }
 }
 
-<span class="doccomment">/// The style of a [`Button`].
-</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
+<span class="doccomment">/// The theme catalog of a [`Button`].
+</span><span class="kw">pub trait </span>Catalog {
+    <span class="doccomment">/// The item class of the [`Catalog`].
+    </span><span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt;;
 
-<span class="doccomment">/// The default style of a [`Button`].
-</span><span class="kw">pub trait </span>DefaultStyle {
-    <span class="doccomment">/// Returns the default style of a [`Button`].
-    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance;
+    <span class="doccomment">/// The default class produced by the [`Catalog`].
+    </span><span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt;;
+
+    <span class="doccomment">/// The [`Style`] of a class with the given status.
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;, status: Status) -&gt; Style;
 }
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance {
-        primary(<span class="self">self</span>, status)
+<span class="doccomment">/// A styling function for a [`Button`].
+</span><span class="kw">pub type </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Style + <span class="lifetime">'a</span>&gt;;
+
+<span class="kw">impl </span>Catalog <span class="kw">for </span>Theme {
+    <span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt; = StyleFn&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;;
+
+    <span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt; {
+        Box::new(primary)
     }
-}
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
-        <span class="kw-2">*</span><span class="self">self
-    </span>}
-}
-
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Color {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
-        Appearance::default().with_background(<span class="kw-2">*</span><span class="self">self</span>)
+    <span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;, status: Status) -&gt; Style {
+        class(<span class="self">self</span>, status)
     }
 }
 
 <span class="doccomment">/// A primary button; denoting a main action.
-</span><span class="kw">pub fn </span>primary(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+</span><span class="kw">pub fn </span>primary(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
     <span class="kw">let </span>base = styled(palette.primary.strong);
 
     <span class="kw">match </span>status {
         Status::Active | Status::Pressed =&gt; base,
-        Status::Hovered =&gt; Appearance {
+        Status::Hovered =&gt; Style {
             background: <span class="prelude-val">Some</span>(Background::Color(palette.primary.base.color)),
             ..base
         },
@@ -1051,13 +1069,13 @@
 }
 
 <span class="doccomment">/// A secondary button; denoting a complementary action.
-</span><span class="kw">pub fn </span>secondary(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+</span><span class="kw">pub fn </span>secondary(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
     <span class="kw">let </span>base = styled(palette.secondary.base);
 
     <span class="kw">match </span>status {
         Status::Active | Status::Pressed =&gt; base,
-        Status::Hovered =&gt; Appearance {
+        Status::Hovered =&gt; Style {
             background: <span class="prelude-val">Some</span>(Background::Color(palette.secondary.strong.color)),
             ..base
         },
@@ -1066,13 +1084,13 @@
 }
 
 <span class="doccomment">/// A success button; denoting a good outcome.
-</span><span class="kw">pub fn </span>success(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+</span><span class="kw">pub fn </span>success(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
     <span class="kw">let </span>base = styled(palette.success.base);
 
     <span class="kw">match </span>status {
         Status::Active | Status::Pressed =&gt; base,
-        Status::Hovered =&gt; Appearance {
+        Status::Hovered =&gt; Style {
             background: <span class="prelude-val">Some</span>(Background::Color(palette.success.strong.color)),
             ..base
         },
@@ -1081,13 +1099,13 @@
 }
 
 <span class="doccomment">/// A danger button; denoting a destructive action.
-</span><span class="kw">pub fn </span>danger(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+</span><span class="kw">pub fn </span>danger(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
     <span class="kw">let </span>base = styled(palette.danger.base);
 
     <span class="kw">match </span>status {
         Status::Active | Status::Pressed =&gt; base,
-        Status::Hovered =&gt; Appearance {
+        Status::Hovered =&gt; Style {
             background: <span class="prelude-val">Some</span>(Background::Color(palette.danger.strong.color)),
             ..base
         },
@@ -1096,17 +1114,17 @@
 }
 
 <span class="doccomment">/// A text button; useful for links.
-</span><span class="kw">pub fn </span>text(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+</span><span class="kw">pub fn </span>text(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
-    <span class="kw">let </span>base = Appearance {
+    <span class="kw">let </span>base = Style {
         text_color: palette.background.base.text,
-        ..Appearance::default()
+        ..Style::default()
     };
 
     <span class="kw">match </span>status {
         Status::Active | Status::Pressed =&gt; base,
-        Status::Hovered =&gt; Appearance {
+        Status::Hovered =&gt; Style {
             text_color: palette.background.base.text.scale_alpha(<span class="number">0.8</span>),
             ..base
         },
@@ -1114,22 +1132,22 @@
     }
 }
 
-<span class="kw">fn </span>styled(pair: palette::Pair) -&gt; Appearance {
-    Appearance {
+<span class="kw">fn </span>styled(pair: palette::Pair) -&gt; Style {
+    Style {
         background: <span class="prelude-val">Some</span>(Background::Color(pair.color)),
         text_color: pair.text,
         border: Border::rounded(<span class="number">2</span>),
-        ..Appearance::default()
+        ..Style::default()
     }
 }
 
-<span class="kw">fn </span>disabled(appearance: Appearance) -&gt; Appearance {
-    Appearance {
-        background: appearance
+<span class="kw">fn </span>disabled(style: Style) -&gt; Style {
+    Style {
+        background: style
             .background
             .map(|background| background.scale_alpha(<span class="number">0.5</span>)),
-        text_color: appearance.text_color.scale_alpha(<span class="number">0.5</span>),
-        ..appearance
+        text_color: style.text_color.scale_alpha(<span class="number">0.5</span>),
+        ..style
     }
 }
 </code></pre></div></section></main></body></html>

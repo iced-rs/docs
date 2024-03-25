@@ -1697,7 +1697,6 @@
 <a href="#1697" id="1697">1697</a>
 <a href="#1698" id="1698">1698</a>
 <a href="#1699" id="1699">1699</a>
-<a href="#1700" id="1700">1700</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
 </span><span class="comment">// use crate::container;
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
@@ -1712,8 +1711,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::operation::{<span class="self">self</span>, Operation};
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Background, Border, Clipboard, Color, Element, Layout, Length, Pixels,
-    Point, Rectangle, Shell, Size, Theme, Vector, Widget,
+    <span class="self">self</span>, Background, Border, Clipboard, Color, Element, Layout, Length,
+    Pixels, Point, Rectangle, Shell, Size, Theme, Vector, Widget,
 };
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Command;
 
@@ -1728,7 +1727,8 @@
     Theme = <span class="kw">crate</span>::Theme,
     Renderer = <span class="kw">crate</span>::Renderer,
 &gt; <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Theme: Catalog,
+    Renderer: core::Renderer,
 {
     id: <span class="prelude-ty">Option</span>&lt;Id&gt;,
     width: Length,
@@ -1736,20 +1736,18 @@
     direction: Direction,
     content: Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
     on_scroll: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Viewport) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
-    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Scrollable&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Theme: Catalog,
+    Renderer: core::Renderer,
 {
     <span class="doccomment">/// Creates a new vertical [`Scrollable`].
     </span><span class="kw">pub fn </span>new(
         content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
-    ) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
-    {
+    ) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::with_direction(content, Direction::default())
     }
 
@@ -1757,18 +1755,6 @@
     </span><span class="kw">pub fn </span>with_direction(
         content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
         direction: Direction,
-    ) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
-    {
-        <span class="self">Self</span>::with_direction_and_style(content, direction, Theme::default_style)
-    }
-
-    <span class="doccomment">/// Creates a new [`Scrollable`] with the given [`Direction`] and style.
-    </span><span class="kw">pub fn </span>with_direction_and_style(
-        content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
-        direction: Direction,
-        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>content = content.into();
 
@@ -1791,7 +1777,7 @@
             direction,
             content,
             on_scroll: <span class="prelude-val">None</span>,
-            style: Box::new(style),
+            class: Theme::default(),
         }
     }
 
@@ -1821,12 +1807,21 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the style of the [`Scrollable`] .
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = Box::new(style);
+    <span class="doccomment">/// Sets the style of this [`Scrollable`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Style + <span class="lifetime">'a</span>) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme::Class&lt;<span class="lifetime">'a</span>&gt;: From&lt;StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.class = (Box::new(style) <span class="kw">as </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;).into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the [`Scrollable`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>class(<span class="kw-2">mut </span><span class="self">self</span>, class: <span class="kw">impl </span>Into&lt;Theme::Class&lt;<span class="lifetime">'a</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.class = class.into();
         <span class="self">self
     </span>}
 }
@@ -1937,7 +1932,8 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
     <span class="kw">for </span>Scrollable&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Theme: Catalog,
+    Renderer: core::Renderer,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
         tree::Tag::of::&lt;State&gt;()
@@ -2351,7 +2347,7 @@
         tree: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
         theme: <span class="kw-2">&amp;</span>Theme,
-        style: <span class="kw-2">&amp;</span>renderer::Style,
+        defaults: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
@@ -2401,13 +2397,9 @@
             Status::Active
         };
 
-        <span class="kw">let </span>appearance = (<span class="self">self</span>.style)(theme, status);
+        <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class, status);
 
-        container::draw_background(
-            renderer,
-            <span class="kw-2">&amp;</span>appearance.container,
-            layout.bounds(),
-        );
+        container::draw_background(renderer, <span class="kw-2">&amp;</span>style.container, layout.bounds());
 
         <span class="comment">// Draw inner content
         </span><span class="kw">if </span>scrollbars.active() {
@@ -2419,7 +2411,7 @@
                             <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
                             renderer,
                             theme,
-                            style,
+                            defaults,
                             content_layout,
                             cursor,
                             <span class="kw-2">&amp;</span>Rectangle {
@@ -2482,7 +2474,7 @@
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(scrollbar) = scrollbars.y {
                         draw_scrollbar(
                             renderer,
-                            appearance.vertical_scrollbar,
+                            style.vertical_scrollbar,
                             <span class="kw-2">&amp;</span>scrollbar,
                         );
                     }
@@ -2490,14 +2482,14 @@
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(scrollbar) = scrollbars.x {
                         draw_scrollbar(
                             renderer,
-                            appearance.horizontal_scrollbar,
+                            style.horizontal_scrollbar,
                             <span class="kw-2">&amp;</span>scrollbar,
                         );
                     }
 
                     <span class="kw">if let </span>(<span class="prelude-val">Some</span>(x), <span class="prelude-val">Some</span>(y)) = (scrollbars.x, scrollbars.y) {
                         <span class="kw">let </span>background =
-                            appearance.gap.or(appearance.container.background);
+                            style.gap.or(style.container.background);
 
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(background) = background {
                             renderer.fill_quad(
@@ -2521,7 +2513,7 @@
                 <span class="kw-2">&amp;</span>tree.children[<span class="number">0</span>],
                 renderer,
                 theme,
-                style,
+                defaults,
                 content_layout,
                 cursor,
                 <span class="kw-2">&amp;</span>Rectangle {
@@ -2616,8 +2608,8 @@
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a</span>,
-    Theme: <span class="lifetime">'a</span>,
-    Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::core::Renderer,
+    Theme: <span class="lifetime">'a </span>+ Catalog,
+    Renderer: <span class="lifetime">'a </span>+ core::Renderer,
 {
     <span class="kw">fn </span>from(
         text_input: Scrollable&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
@@ -3270,9 +3262,9 @@
 
 <span class="doccomment">/// The appearance of a scrolable.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>Appearance {
-    <span class="doccomment">/// The [`container::Appearance`] of a scrollable.
-    </span><span class="kw">pub </span>container: container::Appearance,
+</span><span class="kw">pub struct </span>Style {
+    <span class="doccomment">/// The [`container::Style`] of a scrollable.
+    </span><span class="kw">pub </span>container: container::Style,
     <span class="doccomment">/// The vertical [`Scrollbar`] appearance.
     </span><span class="kw">pub </span>vertical_scrollbar: Scrollbar,
     <span class="doccomment">/// The horizontal [`Scrollbar`] appearance.
@@ -3301,29 +3293,35 @@
     </span><span class="kw">pub </span>border: Border,
 }
 
-<span class="doccomment">/// The style of a [`Scrollable`].
-</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
+<span class="doccomment">/// The theme catalog of a [`Scrollable`].
+</span><span class="kw">pub trait </span>Catalog {
+    <span class="doccomment">/// The item class of the [`Catalog`].
+    </span><span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt;;
 
-<span class="doccomment">/// The default style of a [`Scrollable`].
-</span><span class="kw">pub trait </span>DefaultStyle {
-    <span class="doccomment">/// Returns the default style of a [`Scrollable`].
-    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance;
+    <span class="doccomment">/// The default class produced by the [`Catalog`].
+    </span><span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt;;
+
+    <span class="doccomment">/// The [`Style`] of a class with the given status.
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;, status: Status) -&gt; Style;
 }
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance {
-        default(<span class="self">self</span>, status)
+<span class="doccomment">/// A styling function for a [`Scrollable`].
+</span><span class="kw">pub type </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Style + <span class="lifetime">'a</span>&gt;;
+
+<span class="kw">impl </span>Catalog <span class="kw">for </span>Theme {
+    <span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt; = StyleFn&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;;
+
+    <span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt; {
+        Box::new(default)
+    }
+
+    <span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;, status: Status) -&gt; Style {
+        class(<span class="self">self</span>, status)
     }
 }
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
-        <span class="kw-2">*</span><span class="self">self
-    </span>}
-}
-
 <span class="doccomment">/// The default style of a [`Scrollable`].
-</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
     <span class="kw">let </span>scrollbar = Scrollbar {
@@ -3336,8 +3334,8 @@
     };
 
     <span class="kw">match </span>status {
-        Status::Active =&gt; Appearance {
-            container: container::Appearance::default(),
+        Status::Active =&gt; Style {
+            container: container::Style::default(),
             vertical_scrollbar: scrollbar,
             horizontal_scrollbar: scrollbar,
             gap: <span class="prelude-val">None</span>,
@@ -3354,8 +3352,8 @@
                 ..scrollbar
             };
 
-            Appearance {
-                container: container::Appearance::default(),
+            Style {
+                container: container::Style::default(),
                 vertical_scrollbar: <span class="kw">if </span>is_vertical_scrollbar_hovered {
                     hovered_scrollbar
                 } <span class="kw">else </span>{
@@ -3381,8 +3379,8 @@
                 ..scrollbar
             };
 
-            Appearance {
-                container: container::Appearance::default(),
+            Style {
+                container: container::Style::default(),
                 vertical_scrollbar: <span class="kw">if </span>is_vertical_scrollbar_dragged {
                     dragged_scrollbar
                 } <span class="kw">else </span>{

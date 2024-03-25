@@ -455,6 +455,7 @@
 <a href="#455" id="455">455</a>
 <a href="#456" id="456">456</a>
 <a href="#457" id="457">457</a>
+<a href="#458" id="458">458</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Helper functions to create pure widgets.
 </span><span class="kw">use </span><span class="kw">crate</span>::button::{<span class="self">self</span>, Button};
 <span class="kw">use </span><span class="kw">crate</span>::checkbox::{<span class="self">self</span>, Checkbox};
@@ -464,6 +465,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::operation;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Element, Length, Pixels};
 <span class="kw">use </span><span class="kw">crate</span>::keyed;
+<span class="kw">use </span><span class="kw">crate</span>::overlay;
 <span class="kw">use </span><span class="kw">crate</span>::pick_list::{<span class="self">self</span>, PickList};
 <span class="kw">use </span><span class="kw">crate</span>::progress_bar::{<span class="self">self</span>, ProgressBar};
 <span class="kw">use </span><span class="kw">crate</span>::radio::{<span class="self">self</span>, Radio};
@@ -515,7 +517,7 @@
     content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
 ) -&gt; Container&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: container::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: container::Catalog + <span class="lifetime">'a</span>,
     Renderer: core::Renderer,
 {
     Container::new(content)
@@ -561,7 +563,7 @@
     content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
 ) -&gt; Scrollable&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: scrollable::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: scrollable::Catalog + <span class="lifetime">'a</span>,
     Renderer: core::Renderer,
 {
     Scrollable::new(content)
@@ -574,7 +576,7 @@
     content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
 ) -&gt; Button&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: button::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: button::Catalog + <span class="lifetime">'a</span>,
     Renderer: core::Renderer,
 {
     Button::new(content)
@@ -591,7 +593,7 @@
     position: tooltip::Position,
 ) -&gt; <span class="kw">crate</span>::Tooltip&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: container::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: container::Catalog + <span class="lifetime">'a</span>,
     Renderer: core::text::Renderer,
 {
     Tooltip::new(content, tooltip, position)
@@ -604,7 +606,7 @@
     text: <span class="kw">impl </span>ToString,
 ) -&gt; Text&lt;<span class="lifetime">'a</span>, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: text::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: text::Catalog + <span class="lifetime">'a</span>,
     Renderer: core::text::Renderer,
 {
     Text::new(text.to_string())
@@ -618,7 +620,7 @@
     is_checked: bool,
 ) -&gt; Checkbox&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: checkbox::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: checkbox::Catalog + <span class="lifetime">'a</span>,
     Renderer: core::text::Renderer,
 {
     Checkbox::new(label, is_checked)
@@ -635,7 +637,7 @@
 ) -&gt; Radio&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
-    Theme: radio::DefaultStyle + <span class="lifetime">'a</span>,
+    Theme: radio::Catalog + <span class="lifetime">'a</span>,
     Renderer: core::text::Renderer,
     V: Copy + Eq,
 {
@@ -651,7 +653,7 @@
     f: <span class="kw">impl </span>Fn(bool) -&gt; Message + <span class="lifetime">'a</span>,
 ) -&gt; Toggler&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Theme: toggler::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: toggler::Catalog + <span class="lifetime">'a</span>,
     Renderer: core::text::Renderer,
 {
     Toggler::new(label, is_checked, f)
@@ -666,7 +668,7 @@
 ) -&gt; TextInput&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
-    Theme: text_input::DefaultStyle + <span class="lifetime">'a</span>,
+    Theme: text_input::Catalog + <span class="lifetime">'a</span>,
     Renderer: core::text::Renderer,
 {
     TextInput::new(placeholder, value)
@@ -680,7 +682,7 @@
 ) -&gt; TextEditor&lt;<span class="lifetime">'a</span>, core::text::highlighter::PlainText, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: Clone,
-    Theme: text_editor::DefaultStyle + <span class="lifetime">'a</span>,
+    Theme: text_editor::Catalog + <span class="lifetime">'a</span>,
     Renderer: core::text::Renderer,
 {
     TextEditor::new(content)
@@ -697,7 +699,7 @@
 <span class="kw">where
     </span>T: Copy + From&lt;u8&gt; + std::cmp::PartialOrd,
     Message: Clone,
-    Theme: slider::DefaultStyle + <span class="lifetime">'a</span>,
+    Theme: slider::Catalog + <span class="lifetime">'a</span>,
 {
     Slider::new(range, value, on_change)
 }
@@ -713,7 +715,7 @@
 <span class="kw">where
     </span>T: Copy + From&lt;u8&gt; + std::cmp::PartialOrd,
     Message: Clone,
-    Theme: vertical_slider::DefaultStyle + <span class="lifetime">'a</span>,
+    Theme: vertical_slider::Catalog + <span class="lifetime">'a</span>,
 {
     VerticalSlider::new(range, value, on_change)
 }
@@ -731,7 +733,7 @@
     L: Borrow&lt;[T]&gt; + <span class="lifetime">'a</span>,
     V: Borrow&lt;T&gt; + <span class="lifetime">'a</span>,
     Message: Clone,
-    Theme: pick_list::DefaultStyle,
+    Theme: pick_list::Catalog + overlay::menu::Catalog,
     Renderer: core::text::Renderer,
 {
     PickList::new(options, selected, on_selected)
@@ -748,7 +750,7 @@
 ) -&gt; ComboBox&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>T: std::fmt::Display + Clone,
-    Theme: combo_box::DefaultStyle + <span class="lifetime">'a</span>,
+    Theme: combo_box::Catalog + <span class="lifetime">'a</span>,
     Renderer: core::text::Renderer,
 {
     ComboBox::new(state, placeholder, selection, on_selected)
@@ -775,7 +777,7 @@
 /// [`Rule`]: crate::Rule
 </span><span class="kw">pub fn </span>horizontal_rule&lt;<span class="lifetime">'a</span>, Theme&gt;(height: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; Rule&lt;<span class="lifetime">'a</span>, Theme&gt;
 <span class="kw">where
-    </span>Theme: rule::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: rule::Catalog + <span class="lifetime">'a</span>,
 {
     Rule::horizontal(height)
 }
@@ -785,7 +787,7 @@
 /// [`Rule`]: crate::Rule
 </span><span class="kw">pub fn </span>vertical_rule&lt;<span class="lifetime">'a</span>, Theme&gt;(width: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; Rule&lt;<span class="lifetime">'a</span>, Theme&gt;
 <span class="kw">where
-    </span>Theme: rule::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: rule::Catalog + <span class="lifetime">'a</span>,
 {
     Rule::vertical(width)
 }
@@ -802,7 +804,7 @@
     value: f32,
 ) -&gt; ProgressBar&lt;<span class="lifetime">'a</span>, Theme&gt;
 <span class="kw">where
-    </span>Theme: progress_bar::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: progress_bar::Catalog + <span class="lifetime">'a</span>,
 {
     ProgressBar::new(range, value)
 }
@@ -824,7 +826,7 @@
     handle: <span class="kw">impl </span>Into&lt;core::svg::Handle&gt;,
 ) -&gt; <span class="kw">crate</span>::Svg&lt;<span class="lifetime">'a</span>, Theme&gt;
 <span class="kw">where
-    </span>Theme: <span class="kw">crate</span>::svg::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: <span class="kw">crate</span>::svg::Catalog,
 {
     <span class="kw">crate</span>::Svg::new(handle)
 }
@@ -852,7 +854,7 @@
     data: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">crate</span>::qr_code::Data,
 ) -&gt; <span class="kw">crate</span>::QRCode&lt;<span class="lifetime">'a</span>, Theme&gt;
 <span class="kw">where
-    </span>Theme: <span class="kw">crate</span>::qr_code::DefaultStyle + <span class="lifetime">'a</span>,
+    </span>Theme: <span class="kw">crate</span>::qr_code::Catalog + <span class="lifetime">'a</span>,
 {
     <span class="kw">crate</span>::QRCode::new(data)
 }

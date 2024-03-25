@@ -609,32 +609,6 @@
 <a href="#609" id="609">609</a>
 <a href="#610" id="610">610</a>
 <a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a>
-<a href="#626" id="626">626</a>
-<a href="#627" id="627">627</a>
-<a href="#628" id="628">628</a>
-<a href="#629" id="629">629</a>
-<a href="#630" id="630">630</a>
-<a href="#631" id="631">631</a>
-<a href="#632" id="632">632</a>
-<a href="#633" id="633">633</a>
-<a href="#634" id="634">634</a>
-<a href="#635" id="635">635</a>
-<a href="#636" id="636">636</a>
-<a href="#637" id="637">637</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Decorate content and apply alignment.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment::{<span class="self">self</span>, Alignment};
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -646,8 +620,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::{<span class="self">self</span>, Operation};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Background, Border, Clipboard, Color, Element, Layout, Length, Padding,
-    Pixels, Point, Rectangle, Shadow, Shell, Size, Theme, Vector, Widget,
+    <span class="self">self</span>, Background, Border, Clipboard, Color, Element, Layout, Length,
+    Padding, Pixels, Point, Rectangle, Shadow, Shell, Size, Theme, Vector,
+    Widget,
 };
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Command;
 
@@ -661,7 +636,8 @@
     Theme = <span class="kw">crate</span>::Theme,
     Renderer = <span class="kw">crate</span>::Renderer,
 &gt; <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Theme: Catalog,
+    Renderer: core::Renderer,
 {
     id: <span class="prelude-ty">Option</span>&lt;Id&gt;,
     padding: Padding,
@@ -673,27 +649,17 @@
     vertical_alignment: alignment::Vertical,
     clip: bool,
     content: Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
-    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Container&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Theme: Catalog,
+    Renderer: core::Renderer,
 {
     <span class="doccomment">/// Creates a [`Container`] with the given content.
     </span><span class="kw">pub fn </span>new(
         content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
-    ) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
-    {
-        <span class="self">Self</span>::with_style(content, Theme::default_style)
-    }
-
-    <span class="doccomment">/// Creates a [`Container`] with the given content and style.
-    </span><span class="kw">pub fn </span>with_style(
-        content: <span class="kw">impl </span>Into&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
-        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
     ) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>content = content.into();
         <span class="kw">let </span>size = content.as_widget().size_hint();
@@ -708,7 +674,7 @@
             horizontal_alignment: alignment::Horizontal::Left,
             vertical_alignment: alignment::Vertical::Top,
             clip: <span class="bool-val">false</span>,
-            style: Box::new(style),
+            class: Theme::default(),
             content,
         }
     }
@@ -773,19 +739,28 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the style of the [`Container`].
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = Box::new(style);
-        <span class="self">self
-    </span>}
-
     <span class="doccomment">/// Sets whether the contents of the [`Container`] should be clipped on
     /// overflow.
     </span><span class="kw">pub fn </span>clip(<span class="kw-2">mut </span><span class="self">self</span>, clip: bool) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.clip = clip;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style of the [`Container`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Style + <span class="lifetime">'a</span>) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme::Class&lt;<span class="lifetime">'a</span>&gt;: From&lt;StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.class = (Box::new(style) <span class="kw">as </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;).into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the [`Container`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>class(<span class="kw-2">mut </span><span class="self">self</span>, class: <span class="kw">impl </span>Into&lt;Theme::Class&lt;<span class="lifetime">'a</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.class = class.into();
         <span class="self">self
     </span>}
 }
@@ -793,7 +768,8 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
     <span class="kw">for </span>Container&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Theme: Catalog,
+    Renderer: core::Renderer,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
         <span class="self">self</span>.content.as_widget().tag()
@@ -909,14 +885,7 @@
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
         <span class="kw">let </span>bounds = layout.bounds();
-
-        <span class="kw">let </span>status = <span class="kw">if </span>cursor.is_over(bounds) {
-            Status::Hovered
-        } <span class="kw">else </span>{
-            Status::Idle
-        };
-
-        <span class="kw">let </span>style = (<span class="self">self</span>.style)(theme, status);
+        <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class);
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(clipped_viewport) = bounds.intersection(viewport) {
             draw_background(renderer, <span class="kw-2">&amp;</span>style, bounds);
@@ -961,8 +930,8 @@
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a</span>,
-    Theme: <span class="lifetime">'a</span>,
-    Renderer: <span class="lifetime">'a </span>+ <span class="kw">crate</span>::core::Renderer,
+    Theme: Catalog + <span class="lifetime">'a</span>,
+    Renderer: core::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
         column: Container&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
@@ -999,25 +968,25 @@
     )
 }
 
-<span class="doccomment">/// Draws the background of a [`Container`] given its [`Appearance`] and its `bounds`.
+<span class="doccomment">/// Draws the background of a [`Container`] given its [`Style`] and its `bounds`.
 </span><span class="kw">pub fn </span>draw_background&lt;Renderer&gt;(
     renderer: <span class="kw-2">&amp;mut </span>Renderer,
-    appearance: <span class="kw-2">&amp;</span>Appearance,
+    style: <span class="kw-2">&amp;</span>Style,
     bounds: Rectangle,
 ) <span class="kw">where
-    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
+    </span>Renderer: core::Renderer,
 {
-    <span class="kw">if </span>appearance.background.is_some()
-        || appearance.border.width &gt; <span class="number">0.0
-        </span>|| appearance.shadow.color.a &gt; <span class="number">0.0
+    <span class="kw">if </span>style.background.is_some()
+        || style.border.width &gt; <span class="number">0.0
+        </span>|| style.shadow.color.a &gt; <span class="number">0.0
     </span>{
         renderer.fill_quad(
             renderer::Quad {
                 bounds,
-                border: appearance.border,
-                shadow: appearance.shadow,
+                border: style.border,
+                shadow: style.shadow,
             },
-            appearance
+            style
                 .background
                 .unwrap_or(Background::Color(Color::TRANSPARENT)),
         );
@@ -1139,7 +1108,7 @@
 
 <span class="doccomment">/// The appearance of a container.
 </span><span class="attr">#[derive(Debug, Clone, Copy, Default)]
-</span><span class="kw">pub struct </span>Appearance {
+</span><span class="kw">pub struct </span>Style {
     <span class="doccomment">/// The text [`Color`] of the container.
     </span><span class="kw">pub </span>text_color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
     <span class="doccomment">/// The [`Background`] of the container.
@@ -1150,8 +1119,8 @@
     </span><span class="kw">pub </span>shadow: Shadow,
 }
 
-<span class="kw">impl </span>Appearance {
-    <span class="doccomment">/// Updates the border of the [`Appearance`] with the given [`Color`] and `width`.
+<span class="kw">impl </span>Style {
+    <span class="doccomment">/// Updates the border of the [`Style`] with the given [`Color`] and `width`.
     </span><span class="kw">pub fn </span>with_border(
         <span class="self">self</span>,
         color: <span class="kw">impl </span>Into&lt;Color&gt;,
@@ -1167,7 +1136,7 @@
         </span>}
     }
 
-    <span class="doccomment">/// Updates the background of the [`Appearance`].
+    <span class="doccomment">/// Updates the background of the [`Style`].
     </span><span class="kw">pub fn </span>with_background(<span class="self">self</span>, background: <span class="kw">impl </span>Into&lt;Background&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             background: <span class="prelude-val">Some</span>(background.into()),
@@ -1176,100 +1145,79 @@
     }
 }
 
-<span class="kw">impl </span>From&lt;Color&gt; <span class="kw">for </span>Appearance {
+<span class="kw">impl </span>From&lt;Color&gt; <span class="kw">for </span>Style {
     <span class="kw">fn </span>from(color: Color) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default().with_background(color)
     }
 }
 
-<span class="kw">impl </span>From&lt;Gradient&gt; <span class="kw">for </span>Appearance {
+<span class="kw">impl </span>From&lt;Gradient&gt; <span class="kw">for </span>Style {
     <span class="kw">fn </span>from(gradient: Gradient) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default().with_background(gradient)
     }
 }
 
-<span class="kw">impl </span>From&lt;gradient::Linear&gt; <span class="kw">for </span>Appearance {
+<span class="kw">impl </span>From&lt;gradient::Linear&gt; <span class="kw">for </span>Style {
     <span class="kw">fn </span>from(gradient: gradient::Linear) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::default().with_background(gradient)
     }
 }
 
-<span class="doccomment">/// The possible status of a [`Container`].
-</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-</span><span class="kw">pub enum </span>Status {
-    <span class="doccomment">/// The [`Container`] is idle.
-    </span>Idle,
-    <span class="doccomment">/// The [`Container`] is being hovered.
-    </span>Hovered,
+<span class="doccomment">/// The theme catalog of a [`Container`].
+</span><span class="kw">pub trait </span>Catalog {
+    <span class="doccomment">/// The item class of the [`Catalog`].
+    </span><span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt;;
+
+    <span class="doccomment">/// The default class produced by the [`Catalog`].
+    </span><span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt;;
+
+    <span class="doccomment">/// The [`Style`] of a class with the given status.
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;) -&gt; Style;
 }
 
-<span class="doccomment">/// The style of a [`Container`].
-</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
+<span class="doccomment">/// A styling function for a [`Container`].
+</span><span class="kw">pub type </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Style + <span class="lifetime">'a</span>&gt;;
 
-<span class="doccomment">/// The default style of a [`Container`].
-</span><span class="kw">pub trait </span>DefaultStyle {
-    <span class="doccomment">/// Returns the default style of a [`Container`].
-    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance;
-}
+<span class="kw">impl </span>Catalog <span class="kw">for </span>Theme {
+    <span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt; = StyleFn&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;;
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance {
-        transparent(<span class="self">self</span>, status)
+    <span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt; {
+        Box::new(transparent)
     }
-}
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
-        <span class="kw-2">*</span><span class="self">self
-    </span>}
-}
-
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Color {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
-        Appearance::from(<span class="kw-2">*</span><span class="self">self</span>)
-    }
-}
-
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Gradient {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
-        Appearance::from(<span class="kw-2">*</span><span class="self">self</span>)
-    }
-}
-
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>gradient::Linear {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
-        Appearance::from(<span class="kw-2">*</span><span class="self">self</span>)
+    <span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;) -&gt; Style {
+        class(<span class="self">self</span>)
     }
 }
 
 <span class="doccomment">/// A transparent [`Container`].
-</span><span class="kw">pub fn </span>transparent&lt;Theme&gt;(_theme: <span class="kw-2">&amp;</span>Theme, _status: Status) -&gt; Appearance {
-    Appearance::default()
+</span><span class="kw">pub fn </span>transparent&lt;Theme&gt;(_theme: <span class="kw-2">&amp;</span>Theme) -&gt; Style {
+    Style::default()
 }
 
 <span class="doccomment">/// A rounded [`Container`] with a background.
-</span><span class="kw">pub fn </span>rounded_box(theme: <span class="kw-2">&amp;</span>Theme, _status: Status) -&gt; Appearance {
+</span><span class="kw">pub fn </span>rounded_box(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
-    Appearance {
+    Style {
         background: <span class="prelude-val">Some</span>(palette.background.weak.color.into()),
         border: Border::rounded(<span class="number">2</span>),
-        ..Appearance::default()
+        ..Style::default()
     }
 }
 
 <span class="doccomment">/// A bordered [`Container`] with a background.
-</span><span class="kw">pub fn </span>bordered_box(theme: <span class="kw-2">&amp;</span>Theme, _status: Status) -&gt; Appearance {
+</span><span class="kw">pub fn </span>bordered_box(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
-    Appearance {
+    Style {
         background: <span class="prelude-val">Some</span>(palette.background.weak.color.into()),
         border: Border {
             width: <span class="number">1.0</span>,
             radius: <span class="number">0.0</span>.into(),
             color: palette.background.strong.color,
         },
-        ..Appearance::default()
+        ..Style::default()
     }
 }
 </code></pre></div></section></main></body></html>

@@ -594,6 +594,25 @@
 <a href="#594" id="594">594</a>
 <a href="#595" id="595">595</a>
 <a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display an interactive selector of a single value from a range of values.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::border;
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -605,7 +624,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::touch;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Border, Clipboard, Color, Element, Layout, Length, Pixels, Point,
+    <span class="self">self</span>, Border, Clipboard, Color, Element, Layout, Length, Pixels, Point,
     Rectangle, Shell, Size, Theme, Widget,
 };
 
@@ -635,7 +654,10 @@
 ///
 /// ![Slider drawn by Coffee's renderer](https://github.com/hecrj/coffee/blob/bda9818f823dfcb8a7ad0ff4940b4d4b387b5208/images/ui/slider.png?raw=true)
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Slider&lt;<span class="lifetime">'a</span>, T, Message, Theme = <span class="kw">crate</span>::Theme&gt; {
+</span><span class="kw">pub struct </span>Slider&lt;<span class="lifetime">'a</span>, T, Message, Theme = <span class="kw">crate</span>::Theme&gt;
+<span class="kw">where
+    </span>Theme: Catalog,
+{
     range: RangeInclusive&lt;T&gt;,
     step: T,
     shift_step: <span class="prelude-ty">Option</span>&lt;T&gt;,
@@ -645,13 +667,14 @@
     on_release: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     width: Length,
     height: f32,
-    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt; Slider&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt;
 <span class="kw">where
     </span>T: Copy + From&lt;u8&gt; + PartialOrd,
     Message: Clone,
+    Theme: Catalog,
 {
     <span class="doccomment">/// The default height of a [`Slider`].
     </span><span class="kw">pub const </span>DEFAULT_HEIGHT: f32 = <span class="number">16.0</span>;
@@ -666,8 +689,7 @@
     ///   `Message`.
     </span><span class="kw">pub fn </span>new&lt;F&gt;(range: RangeInclusive&lt;T&gt;, value: T, on_change: F) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: DefaultStyle + <span class="lifetime">'a</span>,
-        F: <span class="lifetime">'a </span>+ Fn(T) -&gt; Message,
+        </span>F: <span class="lifetime">'a </span>+ Fn(T) -&gt; Message,
     {
         <span class="kw">let </span>value = <span class="kw">if </span>value &gt;= <span class="kw-2">*</span>range.start() {
             value
@@ -691,7 +713,7 @@
             on_release: <span class="prelude-val">None</span>,
             width: Length::Fill,
             height: <span class="self">Self</span>::DEFAULT_HEIGHT,
-            style: Box::new(Theme::default_style),
+            class: Theme::default(),
         }
     }
 
@@ -726,15 +748,6 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the style of the [`Slider`].
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = Box::new(style);
-        <span class="self">self
-    </span>}
-
     <span class="doccomment">/// Sets the step size of the [`Slider`].
     </span><span class="kw">pub fn </span>step(<span class="kw-2">mut </span><span class="self">self</span>, step: <span class="kw">impl </span>Into&lt;T&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.step = step.into();
@@ -748,6 +761,24 @@
         <span class="self">self</span>.shift_step = <span class="prelude-val">Some</span>(shift_step.into());
         <span class="self">self
     </span>}
+
+    <span class="doccomment">/// Sets the style of the [`Slider`].
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Style + <span class="lifetime">'a</span>) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme::Class&lt;<span class="lifetime">'a</span>&gt;: From&lt;StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.class = (Box::new(style) <span class="kw">as </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;).into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the [`Slider`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>class(<span class="kw-2">mut </span><span class="self">self</span>, class: <span class="kw">impl </span>Into&lt;Theme::Class&lt;<span class="lifetime">'a</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.class = class.into();
+        <span class="self">self
+    </span>}
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
@@ -755,7 +786,8 @@
 <span class="kw">where
     </span>T: Copy + Into&lt;f64&gt; + num_traits::FromPrimitive,
     Message: Clone,
-    Renderer: <span class="kw">crate</span>::core::Renderer,
+    Theme: Catalog,
+    Renderer: core::Renderer,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
         tree::Tag::of::&lt;State&gt;()
@@ -945,8 +977,8 @@
         <span class="kw">let </span>bounds = layout.bounds();
         <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
 
-        <span class="kw">let </span>style = (<span class="self">self</span>.style)(
-            theme,
+        <span class="kw">let </span>style = theme.style(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.class,
             <span class="kw">if </span>state.is_dragging {
                 Status::Dragged
             } <span class="kw">else if </span>is_mouse_over {
@@ -1057,8 +1089,8 @@
 <span class="kw">where
     </span>T: Copy + Into&lt;f64&gt; + num_traits::FromPrimitive + <span class="lifetime">'a</span>,
     Message: Clone + <span class="lifetime">'a</span>,
-    Theme: <span class="lifetime">'a</span>,
-    Renderer: <span class="kw">crate</span>::core::Renderer + <span class="lifetime">'a</span>,
+    Theme: Catalog + <span class="lifetime">'a</span>,
+    Renderer: core::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
         slider: Slider&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt;,
@@ -1086,15 +1118,15 @@
 
 <span class="doccomment">/// The appearance of a slider.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>Appearance {
+</span><span class="kw">pub struct </span>Style {
     <span class="doccomment">/// The colors of the rail of the slider.
     </span><span class="kw">pub </span>rail: Rail,
     <span class="doccomment">/// The appearance of the [`Handle`] of the slider.
     </span><span class="kw">pub </span>handle: Handle,
 }
 
-<span class="kw">impl </span>Appearance {
-    <span class="doccomment">/// Changes the [`HandleShape`] of the [`Appearance`] to a circle
+<span class="kw">impl </span>Style {
+    <span class="doccomment">/// Changes the [`HandleShape`] of the [`Style`] to a circle
     /// with the given radius.
     </span><span class="kw">pub fn </span>with_circular_handle(<span class="kw-2">mut </span><span class="self">self</span>, radius: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.handle.shape = HandleShape::Circle {
@@ -1145,29 +1177,35 @@
     },
 }
 
-<span class="doccomment">/// The style of a [`Slider`].
-</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
+<span class="doccomment">/// The theme catalog of a [`Slider`].
+</span><span class="kw">pub trait </span>Catalog: Sized {
+    <span class="doccomment">/// The item class of the [`Catalog`].
+    </span><span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt;;
 
-<span class="doccomment">/// The default style of a [`Slider`].
-</span><span class="kw">pub trait </span>DefaultStyle {
-    <span class="doccomment">/// Returns the default style of a [`Slider`].
-    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance;
+    <span class="doccomment">/// The default class produced by the [`Catalog`].
+    </span><span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt;;
+
+    <span class="doccomment">/// The [`Style`] of a class with the given status.
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;, status: Status) -&gt; Style;
 }
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance {
-        default(<span class="self">self</span>, status)
+<span class="doccomment">/// A styling function for a [`Slider`].
+</span><span class="kw">pub type </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Style + <span class="lifetime">'a</span>&gt;;
+
+<span class="kw">impl </span>Catalog <span class="kw">for </span>Theme {
+    <span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt; = StyleFn&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;;
+
+    <span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt; {
+        Box::new(default)
+    }
+
+    <span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;, status: Status) -&gt; Style {
+        class(<span class="self">self</span>, status)
     }
 }
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
-        <span class="kw-2">*</span><span class="self">self
-    </span>}
-}
-
 <span class="doccomment">/// The default style of a [`Slider`].
-</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
     <span class="kw">let </span>color = <span class="kw">match </span>status {
@@ -1176,7 +1214,7 @@
         Status::Dragged =&gt; palette.primary.strong.color,
     };
 
-    Appearance {
+    Style {
         rail: Rail {
             colors: (color, palette.secondary.base.color),
             width: <span class="number">4.0</span>,

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["ComboBox","State","Style"],"trait":["DefaultStyle"]};
+window.SIDEBAR_ITEMS = {"struct":["ComboBox","State"],"trait":["Catalog"]};

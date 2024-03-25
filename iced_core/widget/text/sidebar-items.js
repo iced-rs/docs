@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["draw","layout"],"struct":["Appearance","State","Text"],"trait":["DefaultStyle"],"type":["Style"]};
+window.SIDEBAR_ITEMS = {"fn":["draw","layout"],"struct":["State","Style","Text"],"trait":["Catalog"],"type":["StyleFn"]};

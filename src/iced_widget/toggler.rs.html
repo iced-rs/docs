@@ -464,6 +464,25 @@
 <a href="#464" id="464">464</a>
 <a href="#465" id="465">465</a>
 <a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Show toggle controls using togglers.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::event;
@@ -501,7 +520,8 @@
     Theme = <span class="kw">crate</span>::Theme,
     Renderer = <span class="kw">crate</span>::Renderer,
 &gt; <span class="kw">where
-    </span>Renderer: text::Renderer,
+    </span>Theme: Catalog,
+    Renderer: text::Renderer,
 {
     is_toggled: bool,
     on_toggle: Box&lt;<span class="kw">dyn </span>Fn(bool) -&gt; Message + <span class="lifetime">'a</span>&gt;,
@@ -514,12 +534,13 @@
     text_shaping: text::Shaping,
     spacing: f32,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
-    style: Style&lt;<span class="lifetime">'a</span>, Theme&gt;,
+    class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Toggler&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: text::Renderer,
+    </span>Theme: Catalog,
+    Renderer: text::Renderer,
 {
     <span class="doccomment">/// The default size of a [`Toggler`].
     </span><span class="kw">pub const </span>DEFAULT_SIZE: f32 = <span class="number">16.0</span>;
@@ -538,8 +559,7 @@
         f: F,
     ) -&gt; <span class="self">Self
     </span><span class="kw">where
-        </span>Theme: <span class="lifetime">'a </span>+ DefaultStyle,
-        F: <span class="lifetime">'a </span>+ Fn(bool) -&gt; Message,
+        </span>F: <span class="lifetime">'a </span>+ Fn(bool) -&gt; Message,
     {
         Toggler {
             is_toggled,
@@ -553,7 +573,7 @@
             text_shaping: text::Shaping::Basic,
             spacing: <span class="self">Self</span>::DEFAULT_SIZE / <span class="number">2.0</span>,
             font: <span class="prelude-val">None</span>,
-            style: Box::new(Theme::default_style),
+            class: Theme::default(),
         }
     }
 
@@ -611,11 +631,20 @@
     </span>}
 
     <span class="doccomment">/// Sets the style of the [`Toggler`].
-    </span><span class="kw">pub fn </span>style(
-        <span class="kw-2">mut </span><span class="self">self</span>,
-        style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.style = Box::new(style);
+    </span><span class="attr">#[must_use]
+    </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Style + <span class="lifetime">'a</span>) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>Theme::Class&lt;<span class="lifetime">'a</span>&gt;: From&lt;StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;&gt;,
+    {
+        <span class="self">self</span>.class = (Box::new(style) <span class="kw">as </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt;).into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the style class of the [`Toggler`].
+    </span><span class="attr">#[cfg(feature = <span class="string">"advanced"</span>)]
+    #[must_use]
+    </span><span class="kw">pub fn </span>class(<span class="kw-2">mut </span><span class="self">self</span>, class: <span class="kw">impl </span>Into&lt;Theme::Class&lt;<span class="lifetime">'a</span>&gt;&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.class = class.into();
         <span class="self">self
     </span>}
 }
@@ -623,7 +652,8 @@
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
     <span class="kw">for </span>Toggler&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Renderer: text::Renderer,
+    </span>Theme: Catalog,
+    Renderer: text::Renderer,
 {
     <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
         tree::Tag::of::&lt;widget::text::State&lt;Renderer::Paragraph&gt;&gt;()
@@ -750,7 +780,7 @@
                 style,
                 label_layout,
                 tree.state.downcast_ref(),
-                <span class="kw">crate</span>::text::Appearance::default(),
+                <span class="kw">crate</span>::text::Style::default(),
                 viewport,
             );
         }
@@ -768,7 +798,7 @@
             }
         };
 
-        <span class="kw">let </span>appearance = (<span class="self">self</span>.style)(theme, status);
+        <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class, status);
 
         <span class="kw">let </span>border_radius = bounds.height / BORDER_RADIUS_RATIO;
         <span class="kw">let </span>space = SPACE_RATIO * bounds.height;
@@ -785,12 +815,12 @@
                 bounds: toggler_background_bounds,
                 border: Border {
                     radius: border_radius.into(),
-                    width: appearance.background_border_width,
-                    color: appearance.background_border_color,
+                    width: style.background_border_width,
+                    color: style.background_border_color,
                 },
                 ..renderer::Quad::default()
             },
-            appearance.background,
+            style.background,
         );
 
         <span class="kw">let </span>toggler_foreground_bounds = Rectangle {
@@ -810,12 +840,12 @@
                 bounds: toggler_foreground_bounds,
                 border: Border {
                     radius: border_radius.into(),
-                    width: appearance.foreground_border_width,
-                    color: appearance.foreground_border_color,
+                    width: style.foreground_border_width,
+                    color: style.foreground_border_color,
                 },
                 ..renderer::Quad::default()
             },
-            appearance.foreground,
+            style.foreground,
         );
     }
 }
@@ -824,7 +854,7 @@
     <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a</span>,
-    Theme: <span class="lifetime">'a</span>,
+    Theme: Catalog + <span class="lifetime">'a</span>,
     Renderer: text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
@@ -851,7 +881,7 @@
 
 <span class="doccomment">/// The appearance of a toggler.
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
-</span><span class="kw">pub struct </span>Appearance {
+</span><span class="kw">pub struct </span>Style {
     <span class="doccomment">/// The background [`Color`] of the toggler.
     </span><span class="kw">pub </span>background: Color,
     <span class="doccomment">/// The width of the background border of the toggler.
@@ -866,29 +896,37 @@
     </span><span class="kw">pub </span>foreground_border_color: Color,
 }
 
-<span class="doccomment">/// The style of a [`Toggler`].
-</span><span class="kw">pub type </span>Style&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Appearance + <span class="lifetime">'a</span>&gt;;
+<span class="doccomment">/// The theme catalog of a [`Toggler`].
+</span><span class="kw">pub trait </span>Catalog: Sized {
+    <span class="doccomment">/// The item class of the [`Catalog`].
+    </span><span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt;;
 
-<span class="doccomment">/// The default style of a [`Toggler`].
-</span><span class="kw">pub trait </span>DefaultStyle {
-    <span class="doccomment">/// Returns the default style of a [`Toggler`].
-    </span><span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance;
+    <span class="doccomment">/// The default class produced by the [`Catalog`].
+    </span><span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt;;
+
+    <span class="doccomment">/// The [`Style`] of a class with the given status.
+    </span><span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;, status: Status) -&gt; Style;
 }
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Theme {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, status: Status) -&gt; Appearance {
-        default(<span class="self">self</span>, status)
+<span class="doccomment">/// A styling function for a [`Toggler`].
+///
+/// This is just a boxed closure: `Fn(&amp;Theme, Status) -&gt; Style`.
+</span><span class="kw">pub type </span>StyleFn&lt;<span class="lifetime">'a</span>, Theme&gt; = Box&lt;<span class="kw">dyn </span>Fn(<span class="kw-2">&amp;</span>Theme, Status) -&gt; Style + <span class="lifetime">'a</span>&gt;;
+
+<span class="kw">impl </span>Catalog <span class="kw">for </span>Theme {
+    <span class="kw">type </span>Class&lt;<span class="lifetime">'a</span>&gt; = StyleFn&lt;<span class="lifetime">'a</span>, <span class="self">Self</span>&gt;;
+
+    <span class="kw">fn </span>default&lt;<span class="lifetime">'a</span>&gt;() -&gt; <span class="self">Self</span>::Class&lt;<span class="lifetime">'a</span>&gt; {
+        Box::new(default)
+    }
+
+    <span class="kw">fn </span>style(<span class="kw-2">&amp;</span><span class="self">self</span>, class: <span class="kw-2">&amp;</span><span class="self">Self</span>::Class&lt;<span class="lifetime">'_</span>&gt;, status: Status) -&gt; Style {
+        class(<span class="self">self</span>, status)
     }
 }
 
-<span class="kw">impl </span>DefaultStyle <span class="kw">for </span>Appearance {
-    <span class="kw">fn </span>default_style(<span class="kw-2">&amp;</span><span class="self">self</span>, _status: Status) -&gt; Appearance {
-        <span class="kw-2">*</span><span class="self">self
-    </span>}
-}
-
 <span class="doccomment">/// The default style of a [`Toggler`].
-</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Appearance {
+</span><span class="kw">pub fn </span>default(theme: <span class="kw-2">&amp;</span>Theme, status: Status) -&gt; Style {
     <span class="kw">let </span>palette = theme.extended_palette();
 
     <span class="kw">let </span>background = <span class="kw">match </span>status {
@@ -921,7 +959,7 @@
         }
     };
 
-    Appearance {
+    Style {
         background,
         foreground,
         foreground_border_width: <span class="number">0.0</span>,
