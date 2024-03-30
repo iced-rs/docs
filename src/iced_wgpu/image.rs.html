@@ -630,6 +630,18 @@
 <a href="#630" id="630">630</a>
 <a href="#631" id="631">631</a>
 <a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>atlas;
 
 <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
@@ -715,21 +727,31 @@
     <span class="kw">fn </span>prepare(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
-        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
         nearest_instances: <span class="kw-2">&amp;</span>[Instance],
         linear_instances: <span class="kw-2">&amp;</span>[Instance],
         transformation: Transformation,
     ) {
-        queue.write_buffer(
+        <span class="kw">let </span>uniforms = Uniforms {
+            transform: transformation.into(),
+        };
+
+        <span class="kw">let </span>bytes = bytemuck::bytes_of(<span class="kw-2">&amp;</span>uniforms);
+
+        belt.write_buffer(
+            encoder,
             <span class="kw-2">&amp;</span><span class="self">self</span>.uniforms,
             <span class="number">0</span>,
-            bytemuck::bytes_of(<span class="kw-2">&amp;</span>Uniforms {
-                transform: transformation.into(),
-            }),
-        );
+            (bytes.len() <span class="kw">as </span>u64).try_into().expect(<span class="string">"Sized uniforms"</span>),
+            device,
+        )
+        .copy_from_slice(bytes);
 
-        <span class="self">self</span>.nearest.upload(device, queue, nearest_instances);
-        <span class="self">self</span>.linear.upload(device, queue, linear_instances);
+        <span class="self">self</span>.nearest
+            .upload(device, encoder, belt, nearest_instances);
+
+        <span class="self">self</span>.linear.upload(device, encoder, belt, linear_instances);
     }
 
     <span class="kw">fn </span>render&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">'a</span>&gt;) {
@@ -790,7 +812,8 @@
     <span class="kw">fn </span>upload(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
-        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
         instances: <span class="kw-2">&amp;</span>[Instance],
     ) {
         <span class="self">self</span>.instance_count = instances.len();
@@ -800,7 +823,7 @@
         }
 
         <span class="kw">let _ </span>= <span class="self">self</span>.instances.resize(device, instances.len());
-        <span class="kw">let _ </span>= <span class="self">self</span>.instances.write(queue, <span class="number">0</span>, instances);
+        <span class="kw">let _ </span>= <span class="self">self</span>.instances.write(device, encoder, belt, <span class="number">0</span>, instances);
     }
 
     <span class="kw">fn </span>render&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">'a</span>&gt;) {
@@ -1015,8 +1038,8 @@
     <span class="kw">pub fn </span>prepare(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
-        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
         encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
         images: <span class="kw-2">&amp;</span>[layer::Image],
         transformation: Transformation,
         _scale: f32,
@@ -1133,7 +1156,8 @@
 
         layer.prepare(
             device,
-            queue,
+            encoder,
+            belt,
             nearest_instances,
             linear_instances,
             transformation,

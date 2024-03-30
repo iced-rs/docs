@@ -325,6 +325,18 @@
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
 <a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>gradient;
 <span class="kw">mod </span>solid;
 
@@ -384,7 +396,8 @@
     <span class="kw">pub fn </span>prepare(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
-        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
         quads: <span class="kw-2">&amp;</span>Batch,
         transformation: Transformation,
         scale: f32,
@@ -394,7 +407,7 @@
         }
 
         <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span><span class="self">self</span>.layers[<span class="self">self</span>.prepare_layer];
-        layer.prepare(device, queue, quads, transformation, scale);
+        layer.prepare(device, encoder, belt, quads, transformation, scale);
 
         <span class="self">self</span>.prepare_layer += <span class="number">1</span>;
     }
@@ -489,7 +502,8 @@
     <span class="kw">pub fn </span>prepare(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
-        queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
         quads: <span class="kw-2">&amp;</span>Batch,
         transformation: Transformation,
         scale: f32,
@@ -498,15 +512,25 @@
         </span><span class="kw">let _ </span>= <span class="macro">info_span!</span>(<span class="string">"Wgpu::Quad"</span>, <span class="string">"PREPARE"</span>).entered();
 
         <span class="kw">let </span>uniforms = Uniforms::new(transformation, scale);
+        <span class="kw">let </span>bytes = bytemuck::bytes_of(<span class="kw-2">&amp;</span>uniforms);
 
-        queue.write_buffer(
+        belt.write_buffer(
+            encoder,
             <span class="kw-2">&amp;</span><span class="self">self</span>.constants_buffer,
             <span class="number">0</span>,
-            bytemuck::bytes_of(<span class="kw-2">&amp;</span>uniforms),
-        );
+            (bytes.len() <span class="kw">as </span>u64).try_into().expect(<span class="string">"Sized uniforms"</span>),
+            device,
+        )
+        .copy_from_slice(bytes);
 
-        <span class="self">self</span>.solid.prepare(device, queue, <span class="kw-2">&amp;</span>quads.solids);
-        <span class="self">self</span>.gradient.prepare(device, queue, <span class="kw-2">&amp;</span>quads.gradients);
+        <span class="kw">if </span>!quads.solids.is_empty() {
+            <span class="self">self</span>.solid.prepare(device, encoder, belt, <span class="kw-2">&amp;</span>quads.solids);
+        }
+
+        <span class="kw">if </span>!quads.gradients.is_empty() {
+            <span class="self">self</span>.gradient
+                .prepare(device, encoder, belt, <span class="kw-2">&amp;</span>quads.gradients);
+        }
     }
 }
 

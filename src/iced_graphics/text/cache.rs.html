@@ -142,16 +142,13 @@
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
 <a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Cache text.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::{Font, Size};
 <span class="kw">use </span><span class="kw">crate</span>::text;
 
-<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 <span class="kw">use </span>std::collections::hash_map;
-<span class="kw">use </span>std::hash::{BuildHasher, Hash, Hasher};
+<span class="kw">use </span>std::hash::{Hash, Hasher};
 
 <span class="doccomment">/// A store of recently used sections of text.
 </span><span class="attr">#[allow(missing_debug_implementations)]
@@ -160,10 +157,7 @@
     entries: FxHashMap&lt;KeyHash, Entry&gt;,
     aliases: FxHashMap&lt;KeyHash, KeyHash&gt;,
     recently_used: FxHashSet&lt;KeyHash&gt;,
-    hasher: HashBuilder,
 }
-
-<span class="kw">type </span>HashBuilder = xxhash_rust::xxh3::Xxh3Builder;
 
 <span class="kw">impl </span>Cache {
     <span class="doccomment">/// Creates a new empty [`Cache`].
@@ -182,7 +176,7 @@
         font_system: <span class="kw-2">&amp;mut </span>cosmic_text::FontSystem,
         key: Key&lt;<span class="lifetime">'_</span>&gt;,
     ) -&gt; (KeyHash, <span class="kw-2">&amp;mut </span>Entry) {
-        <span class="kw">let </span>hash = key.hash(<span class="self">self</span>.hasher.build_hasher());
+        <span class="kw">let </span>hash = key.hash(FxHasher::default());
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(hash) = <span class="self">self</span>.aliases.get(<span class="kw-2">&amp;</span>hash) {
             <span class="kw">let _ </span>= <span class="self">self</span>.recently_used.insert(<span class="kw-2">*</span>hash);
@@ -224,7 +218,7 @@
             ] {
                 <span class="kw">if </span>key.bounds != bounds {
                     <span class="kw">let _ </span>= <span class="self">self</span>.aliases.insert(
-                        Key { bounds, ..key }.hash(<span class="self">self</span>.hasher.build_hasher()),
+                        Key { bounds, ..key }.hash(FxHasher::default()),
                         hash,
                     );
                 }
