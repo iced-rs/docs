@@ -349,6 +349,40 @@
 <a href="#349" id="349">349</a>
 <a href="#350" id="350">350</a>
 <a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Distribute content vertically.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -391,16 +425,38 @@
 {
     <span class="doccomment">/// Creates an empty [`Column`].
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-        Column {
+        <span class="self">Self</span>::from_vecs(Vec::new(), Vec::new())
+    }
+
+    <span class="doccomment">/// Creates a [`Column`] from already allocated [`Vec`]s.
+    ///
+    /// Keep in mind that the [`Column`] will not inspect the [`Vec`]s, which means
+    /// it won't automatically adapt to the sizing strategy of its contents.
+    ///
+    /// If any of the children have a [`Length::Fill`] strategy, you will need to
+    /// call [`Column::width`] or [`Column::height`] accordingly.
+    </span><span class="kw">pub fn </span>from_vecs(
+        keys: Vec&lt;Key&gt;,
+        children: Vec&lt;Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
             spacing: <span class="number">0.0</span>,
             padding: Padding::ZERO,
             width: Length::Shrink,
             height: Length::Shrink,
             max_width: f32::INFINITY,
             align_items: Alignment::Start,
-            keys: Vec::new(),
-            children: Vec::new(),
+            keys,
+            children,
         }
+    }
+
+    <span class="doccomment">/// Creates a [`Column`] with the given capacity.
+    </span><span class="kw">pub fn </span>with_capacity(capacity: usize) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::from_vecs(
+            Vec::with_capacity(capacity),
+            Vec::with_capacity(capacity),
+        )
     }
 
     <span class="doccomment">/// Creates a [`Column`] with the given elements.
@@ -409,9 +465,9 @@
             Item = (Key, Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;),
         &gt;,
     ) -&gt; <span class="self">Self </span>{
-        children
-            .into_iter()
-            .fold(<span class="self">Self</span>::new(), |column, (key, child)| column.push(key, child))
+        <span class="kw">let </span>iterator = children.into_iter();
+
+        <span class="self">Self</span>::with_capacity(iterator.size_hint().<span class="number">0</span>).extend(iterator)
     }
 
     <span class="doccomment">/// Sets the vertical spacing _between_ elements.
@@ -482,6 +538,18 @@
         } <span class="kw">else </span>{
             <span class="self">self
         </span>}
+    }
+
+    <span class="doccomment">/// Extends the [`Column`] with the given children.
+    </span><span class="kw">pub fn </span>extend(
+        <span class="self">self</span>,
+        children: <span class="kw">impl </span>IntoIterator&lt;
+            Item = (Key, Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;),
+        &gt;,
+    ) -&gt; <span class="self">Self </span>{
+        children
+            .into_iter()
+            .fold(<span class="self">self</span>, |column, (key, child)| column.push(key, child))
     }
 }
 
