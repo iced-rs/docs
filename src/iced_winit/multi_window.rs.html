@@ -1293,7 +1293,7 @@
 
 <span class="kw">pub use </span><span class="kw">crate</span>::application::{default, Appearance, DefaultStyle};
 
-<span class="kw">use </span>std::collections::HashMap;
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::mem::ManuallyDrop;
 <span class="kw">use </span>std::sync::Arc;
 <span class="kw">use </span>std::time::Instant;
@@ -1647,12 +1647,12 @@
         )]
     };
 
-    <span class="kw">let </span><span class="kw-2">mut </span>ui_caches = HashMap::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>ui_caches = FxHashMap::default();
     <span class="kw">let </span><span class="kw-2">mut </span>user_interfaces = ManuallyDrop::new(build_user_interfaces(
         <span class="kw-2">&amp;</span>application,
         <span class="kw-2">&amp;mut </span>debug,
         <span class="kw-2">&amp;mut </span>window_manager,
-        HashMap::from_iter([(
+        FxHashMap::from_iter([(
             window::Id::MAIN,
             user_interface::Cache::default(),
         )]),
@@ -2025,7 +2025,7 @@
 
                         <span class="comment">// TODO mw application update returns which window IDs to update
                         </span><span class="kw">if </span>!messages.is_empty() || uis_stale {
-                            <span class="kw">let </span><span class="kw-2">mut </span>cached_interfaces: HashMap&lt;
+                            <span class="kw">let </span><span class="kw-2">mut </span>cached_interfaces: FxHashMap&lt;
                                 window::Id,
                                 user_interface::Cache,
                             &gt; = ManuallyDrop::into_inner(user_interfaces)
@@ -2115,7 +2115,7 @@
     debug: <span class="kw-2">&amp;mut </span>Debug,
     messages: <span class="kw-2">&amp;mut </span>Vec&lt;A::Message&gt;,
     window_manager: <span class="kw-2">&amp;mut </span>WindowManager&lt;A, C&gt;,
-    ui_caches: <span class="kw-2">&amp;mut </span>HashMap&lt;window::Id, user_interface::Cache&gt;,
+    ui_caches: <span class="kw-2">&amp;mut </span>FxHashMap&lt;window::Id, user_interface::Cache&gt;,
 ) <span class="kw">where
     </span>C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
     A::Theme: DefaultStyle,
@@ -2156,7 +2156,7 @@
     proxy: <span class="kw-2">&amp;mut </span>winit::event_loop::EventLoopProxy&lt;A::Message&gt;,
     debug: <span class="kw-2">&amp;mut </span>Debug,
     window_manager: <span class="kw-2">&amp;mut </span>WindowManager&lt;A, C&gt;,
-    ui_caches: <span class="kw-2">&amp;mut </span>HashMap&lt;window::Id, user_interface::Cache&gt;,
+    ui_caches: <span class="kw-2">&amp;mut </span>FxHashMap&lt;window::Id, user_interface::Cache&gt;,
 ) <span class="kw">where
     </span>A: Application,
     E: Executor,
@@ -2484,8 +2484,8 @@
     application: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>A,
     debug: <span class="kw-2">&amp;mut </span>Debug,
     window_manager: <span class="kw-2">&amp;mut </span>WindowManager&lt;A, C&gt;,
-    <span class="kw-2">mut </span>cached_user_interfaces: HashMap&lt;window::Id, user_interface::Cache&gt;,
-) -&gt; HashMap&lt;window::Id, UserInterface&lt;<span class="lifetime">'a</span>, A::Message, A::Theme, A::Renderer&gt;&gt;
+    <span class="kw-2">mut </span>cached_user_interfaces: FxHashMap&lt;window::Id, user_interface::Cache&gt;,
+) -&gt; FxHashMap&lt;window::Id, UserInterface&lt;<span class="lifetime">'a</span>, A::Message, A::Theme, A::Renderer&gt;&gt;
 <span class="kw">where
     </span>C: Compositor&lt;Renderer = A::Renderer&gt;,
     A::Theme: DefaultStyle,

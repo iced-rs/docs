@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"trait":["Recipe"],"type":["EventStream"]};
+window.SIDEBAR_ITEMS = {"trait":["Recipe"],"type":["EventStream","Hasher"]};

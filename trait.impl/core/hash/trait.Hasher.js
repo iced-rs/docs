@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"iced_core":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/hash/trait.Hasher.html\" title=\"trait core::hash::Hasher\">Hasher</a> for <a class=\"struct\" href=\"iced_core/struct.Hasher.html\" title=\"struct iced_core::Hasher\">Hasher</a>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
