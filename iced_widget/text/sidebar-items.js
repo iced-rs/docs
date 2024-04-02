@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["LineHeight","Shaping"],"fn":["draw","layout"],"struct":["State","Style"],"trait":["Catalog"],"type":["StyleFn","Text"]};
+window.SIDEBAR_ITEMS = {"enum":["LineHeight","Shaping"],"fn":["draw","layout"],"struct":["State","Style"],"trait":["Catalog","IntoFragment"],"type":["Fragment","StyleFn","Text"]};
