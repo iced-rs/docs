@@ -809,6 +809,15 @@
 <a href="#809" id="809">809</a>
 <a href="#810" id="810">810</a>
 <a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of searchable and selectable options.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -1511,38 +1520,47 @@
                 ..
             } = tree.state.downcast_mut::&lt;Menu&lt;T&gt;&gt;();
 
-            <span class="kw">let </span>bounds = layout.bounds();
-
             <span class="self">self</span>.state.sync_filtered_options(filtered_options);
 
-            <span class="kw">let </span><span class="kw-2">mut </span>menu = menu::Menu::new(
-                menu,
-                <span class="kw-2">&amp;</span>filtered_options.options,
-                hovered_option,
-                |x| {
-                    tree.children[<span class="number">0</span>]
-                        .state
-                        .downcast_mut::&lt;text_input::State&lt;Renderer::Paragraph&gt;&gt;(
-                        )
-                        .unfocus();
+            <span class="kw">if </span>filtered_options.options.is_empty() {
+                <span class="prelude-val">None
+            </span>} <span class="kw">else </span>{
+                <span class="kw">let </span>bounds = layout.bounds();
 
-                    (<span class="self">self</span>.on_selected)(x)
-                },
-                <span class="self">self</span>.on_option_hovered.as_deref(),
-                <span class="kw-2">&amp;</span><span class="self">self</span>.menu_class,
-            )
-            .width(bounds.width)
-            .padding(<span class="self">self</span>.padding);
+                <span class="kw">let </span><span class="kw-2">mut </span>menu = menu::Menu::new(
+                    menu,
+                    <span class="kw-2">&amp;</span>filtered_options.options,
+                    hovered_option,
+                    |x| {
+                        tree.children[<span class="number">0</span>]
+                    .state
+                    .downcast_mut::&lt;text_input::State&lt;Renderer::Paragraph&gt;&gt;(
+                    )
+                    .unfocus();
 
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(font) = <span class="self">self</span>.font {
-                menu = menu.font(font);
+                        (<span class="self">self</span>.on_selected)(x)
+                    },
+                    <span class="self">self</span>.on_option_hovered.as_deref(),
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.menu_class,
+                )
+                .width(bounds.width)
+                .padding(<span class="self">self</span>.padding);
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(font) = <span class="self">self</span>.font {
+                    menu = menu.font(font);
+                }
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(size) = <span class="self">self</span>.size {
+                    menu = menu.text_size(size);
+                }
+
+                <span class="prelude-val">Some</span>(
+                    menu.overlay(
+                        layout.position() + translation,
+                        bounds.height,
+                    ),
+                )
             }
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(size) = <span class="self">self</span>.size {
-                menu = menu.text_size(size);
-            }
-
-            <span class="prelude-val">Some</span>(menu.overlay(layout.position() + translation, bounds.height))
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
