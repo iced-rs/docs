@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"iced_highlighter":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html\" title=\"trait core::iter::traits::iterator::Iterator\">Iterator</a> for <a class=\"struct\" href=\"iced_highlighter/struct.ScopeRangeIterator.html\" title=\"struct iced_highlighter::ScopeRangeIterator\">ScopeRangeIterator</a>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

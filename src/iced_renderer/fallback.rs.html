@@ -568,7 +568,40 @@
 <a href="#568" id="568">568</a>
 <a href="#569" id="569">569</a>
 <a href="#570" id="570">570</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::image;
+<a href="#571" id="571">571</a>
+<a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! Compose existing renderers and create type-safe fallback strategies.
+</span><span class="kw">use </span><span class="kw">crate</span>::core::image;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::svg;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
@@ -578,24 +611,31 @@
 <span class="kw">use </span><span class="kw">crate</span>::graphics::compositor;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::mesh;
 
-<span class="kw">pub enum </span>Renderer&lt;L, R&gt; {
-    Left(L),
-    Right(R),
+<span class="doccomment">/// A renderer `A` with a fallback strategy `B`.
+///
+/// This type can be used to easily compose existing renderers and
+/// create custom, type-safe fallback strategies.
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Renderer&lt;A, B&gt; {
+    <span class="doccomment">/// The primary rendering option.
+    </span>Primary(A),
+    <span class="doccomment">/// The secondary (or fallback) rendering option.
+    </span>Secondary(B),
 }
 
 <span class="macro">macro_rules! </span>delegate {
     (<span class="macro-nonterminal">$renderer</span>:expr, <span class="macro-nonterminal">$name</span>:ident, <span class="macro-nonterminal">$body</span>:expr) =&gt; {
         <span class="kw">match </span><span class="macro-nonterminal">$renderer </span>{
-            <span class="self">Self</span>::Left(<span class="macro-nonterminal">$name</span>) =&gt; <span class="macro-nonterminal">$body</span>,
-            <span class="self">Self</span>::Right(<span class="macro-nonterminal">$name</span>) =&gt; <span class="macro-nonterminal">$body</span>,
+            <span class="self">Self</span>::Primary(<span class="macro-nonterminal">$name</span>) =&gt; <span class="macro-nonterminal">$body</span>,
+            <span class="self">Self</span>::Secondary(<span class="macro-nonterminal">$name</span>) =&gt; <span class="macro-nonterminal">$body</span>,
         }
     };
 }
 
-<span class="kw">impl</span>&lt;L, R&gt; core::Renderer <span class="kw">for </span>Renderer&lt;L, R&gt;
+<span class="kw">impl</span>&lt;A, B&gt; core::Renderer <span class="kw">for </span>Renderer&lt;A, B&gt;
 <span class="kw">where
-    </span>L: core::Renderer,
-    R: core::Renderer,
+    </span>A: core::Renderer,
+    B: core::Renderer,
 {
     <span class="kw">fn </span>fill_quad(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -626,22 +666,22 @@
     }
 }
 
-<span class="kw">impl</span>&lt;L, R&gt; core::text::Renderer <span class="kw">for </span>Renderer&lt;L, R&gt;
+<span class="kw">impl</span>&lt;A, B&gt; core::text::Renderer <span class="kw">for </span>Renderer&lt;A, B&gt;
 <span class="kw">where
-    </span>L: core::text::Renderer,
-    R: core::text::Renderer&lt;
-        Font = L::Font,
-        Paragraph = L::Paragraph,
-        Editor = L::Editor,
+    </span>A: core::text::Renderer,
+    B: core::text::Renderer&lt;
+        Font = A::Font,
+        Paragraph = A::Paragraph,
+        Editor = A::Editor,
     &gt;,
 {
-    <span class="kw">type </span>Font = L::Font;
-    <span class="kw">type </span>Paragraph = L::Paragraph;
-    <span class="kw">type </span>Editor = L::Editor;
+    <span class="kw">type </span>Font = A::Font;
+    <span class="kw">type </span>Paragraph = A::Paragraph;
+    <span class="kw">type </span>Editor = A::Editor;
 
-    <span class="kw">const </span>ICON_FONT: <span class="self">Self</span>::Font = L::ICON_FONT;
-    <span class="kw">const </span>CHECKMARK_ICON: char = L::CHECKMARK_ICON;
-    <span class="kw">const </span>ARROW_DOWN_ICON: char = L::ARROW_DOWN_ICON;
+    <span class="kw">const </span>ICON_FONT: <span class="self">Self</span>::Font = A::ICON_FONT;
+    <span class="kw">const </span>CHECKMARK_ICON: char = A::CHECKMARK_ICON;
+    <span class="kw">const </span>ARROW_DOWN_ICON: char = A::ARROW_DOWN_ICON;
 
     <span class="kw">fn </span>default_font(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Font {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.default_font())
@@ -698,12 +738,12 @@
     }
 }
 
-<span class="kw">impl</span>&lt;L, R&gt; image::Renderer <span class="kw">for </span>Renderer&lt;L, R&gt;
+<span class="kw">impl</span>&lt;A, B&gt; image::Renderer <span class="kw">for </span>Renderer&lt;A, B&gt;
 <span class="kw">where
-    </span>L: image::Renderer,
-    R: image::Renderer&lt;Handle = L::Handle&gt;,
+    </span>A: image::Renderer,
+    B: image::Renderer&lt;Handle = A::Handle&gt;,
 {
-    <span class="kw">type </span>Handle = L::Handle;
+    <span class="kw">type </span>Handle = A::Handle;
 
     <span class="kw">fn </span>measure_image(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; Size&lt;u32&gt; {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.measure_image(handle))
@@ -723,10 +763,10 @@
     }
 }
 
-<span class="kw">impl</span>&lt;L, R&gt; svg::Renderer <span class="kw">for </span>Renderer&lt;L, R&gt;
+<span class="kw">impl</span>&lt;A, B&gt; svg::Renderer <span class="kw">for </span>Renderer&lt;A, B&gt;
 <span class="kw">where
-    </span>L: svg::Renderer,
-    R: svg::Renderer,
+    </span>A: svg::Renderer,
+    B: svg::Renderer,
 {
     <span class="kw">fn </span>measure_svg(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>svg::Handle) -&gt; Size&lt;u32&gt; {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.measure_svg(handle))
@@ -742,37 +782,49 @@
     }
 }
 
-<span class="kw">impl</span>&lt;L, R&gt; mesh::Renderer <span class="kw">for </span>Renderer&lt;L, R&gt;
+<span class="kw">impl</span>&lt;A, B&gt; mesh::Renderer <span class="kw">for </span>Renderer&lt;A, B&gt;
 <span class="kw">where
-    </span>L: mesh::Renderer,
-    R: mesh::Renderer,
+    </span>A: mesh::Renderer,
+    B: mesh::Renderer,
 {
     <span class="kw">fn </span>draw_mesh(<span class="kw-2">&amp;mut </span><span class="self">self</span>, mesh: graphics::Mesh) {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.draw_mesh(mesh));
     }
 }
 
-<span class="kw">pub enum </span>Compositor&lt;L, R&gt;
+<span class="doccomment">/// A compositor `A` with a fallback strategy `B`.
+///
+/// It works analogously to [`Renderer`].
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Compositor&lt;A, B&gt;
 <span class="kw">where
-    </span>L: graphics::Compositor,
-    R: graphics::Compositor,
+    </span>A: graphics::Compositor,
+    B: graphics::Compositor,
 {
-    Left(L),
-    Right(R),
+    <span class="doccomment">/// The primary compositing option.
+    </span>Primary(A),
+    <span class="doccomment">/// The secondary (or fallback) compositing option.
+    </span>Secondary(B),
 }
 
-<span class="kw">pub enum </span>Surface&lt;L, R&gt; {
-    Left(L),
-    Right(R),
+<span class="doccomment">/// A surface `A` with a fallback strategy `B`.
+///
+/// It works analogously to [`Renderer`].
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Surface&lt;A, B&gt; {
+    <span class="doccomment">/// The primary surface option.
+    </span>Primary(A),
+    <span class="doccomment">/// The secondary (or fallback) surface option.
+    </span>Secondary(B),
 }
 
-<span class="kw">impl</span>&lt;L, R&gt; graphics::Compositor <span class="kw">for </span>Compositor&lt;L, R&gt;
+<span class="kw">impl</span>&lt;A, B&gt; graphics::Compositor <span class="kw">for </span>Compositor&lt;A, B&gt;
 <span class="kw">where
-    </span>L: graphics::Compositor,
-    R: graphics::Compositor,
+    </span>A: graphics::Compositor,
+    B: graphics::Compositor,
 {
-    <span class="kw">type </span>Renderer = Renderer&lt;L::Renderer, R::Renderer&gt;;
-    <span class="kw">type </span>Surface = Surface&lt;L::Surface, R::Surface&gt;;
+    <span class="kw">type </span>Renderer = Renderer&lt;A::Renderer, B::Renderer&gt;;
+    <span class="kw">type </span>Surface = Surface&lt;A::Surface, B::Surface&gt;;
 
     <span class="kw">async fn </span>with_backend&lt;W: compositor::Window + Clone&gt;(
         settings: graphics::Settings,
@@ -803,19 +855,19 @@
         <span class="kw">let </span><span class="kw-2">mut </span>errors = <span class="macro">vec!</span>[];
 
         <span class="kw">for </span>backend <span class="kw">in </span>candidates.iter().map(Option::as_deref) {
-            <span class="kw">match </span>L::with_backend(settings, compatible_window.clone(), backend)
+            <span class="kw">match </span>A::with_backend(settings, compatible_window.clone(), backend)
                 .<span class="kw">await
             </span>{
-                <span class="prelude-val">Ok</span>(compositor) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::Left(compositor)),
+                <span class="prelude-val">Ok</span>(compositor) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::Primary(compositor)),
                 <span class="prelude-val">Err</span>(error) =&gt; {
                     errors.push(error);
                 }
             }
 
-            <span class="kw">match </span>R::with_backend(settings, compatible_window.clone(), backend)
+            <span class="kw">match </span>B::with_backend(settings, compatible_window.clone(), backend)
                 .<span class="kw">await
             </span>{
-                <span class="prelude-val">Ok</span>(compositor) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::Right(compositor)),
+                <span class="prelude-val">Ok</span>(compositor) =&gt; <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="self">Self</span>::Secondary(compositor)),
                 <span class="prelude-val">Err</span>(error) =&gt; {
                     errors.push(error);
                 }
@@ -827,11 +879,11 @@
 
     <span class="kw">fn </span>create_renderer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Renderer {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Left(compositor) =&gt; {
-                Renderer::Left(compositor.create_renderer())
+            <span class="self">Self</span>::Primary(compositor) =&gt; {
+                Renderer::Primary(compositor.create_renderer())
             }
-            <span class="self">Self</span>::Right(compositor) =&gt; {
-                Renderer::Right(compositor.create_renderer())
+            <span class="self">Self</span>::Secondary(compositor) =&gt; {
+                Renderer::Secondary(compositor.create_renderer())
             }
         }
     }
@@ -843,12 +895,12 @@
         height: u32,
     ) -&gt; <span class="self">Self</span>::Surface {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Left(compositor) =&gt; {
-                Surface::Left(compositor.create_surface(window, width, height))
-            }
-            <span class="self">Self</span>::Right(compositor) =&gt; {
-                Surface::Right(compositor.create_surface(window, width, height))
-            }
+            <span class="self">Self</span>::Primary(compositor) =&gt; Surface::Primary(
+                compositor.create_surface(window, width, height),
+            ),
+            <span class="self">Self</span>::Secondary(compositor) =&gt; Surface::Secondary(
+                compositor.create_surface(window, width, height),
+            ),
         }
     }
 
@@ -859,10 +911,10 @@
         height: u32,
     ) {
         <span class="kw">match </span>(<span class="self">self</span>, surface) {
-            (<span class="self">Self</span>::Left(compositor), Surface::Left(surface)) =&gt; {
+            (<span class="self">Self</span>::Primary(compositor), Surface::Primary(surface)) =&gt; {
                 compositor.configure_surface(surface, width, height);
             }
-            (<span class="self">Self</span>::Right(compositor), Surface::Right(surface)) =&gt; {
+            (<span class="self">Self</span>::Secondary(compositor), Surface::Secondary(surface)) =&gt; {
                 compositor.configure_surface(surface, width, height);
             }
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
@@ -883,9 +935,9 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), compositor::SurfaceError&gt; {
         <span class="kw">match </span>(<span class="self">self</span>, renderer, surface) {
             (
-                <span class="self">Self</span>::Left(compositor),
-                Renderer::Left(renderer),
-                Surface::Left(surface),
+                <span class="self">Self</span>::Primary(compositor),
+                Renderer::Primary(renderer),
+                Surface::Primary(surface),
             ) =&gt; compositor.present(
                 renderer,
                 surface,
@@ -894,9 +946,9 @@
                 overlay,
             ),
             (
-                <span class="self">Self</span>::Right(compositor),
-                Renderer::Right(renderer),
-                Surface::Right(surface),
+                <span class="self">Self</span>::Secondary(compositor),
+                Renderer::Secondary(renderer),
+                Surface::Secondary(surface),
             ) =&gt; compositor.present(
                 renderer,
                 surface,
@@ -918,9 +970,9 @@
     ) -&gt; Vec&lt;u8&gt; {
         <span class="kw">match </span>(<span class="self">self</span>, renderer, surface) {
             (
-                <span class="self">Self</span>::Left(compositor),
-                Renderer::Left(renderer),
-                Surface::Left(surface),
+                <span class="self">Self</span>::Primary(compositor),
+                Renderer::Primary(renderer),
+                Surface::Primary(surface),
             ) =&gt; compositor.screenshot(
                 renderer,
                 surface,
@@ -929,9 +981,9 @@
                 overlay,
             ),
             (
-                <span class="self">Self</span>::Right(compositor),
-                Renderer::Right(renderer),
-                Surface::Right(surface),
+                <span class="self">Self</span>::Secondary(compositor),
+                Renderer::Secondary(renderer),
+                Surface::Secondary(surface),
             ) =&gt; compositor.screenshot(
                 renderer,
                 surface,
@@ -945,10 +997,10 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
-</span><span class="kw">impl</span>&lt;L, R&gt; iced_wgpu::primitive::pipeline::Renderer <span class="kw">for </span>Renderer&lt;L, R&gt;
+</span><span class="kw">impl</span>&lt;A, B&gt; iced_wgpu::primitive::pipeline::Renderer <span class="kw">for </span>Renderer&lt;A, B&gt;
 <span class="kw">where
-    </span>L: iced_wgpu::primitive::pipeline::Renderer,
-    R: core::Renderer,
+    </span>A: iced_wgpu::primitive::pipeline::Renderer,
+    B: core::Renderer,
 {
     <span class="kw">fn </span>draw_pipeline_primitive(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
@@ -956,10 +1008,10 @@
         primitive: <span class="kw">impl </span>iced_wgpu::primitive::pipeline::Primitive,
     ) {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Left(renderer) =&gt; {
+            <span class="self">Self</span>::Primary(renderer) =&gt; {
                 renderer.draw_pipeline_primitive(bounds, primitive);
             }
-            <span class="self">Self</span>::Right(<span class="kw">_</span>) =&gt; {
+            <span class="self">Self</span>::Secondary(<span class="kw">_</span>) =&gt; {
                 <span class="macro">log::warn!</span>(
                     <span class="string">"Custom shader primitive is not supported with this renderer."
                 </span>);
@@ -975,27 +1027,31 @@
     <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{<span class="self">self</span>, Fill, Path, Stroke, Text};
     <span class="kw">use </span><span class="kw">crate</span>::graphics::Cached;
 
-    <span class="kw">impl</span>&lt;L, R&gt; geometry::Renderer <span class="kw">for </span>Renderer&lt;L, R&gt;
+    <span class="kw">impl</span>&lt;A, B&gt; geometry::Renderer <span class="kw">for </span>Renderer&lt;A, B&gt;
     <span class="kw">where
-        </span>L: geometry::Renderer,
-        R: geometry::Renderer,
+        </span>A: geometry::Renderer,
+        B: geometry::Renderer,
     {
-        <span class="kw">type </span>Geometry = Geometry&lt;L::Geometry, R::Geometry&gt;;
-        <span class="kw">type </span>Frame = Frame&lt;L::Frame, R::Frame&gt;;
+        <span class="kw">type </span>Geometry = Geometry&lt;A::Geometry, B::Geometry&gt;;
+        <span class="kw">type </span>Frame = Frame&lt;A::Frame, B::Frame&gt;;
 
         <span class="kw">fn </span>new_frame(<span class="kw-2">&amp;</span><span class="self">self</span>, size: iced_graphics::core::Size) -&gt; <span class="self">Self</span>::Frame {
             <span class="kw">match </span><span class="self">self </span>{
-                <span class="self">Self</span>::Left(renderer) =&gt; Frame::Left(renderer.new_frame(size)),
-                <span class="self">Self</span>::Right(renderer) =&gt; Frame::Right(renderer.new_frame(size)),
+                <span class="self">Self</span>::Primary(renderer) =&gt; {
+                    Frame::Primary(renderer.new_frame(size))
+                }
+                <span class="self">Self</span>::Secondary(renderer) =&gt; {
+                    Frame::Secondary(renderer.new_frame(size))
+                }
             }
         }
 
         <span class="kw">fn </span>draw_geometry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, geometry: <span class="self">Self</span>::Geometry) {
             <span class="kw">match </span>(<span class="self">self</span>, geometry) {
-                (<span class="self">Self</span>::Left(renderer), Geometry::Left(geometry)) =&gt; {
+                (<span class="self">Self</span>::Primary(renderer), Geometry::Primary(geometry)) =&gt; {
                     renderer.draw_geometry(geometry);
                 }
-                (<span class="self">Self</span>::Right(renderer), Geometry::Right(geometry)) =&gt; {
+                (<span class="self">Self</span>::Secondary(renderer), Geometry::Secondary(geometry)) =&gt; {
                     renderer.draw_geometry(geometry);
                 }
                 <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
@@ -1003,44 +1059,48 @@
         }
     }
 
-    <span class="kw">pub enum </span>Geometry&lt;L, R&gt; {
-        Left(L),
-        Right(R),
+    <span class="attr">#[derive(Debug)]
+    </span><span class="kw">pub enum </span>Geometry&lt;A, B&gt; {
+        Primary(A),
+        Secondary(B),
     }
 
-    <span class="kw">impl</span>&lt;L, R&gt; Cached <span class="kw">for </span>Geometry&lt;L, R&gt;
+    <span class="kw">impl</span>&lt;A, B&gt; Cached <span class="kw">for </span>Geometry&lt;A, B&gt;
     <span class="kw">where
-        </span>L: Cached,
-        R: Cached,
+        </span>A: Cached,
+        B: Cached,
     {
-        <span class="kw">type </span>Cache = Geometry&lt;L::Cache, R::Cache&gt;;
+        <span class="kw">type </span>Cache = Geometry&lt;A::Cache, B::Cache&gt;;
 
         <span class="kw">fn </span>load(cache: <span class="kw-2">&amp;</span><span class="self">Self</span>::Cache) -&gt; <span class="self">Self </span>{
             <span class="kw">match </span>cache {
-                Geometry::Left(cache) =&gt; <span class="self">Self</span>::Left(L::load(cache)),
-                Geometry::Right(cache) =&gt; <span class="self">Self</span>::Right(R::load(cache)),
+                Geometry::Primary(cache) =&gt; <span class="self">Self</span>::Primary(A::load(cache)),
+                Geometry::Secondary(cache) =&gt; <span class="self">Self</span>::Secondary(B::load(cache)),
             }
         }
 
         <span class="kw">fn </span>cache(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Cache {
             <span class="kw">match </span><span class="self">self </span>{
-                <span class="self">Self</span>::Left(geometry) =&gt; Geometry::Left(geometry.cache()),
-                <span class="self">Self</span>::Right(geometry) =&gt; Geometry::Right(geometry.cache()),
+                <span class="self">Self</span>::Primary(geometry) =&gt; Geometry::Primary(geometry.cache()),
+                <span class="self">Self</span>::Secondary(geometry) =&gt; {
+                    Geometry::Secondary(geometry.cache())
+                }
             }
         }
     }
 
-    <span class="kw">pub enum </span>Frame&lt;L, R&gt; {
-        Left(L),
-        Right(R),
+    <span class="attr">#[derive(Debug)]
+    </span><span class="kw">pub enum </span>Frame&lt;A, B&gt; {
+        Primary(A),
+        Secondary(B),
     }
 
-    <span class="kw">impl</span>&lt;L, R&gt; geometry::frame::Backend <span class="kw">for </span>Frame&lt;L, R&gt;
+    <span class="kw">impl</span>&lt;A, B&gt; geometry::frame::Backend <span class="kw">for </span>Frame&lt;A, B&gt;
     <span class="kw">where
-        </span>L: geometry::frame::Backend,
-        R: geometry::frame::Backend,
+        </span>A: geometry::frame::Backend,
+        B: geometry::frame::Backend,
     {
-        <span class="kw">type </span>Geometry = Geometry&lt;L::Geometry, R::Geometry&gt;;
+        <span class="kw">type </span>Geometry = Geometry&lt;A::Geometry, B::Geometry&gt;;
 
         <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
             <span class="macro">delegate!</span>(<span class="self">self</span>, frame, frame.width())
@@ -1089,17 +1149,17 @@
 
         <span class="kw">fn </span>draft(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: Size) -&gt; <span class="self">Self </span>{
             <span class="kw">match </span><span class="self">self </span>{
-                <span class="self">Self</span>::Left(frame) =&gt; <span class="self">Self</span>::Left(frame.draft(size)),
-                <span class="self">Self</span>::Right(frame) =&gt; <span class="self">Self</span>::Right(frame.draft(size)),
+                <span class="self">Self</span>::Primary(frame) =&gt; <span class="self">Self</span>::Primary(frame.draft(size)),
+                <span class="self">Self</span>::Secondary(frame) =&gt; <span class="self">Self</span>::Secondary(frame.draft(size)),
             }
         }
 
         <span class="kw">fn </span>paste(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="self">Self</span>, at: Point) {
             <span class="kw">match </span>(<span class="self">self</span>, frame) {
-                (<span class="self">Self</span>::Left(target), <span class="self">Self</span>::Left(source)) =&gt; {
+                (<span class="self">Self</span>::Primary(target), <span class="self">Self</span>::Primary(source)) =&gt; {
                     target.paste(source, at);
                 }
-                (<span class="self">Self</span>::Right(target), <span class="self">Self</span>::Right(source)) =&gt; {
+                (<span class="self">Self</span>::Secondary(target), <span class="self">Self</span>::Secondary(source)) =&gt; {
                     target.paste(source, at);
                 }
                 <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
@@ -1124,18 +1184,22 @@
 
         <span class="kw">fn </span>into_geometry(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Geometry {
             <span class="kw">match </span><span class="self">self </span>{
-                Frame::Left(frame) =&gt; Geometry::Left(frame.into_geometry()),
-                Frame::Right(frame) =&gt; Geometry::Right(frame.into_geometry()),
+                Frame::Primary(frame) =&gt; {
+                    Geometry::Primary(frame.into_geometry())
+                }
+                Frame::Secondary(frame) =&gt; {
+                    Geometry::Secondary(frame.into_geometry())
+                }
             }
         }
     }
 }
 
-<span class="kw">impl</span>&lt;L, R&gt; compositor::Default <span class="kw">for </span>Renderer&lt;L, R&gt;
+<span class="kw">impl</span>&lt;A, B&gt; compositor::Default <span class="kw">for </span>Renderer&lt;A, B&gt;
 <span class="kw">where
-    </span>L: compositor::Default,
-    R: compositor::Default,
+    </span>A: compositor::Default,
+    B: compositor::Default,
 {
-    <span class="kw">type </span>Compositor = Compositor&lt;L::Compositor, R::Compositor&gt;;
+    <span class="kw">type </span>Compositor = Compositor&lt;A::Compositor, B::Compositor&gt;;
 }
 </code></pre></div></section></main></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Theme"],"struct":["Highlight","Highlighter","ScopeRangeIterator","Settings"]};
+window.SIDEBAR_ITEMS = {"enum":["Theme"],"struct":["Highlight","Highlighter","Settings"]};

@@ -243,7 +243,37 @@
 <a href="#243" id="243">243</a>
 <a href="#244" id="244">244</a>
 <a href="#245" id="245">245</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span>iced_core <span class="kw">as </span>core;
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+</pre></div><pre class="rust"><code><span class="doccomment">//! A syntax highlighter for iced.
+</span><span class="kw">use </span>iced_core <span class="kw">as </span>core;
 
 <span class="kw">use </span><span class="kw">crate</span>::core::text::highlighter::{<span class="self">self</span>, Format};
 <span class="kw">use </span><span class="kw">crate</span>::core::{Color, Font};
@@ -261,7 +291,9 @@
 
 <span class="kw">const </span>LINES_PER_SNAPSHOT: usize = <span class="number">50</span>;
 
-<span class="kw">pub struct </span>Highlighter {
+<span class="doccomment">/// A syntax highlighter.
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Highlighter {
     syntax: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>parsing::SyntaxReference,
     highlighter: highlighting::Highlighter&lt;<span class="lifetime">'static</span>&gt;,
     caches: Vec&lt;(parsing::ParseState, parsing::ScopeStack)&gt;,
@@ -376,26 +408,48 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Clone, PartialEq)]
+<span class="doccomment">/// The settings of a [`Highlighter`].
+</span><span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub struct </span>Settings {
-    <span class="kw">pub </span>theme: Theme,
-    <span class="kw">pub </span>extension: String,
+    <span class="doccomment">/// The [`Theme`] of the [`Highlighter`].
+    ///
+    /// It dictates the color scheme that will be used for highlighting.
+    </span><span class="kw">pub </span>theme: Theme,
+    <span class="doccomment">/// The extension of the file to highlight.
+    ///
+    /// The [`Highlighter`] will use the extension to automatically determine
+    /// the grammar to use for highlighting.
+    </span><span class="kw">pub </span>extension: String,
 }
 
-<span class="kw">pub struct </span>Highlight(highlighting::StyleModifier);
+<span class="doccomment">/// A highlight produced by a [`Highlighter`].
+</span><span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Highlight(highlighting::StyleModifier);
 
 <span class="kw">impl </span>Highlight {
-    <span class="kw">pub fn </span>color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Color&gt; {
+    <span class="doccomment">/// Returns the color of this [`Highlight`].
+    ///
+    /// If `None`, the original text color should be unchanged.
+    </span><span class="kw">pub fn </span>color(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Color&gt; {
         <span class="self">self</span>.<span class="number">0</span>.foreground.map(|color| {
             Color::from_rgba8(color.r, color.g, color.b, color.a <span class="kw">as </span>f32 / <span class="number">255.0</span>)
         })
     }
 
-    <span class="kw">pub fn </span>font(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Font&gt; {
+    <span class="doccomment">/// Returns the font of this [`Highlight`].
+    ///
+    /// If `None`, the original font should be unchanged.
+    </span><span class="kw">pub fn </span>font(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Font&gt; {
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">pub fn </span>to_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Format&lt;Font&gt; {
+    <span class="doccomment">/// Returns the [`Format`] of the [`Highlight`].
+    ///
+    /// It contains both the [`color`] and the [`font`].
+    ///
+    /// [`color`]: Self::color
+    /// [`font`]: Self::font
+    </span><span class="kw">pub fn </span>to_format(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Format&lt;Font&gt; {
         Format {
             color: <span class="self">self</span>.color(),
             font: <span class="self">self</span>.font(),
@@ -403,7 +457,9 @@
     }
 }
 
-<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+<span class="doccomment">/// A highlighting theme.
+</span><span class="attr">#[allow(missing_docs)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>Theme {
     SolarizedDark,
     Base16Mocha,
@@ -413,7 +469,8 @@
 }
 
 <span class="kw">impl </span>Theme {
-    <span class="kw">pub const </span>ALL: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="self">Self</span>] = <span class="kw-2">&amp;</span>[
+    <span class="doccomment">/// A static slice containing all the available themes.
+    </span><span class="kw">pub const </span>ALL: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>[<span class="self">Self</span>] = <span class="kw-2">&amp;</span>[
         <span class="self">Self</span>::SolarizedDark,
         <span class="self">Self</span>::Base16Mocha,
         <span class="self">Self</span>::Base16Ocean,
@@ -421,7 +478,8 @@
         <span class="self">Self</span>::InspiredGitHub,
     ];
 
-    <span class="kw">pub fn </span>is_dark(<span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// Returns `true` if the [`Theme`] is dark, and false otherwise.
+    </span><span class="kw">pub fn </span>is_dark(<span class="self">self</span>) -&gt; bool {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::SolarizedDark
             | <span class="self">Self</span>::Base16Mocha
@@ -454,7 +512,7 @@
     }
 }
 
-<span class="kw">pub struct </span>ScopeRangeIterator {
+<span class="kw">struct </span>ScopeRangeIterator {
     ops: Vec&lt;(usize, parsing::ScopeStackOp)&gt;,
     line_length: usize,
     index: usize,
