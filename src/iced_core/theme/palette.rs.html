@@ -642,13 +642,21 @@
 <a href="#642" id="642">642</a>
 <a href="#643" id="643">643</a>
 <a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Define the colors of a theme.
 </span><span class="kw">use crate</span>::{color, Color};
 
 <span class="kw">use </span>once_cell::sync::Lazy;
 <span class="kw">use </span>palette::color_difference::Wcag21RelativeContrast;
 <span class="kw">use </span>palette::rgb::Rgb;
-<span class="kw">use </span>palette::{FromColor, Hsl, Lch, Mix};
+<span class="kw">use </span>palette::{FromColor, Hsl, Mix};
 
 <span class="doccomment">/// A color palette.
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
@@ -1257,10 +1265,15 @@
 <span class="kw">fn </span>readable(background: Color, text: Color) -&gt; Color {
     <span class="kw">if </span>is_readable(background, text) {
         text
-    } <span class="kw">else if </span>to_lch(background).l &lt; <span class="number">70.0 </span>{
-        Color::WHITE
     } <span class="kw">else </span>{
-        Color::BLACK
+        <span class="kw">let </span>white_contrast = relative_contrast(background, Color::WHITE);
+        <span class="kw">let </span>black_contrast = relative_contrast(background, Color::BLACK);
+
+        <span class="kw">if </span>white_contrast &gt;= black_contrast {
+            Color::WHITE
+        } <span class="kw">else </span>{
+            Color::BLACK
+        }
     }
 }
 
@@ -1275,12 +1288,15 @@
     a_srgb.has_enhanced_contrast_text(b_srgb)
 }
 
-<span class="kw">fn </span>to_hsl(color: Color) -&gt; Hsl {
-    Hsl::from_color(Rgb::from(color))
+<span class="kw">fn </span>relative_contrast(a: Color, b: Color) -&gt; f32 {
+    <span class="kw">let </span>a_srgb = Rgb::from(a);
+    <span class="kw">let </span>b_srgb = Rgb::from(b);
+
+    a_srgb.relative_contrast(b_srgb)
 }
 
-<span class="kw">fn </span>to_lch(color: Color) -&gt; Lch {
-    Lch::from_color(Rgb::from(color))
+<span class="kw">fn </span>to_hsl(color: Color) -&gt; Hsl {
+    Hsl::from_color(Rgb::from(color))
 }
 
 <span class="kw">fn </span>from_hsl(hsl: Hsl) -&gt; Color {
