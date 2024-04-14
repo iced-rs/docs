@@ -212,6 +212,21 @@
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
 <a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{Point, Size, Vector};
 
 <span class="doccomment">/// A rectangle.
@@ -230,24 +245,32 @@
     </span><span class="kw">pub </span>height: T,
 }
 
-<span class="kw">impl </span>Rectangle&lt;f32&gt; {
-    <span class="doccomment">/// Creates a new [`Rectangle`] with its top-left corner in the given
-    /// [`Point`] and with the provided [`Size`].
-    </span><span class="kw">pub fn </span>new(top_left: Point, size: Size) -&gt; <span class="self">Self </span>{
+<span class="kw">impl</span>&lt;T&gt; Rectangle&lt;T&gt;
+<span class="kw">where
+    </span>T: Default,
+{
+    <span class="doccomment">/// Creates a new [`Rectangle`] with its top-left corner at the origin
+    /// and with the provided [`Size`].
+    </span><span class="kw">pub fn </span>with_size(size: Size&lt;T&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            x: top_left.x,
-            y: top_left.y,
+            x: T::default(),
+            y: T::default(),
             width: size.width,
             height: size.height,
         }
     }
+}
 
-    <span class="doccomment">/// Creates a new [`Rectangle`] with its top-left corner at the origin
-    /// and with the provided [`Size`].
-    </span><span class="kw">pub fn </span>with_size(size: Size) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>Rectangle&lt;f32&gt; {
+    <span class="doccomment">/// A rectangle starting at [`Point::ORIGIN`] with infinite width and height.
+    </span><span class="kw">pub const </span>INFINITE: <span class="self">Self </span>= <span class="self">Self</span>::new(Point::ORIGIN, Size::INFINITY);
+
+    <span class="doccomment">/// Creates a new [`Rectangle`] with its top-left corner in the given
+    /// [`Point`] and with the provided [`Size`].
+    </span><span class="kw">pub const fn </span>new(top_left: Point, size: Size) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            x: <span class="number">0.0</span>,
-            y: <span class="number">0.0</span>,
+            x: top_left.x,
+            y: top_left.y,
             width: size.width,
             height: size.height,
         }
@@ -353,13 +376,20 @@
     }
 
     <span class="doccomment">/// Snaps the [`Rectangle`] to __unsigned__ integer coordinates.
-    </span><span class="kw">pub fn </span>snap(<span class="self">self</span>) -&gt; Rectangle&lt;u32&gt; {
-        Rectangle {
+    </span><span class="kw">pub fn </span>snap(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Rectangle&lt;u32&gt;&gt; {
+        <span class="kw">let </span>width = <span class="self">self</span>.width <span class="kw">as </span>u32;
+        <span class="kw">let </span>height = <span class="self">self</span>.height <span class="kw">as </span>u32;
+
+        <span class="kw">if </span>width &lt; <span class="number">1 </span>|| height &lt; <span class="number">1 </span>{
+            <span class="kw">return </span><span class="prelude-val">None</span>;
+        }
+
+        <span class="prelude-val">Some</span>(Rectangle {
             x: <span class="self">self</span>.x <span class="kw">as </span>u32,
             y: <span class="self">self</span>.y <span class="kw">as </span>u32,
-            width: <span class="self">self</span>.width <span class="kw">as </span>u32,
-            height: <span class="self">self</span>.height <span class="kw">as </span>u32,
-        }
+            width,
+            height,
+        })
     }
 
     <span class="doccomment">/// Expands the [`Rectangle`] a given amount.

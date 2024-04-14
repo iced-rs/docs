@@ -496,47 +496,25 @@
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
 <a href="#498" id="498">498</a>
-<a href="#499" id="499">499</a>
-<a href="#500" id="500">500</a>
-<a href="#501" id="501">501</a>
-<a href="#502" id="502">502</a>
-<a href="#503" id="503">503</a>
-<a href="#504" id="504">504</a>
-<a href="#505" id="505">505</a>
-<a href="#506" id="506">506</a>
-<a href="#507" id="507">507</a>
-<a href="#508" id="508">508</a>
-<a href="#509" id="509">509</a>
-<a href="#510" id="510">510</a>
-<a href="#511" id="511">511</a>
-<a href="#512" id="512">512</a>
-<a href="#513" id="513">513</a>
-<a href="#514" id="514">514</a>
-<a href="#515" id="515">515</a>
-<a href="#516" id="516">516</a>
-<a href="#517" id="517">517</a>
-<a href="#518" id="518">518</a>
-<a href="#519" id="519">519</a>
-<a href="#520" id="520">520</a>
-<a href="#521" id="521">521</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Connect a window with a renderer.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::{Color, Size};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::compositor;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::error;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::{<span class="self">self</span>, Viewport};
-<span class="kw">use crate</span>::{Backend, Primitive, Renderer, Settings};
+<span class="kw">use crate</span>::{Engine, Renderer, Settings};
 
 <span class="doccomment">/// A window graphics backend for iced powered by `wgpu`.
 </span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Compositor {
-    settings: Settings,
     instance: wgpu::Instance,
     adapter: wgpu::Adapter,
     device: wgpu::Device,
     queue: wgpu::Queue,
     format: wgpu::TextureFormat,
     alpha_mode: wgpu::CompositeAlphaMode,
+    engine: Engine,
+    settings: Settings,
 }
 
 <span class="doccomment">/// A compositor error.
@@ -574,7 +552,7 @@
         compatible_window: <span class="prelude-ty">Option</span>&lt;W&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
         <span class="kw">let </span>instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: settings.internal_backend,
+            backends: settings.backends,
             ..Default::default()
         });
 
@@ -583,7 +561,7 @@
         <span class="attr">#[cfg(not(target_arch = <span class="string">"wasm32"</span>))]
         </span><span class="kw">if </span>log::max_level() &gt;= log::LevelFilter::Info {
             <span class="kw">let </span>available_adapters: Vec&lt;<span class="kw">_</span>&gt; = instance
-                .enumerate_adapters(settings.internal_backend)
+                .enumerate_adapters(settings.backends)
                 .iter()
                 .map(wgpu::Adapter::get_info)
                 .collect();
@@ -688,15 +666,24 @@
 
             <span class="kw">match </span>result {
                 <span class="prelude-val">Ok</span>((device, queue)) =&gt; {
+                    <span class="kw">let </span>engine = Engine::new(
+                        <span class="kw-2">&amp;</span>adapter,
+                        <span class="kw-2">&amp;</span>device,
+                        <span class="kw-2">&amp;</span>queue,
+                        format,
+                        settings.antialiasing,
+                    );
+
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(Compositor {
                         instance,
-                        settings,
                         adapter,
                         device,
                         queue,
                         format,
                         alpha_mode,
-                    })
+                        engine,
+                        settings,
+                    });
                 }
                 <span class="prelude-val">Err</span>(error) =&gt; {
                     errors.push((required_limits, error));
@@ -706,21 +693,9 @@
 
         <span class="prelude-val">Err</span>(Error::RequestDeviceFailed(errors))
     }
-
-    <span class="doccomment">/// Creates a new rendering [`Backend`] for this [`Compositor`].
-    </span><span class="kw">pub fn </span>create_backend(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Backend {
-        Backend::new(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.adapter,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.device,
-            <span class="kw-2">&amp;</span><span class="self">self</span>.queue,
-            <span class="self">self</span>.settings,
-            <span class="self">self</span>.format,
-        )
-    }
 }
 
-<span class="doccomment">/// Creates a [`Compositor`] and its [`Backend`] for the given [`Settings`] and
-/// window.
+<span class="doccomment">/// Creates a [`Compositor`] with the given [`Settings`] and window.
 </span><span class="kw">pub async fn </span>new&lt;W: compositor::Window&gt;(
     settings: Settings,
     compatible_window: W,
@@ -728,12 +703,11 @@
     Compositor::request(settings, <span class="prelude-val">Some</span>(compatible_window)).<span class="kw">await
 </span>}
 
-<span class="doccomment">/// Presents the given primitives with the given [`Compositor`] and [`Backend`].
+<span class="doccomment">/// Presents the given primitives with the given [`Compositor`].
 </span><span class="kw">pub fn </span>present&lt;T: AsRef&lt;str&gt;&gt;(
     compositor: <span class="kw-2">&amp;mut </span>Compositor,
-    backend: <span class="kw-2">&amp;mut </span>Backend,
+    renderer: <span class="kw-2">&amp;mut </span>Renderer,
     surface: <span class="kw-2">&amp;mut </span>wgpu::Surface&lt;<span class="lifetime">'static</span>&gt;,
-    primitives: <span class="kw-2">&amp;</span>[Primitive],
     viewport: <span class="kw-2">&amp;</span>Viewport,
     background_color: Color,
     overlay: <span class="kw-2">&amp;</span>[T],
@@ -750,22 +724,22 @@
                 .texture
                 .create_view(<span class="kw-2">&amp;</span>wgpu::TextureViewDescriptor::default());
 
-            backend.present(
+            renderer.present(
+                <span class="kw-2">&amp;mut </span>compositor.engine,
                 <span class="kw-2">&amp;</span>compositor.device,
                 <span class="kw-2">&amp;</span>compositor.queue,
                 <span class="kw-2">&amp;mut </span>encoder,
                 <span class="prelude-val">Some</span>(background_color),
                 frame.texture.format(),
                 view,
-                primitives,
                 viewport,
                 overlay,
             );
 
-            <span class="comment">// Submit work
-            </span><span class="kw">let </span>_submission = compositor.queue.submit(<span class="prelude-val">Some</span>(encoder.finish()));
-            backend.recall();
-            frame.present();
+            <span class="kw">let _ </span>= compositor.engine.submit(<span class="kw-2">&amp;</span>compositor.queue, encoder);
+
+            <span class="comment">// Present the frame
+            </span>frame.present();
 
             <span class="prelude-val">Ok</span>(())
         }
@@ -796,7 +770,7 @@
         <span class="kw">match </span>backend {
             <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(<span class="string">"wgpu"</span>) =&gt; <span class="prelude-val">Ok</span>(new(
                 Settings {
-                    internal_backend: wgpu::util::backend_bits_from_env()
+                    backends: wgpu::util::backend_bits_from_env()
                         .unwrap_or(wgpu::Backends::all()),
                     ..settings.into()
                 },
@@ -814,7 +788,7 @@
 
     <span class="kw">fn </span>create_renderer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Renderer {
         Renderer::new(
-            <span class="self">self</span>.create_backend(),
+            <span class="kw-2">&amp;</span><span class="self">self</span>.engine,
             <span class="self">self</span>.settings.default_font,
             <span class="self">self</span>.settings.default_text_size,
         )
@@ -854,7 +828,7 @@
                 height,
                 alpha_mode: <span class="self">self</span>.alpha_mode,
                 view_formats: <span class="macro">vec!</span>[],
-                desired_maximum_frame_latency: <span class="number">2</span>,
+                desired_maximum_frame_latency: <span class="number">1</span>,
             },
         );
     }
@@ -876,17 +850,7 @@
         background_color: Color,
         overlay: <span class="kw-2">&amp;</span>[T],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), compositor::SurfaceError&gt; {
-        renderer.with_primitives(|backend, primitives| {
-            present(
-                <span class="self">self</span>,
-                backend,
-                surface,
-                primitives,
-                viewport,
-                background_color,
-                overlay,
-            )
-        })
+        present(<span class="self">self</span>, renderer, surface, viewport, background_color, overlay)
     }
 
     <span class="kw">fn </span>screenshot&lt;T: AsRef&lt;str&gt;&gt;(
@@ -897,16 +861,7 @@
         background_color: Color,
         overlay: <span class="kw-2">&amp;</span>[T],
     ) -&gt; Vec&lt;u8&gt; {
-        renderer.with_primitives(|backend, primitives| {
-            screenshot(
-                <span class="self">self</span>,
-                backend,
-                primitives,
-                viewport,
-                background_color,
-                overlay,
-            )
-        })
+        screenshot(<span class="self">self</span>, renderer, viewport, background_color, overlay)
     }
 }
 
@@ -914,19 +869,12 @@
 ///
 /// Returns RGBA bytes of the texture data.
 </span><span class="kw">pub fn </span>screenshot&lt;T: AsRef&lt;str&gt;&gt;(
-    compositor: <span class="kw-2">&amp;</span>Compositor,
-    backend: <span class="kw-2">&amp;mut </span>Backend,
-    primitives: <span class="kw-2">&amp;</span>[Primitive],
+    compositor: <span class="kw-2">&amp;mut </span>Compositor,
+    renderer: <span class="kw-2">&amp;mut </span>Renderer,
     viewport: <span class="kw-2">&amp;</span>Viewport,
     background_color: Color,
     overlay: <span class="kw-2">&amp;</span>[T],
 ) -&gt; Vec&lt;u8&gt; {
-    <span class="kw">let </span><span class="kw-2">mut </span>encoder = compositor.device.create_command_encoder(
-        <span class="kw-2">&amp;</span>wgpu::CommandEncoderDescriptor {
-            label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.offscreen.encoder"</span>),
-        },
-    );
-
     <span class="kw">let </span>dimensions = BufferDimensions::new(viewport.physical_size());
 
     <span class="kw">let </span>texture_extent = wgpu::Extent3d {
@@ -950,14 +898,20 @@
 
     <span class="kw">let </span>view = texture.create_view(<span class="kw-2">&amp;</span>wgpu::TextureViewDescriptor::default());
 
-    backend.present(
+    <span class="kw">let </span><span class="kw-2">mut </span>encoder = compositor.device.create_command_encoder(
+        <span class="kw-2">&amp;</span>wgpu::CommandEncoderDescriptor {
+            label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.offscreen.encoder"</span>),
+        },
+    );
+
+    renderer.present(
+        <span class="kw-2">&amp;mut </span>compositor.engine,
         <span class="kw-2">&amp;</span>compositor.device,
         <span class="kw-2">&amp;</span>compositor.queue,
         <span class="kw-2">&amp;mut </span>encoder,
         <span class="prelude-val">Some</span>(background_color),
         texture.format(),
         <span class="kw-2">&amp;</span>view,
-        primitives,
         viewport,
         overlay,
     );
@@ -995,7 +949,7 @@
         texture_extent,
     );
 
-    <span class="kw">let </span>index = compositor.queue.submit(<span class="prelude-val">Some</span>(encoder.finish()));
+    <span class="kw">let </span>index = compositor.engine.submit(<span class="kw-2">&amp;</span>compositor.queue, encoder);
 
     <span class="kw">let </span>slice = output_buffer.slice(..);
     slice.map_async(wgpu::MapMode::Read, |<span class="kw">_</span>| {});

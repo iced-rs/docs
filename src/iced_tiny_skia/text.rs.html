@@ -377,17 +377,8 @@
 <a href="#377" id="377">377</a>
 <a href="#378" id="378">378</a>
 <a href="#379" id="379">379</a>
-<a href="#380" id="380">380</a>
-<a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
-<span class="kw">use </span><span class="kw">crate</span>::core::text::{LineHeight, Shaping};
+<span class="kw">use </span><span class="kw">crate</span>::core::text::Shaping;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
     Color, Font, Pixels, Point, Rectangle, Size, Transformation,
 };
@@ -415,7 +406,9 @@
         }
     }
 
-    <span class="kw">pub fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: Cow&lt;<span class="lifetime">'static</span>, [u8]&gt;) {
+    <span class="comment">// TODO: Shared engine
+    </span><span class="attr">#[allow(dead_code)]
+    </span><span class="kw">pub fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bytes: Cow&lt;<span class="lifetime">'static</span>, [u8]&gt;) {
         font_system()
             .write()
             .expect(<span class="string">"Write font system"</span>)
@@ -429,7 +422,6 @@
         paragraph: <span class="kw-2">&amp;</span>paragraph::Weak,
         position: Point,
         color: Color,
-        scale_factor: f32,
         pixels: <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut&lt;<span class="lifetime">'_</span>&gt;,
         clip_mask: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tiny_skia::Mask&gt;,
         transformation: Transformation,
@@ -450,7 +442,6 @@
             color,
             paragraph.horizontal_alignment(),
             paragraph.vertical_alignment(),
-            scale_factor,
             pixels,
             clip_mask,
             transformation,
@@ -462,7 +453,6 @@
         editor: <span class="kw-2">&amp;</span>editor::Weak,
         position: Point,
         color: Color,
-        scale_factor: f32,
         pixels: <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut&lt;<span class="lifetime">'_</span>&gt;,
         clip_mask: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tiny_skia::Mask&gt;,
         transformation: Transformation,
@@ -483,7 +473,6 @@
             color,
             alignment::Horizontal::Left,
             alignment::Vertical::Top,
-            scale_factor,
             pixels,
             clip_mask,
             transformation,
@@ -496,17 +485,16 @@
         bounds: Rectangle,
         color: Color,
         size: Pixels,
-        line_height: LineHeight,
+        line_height: Pixels,
         font: Font,
         horizontal_alignment: alignment::Horizontal,
         vertical_alignment: alignment::Vertical,
         shaping: Shaping,
-        scale_factor: f32,
         pixels: <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut&lt;<span class="lifetime">'_</span>&gt;,
         clip_mask: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tiny_skia::Mask&gt;,
         transformation: Transformation,
     ) {
-        <span class="kw">let </span>line_height = f32::from(line_height.to_absolute(size));
+        <span class="kw">let </span>line_height = f32::from(line_height);
 
         <span class="kw">let </span><span class="kw-2">mut </span>font_system = font_system().write().expect(<span class="string">"Write font system"</span>);
         <span class="kw">let </span>font_system = font_system.raw();
@@ -537,7 +525,6 @@
             color,
             horizontal_alignment,
             vertical_alignment,
-            scale_factor,
             pixels,
             clip_mask,
             transformation,
@@ -549,7 +536,6 @@
         buffer: <span class="kw-2">&amp;</span>cosmic_text::Buffer,
         position: Point,
         color: Color,
-        scale_factor: f32,
         pixels: <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut&lt;<span class="lifetime">'_</span>&gt;,
         clip_mask: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tiny_skia::Mask&gt;,
         transformation: Transformation,
@@ -566,7 +552,6 @@
             color,
             alignment::Horizontal::Left,
             alignment::Vertical::Top,
-            scale_factor,
             pixels,
             clip_mask,
             transformation,
@@ -587,12 +572,11 @@
     color: Color,
     horizontal_alignment: alignment::Horizontal,
     vertical_alignment: alignment::Vertical,
-    scale_factor: f32,
     pixels: <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut&lt;<span class="lifetime">'_</span>&gt;,
     clip_mask: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>tiny_skia::Mask&gt;,
     transformation: Transformation,
 ) {
-    <span class="kw">let </span>bounds = bounds * transformation * scale_factor;
+    <span class="kw">let </span>bounds = bounds * transformation;
 
     <span class="kw">let </span>x = <span class="kw">match </span>horizontal_alignment {
         alignment::Horizontal::Left =&gt; bounds.x,
@@ -610,8 +594,8 @@
 
     <span class="kw">for </span>run <span class="kw">in </span>buffer.layout_runs() {
         <span class="kw">for </span>glyph <span class="kw">in </span>run.glyphs {
-            <span class="kw">let </span>physical_glyph = glyph
-                .physical((x, y), scale_factor * transformation.scale_factor());
+            <span class="kw">let </span>physical_glyph =
+                glyph.physical((x, y), transformation.scale_factor());
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>((buffer, placement)) = glyph_cache.allocate(
                 physical_glyph.cache_key,
@@ -635,10 +619,8 @@
                 pixels.draw_pixmap(
                     physical_glyph.x + placement.left,
                     physical_glyph.y - placement.top
-                        + (run.line_y
-                            * scale_factor
-                            * transformation.scale_factor())
-                        .round() <span class="kw">as </span>i32,
+                        + (run.line_y * transformation.scale_factor()).round()
+                            <span class="kw">as </span>i32,
                     pixmap,
                     <span class="kw-2">&amp;</span>tiny_skia::PixmapPaint {
                         opacity,

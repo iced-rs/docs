@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["group","list"],"trait":["Damage"]};
+window.SIDEBAR_ITEMS = {"fn":["diff","group","list"]};

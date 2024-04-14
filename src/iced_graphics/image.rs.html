@@ -93,17 +93,157 @@
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
 <a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Load and operate on images.
-</span><span class="kw">use </span><span class="kw">crate</span>::core::image::{Data, Handle};
+</span><span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
+</span><span class="kw">pub use </span>::image <span class="kw">as </span>image_rs;
 
-<span class="kw">use </span>bitflags::bitflags;
+<span class="kw">use </span><span class="kw">crate</span>::core::image;
+<span class="kw">use </span><span class="kw">crate</span>::core::svg;
+<span class="kw">use </span><span class="kw">crate</span>::core::{Color, Rectangle};
 
-<span class="kw">pub use </span>::image <span class="kw">as </span>image_rs;
+<span class="doccomment">/// A raster or vector image.
+</span><span class="attr">#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">pub enum </span>Image {
+    <span class="doccomment">/// A raster image.
+    </span>Raster {
+        <span class="doccomment">/// The handle of a raster image.
+        </span>handle: image::Handle,
 
-<span class="doccomment">/// Tries to load an image by its [`Handle`].
-</span><span class="kw">pub fn </span>load(handle: <span class="kw-2">&amp;</span>Handle) -&gt; image_rs::ImageResult&lt;image_rs::DynamicImage&gt; {
+        <span class="doccomment">/// The filter method of a raster image.
+        </span>filter_method: image::FilterMethod,
+
+        <span class="doccomment">/// The bounds of the image.
+        </span>bounds: Rectangle,
+    },
+    <span class="doccomment">/// A vector image.
+    </span>Vector {
+        <span class="doccomment">/// The handle of a vector image.
+        </span>handle: svg::Handle,
+
+        <span class="doccomment">/// The [`Color`] filter
+        </span>color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
+
+        <span class="doccomment">/// The bounds of the image.
+        </span>bounds: Rectangle,
+    },
+}
+
+<span class="kw">impl </span>Image {
+    <span class="doccomment">/// Returns the bounds of the [`Image`].
+    </span><span class="kw">pub fn </span>bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rectangle {
+        <span class="kw">match </span><span class="self">self </span>{
+            Image::Raster { bounds, .. } | Image::Vector { bounds, .. } =&gt; {
+                <span class="kw-2">*</span>bounds
+            }
+        }
+    }
+}
+
+<span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
+</span><span class="doccomment">/// Tries to load an image by its [`Handle`].
+///
+/// [`Handle`]: image::Handle
+</span><span class="kw">pub fn </span>load(
+    handle: <span class="kw-2">&amp;</span>image::Handle,
+) -&gt; ::image::ImageResult&lt;::image::DynamicImage&gt; {
+    <span class="kw">use </span>bitflags::bitflags;
+
+    <span class="macro">bitflags! </span>{
+        <span class="kw">struct </span>Operation: u8 {
+            <span class="kw">const </span>FLIP_HORIZONTALLY = <span class="number">0b001</span>;
+            <span class="kw">const </span>ROTATE_180 = <span class="number">0b010</span>;
+            <span class="kw">const </span>FLIP_DIAGONALLY = <span class="number">0b100</span>;
+        }
+    }
+
+    <span class="kw">impl </span>Operation {
+        <span class="comment">// Meaning of the returned value is described e.g. at:
+        // https://magnushoff.com/articles/jpeg-orientation/
+        </span><span class="kw">fn </span>from_exif&lt;R&gt;(reader: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, exif::Error&gt;
+        <span class="kw">where
+            </span>R: std::io::BufRead + std::io::Seek,
+        {
+            <span class="kw">let </span>exif = exif::Reader::new().read_from_container(reader)<span class="question-mark">?</span>;
+
+            <span class="prelude-val">Ok</span>(exif
+                .get_field(exif::Tag::Orientation, exif::In::PRIMARY)
+                .and_then(|field| field.value.get_uint(<span class="number">0</span>))
+                .and_then(|value| u8::try_from(value).ok())
+                .and_then(|value| <span class="self">Self</span>::from_bits(value.saturating_sub(<span class="number">1</span>)))
+                .unwrap_or_else(<span class="self">Self</span>::empty))
+        }
+
+        <span class="kw">fn </span>perform(
+            <span class="self">self</span>,
+            <span class="kw-2">mut </span>image: ::image::DynamicImage,
+        ) -&gt; ::image::DynamicImage {
+            <span class="kw">use </span>::image::imageops;
+
+            <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::FLIP_DIAGONALLY) {
+                imageops::flip_vertical_in_place(<span class="kw-2">&amp;mut </span>image);
+            }
+
+            <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::ROTATE_180) {
+                imageops::rotate180_in_place(<span class="kw-2">&amp;mut </span>image);
+            }
+
+            <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::FLIP_HORIZONTALLY) {
+                imageops::flip_horizontal_in_place(<span class="kw-2">&amp;mut </span>image);
+            }
+
+            image
+        }
+    }
+
     <span class="kw">match </span>handle.data() {
-        Data::Path(path) =&gt; {
+        image::Data::Path(path) =&gt; {
             <span class="kw">let </span>image = ::image::open(path)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>operation = std::fs::File::open(path)
@@ -114,7 +254,7 @@
 
             <span class="prelude-val">Ok</span>(operation.perform(image))
         }
-        Data::Bytes(bytes) =&gt; {
+        image::Data::Bytes(bytes) =&gt; {
             <span class="kw">let </span>image = ::image::load_from_memory(bytes)<span class="question-mark">?</span>;
             <span class="kw">let </span>operation =
                 Operation::from_exif(<span class="kw-2">&amp;mut </span>std::io::Cursor::new(bytes))
@@ -123,69 +263,23 @@
 
             <span class="prelude-val">Ok</span>(operation.perform(image))
         }
-        Data::Rgba {
+        image::Data::Rgba {
             width,
             height,
             pixels,
         } =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(image) = image_rs::ImageBuffer::from_vec(
-                <span class="kw-2">*</span>width,
-                <span class="kw-2">*</span>height,
-                pixels.to_vec(),
-            ) {
-                <span class="prelude-val">Ok</span>(image_rs::DynamicImage::ImageRgba8(image))
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(image) =
+                ::image::ImageBuffer::from_vec(<span class="kw-2">*</span>width, <span class="kw-2">*</span>height, pixels.to_vec())
+            {
+                <span class="prelude-val">Ok</span>(::image::DynamicImage::ImageRgba8(image))
             } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(image_rs::error::ImageError::Limits(
-                    image_rs::error::LimitError::from_kind(
-                        image_rs::error::LimitErrorKind::DimensionError,
+                <span class="prelude-val">Err</span>(::image::error::ImageError::Limits(
+                    ::image::error::LimitError::from_kind(
+                        ::image::error::LimitErrorKind::DimensionError,
                     ),
                 ))
             }
         }
-    }
-}
-
-<span class="macro">bitflags! </span>{
-    <span class="kw">struct </span>Operation: u8 {
-        <span class="kw">const </span>FLIP_HORIZONTALLY = <span class="number">0b001</span>;
-        <span class="kw">const </span>ROTATE_180 = <span class="number">0b010</span>;
-        <span class="kw">const </span>FLIP_DIAGONALLY = <span class="number">0b100</span>;
-    }
-}
-
-<span class="kw">impl </span>Operation {
-    <span class="comment">// Meaning of the returned value is described e.g. at:
-    // https://magnushoff.com/articles/jpeg-orientation/
-    </span><span class="kw">fn </span>from_exif&lt;R&gt;(reader: <span class="kw-2">&amp;mut </span>R) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, exif::Error&gt;
-    <span class="kw">where
-        </span>R: std::io::BufRead + std::io::Seek,
-    {
-        <span class="kw">let </span>exif = exif::Reader::new().read_from_container(reader)<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(exif
-            .get_field(exif::Tag::Orientation, exif::In::PRIMARY)
-            .and_then(|field| field.value.get_uint(<span class="number">0</span>))
-            .and_then(|value| u8::try_from(value).ok())
-            .and_then(|value| <span class="self">Self</span>::from_bits(value.saturating_sub(<span class="number">1</span>)))
-            .unwrap_or_else(<span class="self">Self</span>::empty))
-    }
-
-    <span class="kw">fn </span>perform(<span class="self">self</span>, <span class="kw-2">mut </span>image: image::DynamicImage) -&gt; image::DynamicImage {
-        <span class="kw">use </span>image::imageops;
-
-        <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::FLIP_DIAGONALLY) {
-            imageops::flip_vertical_in_place(<span class="kw-2">&amp;mut </span>image);
-        }
-
-        <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::ROTATE_180) {
-            imageops::rotate180_in_place(<span class="kw-2">&amp;mut </span>image);
-        }
-
-        <span class="kw">if </span><span class="self">self</span>.contains(<span class="self">Self</span>::FLIP_HORIZONTALLY) {
-            imageops::flip_horizontal_in_place(<span class="kw-2">&amp;mut </span>image);
-        }
-
-        image
     }
 }
 </code></pre></div></section></main></body></html>

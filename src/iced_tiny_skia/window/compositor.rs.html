@@ -257,29 +257,12 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{Color, Rectangle, Size};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::compositor::{<span class="self">self</span>, Information};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::damage;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::error::{<span class="self">self</span>, Error};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::{<span class="self">self</span>, Viewport};
-<span class="kw">use crate</span>::{Backend, Primitive, Renderer, Settings};
+<span class="kw">use crate</span>::{Layer, Renderer, Settings};
 
 <span class="kw">use </span>std::collections::VecDeque;
 <span class="kw">use </span>std::num::NonZeroU32;
@@ -297,7 +280,7 @@
         Box&lt;<span class="kw">dyn </span>compositor::Window&gt;,
     &gt;,
     clip_mask: tiny_skia::Mask,
-    primitive_stack: VecDeque&lt;Vec&lt;Primitive&gt;&gt;,
+    layer_stack: VecDeque&lt;Vec&lt;Layer&gt;&gt;,
     background_color: Color,
     max_age: u8,
 }
@@ -326,7 +309,6 @@
 
     <span class="kw">fn </span>create_renderer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Renderer {
         Renderer::new(
-            Backend::new(),
             <span class="self">self</span>.settings.default_font,
             <span class="self">self</span>.settings.default_text_size,
         )
@@ -348,7 +330,7 @@
             window,
             clip_mask: tiny_skia::Mask::new(width, height)
                 .expect(<span class="string">"Create clip mask"</span>),
-            primitive_stack: VecDeque::new(),
+            layer_stack: VecDeque::new(),
             background_color: Color::BLACK,
             max_age: <span class="number">0</span>,
         };
@@ -374,7 +356,7 @@
 
         surface.clip_mask =
             tiny_skia::Mask::new(width, height).expect(<span class="string">"Create clip mask"</span>);
-        surface.primitive_stack.clear();
+        surface.layer_stack.clear();
     }
 
     <span class="kw">fn </span>fetch_information(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Information {
@@ -392,16 +374,7 @@
         background_color: Color,
         overlay: <span class="kw-2">&amp;</span>[T],
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), compositor::SurfaceError&gt; {
-        renderer.with_primitives(|backend, primitives| {
-            present(
-                backend,
-                surface,
-                primitives,
-                viewport,
-                background_color,
-                overlay,
-            )
-        })
+        present(renderer, surface, viewport, background_color, overlay)
     }
 
     <span class="kw">fn </span>screenshot&lt;T: AsRef&lt;str&gt;&gt;(
@@ -412,16 +385,7 @@
         background_color: Color,
         overlay: <span class="kw-2">&amp;</span>[T],
     ) -&gt; Vec&lt;u8&gt; {
-        renderer.with_primitives(|backend, primitives| {
-            screenshot(
-                surface,
-                backend,
-                primitives,
-                viewport,
-                background_color,
-                overlay,
-            )
-        })
+        screenshot(renderer, surface, viewport, background_color, overlay)
     }
 }
 
@@ -437,38 +401,42 @@
 }
 
 <span class="kw">pub fn </span>present&lt;T: AsRef&lt;str&gt;&gt;(
-    backend: <span class="kw-2">&amp;mut </span>Backend,
+    renderer: <span class="kw-2">&amp;mut </span>Renderer,
     surface: <span class="kw-2">&amp;mut </span>Surface,
-    primitives: <span class="kw-2">&amp;</span>[Primitive],
     viewport: <span class="kw-2">&amp;</span>Viewport,
     background_color: Color,
     overlay: <span class="kw-2">&amp;</span>[T],
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), compositor::SurfaceError&gt; {
     <span class="kw">let </span>physical_size = viewport.physical_size();
-    <span class="kw">let </span>scale_factor = viewport.scale_factor() <span class="kw">as </span>f32;
 
     <span class="kw">let </span><span class="kw-2">mut </span>buffer = surface
         .window
         .buffer_mut()
         .map_err(|<span class="kw">_</span>| compositor::SurfaceError::Lost)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>last_primitives = {
+    <span class="kw">let </span>last_layers = {
         <span class="kw">let </span>age = buffer.age();
 
         surface.max_age = surface.max_age.max(age);
-        surface.primitive_stack.truncate(surface.max_age <span class="kw">as </span>usize);
+        surface.layer_stack.truncate(surface.max_age <span class="kw">as </span>usize);
 
         <span class="kw">if </span>age &gt; <span class="number">0 </span>{
-            surface.primitive_stack.get(age <span class="kw">as </span>usize - <span class="number">1</span>)
+            surface.layer_stack.get(age <span class="kw">as </span>usize - <span class="number">1</span>)
         } <span class="kw">else </span>{
             <span class="prelude-val">None
         </span>}
     };
 
-    <span class="kw">let </span>damage = last_primitives
-        .and_then(|last_primitives| {
-            (surface.background_color == background_color)
-                .then(|| damage::list(last_primitives, primitives))
+    <span class="kw">let </span>damage = last_layers
+        .and_then(|last_layers| {
+            (surface.background_color == background_color).then(|| {
+                damage::diff(
+                    last_layers,
+                    renderer.layers(),
+                    |layer| <span class="macro">vec!</span>[layer.bounds],
+                    Layer::damage,
+                )
+            })
         })
         .unwrap_or_else(|| <span class="macro">vec!</span>[Rectangle::with_size(viewport.logical_size())]);
 
@@ -476,10 +444,11 @@
         <span class="kw">return </span><span class="prelude-val">Ok</span>(());
     }
 
-    surface.primitive_stack.push_front(primitives.to_vec());
+    surface.layer_stack.push_front(renderer.layers().to_vec());
     surface.background_color = background_color;
 
-    <span class="kw">let </span>damage = damage::group(damage, scale_factor, physical_size);
+    <span class="kw">let </span>damage =
+        damage::group(damage, Rectangle::with_size(viewport.logical_size()));
 
     <span class="kw">let </span><span class="kw-2">mut </span>pixels = tiny_skia::PixmapMut::from_bytes(
         bytemuck::cast_slice_mut(<span class="kw-2">&amp;mut </span>buffer),
@@ -488,10 +457,9 @@
     )
     .expect(<span class="string">"Create pixel map"</span>);
 
-    backend.draw(
+    renderer.draw(
         <span class="kw-2">&amp;mut </span>pixels,
         <span class="kw-2">&amp;mut </span>surface.clip_mask,
-        primitives,
         viewport,
         <span class="kw-2">&amp;</span>damage,
         background_color,
@@ -502,9 +470,8 @@
 }
 
 <span class="kw">pub fn </span>screenshot&lt;T: AsRef&lt;str&gt;&gt;(
+    renderer: <span class="kw-2">&amp;mut </span>Renderer,
     surface: <span class="kw-2">&amp;mut </span>Surface,
-    backend: <span class="kw-2">&amp;mut </span>Backend,
-    primitives: <span class="kw-2">&amp;</span>[Primitive],
     viewport: <span class="kw-2">&amp;</span>Viewport,
     background_color: Color,
     overlay: <span class="kw-2">&amp;</span>[T],
@@ -514,7 +481,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>offscreen_buffer: Vec&lt;u32&gt; =
         <span class="macro">vec!</span>[<span class="number">0</span>; size.width <span class="kw">as </span>usize * size.height <span class="kw">as </span>usize];
 
-    backend.draw(
+    renderer.draw(
         <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut::from_bytes(
             bytemuck::cast_slice_mut(<span class="kw-2">&amp;mut </span>offscreen_buffer),
             size.width,
@@ -522,7 +489,6 @@
         )
         .expect(<span class="string">"Create offscreen pixel map"</span>),
         <span class="kw-2">&amp;mut </span>surface.clip_mask,
-        primitives,
         viewport,
         <span class="kw-2">&amp;</span>[Rectangle::with_size(Size::new(
             size.width <span class="kw">as </span>f32,

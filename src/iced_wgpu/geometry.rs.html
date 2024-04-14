@@ -619,6 +619,37 @@
 <a href="#619" id="619">619</a>
 <a href="#620" id="620">620</a>
 <a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
+<a href="#644" id="644">644</a>
+<a href="#645" id="645">645</a>
+<a href="#646" id="646">646</a>
+<a href="#647" id="647">647</a>
+<a href="#648" id="648">648</a>
+<a href="#649" id="649">649</a>
+<a href="#650" id="650">650</a>
+<a href="#651" id="651">651</a>
+<a href="#652" id="652">652</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and draw geometry.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::text::LineHeight;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
@@ -627,23 +658,74 @@
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::fill::{<span class="self">self</span>, Fill};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{
-    <span class="self">self</span>, LineCap, LineDash, LineJoin, Path, Stroke, Style, Text,
+    <span class="self">self</span>, LineCap, LineDash, LineJoin, Path, Stroke, Style,
 };
 <span class="kw">use </span><span class="kw">crate</span>::graphics::gradient::{<span class="self">self</span>, Gradient};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::mesh::{<span class="self">self</span>, Mesh};
-<span class="kw">use </span><span class="kw">crate</span>::primitive::{<span class="self">self</span>, Primitive};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::{<span class="self">self</span>, Cached, Text};
+<span class="kw">use </span><span class="kw">crate</span>::text;
+<span class="kw">use </span><span class="kw">crate</span>::triangle;
 
 <span class="kw">use </span>lyon::geom::euclid;
 <span class="kw">use </span>lyon::tessellation;
 
 <span class="kw">use </span>std::borrow::Cow;
 
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Geometry {
+    Live { meshes: Vec&lt;Mesh&gt;, text: Vec&lt;Text&gt; },
+    Cached(Cache),
+}
+
+<span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>Cache {
+    <span class="kw">pub </span>meshes: <span class="prelude-ty">Option</span>&lt;triangle::Cache&gt;,
+    <span class="kw">pub </span>text: <span class="prelude-ty">Option</span>&lt;text::Cache&gt;,
+}
+
+<span class="kw">impl </span>Cached <span class="kw">for </span>Geometry {
+    <span class="kw">type </span>Cache = Cache;
+
+    <span class="kw">fn </span>load(cache: <span class="kw-2">&amp;</span><span class="self">Self</span>::Cache) -&gt; <span class="self">Self </span>{
+        Geometry::Cached(cache.clone())
+    }
+
+    <span class="kw">fn </span>cache(<span class="self">self</span>, previous: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Cache&gt;) -&gt; <span class="self">Self</span>::Cache {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Live { meshes, text } =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>previous) = previous {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(cache) = <span class="kw-2">&amp;mut </span>previous.meshes {
+                        cache.update(meshes);
+                    } <span class="kw">else </span>{
+                        previous.meshes = triangle::Cache::new(meshes);
+                    }
+
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(cache) = <span class="kw-2">&amp;mut </span>previous.text {
+                        cache.update(text);
+                    } <span class="kw">else </span>{
+                        previous.text = text::Cache::new(text);
+                    }
+
+                    previous
+                } <span class="kw">else </span>{
+                    Cache {
+                        meshes: triangle::Cache::new(meshes),
+                        text: text::Cache::new(text),
+                    }
+                }
+            }
+            <span class="self">Self</span>::Cached(cache) =&gt; cache,
+        }
+    }
+}
+
 <span class="doccomment">/// A frame for drawing some geometry.
 </span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Frame {
-    size: Size,
+    clip_bounds: Rectangle,
     buffers: BufferStack,
-    primitives: Vec&lt;Primitive&gt;,
+    meshes: Vec&lt;Mesh&gt;,
+    text: Vec&lt;Text&gt;,
     transforms: Transforms,
     fill_tessellator: tessellation::FillTessellator,
     stroke_tessellator: tessellation::StrokeTessellator,
@@ -652,81 +734,49 @@
 <span class="kw">impl </span>Frame {
     <span class="doccomment">/// Creates a new [`Frame`] with the given [`Size`].
     </span><span class="kw">pub fn </span>new(size: Size) -&gt; Frame {
+        <span class="self">Self</span>::with_clip(Rectangle::with_size(size))
+    }
+
+    <span class="doccomment">/// Creates a new [`Frame`] with the given clip bounds.
+    </span><span class="kw">pub fn </span>with_clip(bounds: Rectangle) -&gt; Frame {
         Frame {
-            size,
+            clip_bounds: bounds,
             buffers: BufferStack::new(),
-            primitives: Vec::new(),
+            meshes: Vec::new(),
+            text: Vec::new(),
             transforms: Transforms {
                 previous: Vec::new(),
-                current: Transform(lyon::math::Transform::identity()),
+                current: Transform(lyon::math::Transform::translation(
+                    bounds.x, bounds.y,
+                )),
             },
             fill_tessellator: tessellation::FillTessellator::new(),
             stroke_tessellator: tessellation::StrokeTessellator::new(),
         }
     }
-
-    <span class="kw">fn </span>into_primitives(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Vec&lt;Primitive&gt; {
-        <span class="kw">for </span>buffer <span class="kw">in </span><span class="self">self</span>.buffers.stack {
-            <span class="kw">match </span>buffer {
-                Buffer::Solid(buffer) =&gt; {
-                    <span class="kw">if </span>!buffer.indices.is_empty() {
-                        <span class="self">self</span>.primitives.push(Primitive::Custom(
-                            primitive::Custom::Mesh(Mesh::Solid {
-                                buffers: mesh::Indexed {
-                                    vertices: buffer.vertices,
-                                    indices: buffer.indices,
-                                },
-                                size: <span class="self">self</span>.size,
-                            }),
-                        ));
-                    }
-                }
-                Buffer::Gradient(buffer) =&gt; {
-                    <span class="kw">if </span>!buffer.indices.is_empty() {
-                        <span class="self">self</span>.primitives.push(Primitive::Custom(
-                            primitive::Custom::Mesh(Mesh::Gradient {
-                                buffers: mesh::Indexed {
-                                    vertices: buffer.vertices,
-                                    indices: buffer.indices,
-                                },
-                                size: <span class="self">self</span>.size,
-                            }),
-                        ));
-                    }
-                }
-            }
-        }
-
-        <span class="self">self</span>.primitives
-    }
 }
 
 <span class="kw">impl </span>geometry::frame::Backend <span class="kw">for </span>Frame {
-    <span class="kw">type </span>Geometry = Primitive;
+    <span class="kw">type </span>Geometry = Geometry;
 
-    <span class="doccomment">/// Creates a new empty [`Frame`] with the given dimensions.
-    ///
-    /// The default coordinate system of a [`Frame`] has its origin at the
-    /// top-left corner of its bounds.
-
-    </span><span class="attr">#[inline]
+    <span class="attr">#[inline]
     </span><span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
-        <span class="self">self</span>.size.width
+        <span class="self">self</span>.clip_bounds.width
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
-        <span class="self">self</span>.size.height
+        <span class="self">self</span>.clip_bounds.height
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size {
-        <span class="self">self</span>.size
+        <span class="self">self</span>.clip_bounds.size()
     }
 
     <span class="attr">#[inline]
     </span><span class="kw">fn </span>center(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Point {
-        Point::new(<span class="self">self</span>.size.width / <span class="number">2.0</span>, <span class="self">self</span>.size.height / <span class="number">2.0</span>)
+        Point::new(<span class="self">self</span>.clip_bounds.width / <span class="number">2.0</span>, <span class="self">self</span>.clip_bounds.height / <span class="number">2.0</span>)
     }
 
     <span class="kw">fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path, fill: <span class="kw">impl </span>Into&lt;Fill&gt;) {
@@ -829,7 +879,7 @@
         .expect(<span class="string">"Stroke path"</span>);
     }
 
-    <span class="kw">fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: <span class="kw">impl </span>Into&lt;Text&gt;) {
+    <span class="kw">fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: <span class="kw">impl </span>Into&lt;geometry::Text&gt;) {
         <span class="kw">let </span>text = text.into();
 
         <span class="kw">let </span>(scale_x, scale_y) = <span class="self">self</span>.transforms.current.scale();
@@ -867,18 +917,17 @@
                 height: f32::INFINITY,
             };
 
-            <span class="comment">// TODO: Honor layering!
-            </span><span class="self">self</span>.primitives.push(Primitive::Text {
+            <span class="self">self</span>.text.push(graphics::Text::Cached {
                 content: text.content,
                 bounds,
                 color: text.color,
                 size,
-                line_height,
+                line_height: line_height.to_absolute(size),
                 font: text.font,
                 horizontal_alignment: text.horizontal_alignment,
                 vertical_alignment: text.vertical_alignment,
                 shaping: text.shaping,
-                clip_bounds: Rectangle::with_size(Size::INFINITY),
+                clip_bounds: <span class="self">self</span>.clip_bounds,
             });
         } <span class="kw">else </span>{
             text.draw_with(|path, color| <span class="self">self</span>.fill(<span class="kw-2">&amp;</span>path, color));
@@ -929,41 +978,24 @@
         <span class="self">self</span>.transforms.current = <span class="self">self</span>.transforms.previous.pop().unwrap();
     }
 
-    <span class="kw">fn </span>draft(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: Size) -&gt; Frame {
-        Frame::new(size)
+    <span class="kw">fn </span>draft(<span class="kw-2">&amp;mut </span><span class="self">self</span>, clip_bounds: Rectangle) -&gt; Frame {
+        Frame::with_clip(clip_bounds)
     }
 
-    <span class="kw">fn </span>paste(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: Frame, at: Point) {
-        <span class="kw">let </span>size = frame.size();
-        <span class="kw">let </span>primitives = frame.into_primitives();
-        <span class="kw">let </span>transformation = Transformation::translate(at.x, at.y);
+    <span class="kw">fn </span>paste(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: Frame, _at: Point) {
+        <span class="self">self</span>.meshes
+            .extend(frame.buffers.into_meshes(frame.clip_bounds));
 
-        <span class="kw">let </span>(text, meshes) = primitives
-            .into_iter()
-            .partition(|primitive| <span class="macro">matches!</span>(primitive, Primitive::Text { .. }));
-
-        <span class="self">self</span>.primitives.push(Primitive::Group {
-            primitives: <span class="macro">vec!</span>[
-                Primitive::Transform {
-                    transformation,
-                    content: Box::new(Primitive::Group { primitives: meshes }),
-                },
-                Primitive::Transform {
-                    transformation,
-                    content: Box::new(Primitive::Clip {
-                        bounds: Rectangle::with_size(size),
-                        content: Box::new(Primitive::Group {
-                            primitives: text,
-                        }),
-                    }),
-                },
-            ],
-        });
+        <span class="self">self</span>.text.extend(frame.text);
     }
 
-    <span class="kw">fn </span>into_geometry(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Geometry {
-        Primitive::Group {
-            primitives: <span class="self">self</span>.into_primitives(),
+    <span class="kw">fn </span>into_geometry(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Geometry {
+        <span class="self">self</span>.meshes
+            .extend(<span class="self">self</span>.buffers.into_meshes(<span class="self">self</span>.clip_bounds));
+
+        Geometry::Live {
+            meshes: <span class="self">self</span>.meshes,
+            text: <span class="self">self</span>.text,
         }
     }
 }
@@ -1049,6 +1081,34 @@
             }
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
+    }
+
+    <span class="kw">fn </span>into_meshes(<span class="self">self</span>, clip_bounds: Rectangle) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Mesh&gt; {
+        <span class="self">self</span>.stack
+            .into_iter()
+            .filter_map(<span class="kw">move </span>|buffer| <span class="kw">match </span>buffer {
+                Buffer::Solid(buffer) <span class="kw">if </span>!buffer.indices.is_empty() =&gt; {
+                    <span class="prelude-val">Some</span>(Mesh::Solid {
+                        buffers: mesh::Indexed {
+                            vertices: buffer.vertices,
+                            indices: buffer.indices,
+                        },
+                        clip_bounds,
+                        transformation: Transformation::IDENTITY,
+                    })
+                }
+                Buffer::Gradient(buffer) <span class="kw">if </span>!buffer.indices.is_empty() =&gt; {
+                    <span class="prelude-val">Some</span>(Mesh::Gradient {
+                        buffers: mesh::Indexed {
+                            vertices: buffer.vertices,
+                            indices: buffer.indices,
+                        },
+                        clip_bounds,
+                        transformation: Transformation::IDENTITY,
+                    })
+                }
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+            })
     }
 }
 
@@ -1212,7 +1272,9 @@
         <span class="kw">let </span><span class="kw-2">mut </span>draw_line = <span class="bool-val">false</span>;
 
         walk_along_path(
-            path.raw().iter().flattened(<span class="number">0.01</span>),
+            path.raw().iter().flattened(
+                lyon::tessellation::StrokeOptions::DEFAULT_TOLERANCE,
+            ),
             <span class="number">0.0</span>,
             lyon::tessellation::StrokeOptions::DEFAULT_TOLERANCE,
             <span class="kw-2">&amp;mut </span>RepeatedPattern {

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["into_fill_rule","into_paint","into_stroke"],"struct":["Frame"]};
+window.SIDEBAR_ITEMS = {"enum":["Geometry"],"fn":["into_fill_rule","into_paint","into_stroke"],"struct":["Cache","Frame"]};

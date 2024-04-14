@@ -257,16 +257,73 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::graphics;
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{Size, Transformation};
+<span class="kw">use </span><span class="kw">crate</span>::graphics;
+
+<span class="kw">use </span>std::num::NonZeroU64;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Blit {
     format: wgpu::TextureFormat,
     pipeline: wgpu::RenderPipeline,
     constants: wgpu::BindGroup,
+    ratio: wgpu::Buffer,
     texture_layout: wgpu::BindGroupLayout,
     sample_count: u32,
     targets: <span class="prelude-ty">Option</span>&lt;Targets&gt;,
+    last_region: <span class="prelude-ty">Option</span>&lt;Size&lt;u32&gt;&gt;,
 }
 
 <span class="kw">impl </span>Blit {
@@ -278,27 +335,52 @@
         <span class="kw">let </span>sampler =
             device.create_sampler(<span class="kw-2">&amp;</span>wgpu::SamplerDescriptor::default());
 
+        <span class="kw">let </span>ratio = device.create_buffer(<span class="kw-2">&amp;</span>wgpu::BufferDescriptor {
+            label: <span class="prelude-val">Some</span>(<span class="string">"iced-wgpu::triangle::msaa ratio"</span>),
+            size: std::mem::size_of::&lt;Ratio&gt;() <span class="kw">as </span>u64,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::UNIFORM,
+            mapped_at_creation: <span class="bool-val">false</span>,
+        });
+
         <span class="kw">let </span>constant_layout =
             device.create_bind_group_layout(<span class="kw-2">&amp;</span>wgpu::BindGroupLayoutDescriptor {
                 label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::triangle:msaa uniforms layout"</span>),
-                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupLayoutEntry {
-                    binding: <span class="number">0</span>,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Sampler(
-                        wgpu::SamplerBindingType::NonFiltering,
-                    ),
-                    count: <span class="prelude-val">None</span>,
-                }],
+                entries: <span class="kw-2">&amp;</span>[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: <span class="number">0</span>,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(
+                            wgpu::SamplerBindingType::NonFiltering,
+                        ),
+                        count: <span class="prelude-val">None</span>,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: <span class="number">1</span>,
+                        visibility: wgpu::ShaderStages::VERTEX,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: <span class="bool-val">false</span>,
+                            min_binding_size: <span class="prelude-val">None</span>,
+                        },
+                        count: <span class="prelude-val">None</span>,
+                    },
+                ],
             });
 
         <span class="kw">let </span>constant_bind_group =
             device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
                 label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::triangle::msaa uniforms bind group"</span>),
                 layout: <span class="kw-2">&amp;</span>constant_layout,
-                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
-                    binding: <span class="number">0</span>,
-                    resource: wgpu::BindingResource::Sampler(<span class="kw-2">&amp;</span>sampler),
-                }],
+                entries: <span class="kw-2">&amp;</span>[
+                    wgpu::BindGroupEntry {
+                        binding: <span class="number">0</span>,
+                        resource: wgpu::BindingResource::Sampler(<span class="kw-2">&amp;</span>sampler),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: <span class="number">1</span>,
+                        resource: ratio.as_entire_binding(),
+                    },
+                ],
             });
 
         <span class="kw">let </span>texture_layout =
@@ -371,43 +453,61 @@
             format,
             pipeline,
             constants: constant_bind_group,
+            ratio,
             texture_layout,
             sample_count: antialiasing.sample_count(),
             targets: <span class="prelude-val">None</span>,
+            last_region: <span class="prelude-val">None</span>,
         }
     }
 
-    <span class="kw">pub fn </span>targets(
+    <span class="kw">pub fn </span>prepare(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
-        width: u32,
-        height: u32,
-    ) -&gt; (<span class="kw-2">&amp;</span>wgpu::TextureView, <span class="kw-2">&amp;</span>wgpu::TextureView) {
+        encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
+        belt: <span class="kw-2">&amp;mut </span>wgpu::util::StagingBelt,
+        region_size: Size&lt;u32&gt;,
+    ) -&gt; Transformation {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.targets {
-            <span class="prelude-val">None </span>=&gt; {
+            <span class="prelude-val">Some</span>(targets)
+                <span class="kw">if </span>region_size.width &lt;= targets.size.width
+                    &amp;&amp; region_size.height &lt;= targets.size.height =&gt; {}
+            <span class="kw">_ </span>=&gt; {
                 <span class="self">self</span>.targets = <span class="prelude-val">Some</span>(Targets::new(
                     device,
                     <span class="self">self</span>.format,
                     <span class="kw-2">&amp;</span><span class="self">self</span>.texture_layout,
                     <span class="self">self</span>.sample_count,
-                    width,
-                    height,
+                    region_size,
                 ));
-            }
-            <span class="prelude-val">Some</span>(targets) =&gt; {
-                <span class="kw">if </span>targets.width != width || targets.height != height {
-                    <span class="self">self</span>.targets = <span class="prelude-val">Some</span>(Targets::new(
-                        device,
-                        <span class="self">self</span>.format,
-                        <span class="kw-2">&amp;</span><span class="self">self</span>.texture_layout,
-                        <span class="self">self</span>.sample_count,
-                        width,
-                        height,
-                    ));
-                }
             }
         }
 
+        <span class="kw">let </span>targets = <span class="self">self</span>.targets.as_mut().unwrap();
+
+        <span class="kw">if </span><span class="prelude-val">Some</span>(region_size) != <span class="self">self</span>.last_region {
+            <span class="kw">let </span>ratio = Ratio {
+                u: region_size.width <span class="kw">as </span>f32 / targets.size.width <span class="kw">as </span>f32,
+                v: region_size.height <span class="kw">as </span>f32 / targets.size.height <span class="kw">as </span>f32,
+            };
+
+            belt.write_buffer(
+                encoder,
+                <span class="kw-2">&amp;</span><span class="self">self</span>.ratio,
+                <span class="number">0</span>,
+                NonZeroU64::new(std::mem::size_of::&lt;Ratio&gt;() <span class="kw">as </span>u64)
+                    .expect(<span class="string">"non-empty ratio"</span>),
+                device,
+            )
+            .copy_from_slice(bytemuck::bytes_of(<span class="kw-2">&amp;</span>ratio));
+
+            <span class="self">self</span>.last_region = <span class="prelude-val">Some</span>(region_size);
+        }
+
+        Transformation::orthographic(targets.size.width, targets.size.height)
+    }
+
+    <span class="kw">pub fn </span>targets(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span>wgpu::TextureView, <span class="kw-2">&amp;</span>wgpu::TextureView) {
         <span class="kw">let </span>targets = <span class="self">self</span>.targets.as_ref().unwrap();
 
         (<span class="kw-2">&amp;</span>targets.attachment, <span class="kw-2">&amp;</span>targets.resolve)
@@ -450,8 +550,7 @@
     attachment: wgpu::TextureView,
     resolve: wgpu::TextureView,
     bind_group: wgpu::BindGroup,
-    width: u32,
-    height: u32,
+    size: Size&lt;u32&gt;,
 }
 
 <span class="kw">impl </span>Targets {
@@ -460,12 +559,11 @@
         format: wgpu::TextureFormat,
         texture_layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
         sample_count: u32,
-        width: u32,
-        height: u32,
+        size: Size&lt;u32&gt;,
     ) -&gt; Targets {
         <span class="kw">let </span>extent = wgpu::Extent3d {
-            width,
-            height,
+            width: size.width,
+            height: size.height,
             depth_or_array_layers: <span class="number">1</span>,
         };
 
@@ -511,9 +609,15 @@
             attachment,
             resolve,
             bind_group,
-            width,
-            height,
+            size,
         }
     }
+}
+
+<span class="attr">#[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+#[repr(C)]
+</span><span class="kw">struct </span>Ratio {
+    u: f32,
+    v: f32,
 }
 </code></pre></div></section></main></body></html>

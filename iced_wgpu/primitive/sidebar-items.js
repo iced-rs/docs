@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Custom"],"mod":["pipeline"],"type":["Primitive"]};
+window.SIDEBAR_ITEMS = {"struct":["Instance","Storage"],"trait":["Primitive","Renderer"],"type":["Batch"]};

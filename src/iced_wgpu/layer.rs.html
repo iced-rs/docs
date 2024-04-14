@@ -291,396 +291,296 @@
 <a href="#291" id="291">291</a>
 <a href="#292" id="292">292</a>
 <a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a>
-<a href="#319" id="319">319</a>
-<a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a>
-<a href="#322" id="322">322</a>
-<a href="#323" id="323">323</a>
-<a href="#324" id="324">324</a>
-<a href="#325" id="325">325</a>
-<a href="#326" id="326">326</a>
-<a href="#327" id="327">327</a>
-<a href="#328" id="328">328</a>
-<a href="#329" id="329">329</a>
-<a href="#330" id="330">330</a>
-<a href="#331" id="331">331</a>
-<a href="#332" id="332">332</a>
-<a href="#333" id="333">333</a>
-<a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
-<a href="#337" id="337">337</a>
-<a href="#338" id="338">338</a>
-<a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
-<a href="#342" id="342">342</a>
-<a href="#343" id="343">343</a>
-</pre></div><pre class="rust"><code><span class="doccomment">//! Organize rendering primitives into a flattened list of layers.
-</span><span class="kw">mod </span>image;
-<span class="kw">mod </span>pipeline;
-<span class="kw">mod </span>text;
-
-<span class="kw">pub mod </span>mesh;
-
-<span class="kw">pub use </span>image::Image;
-<span class="kw">pub use </span>mesh::Mesh;
-<span class="kw">pub use </span>pipeline::Pipeline;
-<span class="kw">pub use </span>text::Text;
-
-<span class="kw">use </span><span class="kw">crate</span>::core;
-<span class="kw">use </span><span class="kw">crate</span>::core::alignment;
-<span class="kw">use </span><span class="kw">crate</span>::core::{
-    Color, Font, Pixels, Point, Rectangle, Size, Transformation, Vector,
-};
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::renderer;
+<span class="kw">use </span><span class="kw">crate</span>::core::{Background, Color, Point, Rectangle, Transformation};
 <span class="kw">use </span><span class="kw">crate</span>::graphics;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
-<span class="kw">use </span><span class="kw">crate</span>::graphics::Viewport;
+<span class="kw">use </span><span class="kw">crate</span>::graphics::layer;
+<span class="kw">use </span><span class="kw">crate</span>::graphics::text::{Editor, Paragraph};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::Mesh;
+<span class="kw">use </span><span class="kw">crate</span>::image::{<span class="self">self</span>, Image};
 <span class="kw">use </span><span class="kw">crate</span>::primitive::{<span class="self">self</span>, Primitive};
 <span class="kw">use </span><span class="kw">crate</span>::quad::{<span class="self">self</span>, Quad};
+<span class="kw">use </span><span class="kw">crate</span>::text::{<span class="self">self</span>, Text};
+<span class="kw">use </span><span class="kw">crate</span>::triangle;
 
-<span class="doccomment">/// A group of primitives that should be clipped together.
-</span><span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>Layer&lt;<span class="lifetime">'a</span>&gt; {
-    <span class="doccomment">/// The clipping bounds of the [`Layer`].
-    </span><span class="kw">pub </span>bounds: Rectangle,
+<span class="kw">pub type </span>Stack = layer::Stack&lt;Layer&gt;;
 
-    <span class="doccomment">/// The quads of the [`Layer`].
-    </span><span class="kw">pub </span>quads: quad::Batch,
-
-    <span class="doccomment">/// The triangle meshes of the [`Layer`].
-    </span><span class="kw">pub </span>meshes: Vec&lt;Mesh&lt;<span class="lifetime">'a</span>&gt;&gt;,
-
-    <span class="doccomment">/// The text of the [`Layer`].
-    </span><span class="kw">pub </span>text: Vec&lt;Text&lt;<span class="lifetime">'a</span>&gt;&gt;,
-
-    <span class="doccomment">/// The images of the [`Layer`].
-    </span><span class="kw">pub </span>images: Vec&lt;Image&gt;,
-
-    <span class="doccomment">/// The custom pipelines of this [`Layer`].
-    </span><span class="kw">pub </span>pipelines: Vec&lt;Pipeline&gt;,
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub struct </span>Layer {
+    <span class="kw">pub </span>bounds: Rectangle,
+    <span class="kw">pub </span>quads: quad::Batch,
+    <span class="kw">pub </span>triangles: triangle::Batch,
+    <span class="kw">pub </span>primitives: primitive::Batch,
+    <span class="kw">pub </span>text: text::Batch,
+    <span class="kw">pub </span>images: image::Batch,
+    pending_meshes: Vec&lt;Mesh&gt;,
+    pending_text: Vec&lt;Text&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>&gt; Layer&lt;<span class="lifetime">'a</span>&gt; {
-    <span class="doccomment">/// Creates a new [`Layer`] with the given clipping bounds.
-    </span><span class="kw">pub fn </span>new(bounds: Rectangle) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>Layer {
+    <span class="kw">pub fn </span>draw_quad(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        quad: renderer::Quad,
+        background: Background,
+        transformation: Transformation,
+    ) {
+        <span class="kw">let </span>bounds = quad.bounds * transformation;
+
+        <span class="kw">let </span>quad = Quad {
+            position: [bounds.x, bounds.y],
+            size: [bounds.width, bounds.height],
+            border_color: color::pack(quad.border.color),
+            border_radius: quad.border.radius.into(),
+            border_width: quad.border.width,
+            shadow_color: color::pack(quad.shadow.color),
+            shadow_offset: quad.shadow.offset.into(),
+            shadow_blur_radius: quad.shadow.blur_radius,
+        };
+
+        <span class="self">self</span>.quads.add(quad, <span class="kw-2">&amp;</span>background);
+    }
+
+    <span class="kw">pub fn </span>draw_paragraph(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        paragraph: <span class="kw-2">&amp;</span>Paragraph,
+        position: Point,
+        color: Color,
+        clip_bounds: Rectangle,
+        transformation: Transformation,
+    ) {
+        <span class="kw">let </span>paragraph = Text::Paragraph {
+            paragraph: paragraph.downgrade(),
+            position,
+            color,
+            clip_bounds,
+            transformation,
+        };
+
+        <span class="self">self</span>.pending_text.push(paragraph);
+    }
+
+    <span class="kw">pub fn </span>draw_editor(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        editor: <span class="kw-2">&amp;</span>Editor,
+        position: Point,
+        color: Color,
+        clip_bounds: Rectangle,
+        transformation: Transformation,
+    ) {
+        <span class="kw">let </span>editor = Text::Editor {
+            editor: editor.downgrade(),
+            position,
+            color,
+            clip_bounds,
+            transformation,
+        };
+
+        <span class="self">self</span>.pending_text.push(editor);
+    }
+
+    <span class="kw">pub fn </span>draw_text(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        text: <span class="kw">crate</span>::core::Text,
+        position: Point,
+        color: Color,
+        clip_bounds: Rectangle,
+        transformation: Transformation,
+    ) {
+        <span class="kw">let </span>text = Text::Cached {
+            content: text.content,
+            bounds: Rectangle::new(position, text.bounds) * transformation,
+            color,
+            size: text.size * transformation.scale_factor(),
+            line_height: text.line_height.to_absolute(text.size)
+                * transformation.scale_factor(),
+            font: text.font,
+            horizontal_alignment: text.horizontal_alignment,
+            vertical_alignment: text.vertical_alignment,
+            shaping: text.shaping,
+            clip_bounds: clip_bounds * transformation,
+        };
+
+        <span class="self">self</span>.pending_text.push(text);
+    }
+
+    <span class="kw">pub fn </span>draw_image(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        handle: <span class="kw">crate</span>::core::image::Handle,
+        filter_method: <span class="kw">crate</span>::core::image::FilterMethod,
+        bounds: Rectangle,
+        transformation: Transformation,
+    ) {
+        <span class="kw">let </span>image = Image::Raster {
+            handle,
+            filter_method,
+            bounds: bounds * transformation,
+        };
+
+        <span class="self">self</span>.images.push(image);
+    }
+
+    <span class="kw">pub fn </span>draw_svg(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        handle: <span class="kw">crate</span>::core::svg::Handle,
+        color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
+        bounds: Rectangle,
+        transformation: Transformation,
+    ) {
+        <span class="kw">let </span>svg = Image::Vector {
+            handle,
+            color,
+            bounds: bounds * transformation,
+        };
+
+        <span class="self">self</span>.images.push(svg);
+    }
+
+    <span class="kw">pub fn </span>draw_mesh(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        <span class="kw-2">mut </span>mesh: Mesh,
+        transformation: Transformation,
+    ) {
+        <span class="kw">match </span><span class="kw-2">&amp;mut </span>mesh {
+            Mesh::Solid {
+                transformation: local_transformation,
+                ..
+            }
+            | Mesh::Gradient {
+                transformation: local_transformation,
+                ..
+            } =&gt; {
+                <span class="kw-2">*</span>local_transformation = <span class="kw-2">*</span>local_transformation * transformation;
+            }
+        }
+
+        <span class="self">self</span>.pending_meshes.push(mesh);
+    }
+
+    <span class="kw">pub fn </span>draw_mesh_group(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        meshes: Vec&lt;Mesh&gt;,
+        transformation: Transformation,
+    ) {
+        <span class="self">self</span>.flush_meshes();
+
+        <span class="self">self</span>.triangles.push(triangle::Item::Group {
+            meshes,
+            transformation,
+        });
+    }
+
+    <span class="kw">pub fn </span>draw_mesh_cache(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        cache: triangle::Cache,
+        transformation: Transformation,
+    ) {
+        <span class="self">self</span>.flush_meshes();
+
+        <span class="self">self</span>.triangles.push(triangle::Item::Cached {
+            cache,
+            transformation,
+        });
+    }
+
+    <span class="kw">pub fn </span>draw_text_group(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        text: Vec&lt;Text&gt;,
+        transformation: Transformation,
+    ) {
+        <span class="self">self</span>.flush_text();
+
+        <span class="self">self</span>.text.push(text::Item::Group {
+            text,
+            transformation,
+        });
+    }
+
+    <span class="kw">pub fn </span>draw_text_cache(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        cache: text::Cache,
+        transformation: Transformation,
+    ) {
+        <span class="self">self</span>.flush_text();
+
+        <span class="self">self</span>.text.push(text::Item::Cached {
+            cache,
+            transformation,
+        });
+    }
+
+    <span class="kw">pub fn </span>draw_primitive(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        bounds: Rectangle,
+        primitive: Box&lt;<span class="kw">dyn </span>Primitive&gt;,
+        transformation: Transformation,
+    ) {
+        <span class="kw">let </span>bounds = bounds * transformation;
+
+        <span class="self">self</span>.primitives
+            .push(primitive::Instance { bounds, primitive });
+    }
+
+    <span class="kw">fn </span>flush_meshes(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span>!<span class="self">self</span>.pending_meshes.is_empty() {
+            <span class="self">self</span>.triangles.push(triangle::Item::Group {
+                transformation: Transformation::IDENTITY,
+                meshes: <span class="self">self</span>.pending_meshes.drain(..).collect(),
+            });
+        }
+    }
+
+    <span class="kw">fn </span>flush_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span>!<span class="self">self</span>.pending_text.is_empty() {
+            <span class="self">self</span>.text.push(text::Item::Group {
+                transformation: Transformation::IDENTITY,
+                text: <span class="self">self</span>.pending_text.drain(..).collect(),
+            });
+        }
+    }
+}
+
+<span class="kw">impl </span>graphics::Layer <span class="kw">for </span>Layer {
+    <span class="kw">fn </span>with_bounds(bounds: Rectangle) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             bounds,
+            ..<span class="self">Self</span>::default()
+        }
+    }
+
+    <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.flush_meshes();
+        <span class="self">self</span>.flush_text();
+    }
+
+    <span class="kw">fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle) {
+        <span class="self">self</span>.bounds = bounds;
+    }
+
+    <span class="kw">fn </span>reset(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="self">self</span>.bounds = Rectangle::INFINITE;
+
+        <span class="self">self</span>.quads.clear();
+        <span class="self">self</span>.triangles.clear();
+        <span class="self">self</span>.primitives.clear();
+        <span class="self">self</span>.text.clear();
+        <span class="self">self</span>.images.clear();
+        <span class="self">self</span>.pending_meshes.clear();
+        <span class="self">self</span>.pending_text.clear();
+    }
+}
+
+<span class="kw">impl </span>Default <span class="kw">for </span>Layer {
+    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            bounds: Rectangle::INFINITE,
             quads: quad::Batch::default(),
-            meshes: Vec::new(),
-            text: Vec::new(),
-            images: Vec::new(),
-            pipelines: Vec::new(),
-        }
-    }
-
-    <span class="doccomment">/// Creates a new [`Layer`] for the provided overlay text.
-    ///
-    /// This can be useful for displaying debug information.
-    </span><span class="kw">pub fn </span>overlay(lines: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[<span class="kw">impl </span>AsRef&lt;str&gt;], viewport: <span class="kw-2">&amp;</span>Viewport) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span><span class="kw-2">mut </span>overlay =
-            Layer::new(Rectangle::with_size(viewport.logical_size()));
-
-        <span class="kw">for </span>(i, line) <span class="kw">in </span>lines.iter().enumerate() {
-            <span class="kw">let </span>text = text::Cached {
-                content: line.as_ref(),
-                bounds: Rectangle::new(
-                    Point::new(<span class="number">11.0</span>, <span class="number">11.0 </span>+ <span class="number">25.0 </span>* i <span class="kw">as </span>f32),
-                    Size::INFINITY,
-                ),
-                color: Color::new(<span class="number">0.9</span>, <span class="number">0.9</span>, <span class="number">0.9</span>, <span class="number">1.0</span>),
-                size: Pixels(<span class="number">20.0</span>),
-                line_height: core::text::LineHeight::default(),
-                font: Font::MONOSPACE,
-                horizontal_alignment: alignment::Horizontal::Left,
-                vertical_alignment: alignment::Vertical::Top,
-                shaping: core::text::Shaping::Basic,
-                clip_bounds: Rectangle::with_size(Size::INFINITY),
-            };
-
-            overlay.text.push(Text::Cached(text.clone()));
-
-            overlay.text.push(Text::Cached(text::Cached {
-                bounds: text.bounds + Vector::new(-<span class="number">1.0</span>, -<span class="number">1.0</span>),
-                color: Color::BLACK,
-                ..text
-            }));
-        }
-
-        overlay
-    }
-
-    <span class="doccomment">/// Distributes the given [`Primitive`] and generates a list of layers based
-    /// on its contents.
-    </span><span class="kw">pub fn </span>generate(
-        primitives: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[Primitive],
-        viewport: <span class="kw-2">&amp;</span>Viewport,
-    ) -&gt; Vec&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">let </span>first_layer =
-            Layer::new(Rectangle::with_size(viewport.logical_size()));
-
-        <span class="kw">let </span><span class="kw-2">mut </span>layers = <span class="macro">vec!</span>[first_layer];
-
-        <span class="kw">for </span>primitive <span class="kw">in </span>primitives {
-            <span class="self">Self</span>::process_primitive(
-                <span class="kw-2">&amp;mut </span>layers,
-                Transformation::IDENTITY,
-                primitive,
-                <span class="number">0</span>,
-            );
-        }
-
-        layers
-    }
-
-    <span class="kw">fn </span>process_primitive(
-        layers: <span class="kw-2">&amp;mut </span>Vec&lt;<span class="self">Self</span>&gt;,
-        transformation: Transformation,
-        primitive: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Primitive,
-        current_layer: usize,
-    ) {
-        <span class="kw">match </span>primitive {
-            Primitive::Paragraph {
-                paragraph,
-                position,
-                color,
-                clip_bounds,
-            } =&gt; {
-                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-
-                layer.text.push(Text::Paragraph {
-                    paragraph: paragraph.clone(),
-                    position: <span class="kw-2">*</span>position,
-                    color: <span class="kw-2">*</span>color,
-                    clip_bounds: <span class="kw-2">*</span>clip_bounds,
-                    transformation,
-                });
-            }
-            Primitive::Editor {
-                editor,
-                position,
-                color,
-                clip_bounds,
-            } =&gt; {
-                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-
-                layer.text.push(Text::Editor {
-                    editor: editor.clone(),
-                    position: <span class="kw-2">*</span>position,
-                    color: <span class="kw-2">*</span>color,
-                    clip_bounds: <span class="kw-2">*</span>clip_bounds,
-                    transformation,
-                });
-            }
-            Primitive::Text {
-                content,
-                bounds,
-                size,
-                line_height,
-                color,
-                font,
-                horizontal_alignment,
-                vertical_alignment,
-                shaping,
-                clip_bounds,
-            } =&gt; {
-                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-
-                layer.text.push(Text::Cached(text::Cached {
-                    content,
-                    bounds: <span class="kw-2">*</span>bounds + transformation.translation(),
-                    size: <span class="kw-2">*</span>size * transformation.scale_factor(),
-                    line_height: <span class="kw-2">*</span>line_height,
-                    color: <span class="kw-2">*</span>color,
-                    font: <span class="kw-2">*</span>font,
-                    horizontal_alignment: <span class="kw-2">*</span>horizontal_alignment,
-                    vertical_alignment: <span class="kw-2">*</span>vertical_alignment,
-                    shaping: <span class="kw-2">*</span>shaping,
-                    clip_bounds: <span class="kw-2">*</span>clip_bounds * transformation,
-                }));
-            }
-            graphics::Primitive::RawText(raw) =&gt; {
-                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-
-                layer.text.push(Text::Raw {
-                    raw: raw.clone(),
-                    transformation,
-                });
-            }
-            Primitive::Quad {
-                bounds,
-                background,
-                border,
-                shadow,
-            } =&gt; {
-                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-                <span class="kw">let </span>bounds = <span class="kw-2">*</span>bounds * transformation;
-
-                <span class="kw">let </span>quad = Quad {
-                    position: [bounds.x, bounds.y],
-                    size: [bounds.width, bounds.height],
-                    border_color: color::pack(border.color),
-                    border_radius: border.radius.into(),
-                    border_width: border.width,
-                    shadow_color: shadow.color.into_linear(),
-                    shadow_offset: shadow.offset.into(),
-                    shadow_blur_radius: shadow.blur_radius,
-                };
-
-                layer.quads.add(quad, background);
-            }
-            Primitive::Image {
-                handle,
-                filter_method,
-                bounds,
-            } =&gt; {
-                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-
-                layer.images.push(Image::Raster {
-                    handle: handle.clone(),
-                    filter_method: <span class="kw-2">*</span>filter_method,
-                    bounds: <span class="kw-2">*</span>bounds * transformation,
-                });
-            }
-            Primitive::Svg {
-                handle,
-                color,
-                bounds,
-            } =&gt; {
-                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-
-                layer.images.push(Image::Vector {
-                    handle: handle.clone(),
-                    color: <span class="kw-2">*</span>color,
-                    bounds: <span class="kw-2">*</span>bounds * transformation,
-                });
-            }
-            Primitive::Group { primitives } =&gt; {
-                <span class="comment">// TODO: Inspect a bit and regroup (?)
-                </span><span class="kw">for </span>primitive <span class="kw">in </span>primitives {
-                    <span class="self">Self</span>::process_primitive(
-                        layers,
-                        transformation,
-                        primitive,
-                        current_layer,
-                    );
-                }
-            }
-            Primitive::Clip { bounds, content } =&gt; {
-                <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-                <span class="kw">let </span>translated_bounds = <span class="kw-2">*</span>bounds * transformation;
-
-                <span class="comment">// Only draw visible content
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(clip_bounds) =
-                    layer.bounds.intersection(<span class="kw-2">&amp;</span>translated_bounds)
-                {
-                    <span class="kw">let </span>clip_layer = Layer::new(clip_bounds);
-                    layers.push(clip_layer);
-
-                    <span class="self">Self</span>::process_primitive(
-                        layers,
-                        transformation,
-                        content,
-                        layers.len() - <span class="number">1</span>,
-                    );
-                }
-            }
-            Primitive::Transform {
-                transformation: new_transformation,
-                content,
-            } =&gt; {
-                <span class="self">Self</span>::process_primitive(
-                    layers,
-                    transformation * <span class="kw-2">*</span>new_transformation,
-                    content,
-                    current_layer,
-                );
-            }
-            Primitive::Cache { content } =&gt; {
-                <span class="self">Self</span>::process_primitive(
-                    layers,
-                    transformation,
-                    content,
-                    current_layer,
-                );
-            }
-            Primitive::Custom(custom) =&gt; <span class="kw">match </span>custom {
-                primitive::Custom::Mesh(mesh) =&gt; <span class="kw">match </span>mesh {
-                    graphics::Mesh::Solid { buffers, size } =&gt; {
-                        <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-
-                        <span class="kw">let </span>bounds =
-                            Rectangle::with_size(<span class="kw-2">*</span>size) * transformation;
-
-                        <span class="comment">// Only draw visible content
-                        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(clip_bounds) =
-                            layer.bounds.intersection(<span class="kw-2">&amp;</span>bounds)
-                        {
-                            layer.meshes.push(Mesh::Solid {
-                                transformation,
-                                buffers,
-                                clip_bounds,
-                            });
-                        }
-                    }
-                    graphics::Mesh::Gradient { buffers, size } =&gt; {
-                        <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-
-                        <span class="kw">let </span>bounds =
-                            Rectangle::with_size(<span class="kw-2">*</span>size) * transformation;
-
-                        <span class="comment">// Only draw visible content
-                        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(clip_bounds) =
-                            layer.bounds.intersection(<span class="kw-2">&amp;</span>bounds)
-                        {
-                            layer.meshes.push(Mesh::Gradient {
-                                transformation,
-                                buffers,
-                                clip_bounds,
-                            });
-                        }
-                    }
-                },
-                primitive::Custom::Pipeline(pipeline) =&gt; {
-                    <span class="kw">let </span>layer = <span class="kw-2">&amp;mut </span>layers[current_layer];
-                    <span class="kw">let </span>bounds = pipeline.bounds * transformation;
-
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(clip_bounds) =
-                        layer.bounds.intersection(<span class="kw-2">&amp;</span>bounds)
-                    {
-                        layer.pipelines.push(Pipeline {
-                            bounds,
-                            viewport: clip_bounds,
-                            primitive: pipeline.primitive.clone(),
-                        });
-                    }
-                }
-            },
+            triangles: triangle::Batch::default(),
+            primitives: primitive::Batch::default(),
+            text: text::Batch::default(),
+            images: image::Batch::default(),
+            pending_meshes: Vec::new(),
+            pending_text: Vec::new(),
         }
     }
 }

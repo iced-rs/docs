@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["geometry","window"],"struct":["Backend","Settings"],"type":["Primitive","Renderer"]};
+window.SIDEBAR_ITEMS = {"enum":["Primitive"],"mod":["geometry","window"],"struct":["Layer","Renderer","Settings"]};

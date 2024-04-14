@@ -80,11 +80,76 @@
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Draw triangles!
 </span><span class="kw">use </span><span class="kw">crate</span>::color;
-<span class="kw">use </span><span class="kw">crate</span>::core::{Rectangle, Size};
+<span class="kw">use </span><span class="kw">crate</span>::core::{Rectangle, Transformation};
 <span class="kw">use </span><span class="kw">crate</span>::gradient;
-<span class="kw">use </span><span class="kw">crate</span>::Damage;
 
 <span class="kw">use </span>bytemuck::{Pod, Zeroable};
 
@@ -96,29 +161,55 @@
         <span class="doccomment">/// The vertices and indices of the mesh.
         </span>buffers: Indexed&lt;SolidVertex2D&gt;,
 
-        <span class="doccomment">/// The size of the drawable region of the mesh.
-        ///
-        /// Any geometry that falls out of this region will be clipped.
-        </span>size: Size,
+        <span class="doccomment">/// The [`Transformation`] for the vertices of the [`Mesh`].
+        </span>transformation: Transformation,
+
+        <span class="doccomment">/// The clip bounds of the [`Mesh`].
+        </span>clip_bounds: Rectangle,
     },
     <span class="doccomment">/// A mesh with a gradient.
     </span>Gradient {
         <span class="doccomment">/// The vertices and indices of the mesh.
         </span>buffers: Indexed&lt;GradientVertex2D&gt;,
 
-        <span class="doccomment">/// The size of the drawable region of the mesh.
-        ///
-        /// Any geometry that falls out of this region will be clipped.
-        </span>size: Size,
+        <span class="doccomment">/// The [`Transformation`] for the vertices of the [`Mesh`].
+        </span>transformation: Transformation,
+
+        <span class="doccomment">/// The clip bounds of the [`Mesh`].
+        </span>clip_bounds: Rectangle,
     },
 }
 
-<span class="kw">impl </span>Damage <span class="kw">for </span>Mesh {
-    <span class="kw">fn </span>bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rectangle {
+<span class="kw">impl </span>Mesh {
+    <span class="doccomment">/// Returns the indices of the [`Mesh`].
+    </span><span class="kw">pub fn </span>indices(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u32] {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Solid { size, .. } | <span class="self">Self</span>::Gradient { size, .. } =&gt; {
-                Rectangle::with_size(<span class="kw-2">*</span>size)
+            <span class="self">Self</span>::Solid { buffers, .. } =&gt; <span class="kw-2">&amp;</span>buffers.indices,
+            <span class="self">Self</span>::Gradient { buffers, .. } =&gt; <span class="kw-2">&amp;</span>buffers.indices,
+        }
+    }
+
+    <span class="doccomment">/// Returns the [`Transformation`] of the [`Mesh`].
+    </span><span class="kw">pub fn </span>transformation(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Transformation {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Solid { transformation, .. }
+            | <span class="self">Self</span>::Gradient { transformation, .. } =&gt; <span class="kw-2">*</span>transformation,
+        }
+    }
+
+    <span class="doccomment">/// Returns the clip bounds of the [`Mesh`].
+    </span><span class="kw">pub fn </span>clip_bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rectangle {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Solid {
+                clip_bounds,
+                transformation,
+                ..
             }
+            | <span class="self">Self</span>::Gradient {
+                clip_bounds,
+                transformation,
+                ..
+            } =&gt; <span class="kw-2">*</span>clip_bounds * <span class="kw-2">*</span>transformation,
         }
     }
 }
@@ -155,6 +246,47 @@
 
     <span class="doccomment">/// The packed vertex data of the gradient.
     </span><span class="kw">pub </span>gradient: gradient::Packed,
+}
+
+<span class="doccomment">/// The result of counting the attributes of a set of meshes.
+</span><span class="attr">#[derive(Debug, Clone, Copy, Default)]
+</span><span class="kw">pub struct </span>AttributeCount {
+    <span class="doccomment">/// The total amount of solid vertices.
+    </span><span class="kw">pub </span>solid_vertices: usize,
+
+    <span class="doccomment">/// The total amount of solid meshes.
+    </span><span class="kw">pub </span>solids: usize,
+
+    <span class="doccomment">/// The total amount of gradient vertices.
+    </span><span class="kw">pub </span>gradient_vertices: usize,
+
+    <span class="doccomment">/// The total amount of gradient meshes.
+    </span><span class="kw">pub </span>gradients: usize,
+
+    <span class="doccomment">/// The total amount of indices.
+    </span><span class="kw">pub </span>indices: usize,
+}
+
+<span class="doccomment">/// Returns the number of total vertices &amp; total indices of all [`Mesh`]es.
+</span><span class="kw">pub fn </span>attribute_count_of(meshes: <span class="kw-2">&amp;</span>[Mesh]) -&gt; AttributeCount {
+    meshes
+        .iter()
+        .fold(AttributeCount::default(), |<span class="kw-2">mut </span>count, mesh| {
+            <span class="kw">match </span>mesh {
+                Mesh::Solid { buffers, .. } =&gt; {
+                    count.solids += <span class="number">1</span>;
+                    count.solid_vertices += buffers.vertices.len();
+                    count.indices += buffers.indices.len();
+                }
+                Mesh::Gradient { buffers, .. } =&gt; {
+                    count.gradients += <span class="number">1</span>;
+                    count.gradient_vertices += buffers.vertices.len();
+                    count.indices += buffers.indices.len();
+                }
+            }
+
+            count
+        })
 }
 
 <span class="doccomment">/// A renderer capable of drawing a [`Mesh`].

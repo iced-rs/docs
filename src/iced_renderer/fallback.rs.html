@@ -600,6 +600,23 @@
 <a href="#600" id="600">600</a>
 <a href="#601" id="601">601</a>
 <a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compose existing renderers and create type-safe fallback strategies.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::image;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
@@ -610,6 +627,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::graphics;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::compositor;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::mesh;
+
+<span class="kw">use </span>std::borrow::Cow;
 
 <span class="doccomment">/// A renderer `A` with a fallback strategy `B`.
 ///
@@ -649,20 +668,24 @@
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.clear());
     }
 
-    <span class="kw">fn </span>start_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.start_layer());
+    <span class="kw">fn </span>start_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle) {
+        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.start_layer(bounds));
     }
 
-    <span class="kw">fn </span>end_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle) {
-        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.end_layer(bounds));
+    <span class="kw">fn </span>end_layer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.end_layer());
     }
 
-    <span class="kw">fn </span>start_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.start_transformation());
+    <span class="kw">fn </span>start_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, transformation: Transformation) {
+        <span class="macro">delegate!</span>(
+            <span class="self">self</span>,
+            renderer,
+            renderer.start_transformation(transformation)
+        );
     }
 
-    <span class="kw">fn </span>end_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>, transformation: Transformation) {
-        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.end_transformation(transformation));
+    <span class="kw">fn </span>end_transformation(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.end_transformation());
     }
 }
 
@@ -689,10 +712,6 @@
 
     <span class="kw">fn </span>default_size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; core::Pixels {
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.default_size())
-    }
-
-    <span class="kw">fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, font: std::borrow::Cow&lt;<span class="lifetime">'static</span>, [u8]&gt;) {
-        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.load_font(font));
     }
 
     <span class="kw">fn </span>fill_paragraph(
@@ -921,6 +940,10 @@
         }
     }
 
+    <span class="kw">fn </span>load_font(<span class="kw-2">&amp;mut </span><span class="self">self</span>, font: Cow&lt;<span class="lifetime">'static</span>, [u8]&gt;) {
+        <span class="macro">delegate!</span>(<span class="self">self</span>, compositor, compositor.load_font(font));
+    }
+
     <span class="kw">fn </span>fetch_information(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; compositor::Information {
         <span class="macro">delegate!</span>(<span class="self">self</span>, compositor, compositor.fetch_information())
     }
@@ -997,19 +1020,19 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"wgpu"</span>)]
-</span><span class="kw">impl</span>&lt;A, B&gt; iced_wgpu::primitive::pipeline::Renderer <span class="kw">for </span>Renderer&lt;A, B&gt;
+</span><span class="kw">impl</span>&lt;A, B&gt; iced_wgpu::primitive::Renderer <span class="kw">for </span>Renderer&lt;A, B&gt;
 <span class="kw">where
-    </span>A: iced_wgpu::primitive::pipeline::Renderer,
+    </span>A: iced_wgpu::primitive::Renderer,
     B: core::Renderer,
 {
-    <span class="kw">fn </span>draw_pipeline_primitive(
+    <span class="kw">fn </span>draw_primitive(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         bounds: Rectangle,
-        primitive: <span class="kw">impl </span>iced_wgpu::primitive::pipeline::Primitive,
+        primitive: <span class="kw">impl </span>iced_wgpu::Primitive,
     ) {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Primary(renderer) =&gt; {
-                renderer.draw_pipeline_primitive(bounds, primitive);
+                renderer.draw_primitive(bounds, primitive);
             }
             <span class="self">Self</span>::Secondary(<span class="kw">_</span>) =&gt; {
                 <span class="macro">log::warn!</span>(
@@ -1023,7 +1046,7 @@
 <span class="attr">#[cfg(feature = <span class="string">"geometry"</span>)]
 </span><span class="kw">mod </span>geometry {
     <span class="kw">use </span><span class="kw">super</span>::Renderer;
-    <span class="kw">use </span><span class="kw">crate</span>::core::{Point, Radians, Size, Vector};
+    <span class="kw">use </span><span class="kw">crate</span>::core::{Point, Radians, Rectangle, Size, Vector};
     <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{<span class="self">self</span>, Fill, Path, Stroke, Text};
     <span class="kw">use </span><span class="kw">crate</span>::graphics::Cached;
 
@@ -1059,7 +1082,7 @@
         }
     }
 
-    <span class="attr">#[derive(Debug)]
+    <span class="attr">#[derive(Debug, Clone)]
     </span><span class="kw">pub enum </span>Geometry&lt;A, B&gt; {
         Primary(A),
         Secondary(B),
@@ -1079,12 +1102,23 @@
             }
         }
 
-        <span class="kw">fn </span>cache(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Cache {
-            <span class="kw">match </span><span class="self">self </span>{
-                <span class="self">Self</span>::Primary(geometry) =&gt; Geometry::Primary(geometry.cache()),
-                <span class="self">Self</span>::Secondary(geometry) =&gt; {
-                    Geometry::Secondary(geometry.cache())
+        <span class="kw">fn </span>cache(<span class="self">self</span>, previous: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Cache&gt;) -&gt; <span class="self">Self</span>::Cache {
+            <span class="kw">match </span>(<span class="self">self</span>, previous) {
+                (
+                    <span class="self">Self</span>::Primary(geometry),
+                    <span class="prelude-val">Some</span>(Geometry::Primary(previous)),
+                ) =&gt; Geometry::Primary(geometry.cache(<span class="prelude-val">Some</span>(previous))),
+                (<span class="self">Self</span>::Primary(geometry), <span class="prelude-val">None</span>) =&gt; {
+                    Geometry::Primary(geometry.cache(<span class="prelude-val">None</span>))
                 }
+                (
+                    <span class="self">Self</span>::Secondary(geometry),
+                    <span class="prelude-val">Some</span>(Geometry::Secondary(previous)),
+                ) =&gt; Geometry::Secondary(geometry.cache(<span class="prelude-val">Some</span>(previous))),
+                (<span class="self">Self</span>::Secondary(geometry), <span class="prelude-val">None</span>) =&gt; {
+                    Geometry::Secondary(geometry.cache(<span class="prelude-val">None</span>))
+                }
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }
         }
     }
@@ -1147,10 +1181,10 @@
             <span class="macro">delegate!</span>(<span class="self">self</span>, frame, frame.pop_transform());
         }
 
-        <span class="kw">fn </span>draft(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: Size) -&gt; <span class="self">Self </span>{
+        <span class="kw">fn </span>draft(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle) -&gt; <span class="self">Self </span>{
             <span class="kw">match </span><span class="self">self </span>{
-                <span class="self">Self</span>::Primary(frame) =&gt; <span class="self">Self</span>::Primary(frame.draft(size)),
-                <span class="self">Self</span>::Secondary(frame) =&gt; <span class="self">Self</span>::Secondary(frame.draft(size)),
+                <span class="self">Self</span>::Primary(frame) =&gt; <span class="self">Self</span>::Primary(frame.draft(bounds)),
+                <span class="self">Self</span>::Secondary(frame) =&gt; <span class="self">Self</span>::Secondary(frame.draft(bounds)),
             }
         }
 

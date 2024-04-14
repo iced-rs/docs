@@ -386,61 +386,140 @@
 <a href="#386" id="386">386</a>
 <a href="#387" id="387">387</a>
 <a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a>
+<a href="#407" id="407">407</a>
+<a href="#408" id="408">408</a>
+<a href="#409" id="409">409</a>
+<a href="#410" id="410">410</a>
+<a href="#411" id="411">411</a>
+<a href="#412" id="412">412</a>
+<a href="#413" id="413">413</a>
+<a href="#414" id="414">414</a>
+<a href="#415" id="415">415</a>
+<a href="#416" id="416">416</a>
+<a href="#417" id="417">417</a>
+<a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::text::LineHeight;
-<span class="kw">use </span><span class="kw">crate</span>::core::{
-    Pixels, Point, Radians, Rectangle, Size, Transformation, Vector,
-};
+<span class="kw">use </span><span class="kw">crate</span>::core::{Pixels, Point, Radians, Rectangle, Size, Vector};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::fill::{<span class="self">self</span>, Fill};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::stroke::{<span class="self">self</span>, Stroke};
-<span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{<span class="self">self</span>, Path, Style, Text};
-<span class="kw">use </span><span class="kw">crate</span>::graphics::Gradient;
-<span class="kw">use </span><span class="kw">crate</span>::primitive::{<span class="self">self</span>, Primitive};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{<span class="self">self</span>, Path, Style};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::{Cached, Gradient, Text};
+<span class="kw">use </span><span class="kw">crate</span>::Primitive;
+
+<span class="kw">use </span>std::rc::Rc;
+
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">pub enum </span>Geometry {
+    Live {
+        text: Vec&lt;Text&gt;,
+        primitives: Vec&lt;Primitive&gt;,
+        clip_bounds: Rectangle,
+    },
+    Cache(Cache),
+}
+
+<span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">pub struct </span>Cache {
+    <span class="kw">pub </span>text: Rc&lt;[Text]&gt;,
+    <span class="kw">pub </span>primitives: Rc&lt;[Primitive]&gt;,
+    <span class="kw">pub </span>clip_bounds: Rectangle,
+}
+
+<span class="kw">impl </span>Cached <span class="kw">for </span>Geometry {
+    <span class="kw">type </span>Cache = Cache;
+
+    <span class="kw">fn </span>load(cache: <span class="kw-2">&amp;</span>Cache) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Cache(cache.clone())
+    }
+
+    <span class="kw">fn </span>cache(<span class="self">self</span>, _previous: <span class="prelude-ty">Option</span>&lt;Cache&gt;) -&gt; Cache {
+        <span class="kw">match </span><span class="self">self </span>{
+            <span class="self">Self</span>::Live {
+                primitives,
+                text,
+                clip_bounds,
+            } =&gt; Cache {
+                primitives: Rc::from(primitives),
+                text: Rc::from(text),
+                clip_bounds,
+            },
+            <span class="self">Self</span>::Cache(cache) =&gt; cache,
+        }
+    }
+}
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Frame {
-    size: Size,
+    clip_bounds: Rectangle,
     transform: tiny_skia::Transform,
     stack: Vec&lt;tiny_skia::Transform&gt;,
     primitives: Vec&lt;Primitive&gt;,
+    text: Vec&lt;Text&gt;,
 }
 
 <span class="kw">impl </span>Frame {
     <span class="kw">pub fn </span>new(size: Size) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            size,
-            transform: tiny_skia::Transform::identity(),
-            stack: Vec::new(),
-            primitives: Vec::new(),
-        }
+        <span class="self">Self</span>::with_clip(Rectangle::with_size(size))
     }
 
-    <span class="kw">pub fn </span>into_primitive(<span class="self">self</span>) -&gt; Primitive {
-        Primitive::Clip {
-            bounds: Rectangle::new(Point::ORIGIN, <span class="self">self</span>.size),
-            content: Box::new(Primitive::Group {
-                primitives: <span class="self">self</span>.primitives,
-            }),
+    <span class="kw">pub fn </span>with_clip(clip_bounds: Rectangle) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            clip_bounds,
+            stack: Vec::new(),
+            primitives: Vec::new(),
+            text: Vec::new(),
+            transform: tiny_skia::Transform::from_translate(
+                clip_bounds.x,
+                clip_bounds.y,
+            ),
         }
     }
 }
 
 <span class="kw">impl </span>geometry::frame::Backend <span class="kw">for </span>Frame {
-    <span class="kw">type </span>Geometry = Primitive;
+    <span class="kw">type </span>Geometry = Geometry;
 
     <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
-        <span class="self">self</span>.size.width
+        <span class="self">self</span>.clip_bounds.width
     }
 
     <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; f32 {
-        <span class="self">self</span>.size.height
+        <span class="self">self</span>.clip_bounds.height
     }
 
     <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size {
-        <span class="self">self</span>.size
+        <span class="self">self</span>.clip_bounds.size()
     }
 
     <span class="kw">fn </span>center(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Point {
-        Point::new(<span class="self">self</span>.size.width / <span class="number">2.0</span>, <span class="self">self</span>.size.height / <span class="number">2.0</span>)
+        Point::new(<span class="self">self</span>.clip_bounds.width / <span class="number">2.0</span>, <span class="self">self</span>.clip_bounds.height / <span class="number">2.0</span>)
     }
 
     <span class="kw">fn </span>fill(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path, fill: <span class="kw">impl </span>Into&lt;Fill&gt;) {
@@ -455,12 +534,11 @@
         <span class="kw">let </span><span class="kw-2">mut </span>paint = into_paint(fill.style);
         paint.shader.transform(<span class="self">self</span>.transform);
 
-        <span class="self">self</span>.primitives
-            .push(Primitive::Custom(primitive::Custom::Fill {
-                path,
-                paint,
-                rule: into_fill_rule(fill.rule),
-            }));
+        <span class="self">self</span>.primitives.push(Primitive::Fill {
+            path,
+            paint,
+            rule: into_fill_rule(fill.rule),
+        });
     }
 
     <span class="kw">fn </span>fill_rectangle(
@@ -483,12 +561,11 @@
         };
         paint.shader.transform(<span class="self">self</span>.transform);
 
-        <span class="self">self</span>.primitives
-            .push(Primitive::Custom(primitive::Custom::Fill {
-                path,
-                paint,
-                rule: into_fill_rule(fill.rule),
-            }));
+        <span class="self">self</span>.primitives.push(Primitive::Fill {
+            path,
+            paint,
+            rule: into_fill_rule(fill.rule),
+        });
     }
 
     <span class="kw">fn </span>stroke&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, path: <span class="kw-2">&amp;</span>Path, stroke: <span class="kw">impl </span>Into&lt;Stroke&lt;<span class="lifetime">'a</span>&gt;&gt;) {
@@ -504,20 +581,19 @@
         <span class="kw">let </span><span class="kw-2">mut </span>paint = into_paint(stroke.style);
         paint.shader.transform(<span class="self">self</span>.transform);
 
-        <span class="self">self</span>.primitives
-            .push(Primitive::Custom(primitive::Custom::Stroke {
-                path,
-                paint,
-                stroke: skia_stroke,
-            }));
+        <span class="self">self</span>.primitives.push(Primitive::Stroke {
+            path,
+            paint,
+            stroke: skia_stroke,
+        });
     }
 
-    <span class="kw">fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: <span class="kw">impl </span>Into&lt;Text&gt;) {
+    <span class="kw">fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: <span class="kw">impl </span>Into&lt;geometry::Text&gt;) {
         <span class="kw">let </span>text = text.into();
 
         <span class="kw">let </span>(scale_x, scale_y) = <span class="self">self</span>.transform.get_scale();
 
-        <span class="kw">if </span><span class="self">self</span>.transform.is_scale_translate()
+        <span class="kw">if </span>!<span class="self">self</span>.transform.has_skew()
             &amp;&amp; scale_x == scale_y
             &amp;&amp; scale_x &gt; <span class="number">0.0
             </span>&amp;&amp; scale_y &gt; <span class="number">0.0
@@ -559,12 +635,12 @@
             };
 
             <span class="comment">// TODO: Honor layering!
-            </span><span class="self">self</span>.primitives.push(Primitive::Text {
+            </span><span class="self">self</span>.text.push(Text::Cached {
                 content: text.content,
                 bounds,
                 color: text.color,
                 size,
-                line_height,
+                line_height: line_height.to_absolute(size),
                 font: text.font,
                 horizontal_alignment: text.horizontal_alignment,
                 vertical_alignment: text.vertical_alignment,
@@ -584,15 +660,13 @@
         <span class="self">self</span>.transform = <span class="self">self</span>.stack.pop().expect(<span class="string">"Pop transform"</span>);
     }
 
-    <span class="kw">fn </span>draft(<span class="kw-2">&amp;mut </span><span class="self">self</span>, size: Size) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(size)
+    <span class="kw">fn </span>draft(<span class="kw-2">&amp;mut </span><span class="self">self</span>, clip_bounds: Rectangle) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::with_clip(clip_bounds)
     }
 
-    <span class="kw">fn </span>paste(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="self">Self</span>, at: Point) {
-        <span class="self">self</span>.primitives.push(Primitive::Transform {
-            transformation: Transformation::translate(at.x, at.y),
-            content: Box::new(frame.into_primitive()),
-        });
+    <span class="kw">fn </span>paste(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="self">Self</span>, _at: Point) {
+        <span class="self">self</span>.primitives.extend(frame.primitives);
+        <span class="self">self</span>.text.extend(frame.text);
     }
 
     <span class="kw">fn </span>translate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, translation: Vector) {
@@ -618,8 +692,12 @@
         <span class="self">self</span>.transform = <span class="self">self</span>.transform.pre_scale(scale.x, scale.y);
     }
 
-    <span class="kw">fn </span>into_geometry(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Geometry {
-        <span class="self">self</span>.into_primitive()
+    <span class="kw">fn </span>into_geometry(<span class="self">self</span>) -&gt; Geometry {
+        Geometry::Live {
+            primitives: <span class="self">self</span>.primitives,
+            text: <span class="self">self</span>.text,
+            clip_bounds: <span class="self">self</span>.clip_bounds,
+        }
     }
 }
 

@@ -1486,6 +1486,7 @@
 <a href="#1486" id="1486">1486</a>
 <a href="#1487" id="1487">1487</a>
 <a href="#1488" id="1488">1488</a>
+<a href="#1489" id="1489">1489</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -1856,7 +1857,7 @@
 
         <span class="kw">let </span>text = value.to_string();
 
-        <span class="kw">let </span>(cursor, offset) = <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = state
+        <span class="kw">let </span>(cursor, offset, is_selecting) = <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = state
             .is_focused
             .as_ref()
             .filter(|focus| focus.is_window_focused)
@@ -1894,7 +1895,7 @@
                         <span class="prelude-val">None
                     </span>};
 
-                    (cursor, offset)
+                    (cursor, offset, <span class="bool-val">false</span>)
                 }
                 cursor::State::Selection { start, end } =&gt; {
                     <span class="kw">let </span>left = start.min(end);
@@ -1934,11 +1935,12 @@
                         } <span class="kw">else </span>{
                             left_offset
                         },
+                        <span class="bool-val">true</span>,
                     )
                 }
             }
         } <span class="kw">else </span>{
-            (<span class="prelude-val">None</span>, <span class="number">0.0</span>)
+            (<span class="prelude-val">None</span>, <span class="number">0.0</span>, <span class="bool-val">false</span>)
         };
 
         <span class="kw">let </span>draw = |renderer: <span class="kw-2">&amp;mut </span>Renderer, viewport| {
@@ -1970,7 +1972,7 @@
             );
         };
 
-        <span class="kw">if </span>cursor.is_some() {
+        <span class="kw">if </span>is_selecting {
             renderer
                 .with_layer(text_bounds, |renderer| draw(renderer, <span class="kw-2">*</span>viewport));
         } <span class="kw">else </span>{
