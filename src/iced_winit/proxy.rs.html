@@ -130,16 +130,9 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::futures::futures::{
     channel::mpsc,
-    stream,
+    select,
     task::{Context, Poll},
     Future, Sink, StreamExt,
 };
@@ -170,40 +163,33 @@
     </span><span class="kw">pub fn </span>new(
         raw: winit::event_loop::EventLoopProxy&lt;Message&gt;,
     ) -&gt; (<span class="self">Self</span>, <span class="kw">impl </span>Future&lt;Output = ()&gt;) {
-        <span class="kw">let </span>(notifier, processed) = mpsc::channel(<span class="self">Self</span>::MAX_SIZE);
-        <span class="kw">let </span>(sender, receiver) = mpsc::channel(<span class="self">Self</span>::MAX_SIZE);
+        <span class="kw">let </span>(notifier, <span class="kw-2">mut </span>processed) = mpsc::channel(<span class="self">Self</span>::MAX_SIZE);
+        <span class="kw">let </span>(sender, <span class="kw-2">mut </span>receiver) = mpsc::channel(<span class="self">Self</span>::MAX_SIZE);
         <span class="kw">let </span>proxy = raw.clone();
 
         <span class="kw">let </span>worker = <span class="kw">async move </span>{
-            <span class="kw">enum </span>Item&lt;T&gt; {
-                MessageProduced(T),
-                BatchProcessed(usize),
-            }
-
-            <span class="kw">let </span><span class="kw-2">mut </span>receiver = receiver.map(Item::MessageProduced);
-            <span class="kw">let </span><span class="kw-2">mut </span>processed = processed.map(Item::BatchProcessed);
-
             <span class="kw">let </span><span class="kw-2">mut </span>count = <span class="number">0</span>;
 
             <span class="kw">loop </span>{
                 <span class="kw">if </span>count &lt; <span class="self">Self</span>::MAX_SIZE {
-                    <span class="kw">let </span><span class="kw-2">mut </span>stream =
-                        stream::select(receiver.by_ref(), processed.by_ref());
-
-                    <span class="kw">match </span>stream.select_next_some().<span class="kw">await </span>{
-                        Item::MessageProduced(message) =&gt; {
+                    <span class="macro">select! </span>{
+                        message = receiver.select_next_some() =&gt; {
                             <span class="kw">let _ </span>= proxy.send_event(message);
-
                             count += <span class="number">1</span>;
+
                         }
-                        Item::BatchProcessed(amount) =&gt; {
+                        amount = processed.select_next_some() =&gt; {
                             count = count.saturating_sub(amount);
                         }
+                        complete =&gt; <span class="kw">break</span>,
                     }
-                } <span class="kw">else if let </span>Item::BatchProcessed(amount) =
-                    processed.select_next_some().<span class="kw">await
-                </span>{
-                    count = count.saturating_sub(amount);
+                } <span class="kw">else </span>{
+                    <span class="macro">select! </span>{
+                        amount = processed.select_next_some() =&gt; {
+                            count = count.saturating_sub(amount);
+                        }
+                        complete =&gt; <span class="kw">break</span>,
+                    }
                 }
             }
         };
