@@ -68,6 +68,8 @@
 <a href="#68" id="68">68</a>
 <a href="#69" id="69">69</a>
 <a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A `tokio` backend.
 </span><span class="kw">use </span>futures::Future;
 
@@ -125,13 +127,15 @@
 
             <span class="kw">let </span>start = tokio::time::Instant::now() + <span class="self">self</span>.<span class="number">0</span>;
 
+            <span class="kw">let </span><span class="kw-2">mut </span>interval = tokio::time::interval_at(start, <span class="self">self</span>.<span class="number">0</span>);
+            interval.set_missed_tick_behavior(
+                tokio::time::MissedTickBehavior::Skip,
+            );
+
             <span class="kw">let </span>stream = {
-                futures::stream::unfold(
-                    tokio::time::interval_at(start, <span class="self">self</span>.<span class="number">0</span>),
-                    |<span class="kw-2">mut </span>interval| <span class="kw">async move </span>{
-                        <span class="prelude-val">Some</span>((interval.tick().<span class="kw">await</span>, interval))
-                    },
-                )
+                futures::stream::unfold(interval, |<span class="kw-2">mut </span>interval| <span class="kw">async move </span>{
+                    <span class="prelude-val">Some</span>((interval.tick().<span class="kw">await</span>, interval))
+                })
             };
 
             stream.map(tokio::time::Instant::into_std).boxed()

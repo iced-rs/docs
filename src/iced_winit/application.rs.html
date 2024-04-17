@@ -942,25 +942,6 @@
 <a href="#942" id="942">942</a>
 <a href="#943" id="943">943</a>
 <a href="#944" id="944">944</a>
-<a href="#945" id="945">945</a>
-<a href="#946" id="946">946</a>
-<a href="#947" id="947">947</a>
-<a href="#948" id="948">948</a>
-<a href="#949" id="949">949</a>
-<a href="#950" id="950">950</a>
-<a href="#951" id="951">951</a>
-<a href="#952" id="952">952</a>
-<a href="#953" id="953">953</a>
-<a href="#954" id="954">954</a>
-<a href="#955" id="955">955</a>
-<a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a>
-<a href="#958" id="958">958</a>
-<a href="#959" id="959">959</a>
-<a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a>
-<a href="#962" id="962">962</a>
-<a href="#963" id="963">963</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="kw">mod </span>state;
 
@@ -1112,13 +1093,14 @@
     <span class="kw">let </span>event_loop = EventLoopBuilder::with_user_event()
         .build()
         .expect(<span class="string">"Create event loop"</span>);
-    <span class="kw">let </span>proxy = event_loop.create_proxy();
+
+    <span class="kw">let </span>(proxy, worker) = Proxy::new(event_loop.create_proxy());
 
     <span class="kw">let </span>runtime = {
-        <span class="kw">let </span>proxy = Proxy::new(event_loop.create_proxy());
         <span class="kw">let </span>executor = E::new().map_err(Error::ExecutorCreationFailed)<span class="question-mark">?</span>;
+        executor.spawn(worker);
 
-        Runtime::new(executor, proxy)
+        Runtime::new(executor, proxy.clone())
     };
 
     <span class="kw">let </span>(application, init_command) = {
@@ -1268,7 +1250,7 @@
     <span class="kw-2">mut </span>compositor: C,
     <span class="kw-2">mut </span>renderer: A::Renderer,
     <span class="kw-2">mut </span>runtime: Runtime&lt;E, Proxy&lt;A::Message&gt;, A::Message&gt;,
-    <span class="kw-2">mut </span>proxy: winit::event_loop::EventLoopProxy&lt;A::Message&gt;,
+    <span class="kw-2">mut </span>proxy: Proxy&lt;A::Message&gt;,
     <span class="kw-2">mut </span>debug: Debug,
     <span class="kw-2">mut </span>event_receiver: mpsc::UnboundedReceiver&lt;
         winit::event::Event&lt;A::Message&gt;,
@@ -1333,6 +1315,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>mouse_interaction = mouse::Interaction::default();
     <span class="kw">let </span><span class="kw-2">mut </span>events = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>messages = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>user_events = <span class="number">0</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>redraw_pending = <span class="bool-val">false</span>;
 
     debug.startup_finished();
@@ -1359,6 +1342,7 @@
             }
             event::Event::UserEvent(message) =&gt; {
                 messages.push(message);
+                user_events += <span class="number">1</span>;
             }
             event::Event::WindowEvent {
                 event: event::WindowEvent::RedrawRequested { .. },
@@ -1556,6 +1540,11 @@
                     <span class="kw">if </span>should_exit {
                         <span class="kw">break</span>;
                     }
+
+                    <span class="kw">if </span>user_events &gt; <span class="number">0 </span>{
+                        proxy.free_slots(user_events);
+                        user_events = <span class="number">0</span>;
+                    }
                 }
 
                 <span class="kw">if </span>!redraw_pending {
@@ -1630,7 +1619,7 @@
     runtime: <span class="kw-2">&amp;mut </span>Runtime&lt;E, Proxy&lt;A::Message&gt;, A::Message&gt;,
     clipboard: <span class="kw-2">&amp;mut </span>Clipboard,
     should_exit: <span class="kw-2">&amp;mut </span>bool,
-    proxy: <span class="kw-2">&amp;mut </span>winit::event_loop::EventLoopProxy&lt;A::Message&gt;,
+    proxy: <span class="kw-2">&amp;mut </span>Proxy&lt;A::Message&gt;,
     debug: <span class="kw-2">&amp;mut </span>Debug,
     messages: <span class="kw-2">&amp;mut </span>Vec&lt;A::Message&gt;,
     window: <span class="kw-2">&amp;</span>winit::window::Window,
@@ -1680,7 +1669,7 @@
     runtime: <span class="kw-2">&amp;mut </span>Runtime&lt;E, Proxy&lt;A::Message&gt;, A::Message&gt;,
     clipboard: <span class="kw-2">&amp;mut </span>Clipboard,
     should_exit: <span class="kw-2">&amp;mut </span>bool,
-    proxy: <span class="kw-2">&amp;mut </span>winit::event_loop::EventLoopProxy&lt;A::Message&gt;,
+    proxy: <span class="kw-2">&amp;mut </span>Proxy&lt;A::Message&gt;,
     debug: <span class="kw-2">&amp;mut </span>Debug,
     window: <span class="kw-2">&amp;</span>winit::window::Window,
 ) <span class="kw">where
@@ -1705,9 +1694,7 @@
                 clipboard::Action::Read(tag, kind) =&gt; {
                     <span class="kw">let </span>message = tag(clipboard.read(kind));
 
-                    proxy
-                        .send_event(message)
-                        .expect(<span class="string">"Send message to event loop"</span>);
+                    proxy.send(message);
                 }
                 clipboard::Action::Write(contents, kind) =&gt; {
                     clipboard.write(kind, contents);
@@ -1737,25 +1724,16 @@
                     <span class="kw">let </span>size =
                         window.inner_size().to_logical(window.scale_factor());
 
-                    proxy
-                        .send_event(callback(Size::new(
-                            size.width,
-                            size.height,
-                        )))
-                        .expect(<span class="string">"Send message to event loop"</span>);
+                    proxy.send(callback(Size::new(size.width, size.height)));
                 }
                 window::Action::FetchMaximized(_id, callback) =&gt; {
-                    proxy
-                        .send_event(callback(window.is_maximized()))
-                        .expect(<span class="string">"Send message to event loop"</span>);
+                    proxy.send(callback(window.is_maximized()));
                 }
                 window::Action::Maximize(_id, maximized) =&gt; {
                     window.set_maximized(maximized);
                 }
                 window::Action::FetchMinimized(_id, callback) =&gt; {
-                    proxy
-                        .send_event(callback(window.is_minimized()))
-                        .expect(<span class="string">"Send message to event loop"</span>);
+                    proxy.send(callback(window.is_minimized()));
                 }
                 window::Action::Minimize(_id, minimized) =&gt; {
                     window.set_minimized(minimized);
@@ -1771,9 +1749,7 @@
                         })
                         .ok();
 
-                    proxy
-                        .send_event(callback(position))
-                        .expect(<span class="string">"Send message to event loop"</span>);
+                    proxy.send(callback(position));
                 }
                 window::Action::Move(_id, position) =&gt; {
                     window.set_outer_position(winit::dpi::LogicalPosition {
@@ -1798,9 +1774,7 @@
                         core::window::Mode::Hidden
                     };
 
-                    proxy
-                        .send_event(tag(mode))
-                        .expect(<span class="string">"Send message to event loop"</span>);
+                    proxy.send(tag(mode));
                 }
                 window::Action::ToggleMaximize(_id) =&gt; {
                     window.set_maximized(!window.is_maximized());
@@ -1828,17 +1802,13 @@
                     }
                 }
                 window::Action::FetchId(_id, tag) =&gt; {
-                    proxy
-                        .send_event(tag(window.id().into()))
-                        .expect(<span class="string">"Send message to event loop"</span>);
+                    proxy.send(tag(window.id().into()));
                 }
                 window::Action::RunWithHandle(_id, tag) =&gt; {
                     <span class="kw">use </span>window::raw_window_handle::HasWindowHandle;
 
                     <span class="kw">if let </span><span class="prelude-val">Ok</span>(handle) = window.window_handle() {
-                        proxy
-                            .send_event(tag(<span class="kw-2">&amp;</span>handle))
-                            .expect(<span class="string">"Send message to event loop"</span>);
+                        proxy.send(tag(<span class="kw-2">&amp;</span>handle));
                     }
                 }
 
@@ -1851,12 +1821,10 @@
                         <span class="kw-2">&amp;</span>debug.overlay(),
                     );
 
-                    proxy
-                        .send_event(tag(window::Screenshot::new(
-                            bytes,
-                            state.physical_size(),
-                        )))
-                        .expect(<span class="string">"Send message to event loop."</span>);
+                    proxy.send(tag(window::Screenshot::new(
+                        bytes,
+                        state.physical_size(),
+                    )));
                 }
             },
             command::Action::System(action) =&gt; <span class="kw">match </span>action {
@@ -1864,7 +1832,7 @@
                     <span class="attr">#[cfg(feature = <span class="string">"system"</span>)]
                     </span>{
                         <span class="kw">let </span>graphics_info = compositor.fetch_information();
-                        <span class="kw">let </span>proxy = proxy.clone();
+                        <span class="kw">let </span><span class="kw-2">mut </span>proxy = proxy.clone();
 
                         <span class="kw">let _ </span>= std::thread::spawn(<span class="kw">move </span>|| {
                             <span class="kw">let </span>information =
@@ -1872,9 +1840,7 @@
 
                             <span class="kw">let </span>message = _tag(information);
 
-                            proxy
-                                .send_event(message)
-                                .expect(<span class="string">"Send message to event loop"</span>);
+                            proxy.send(message);
                         });
                     }
                 }
@@ -1897,9 +1863,7 @@
                     <span class="kw">match </span>operation.finish() {
                         operation::Outcome::None =&gt; {}
                         operation::Outcome::Some(message) =&gt; {
-                            proxy
-                                .send_event(message)
-                                .expect(<span class="string">"Send message to event loop"</span>);
+                            proxy.send(message);
                         }
                         operation::Outcome::Chain(next) =&gt; {
                             current_operation = <span class="prelude-val">Some</span>(next);
@@ -1914,9 +1878,7 @@
                 <span class="comment">// TODO: Error handling (?)
                 </span>compositor.load_font(bytes);
 
-                proxy
-                    .send_event(tagger(<span class="prelude-val">Ok</span>(())))
-                    .expect(<span class="string">"Send message to event loop"</span>);
+                proxy.send(tagger(<span class="prelude-val">Ok</span>(())));
             }
             command::Action::Custom(<span class="kw">_</span>) =&gt; {
                 <span class="macro">log::warn!</span>(<span class="string">"Unsupported custom action in `iced_winit` shell"</span>);
