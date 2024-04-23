@@ -1701,6 +1701,12 @@
 <a href="#1701" id="1701">1701</a>
 <a href="#1702" id="1702">1702</a>
 <a href="#1703" id="1703">1703</a>
+<a href="#1704" id="1704">1704</a>
+<a href="#1705" id="1705">1705</a>
+<a href="#1706" id="1706">1706</a>
+<a href="#1707" id="1707">1707</a>
+<a href="#1708" id="1708">1708</a>
+<a href="#1709" id="1709">1709</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
 </span><span class="comment">// use crate::container;
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
@@ -2138,15 +2144,17 @@
 
                 state.scroll(delta, <span class="self">self</span>.direction, bounds, content_bounds);
 
-                notify_on_scroll(
+                event_status = <span class="kw">if </span>notify_on_scroll(
                     state,
                     <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                     bounds,
                     content_bounds,
                     shell,
-                );
-
-                event_status = event::Status::Captured;
+                ) {
+                    event::Status::Captured
+                } <span class="kw">else </span>{
+                    event::Status::Ignored
+                };
             }
             Event::Touch(event)
                 <span class="kw">if </span>state.scroll_area_touched_at.is_some()
@@ -2184,7 +2192,8 @@
                             state.scroll_area_touched_at =
                                 <span class="prelude-val">Some</span>(cursor_position);
 
-                            notify_on_scroll(
+                            <span class="comment">// TODO: bubble up touch movements if not consumed.
+                            </span><span class="kw">let _ </span>= notify_on_scroll(
                                 state,
                                 <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                                 bounds,
@@ -2219,7 +2228,7 @@
                             content_bounds,
                         );
 
-                        notify_on_scroll(
+                        <span class="kw">let _ </span>= notify_on_scroll(
                             state,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                             bounds,
@@ -2257,7 +2266,7 @@
 
                         state.y_scroller_grabbed_at = <span class="prelude-val">Some</span>(scroller_grabbed_at);
 
-                        notify_on_scroll(
+                        <span class="kw">let _ </span>= notify_on_scroll(
                             state,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                             bounds,
@@ -2290,7 +2299,7 @@
                             content_bounds,
                         );
 
-                        notify_on_scroll(
+                        <span class="kw">let _ </span>= notify_on_scroll(
                             state,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                             bounds,
@@ -2328,7 +2337,7 @@
 
                         state.x_scroller_grabbed_at = <span class="prelude-val">Some</span>(scroller_grabbed_at);
 
-                        notify_on_scroll(
+                        <span class="kw">let _ </span>= notify_on_scroll(
                             state,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                             bounds,
@@ -2668,52 +2677,55 @@
     Command::widget(operation::scrollable::scroll_to(id.<span class="number">0</span>, offset))
 }
 
-<span class="kw">fn </span>notify_on_scroll&lt;Message&gt;(
+<span class="doccomment">/// Returns [`true`] if the viewport actually changed.
+</span><span class="kw">fn </span>notify_on_scroll&lt;Message&gt;(
     state: <span class="kw-2">&amp;mut </span>State,
     on_scroll: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Viewport) -&gt; Message + <span class="lifetime">'_</span>&gt;&gt;,
     bounds: Rectangle,
     content_bounds: Rectangle,
     shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
-) {
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(on_scroll) = on_scroll {
-        <span class="kw">if </span>content_bounds.width &lt;= bounds.width
-            &amp;&amp; content_bounds.height &lt;= bounds.height
-        {
-            <span class="kw">return</span>;
-        }
+) -&gt; bool {
+    <span class="kw">if </span>content_bounds.width &lt;= bounds.width
+        &amp;&amp; content_bounds.height &lt;= bounds.height
+    {
+        <span class="kw">return </span><span class="bool-val">false</span>;
+    }
 
-        <span class="kw">let </span>viewport = Viewport {
-            offset_x: state.offset_x,
-            offset_y: state.offset_y,
-            bounds,
-            content_bounds,
+    <span class="kw">let </span>viewport = Viewport {
+        offset_x: state.offset_x,
+        offset_y: state.offset_y,
+        bounds,
+        content_bounds,
+    };
+
+    <span class="comment">// Don't publish redundant viewports to shell
+    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(last_notified) = state.last_notified {
+        <span class="kw">let </span>last_relative_offset = last_notified.relative_offset();
+        <span class="kw">let </span>current_relative_offset = viewport.relative_offset();
+
+        <span class="kw">let </span>last_absolute_offset = last_notified.absolute_offset();
+        <span class="kw">let </span>current_absolute_offset = viewport.absolute_offset();
+
+        <span class="kw">let </span>unchanged = |a: f32, b: f32| {
+            (a - b).abs() &lt;= f32::EPSILON || (a.is_nan() &amp;&amp; b.is_nan())
         };
 
-        <span class="comment">// Don't publish redundant viewports to shell
-        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(last_notified) = state.last_notified {
-            <span class="kw">let </span>last_relative_offset = last_notified.relative_offset();
-            <span class="kw">let </span>current_relative_offset = viewport.relative_offset();
-
-            <span class="kw">let </span>last_absolute_offset = last_notified.absolute_offset();
-            <span class="kw">let </span>current_absolute_offset = viewport.absolute_offset();
-
-            <span class="kw">let </span>unchanged = |a: f32, b: f32| {
-                (a - b).abs() &lt;= f32::EPSILON || (a.is_nan() &amp;&amp; b.is_nan())
-            };
-
-            <span class="kw">if </span>unchanged(last_relative_offset.x, current_relative_offset.x)
-                &amp;&amp; unchanged(last_relative_offset.y, current_relative_offset.y)
-                &amp;&amp; unchanged(last_absolute_offset.x, current_absolute_offset.x)
-                &amp;&amp; unchanged(last_absolute_offset.y, current_absolute_offset.y)
-            {
-                <span class="kw">return</span>;
-            }
+        <span class="kw">if </span>unchanged(last_relative_offset.x, current_relative_offset.x)
+            &amp;&amp; unchanged(last_relative_offset.y, current_relative_offset.y)
+            &amp;&amp; unchanged(last_absolute_offset.x, current_absolute_offset.x)
+            &amp;&amp; unchanged(last_absolute_offset.y, current_absolute_offset.y)
+        {
+            <span class="kw">return </span><span class="bool-val">false</span>;
         }
-
-        shell.publish(on_scroll(viewport));
-        state.last_notified = <span class="prelude-val">Some</span>(viewport);
     }
-}
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(on_scroll) = on_scroll {
+        shell.publish(on_scroll(viewport));
+    }
+    state.last_notified = <span class="prelude-val">Some</span>(viewport);
+
+    <span class="bool-val">true
+</span>}
 
 <span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">struct </span>State {
