@@ -202,6 +202,14 @@
 <a href="#202" id="202">202</a>
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::svg;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Color, Size};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text;
@@ -241,6 +249,7 @@
     rasterized: FxHashMap&lt;(u64, u32, u32, ColorFilter), atlas::Entry&gt;,
     svg_hits: FxHashSet&lt;u64&gt;,
     rasterized_hits: FxHashSet&lt;(u64, u32, u32, ColorFilter)&gt;,
+    should_trim: bool,
 }
 
 <span class="kw">type </span>ColorFilter = <span class="prelude-ty">Option</span>&lt;[u8; <span class="number">4</span>]&gt;;
@@ -279,6 +288,8 @@
                 svg.convert_text(font_system.raw().db_mut());
             }
         }
+
+        <span class="self">self</span>.should_trim = <span class="bool-val">true</span>;
 
         <span class="kw">let _ </span>= <span class="self">self</span>.svgs.insert(handle.id(), svg);
         <span class="self">self</span>.svgs.get(<span class="kw-2">&amp;</span>handle.id()).unwrap()
@@ -380,6 +391,10 @@
 
     <span class="doccomment">/// Load svg and upload raster data
     </span><span class="kw">pub fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>, atlas: <span class="kw-2">&amp;mut </span>Atlas) {
+        <span class="kw">if </span>!<span class="self">self</span>.should_trim {
+            <span class="kw">return</span>;
+        }
+
         <span class="kw">let </span>svg_hits = <span class="kw-2">&amp;</span><span class="self">self</span>.svg_hits;
         <span class="kw">let </span>rasterized_hits = <span class="kw-2">&amp;</span><span class="self">self</span>.rasterized_hits;
 
@@ -395,6 +410,7 @@
         });
         <span class="self">self</span>.svg_hits.clear();
         <span class="self">self</span>.rasterized_hits.clear();
+        <span class="self">self</span>.should_trim = <span class="bool-val">false</span>;
     }
 }
 

@@ -416,6 +416,13 @@
 <a href="#416" id="416">416</a>
 <a href="#417" id="417">417</a>
 <a href="#418" id="418">418</a>
+<a href="#419" id="419">419</a>
+<a href="#420" id="420">420</a>
+<a href="#421" id="421">421</a>
+<a href="#422" id="422">422</a>
+<a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
 </pre></div><pre class="rust"><code><span class="kw">pub mod </span>entry;
 
 <span class="kw">mod </span>allocation;
@@ -512,7 +519,7 @@
             entry
         };
 
-        <span class="macro">log::info!</span>(<span class="string">"Allocated atlas entry: {entry:?}"</span>);
+        <span class="macro">log::debug!</span>(<span class="string">"Allocated atlas entry: {entry:?}"</span>);
 
         <span class="comment">// It is a webgpu requirement that:
         //   BufferCopyView.layout.bytes_per_row % wgpu::COPY_BYTES_PER_ROW_ALIGNMENT == 0
@@ -565,13 +572,20 @@
             }
         }
 
-        <span class="macro">log::info!</span>(<span class="string">"Current atlas: {self:?}"</span>);
+        <span class="kw">if </span><span class="macro">log::log_enabled!</span>(log::Level::Debug) {
+            <span class="macro">log::debug!</span>(
+                <span class="string">"Atlas layers: {} (busy: {}, allocations: {})"</span>,
+                <span class="self">self</span>.layer_count(),
+                <span class="self">self</span>.layers.iter().filter(|layer| !layer.is_empty()).count(),
+                <span class="self">self</span>.layers.iter().map(Layer::allocations).sum::&lt;usize&gt;(),
+            );
+        }
 
         <span class="prelude-val">Some</span>(entry)
     }
 
     <span class="kw">pub fn </span>remove(<span class="kw-2">&amp;mut </span><span class="self">self</span>, entry: <span class="kw-2">&amp;</span>Entry) {
-        <span class="macro">log::info!</span>(<span class="string">"Removing atlas entry: {entry:?}"</span>);
+        <span class="macro">log::debug!</span>(<span class="string">"Removing atlas entry: {entry:?}"</span>);
 
         <span class="kw">match </span>entry {
             Entry::Contiguous(allocation) =&gt; {
@@ -684,7 +698,7 @@
     </span>}
 
     <span class="kw">fn </span>deallocate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, allocation: <span class="kw-2">&amp;</span>Allocation) {
-        <span class="macro">log::info!</span>(<span class="string">"Deallocating atlas: {allocation:?}"</span>);
+        <span class="macro">log::debug!</span>(<span class="string">"Deallocating atlas: {allocation:?}"</span>);
 
         <span class="kw">match </span>allocation {
             Allocation::Full { layer } =&gt; {
