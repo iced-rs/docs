@@ -912,6 +912,10 @@
 <a href="#912" id="912">912</a>
 <a href="#913" id="913">913</a>
 <a href="#914" id="914">914</a>
+<a href="#915" id="915">915</a>
+<a href="#916" id="916">916</a>
+<a href="#917" id="917">917</a>
+<a href="#918" id="918">918</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a multi-line text input for text editing.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::clipboard::{<span class="self">self</span>, Clipboard};
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -1483,23 +1487,27 @@
         <span class="kw">if </span>state.is_focused {
             <span class="kw">match </span>internal.editor.cursor() {
                 Cursor::Caret(position) =&gt; {
-                    <span class="kw">let </span>position = position + translation;
+                    <span class="kw">let </span>cursor =
+                        Rectangle::new(
+                            position + translation,
+                            Size::new(
+                                <span class="number">1.0</span>,
+                                <span class="self">self</span>.line_height
+                                    .to_absolute(<span class="self">self</span>.text_size.unwrap_or_else(
+                                        || renderer.default_size(),
+                                    ))
+                                    .into(),
+                            ),
+                        );
 
-                    <span class="kw">if </span>bounds.contains(position) {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(clipped_cursor) = bounds.intersection(<span class="kw-2">&amp;</span>cursor) {
                         renderer.fill_quad(
                             renderer::Quad {
                                 bounds: Rectangle {
-                                    x: position.x.floor(),
-                                    y: position.y,
-                                    width: <span class="number">1.0</span>,
-                                    height: <span class="self">self
-                                        </span>.line_height
-                                        .to_absolute(
-                                            <span class="self">self</span>.text_size.unwrap_or_else(
-                                                || renderer.default_size(),
-                                            ),
-                                        )
-                                        .into(),
+                                    x: clipped_cursor.x.floor(),
+                                    y: clipped_cursor.y,
+                                    width: clipped_cursor.width,
+                                    height: clipped_cursor.height,
                                 },
                                 ..renderer::Quad::default()
                             },
