@@ -541,16 +541,15 @@
 <a href="#541" id="541">541</a>
 <a href="#542" id="542">542</a>
 <a href="#543" id="543">543</a>
-<a href="#544" id="544">544</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Rectangle, Size, Transformation};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::cache::{<span class="self">self</span>, Cache <span class="kw">as </span>BufferCache};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::{font_system, to_color, Editor, Paragraph};
 
-<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::collections::hash_map;
-<span class="kw">use </span>std::rc::Rc;
+<span class="kw">use </span>std::rc::{<span class="self">self</span>, Rc};
 <span class="kw">use </span>std::sync::atomic::{<span class="self">self</span>, AtomicU64};
 <span class="kw">use </span>std::sync::Arc;
 
@@ -613,12 +612,12 @@
     buffer_cache: BufferCache,
     transformation: Transformation,
     version: usize,
+    text: rc::Weak&lt;[Text]&gt;,
 }
 
 <span class="attr">#[derive(Default)]
 </span><span class="kw">pub struct </span>Storage {
     uploads: FxHashMap&lt;Id, Upload&gt;,
-    recently_used: FxHashSet&lt;Id&gt;,
 }
 
 <span class="kw">impl </span>Storage {
@@ -706,6 +705,7 @@
                     buffer_cache,
                     transformation: new_transformation,
                     version: <span class="number">0</span>,
+                    text: Rc::downgrade(<span class="kw-2">&amp;</span>cache.text),
                 });
 
                 <span class="macro">log::info!</span>(
@@ -715,13 +715,11 @@
                 );
             }
         }
-
-        <span class="kw">let _ </span>= <span class="self">self</span>.recently_used.insert(cache.id);
     }
 
     <span class="kw">pub fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.uploads.retain(|id, <span class="kw">_</span>| <span class="self">self</span>.recently_used.contains(id));
-        <span class="self">self</span>.recently_used.clear();
+        <span class="self">self</span>.uploads
+            .retain(|_id, upload| upload.text.strong_count() &gt; <span class="number">0</span>);
     }
 }
 

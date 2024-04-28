@@ -956,7 +956,6 @@
 <a href="#956" id="956">956</a>
 <a href="#957" id="957">957</a>
 <a href="#958" id="958">958</a>
-<a href="#959" id="959">959</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Draw meshes of triangles.
 </span><span class="kw">mod </span>msaa;
 
@@ -965,9 +964,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::graphics::Antialiasing;
 <span class="kw">use </span><span class="kw">crate</span>::Buffer;
 
-<span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<span class="kw">use </span>rustc_hash::FxHashMap;
 <span class="kw">use </span>std::collections::hash_map;
-<span class="kw">use </span>std::rc::Rc;
+<span class="kw">use </span>std::rc::{<span class="self">self</span>, Rc};
 <span class="kw">use </span>std::sync::atomic::{<span class="self">self</span>, AtomicU64};
 
 <span class="kw">const </span>INITIAL_INDEX_COUNT: usize = <span class="number">1_000</span>;
@@ -1023,12 +1022,12 @@
     layer: Layer,
     transformation: Transformation,
     version: usize,
+    batch: rc::Weak&lt;[Mesh]&gt;,
 }
 
 <span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>Storage {
     uploads: FxHashMap&lt;Id, Upload&gt;,
-    recently_used: FxHashSet&lt;Id&gt;,
 }
 
 <span class="kw">impl </span>Storage {
@@ -1093,6 +1092,7 @@
                     layer,
                     transformation: new_transformation,
                     version: <span class="number">0</span>,
+                    batch: Rc::downgrade(<span class="kw-2">&amp;</span>cache.batch),
                 });
 
                 <span class="macro">log::info!</span>(
@@ -1102,13 +1102,11 @@
                 );
             }
         }
-
-        <span class="kw">let _ </span>= <span class="self">self</span>.recently_used.insert(cache.id);
     }
 
     <span class="kw">pub fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="self">self</span>.uploads.retain(|id, <span class="kw">_</span>| <span class="self">self</span>.recently_used.contains(id));
-        <span class="self">self</span>.recently_used.clear();
+        <span class="self">self</span>.uploads
+            .retain(|_id, upload| upload.batch.strong_count() &gt; <span class="number">0</span>);
     }
 }
 
