@@ -617,6 +617,10 @@
 <a href="#617" id="617">617</a>
 <a href="#618" id="618">618</a>
 <a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compose existing renderers and create type-safe fallback strategies.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::image;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
@@ -1047,8 +1051,8 @@
 </span><span class="kw">mod </span>geometry {
     <span class="kw">use </span><span class="kw">super</span>::Renderer;
     <span class="kw">use </span><span class="kw">crate</span>::core::{Point, Radians, Rectangle, Size, Vector};
+    <span class="kw">use </span><span class="kw">crate</span>::graphics::cache::{<span class="self">self</span>, Cached};
     <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{<span class="self">self</span>, Fill, Path, Stroke, Text};
-    <span class="kw">use </span><span class="kw">crate</span>::graphics::Cached;
 
     <span class="kw">impl</span>&lt;A, B&gt; geometry::Renderer <span class="kw">for </span>Renderer&lt;A, B&gt;
     <span class="kw">where
@@ -1102,21 +1106,25 @@
             }
         }
 
-        <span class="kw">fn </span>cache(<span class="self">self</span>, previous: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Cache&gt;) -&gt; <span class="self">Self</span>::Cache {
+        <span class="kw">fn </span>cache(
+            <span class="self">self</span>,
+            group: cache::Group,
+            previous: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Cache&gt;,
+        ) -&gt; <span class="self">Self</span>::Cache {
             <span class="kw">match </span>(<span class="self">self</span>, previous) {
                 (
                     <span class="self">Self</span>::Primary(geometry),
                     <span class="prelude-val">Some</span>(Geometry::Primary(previous)),
-                ) =&gt; Geometry::Primary(geometry.cache(<span class="prelude-val">Some</span>(previous))),
+                ) =&gt; Geometry::Primary(geometry.cache(group, <span class="prelude-val">Some</span>(previous))),
                 (<span class="self">Self</span>::Primary(geometry), <span class="prelude-val">None</span>) =&gt; {
-                    Geometry::Primary(geometry.cache(<span class="prelude-val">None</span>))
+                    Geometry::Primary(geometry.cache(group, <span class="prelude-val">None</span>))
                 }
                 (
                     <span class="self">Self</span>::Secondary(geometry),
                     <span class="prelude-val">Some</span>(Geometry::Secondary(previous)),
-                ) =&gt; Geometry::Secondary(geometry.cache(<span class="prelude-val">Some</span>(previous))),
+                ) =&gt; Geometry::Secondary(geometry.cache(group, <span class="prelude-val">Some</span>(previous))),
                 (<span class="self">Self</span>::Secondary(geometry), <span class="prelude-val">None</span>) =&gt; {
-                    Geometry::Secondary(geometry.cache(<span class="prelude-val">None</span>))
+                    Geometry::Secondary(geometry.cache(group, <span class="prelude-val">None</span>))
                 }
                 <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }

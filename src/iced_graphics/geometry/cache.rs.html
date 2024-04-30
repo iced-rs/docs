@@ -114,16 +114,11 @@
 <a href="#114" id="114">114</a>
 <a href="#115" id="115">115</a>
 <a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::Size;
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::cache::{<span class="self">self</span>, Cached};
+<span class="kw">use </span><span class="kw">crate</span>::core::Size;
 <span class="kw">use </span><span class="kw">crate</span>::geometry::{<span class="self">self</span>, Frame};
-<span class="kw">use </span><span class="kw">crate</span>::Cached;
 
-<span class="kw">use </span>std::cell::RefCell;
+<span class="kw">pub use </span>cache::Group;
 
 <span class="doccomment">/// A simple cache that stores generated geometry to avoid recomputation.
 ///
@@ -133,7 +128,13 @@
 <span class="kw">where
     </span>Renderer: geometry::Renderer,
 {
-    state: RefCell&lt;State&lt;Renderer::Geometry&gt;&gt;,
+    raw: <span class="kw">crate</span>::Cache&lt;Data&lt;&lt;Renderer::Geometry <span class="kw">as </span>Cached&gt;::Cache&gt;&gt;,
+}
+
+<span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">struct </span>Data&lt;T&gt; {
+    bounds: Size,
+    geometry: T,
 }
 
 <span class="kw">impl</span>&lt;Renderer&gt; Cache&lt;Renderer&gt;
@@ -143,20 +144,25 @@
     <span class="doccomment">/// Creates a new empty [`Cache`].
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         Cache {
-            state: RefCell::new(State::Empty { previous: <span class="prelude-val">None </span>}),
+            raw: cache::Cache::new(),
+        }
+    }
+
+    <span class="doccomment">/// Creates a new empty [`Cache`] with the given [`Group`].
+    ///
+    /// Caches within the same group may reuse internal rendering storage.
+    ///
+    /// You should generally group caches that are likely to change
+    /// together.
+    </span><span class="kw">pub fn </span>with_group(group: Group) -&gt; <span class="self">Self </span>{
+        Cache {
+            raw: <span class="kw">crate</span>::Cache::with_group(group),
         }
     }
 
     <span class="doccomment">/// Clears the [`Cache`], forcing a redraw the next time it is used.
     </span><span class="kw">pub fn </span>clear(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">use </span>std::ops::Deref;
-
-        <span class="kw">let </span>previous = <span class="kw">match </span><span class="self">self</span>.state.borrow().deref() {
-            State::Empty { previous } =&gt; previous.clone(),
-            State::Filled { geometry, .. } =&gt; <span class="prelude-val">Some</span>(geometry.clone()),
-        };
-
-        <span class="kw-2">*</span><span class="self">self</span>.state.borrow_mut() = State::Empty { previous };
+        <span class="self">self</span>.raw.clear();
     }
 
     <span class="doccomment">/// Draws geometry using the provided closure and stores it in the
@@ -177,27 +183,30 @@
     ) -&gt; Renderer::Geometry {
         <span class="kw">use </span>std::ops::Deref;
 
-        <span class="kw">let </span>previous = <span class="kw">match </span><span class="self">self</span>.state.borrow().deref() {
-            State::Empty { previous } =&gt; previous.clone(),
-            State::Filled {
-                bounds: cached_bounds,
-                geometry,
-            } =&gt; {
-                <span class="kw">if </span><span class="kw-2">*</span>cached_bounds == bounds {
-                    <span class="kw">return </span>Cached::load(geometry);
+        <span class="kw">let </span>state = <span class="self">self</span>.raw.state();
+
+        <span class="kw">let </span>previous = <span class="kw">match </span>state.borrow().deref() {
+            cache::State::Empty { previous } =&gt; {
+                previous.as_ref().map(|data| data.geometry.clone())
+            }
+            cache::State::Filled { current } =&gt; {
+                <span class="kw">if </span>current.bounds == bounds {
+                    <span class="kw">return </span>Cached::load(<span class="kw-2">&amp;</span>current.geometry);
                 }
 
-                <span class="prelude-val">Some</span>(geometry.clone())
+                <span class="prelude-val">Some</span>(current.geometry.clone())
             }
         };
 
         <span class="kw">let </span><span class="kw-2">mut </span>frame = Frame::new(renderer, bounds);
         draw_fn(<span class="kw-2">&amp;mut </span>frame);
 
-        <span class="kw">let </span>geometry = frame.into_geometry().cache(previous);
+        <span class="kw">let </span>geometry = frame.into_geometry().cache(<span class="self">self</span>.raw.group(), previous);
         <span class="kw">let </span>result = Cached::load(<span class="kw-2">&amp;</span>geometry);
 
-        <span class="kw-2">*</span><span class="self">self</span>.state.borrow_mut() = State::Filled { bounds, geometry };
+        <span class="kw-2">*</span>state.borrow_mut() = cache::State::Filled {
+            current: Data { bounds, geometry },
+        };
 
         result
     }
@@ -206,16 +215,10 @@
 <span class="kw">impl</span>&lt;Renderer&gt; std::fmt::Debug <span class="kw">for </span>Cache&lt;Renderer&gt;
 <span class="kw">where
     </span>Renderer: geometry::Renderer,
+    &lt;Renderer::Geometry <span class="kw">as </span>Cached&gt;::Cache: std::fmt::Debug,
 {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">let </span>state = <span class="self">self</span>.state.borrow();
-
-        <span class="kw">match </span><span class="kw-2">*</span>state {
-            State::Empty { .. } =&gt; <span class="macro">write!</span>(f, <span class="string">"Cache::Empty"</span>),
-            State::Filled { bounds, .. } =&gt; {
-                <span class="macro">write!</span>(f, <span class="string">"Cache::Filled {{ bounds: {bounds:?} }}"</span>)
-            }
-        }
+        <span class="macro">write!</span>(f, <span class="string">"{:?}"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.raw)
     }
 }
 
@@ -226,18 +229,5 @@
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
-}
-
-<span class="kw">enum </span>State&lt;Geometry&gt;
-<span class="kw">where
-    </span>Geometry: Cached,
-{
-    Empty {
-        previous: <span class="prelude-ty">Option</span>&lt;Geometry::Cache&gt;,
-    },
-    Filled {
-        bounds: Size,
-        geometry: Geometry::Cache,
-    },
 }
 </code></pre></div></section></main></body></html>

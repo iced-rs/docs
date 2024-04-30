@@ -650,11 +650,17 @@
 <a href="#650" id="650">650</a>
 <a href="#651" id="651">651</a>
 <a href="#652" id="652">652</a>
+<a href="#653" id="653">653</a>
+<a href="#654" id="654">654</a>
+<a href="#655" id="655">655</a>
+<a href="#656" id="656">656</a>
+<a href="#657" id="657">657</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and draw geometry.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::text::LineHeight;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
     Pixels, Point, Radians, Rectangle, Size, Transformation, Vector,
 };
+<span class="kw">use </span><span class="kw">crate</span>::graphics::cache::{<span class="self">self</span>, Cached};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::fill::{<span class="self">self</span>, Fill};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{
@@ -662,7 +668,7 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::graphics::gradient::{<span class="self">self</span>, Gradient};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::mesh::{<span class="self">self</span>, Mesh};
-<span class="kw">use </span><span class="kw">crate</span>::graphics::{<span class="self">self</span>, Cached, Text};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::{<span class="self">self</span>, Text};
 <span class="kw">use </span><span class="kw">crate</span>::text;
 <span class="kw">use </span><span class="kw">crate</span>::triangle;
 
@@ -690,7 +696,11 @@
         Geometry::Cached(cache.clone())
     }
 
-    <span class="kw">fn </span>cache(<span class="self">self</span>, previous: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Cache&gt;) -&gt; <span class="self">Self</span>::Cache {
+    <span class="kw">fn </span>cache(
+        <span class="self">self</span>,
+        group: cache::Group,
+        previous: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Cache&gt;,
+    ) -&gt; <span class="self">Self</span>::Cache {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::Live { meshes, text } =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>previous) = previous {
@@ -703,14 +713,14 @@
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(cache) = <span class="kw-2">&amp;mut </span>previous.text {
                         cache.update(text);
                     } <span class="kw">else </span>{
-                        previous.text = text::Cache::new(text);
+                        previous.text = text::Cache::new(group, text);
                     }
 
                     previous
                 } <span class="kw">else </span>{
                     Cache {
                         meshes: triangle::Cache::new(meshes),
-                        text: text::Cache::new(text),
+                        text: text::Cache::new(group, text),
                     }
                 }
             }
