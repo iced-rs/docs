@@ -140,6 +140,18 @@
 <a href="#140" id="140">140</a>
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Load and operate on images.
 </span><span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
 </span><span class="kw">pub use </span>::image <span class="kw">as </span>image_rs;
@@ -192,7 +204,8 @@
 /// [`Handle`]: image::Handle
 </span><span class="kw">pub fn </span>load(
     handle: <span class="kw-2">&amp;</span>image::Handle,
-) -&gt; ::image::ImageResult&lt;::image::DynamicImage&gt; {
+) -&gt; ::image::ImageResult&lt;::image::ImageBuffer&lt;::image::Rgba&lt;u8&gt;, image::Bytes&gt;&gt;
+{
     <span class="kw">use </span>bitflags::bitflags;
 
     <span class="macro">bitflags! </span>{
@@ -242,8 +255,8 @@
         }
     }
 
-    <span class="kw">match </span>handle.data() {
-        image::Data::Path(path) =&gt; {
+    <span class="kw">let </span>(width, height, pixels) = <span class="kw">match </span>handle {
+        image::Handle::Path(<span class="kw">_</span>, path) =&gt; {
             <span class="kw">let </span>image = ::image::open(path)<span class="question-mark">?</span>;
 
             <span class="kw">let </span>operation = std::fs::File::open(path)
@@ -252,34 +265,45 @@
                 .and_then(|<span class="kw-2">mut </span>reader| Operation::from_exif(<span class="kw-2">&amp;mut </span>reader).ok())
                 .unwrap_or_else(Operation::empty);
 
-            <span class="prelude-val">Ok</span>(operation.perform(image))
+            <span class="kw">let </span>rgba = operation.perform(image).into_rgba8();
+
+            (
+                rgba.width(),
+                rgba.height(),
+                image::Bytes::from(rgba.into_raw()),
+            )
         }
-        image::Data::Bytes(bytes) =&gt; {
+        image::Handle::Bytes(<span class="kw">_</span>, bytes) =&gt; {
             <span class="kw">let </span>image = ::image::load_from_memory(bytes)<span class="question-mark">?</span>;
             <span class="kw">let </span>operation =
                 Operation::from_exif(<span class="kw-2">&amp;mut </span>std::io::Cursor::new(bytes))
                     .ok()
                     .unwrap_or_else(Operation::empty);
 
-            <span class="prelude-val">Ok</span>(operation.perform(image))
+            <span class="kw">let </span>rgba = operation.perform(image).into_rgba8();
+
+            (
+                rgba.width(),
+                rgba.height(),
+                image::Bytes::from(rgba.into_raw()),
+            )
         }
-        image::Data::Rgba {
+        image::Handle::Rgba {
             width,
             height,
             pixels,
-        } =&gt; {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(image) =
-                ::image::ImageBuffer::from_vec(<span class="kw-2">*</span>width, <span class="kw-2">*</span>height, pixels.to_vec())
-            {
-                <span class="prelude-val">Ok</span>(::image::DynamicImage::ImageRgba8(image))
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Err</span>(::image::error::ImageError::Limits(
-                    ::image::error::LimitError::from_kind(
-                        ::image::error::LimitErrorKind::DimensionError,
-                    ),
-                ))
-            }
-        }
+            ..
+        } =&gt; (<span class="kw-2">*</span>width, <span class="kw-2">*</span>height, pixels.clone()),
+    };
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(image) = ::image::ImageBuffer::from_raw(width, height, pixels) {
+        <span class="prelude-val">Ok</span>(image)
+    } <span class="kw">else </span>{
+        <span class="prelude-val">Err</span>(::image::error::ImageError::Limits(
+            ::image::error::LimitError::from_kind(
+                ::image::error::LimitErrorKind::DimensionError,
+            ),
+        ))
     }
 }
 </code></pre></div></section></main></body></html>

@@ -175,42 +175,48 @@
 <a href="#175" id="175">175</a>
 <a href="#176" id="176">176</a>
 <a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Load and draw raster graphics.
-</span><span class="kw">use crate</span>::{Rectangle, Size};
+</span><span class="kw">pub use </span>bytes::Bytes;
+
+<span class="kw">use crate</span>::{Rectangle, Size};
 
 <span class="kw">use </span>rustc_hash::FxHasher;
-<span class="kw">use </span>std::hash::{Hash, Hasher <span class="kw">as _</span>};
-<span class="kw">use </span>std::path::PathBuf;
-<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>std::hash::{Hash, Hasher};
+<span class="kw">use </span>std::path::{Path, PathBuf};
 
 <span class="doccomment">/// A handle of some image data.
-</span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq)]
-</span><span class="kw">pub struct </span>Handle {
-    id: u64,
-    data: Data,
+</span><span class="attr">#[derive(Clone, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>Handle {
+    <span class="doccomment">/// A file handle. The image data will be read
+    /// from the file path.
+    ///
+    /// Use [`from_path`] to create this variant.
+    ///
+    /// [`from_path`]: Self::from_path
+    </span>Path(Id, PathBuf),
+
+    <span class="doccomment">/// A handle pointing to some encoded image bytes in-memory.
+    ///
+    /// Use [`from_bytes`] to create this variant.
+    ///
+    /// [`from_bytes`]: Self::from_bytes
+    </span>Bytes(Id, Bytes),
+
+    <span class="doccomment">/// A handle pointing to decoded image pixels in RGBA format.
+    ///
+    /// Use [`from_rgba`] to create this variant.
+    ///
+    /// [`from_rgba`]: Self::from_rgba
+    </span>Rgba {
+        <span class="doccomment">/// The id of this handle.
+        </span>id: Id,
+        <span class="doccomment">/// The width of the image.
+        </span>width: u32,
+        <span class="doccomment">/// The height of the image.
+        </span>height: u32,
+        <span class="doccomment">/// The pixels.
+        </span>pixels: Bytes,
+    },
 }
 
 <span class="kw">impl </span>Handle {
@@ -218,56 +224,48 @@
     ///
     /// Makes an educated guess about the image format by examining the data in the file.
     </span><span class="kw">pub fn </span>from_path&lt;T: Into&lt;PathBuf&gt;&gt;(path: T) -&gt; Handle {
-        <span class="self">Self</span>::from_data(Data::Path(path.into()))
+        <span class="kw">let </span>path = path.into();
+
+        <span class="self">Self</span>::Path(Id::path(<span class="kw-2">&amp;</span>path), path)
     }
 
-    <span class="doccomment">/// Creates an image [`Handle`] containing the image pixels directly. This
-    /// function expects the input data to be provided as a `Vec&lt;u8&gt;` of RGBA
-    /// pixels.
-    ///
-    /// This is useful if you have already decoded your image.
-    </span><span class="kw">pub fn </span>from_pixels(
-        width: u32,
-        height: u32,
-        pixels: <span class="kw">impl </span>AsRef&lt;[u8]&gt; + Send + Sync + <span class="lifetime">'static</span>,
-    ) -&gt; Handle {
-        <span class="self">Self</span>::from_data(Data::Rgba {
-            width,
-            height,
-            pixels: Bytes::new(pixels),
-        })
-    }
-
-    <span class="doccomment">/// Creates an image [`Handle`] containing the image data directly.
+    <span class="doccomment">/// Creates an image [`Handle`] containing the encoded image data directly.
     ///
     /// Makes an educated guess about the image format by examining the given data.
     ///
     /// This is useful if you already have your image loaded in-memory, maybe
     /// because you downloaded or generated it procedurally.
-    </span><span class="kw">pub fn </span>from_memory(
-        bytes: <span class="kw">impl </span>AsRef&lt;[u8]&gt; + Send + Sync + <span class="lifetime">'static</span>,
-    ) -&gt; Handle {
-        <span class="self">Self</span>::from_data(Data::Bytes(Bytes::new(bytes)))
+    </span><span class="kw">pub fn </span>from_bytes(bytes: <span class="kw">impl </span>Into&lt;Bytes&gt;) -&gt; Handle {
+        <span class="self">Self</span>::Bytes(Id::unique(), bytes.into())
     }
 
-    <span class="kw">fn </span>from_data(data: Data) -&gt; Handle {
-        <span class="kw">let </span><span class="kw-2">mut </span>hasher = FxHasher::default();
-        data.hash(<span class="kw-2">&amp;mut </span>hasher);
-
-        Handle {
-            id: hasher.finish(),
-            data,
+    <span class="doccomment">/// Creates an image [`Handle`] containing the decoded image pixels directly.
+    ///
+    /// This function expects the pixel data to be provided as a collection of [`Bytes`]
+    /// of RGBA pixels. Therefore, the length of the pixel data should always be
+    /// `width * height * 4`.
+    ///
+    /// This is useful if you have already decoded your image.
+    </span><span class="kw">pub fn </span>from_rgba(
+        width: u32,
+        height: u32,
+        pixels: <span class="kw">impl </span>Into&lt;Bytes&gt;,
+    ) -&gt; Handle {
+        <span class="self">Self</span>::Rgba {
+            id: Id::unique(),
+            width,
+            height,
+            pixels: pixels.into(),
         }
     }
 
     <span class="doccomment">/// Returns the unique identifier of the [`Handle`].
-    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
-        <span class="self">self</span>.id
-    }
-
-    <span class="doccomment">/// Returns a reference to the image [`Data`].
-    </span><span class="kw">pub fn </span>data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Data {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.data
+    </span><span class="kw">pub fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Id {
+        <span class="kw">match </span><span class="self">self </span>{
+            Handle::Path(id, <span class="kw">_</span>)
+            | Handle::Bytes(id, <span class="kw">_</span>)
+            | Handle::Rgba { id, .. } =&gt; <span class="kw-2">*</span>id,
+        }
     }
 }
 
@@ -280,90 +278,46 @@
     }
 }
 
-<span class="kw">impl </span>Hash <span class="kw">for </span>Handle {
-    <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
-        <span class="self">self</span>.id.hash(state);
-    }
-}
-
-<span class="doccomment">/// A wrapper around raw image data.
-///
-/// It behaves like a `&amp;[u8]`.
-</span><span class="attr">#[derive(Clone)]
-</span><span class="kw">pub struct </span>Bytes(Arc&lt;<span class="kw">dyn </span>AsRef&lt;[u8]&gt; + Send + Sync + <span class="lifetime">'static</span>&gt;);
-
-<span class="kw">impl </span>Bytes {
-    <span class="doccomment">/// Creates new [`Bytes`] around `data`.
-    </span><span class="kw">pub fn </span>new(data: <span class="kw">impl </span>AsRef&lt;[u8]&gt; + Send + Sync + <span class="lifetime">'static</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(Arc::new(data))
-    }
-}
-
-<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Bytes {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="self">self</span>.<span class="number">0</span>.as_ref().as_ref().fmt(f)
-    }
-}
-
-<span class="kw">impl </span>std::hash::Hash <span class="kw">for </span>Bytes {
-    <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
-        <span class="self">self</span>.<span class="number">0</span>.as_ref().as_ref().hash(state);
-    }
-}
-
-<span class="kw">impl </span>PartialEq <span class="kw">for </span>Bytes {
-    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-        <span class="kw">let </span>a = <span class="self">self</span>.as_ref();
-        <span class="kw">let </span>b = other.as_ref();
-        core::ptr::eq(a, b) || a == b
-    }
-}
-
-<span class="kw">impl </span>Eq <span class="kw">for </span>Bytes {}
-
-<span class="kw">impl </span>AsRef&lt;[u8]&gt; <span class="kw">for </span>Bytes {
-    <span class="kw">fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
-        <span class="self">self</span>.<span class="number">0</span>.as_ref().as_ref()
-    }
-}
-
-<span class="kw">impl </span>std::ops::Deref <span class="kw">for </span>Bytes {
-    <span class="kw">type </span>Target = [u8];
-
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
-        <span class="self">self</span>.<span class="number">0</span>.as_ref().as_ref()
-    }
-}
-
-<span class="doccomment">/// The data of a raster image.
-</span><span class="attr">#[derive(Clone, PartialEq, Eq, Hash)]
-</span><span class="kw">pub enum </span>Data {
-    <span class="doccomment">/// File data
-    </span>Path(PathBuf),
-
-    <span class="doccomment">/// In-memory data
-    </span>Bytes(Bytes),
-
-    <span class="doccomment">/// Decoded image pixels in RGBA format.
-    </span>Rgba {
-        <span class="doccomment">/// The width of the image.
-        </span>width: u32,
-        <span class="doccomment">/// The height of the image.
-        </span>height: u32,
-        <span class="doccomment">/// The pixels.
-        </span>pixels: Bytes,
-    },
-}
-
-<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Data {
+<span class="kw">impl </span>std::fmt::Debug <span class="kw">for </span>Handle {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="kw">match </span><span class="self">self </span>{
-            Data::Path(path) =&gt; <span class="macro">write!</span>(f, <span class="string">"Path({path:?})"</span>),
-            Data::Bytes(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Bytes(...)"</span>),
-            Data::Rgba { width, height, .. } =&gt; {
+            <span class="self">Self</span>::Path(<span class="kw">_</span>, path) =&gt; <span class="macro">write!</span>(f, <span class="string">"Path({path:?})"</span>),
+            <span class="self">Self</span>::Bytes(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">write!</span>(f, <span class="string">"Bytes(...)"</span>),
+            <span class="self">Self</span>::Rgba { width, height, .. } =&gt; {
                 <span class="macro">write!</span>(f, <span class="string">"Pixels({width} * {height})"</span>)
             }
         }
+    }
+}
+
+<span class="doccomment">/// The unique identifier of some [`Handle`] data.
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="kw">pub struct </span>Id(_Id);
+
+<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+</span><span class="kw">enum </span>_Id {
+    Unique(u64),
+    Hash(u64),
+}
+
+<span class="kw">impl </span>Id {
+    <span class="kw">fn </span>unique() -&gt; <span class="self">Self </span>{
+        <span class="kw">use </span>std::sync::atomic::{<span class="self">self</span>, AtomicU64};
+
+        <span class="kw">static </span>NEXT_ID: AtomicU64 = AtomicU64::new(<span class="number">0</span>);
+
+        <span class="self">Self</span>(_Id::Unique(NEXT_ID.fetch_add(<span class="number">1</span>, atomic::Ordering::Relaxed)))
+    }
+
+    <span class="kw">fn </span>path(path: <span class="kw">impl </span>AsRef&lt;Path&gt;) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>hash = {
+            <span class="kw">let </span><span class="kw-2">mut </span>hasher = FxHasher::default();
+            path.as_ref().hash(<span class="kw-2">&amp;mut </span>hasher);
+
+            hasher.finish()
+        };
+
+        <span class="self">Self</span>(_Id::Hash(hash))
     }
 }
 
@@ -384,7 +338,7 @@
     <span class="doccomment">/// The image Handle to be displayed. Iced exposes its own default implementation of a [`Handle`]
     ///
     /// [`Handle`]: Self::Handle
-    </span><span class="kw">type </span>Handle: Clone + Hash;
+    </span><span class="kw">type </span>Handle: Clone;
 
     <span class="doccomment">/// Returns the dimensions of an image for the given [`Handle`].
     </span><span class="kw">fn </span>measure_image(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; Size&lt;u32&gt;;

@@ -138,7 +138,7 @@
 </span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>Memory {
     <span class="doccomment">/// Image data on host
-    </span>Host(image_rs::ImageBuffer&lt;image_rs::Rgba&lt;u8&gt;, Vec&lt;u8&gt;&gt;),
+    </span>Host(image_rs::ImageBuffer&lt;image_rs::Rgba&lt;u8&gt;, image::Bytes&gt;),
     <span class="doccomment">/// Storage entry
     </span>Device(atlas::Entry),
     <span class="doccomment">/// Image not found
@@ -166,8 +166,8 @@
 <span class="doccomment">/// Caches image raster data
 </span><span class="attr">#[derive(Debug, Default)]
 </span><span class="kw">pub struct </span>Cache {
-    map: FxHashMap&lt;u64, Memory&gt;,
-    hits: FxHashSet&lt;u64&gt;,
+    map: FxHashMap&lt;image::Id, Memory&gt;,
+    hits: FxHashSet&lt;image::Id&gt;,
     should_trim: bool,
 }
 
@@ -179,7 +179,7 @@
         }
 
         <span class="kw">let </span>memory = <span class="kw">match </span>graphics::image::load(handle) {
-            <span class="prelude-val">Ok</span>(image) =&gt; Memory::Host(image.to_rgba8()),
+            <span class="prelude-val">Ok</span>(image) =&gt; Memory::Host(image),
             <span class="prelude-val">Err</span>(image_rs::error::ImageError::IoError(<span class="kw">_</span>)) =&gt; Memory::NotFound,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; Memory::Invalid,
         };
