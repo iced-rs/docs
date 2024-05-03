@@ -570,6 +570,35 @@
 <a href="#570" id="570">570</a>
 <a href="#571" id="571">571</a>
 <a href="#572" id="572">572</a>
+<a href="#573" id="573">573</a>
+<a href="#574" id="574">574</a>
+<a href="#575" id="575">575</a>
+<a href="#576" id="576">576</a>
+<a href="#577" id="577">577</a>
+<a href="#578" id="578">578</a>
+<a href="#579" id="579">579</a>
+<a href="#580" id="580">580</a>
+<a href="#581" id="581">581</a>
+<a href="#582" id="582">582</a>
+<a href="#583" id="583">583</a>
+<a href="#584" id="584">584</a>
+<a href="#585" id="585">585</a>
+<a href="#586" id="586">586</a>
+<a href="#587" id="587">587</a>
+<a href="#588" id="588">588</a>
+<a href="#589" id="589">589</a>
+<a href="#590" id="590">590</a>
+<a href="#591" id="591">591</a>
+<a href="#592" id="592">592</a>
+<a href="#593" id="593">593</a>
+<a href="#594" id="594">594</a>
+<a href="#595" id="595">595</a>
+<a href="#596" id="596">596</a>
+<a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
 </pre></div><pre class="rust"><code><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>cache;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>cache::Cache;
 
@@ -707,14 +736,18 @@
                         attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
                             <span class="comment">// Position
                             </span><span class="number">0 </span>=&gt; Float32x2,
-                            <span class="comment">// Scale
+                            <span class="comment">// Center
                             </span><span class="number">1 </span>=&gt; Float32x2,
-                            <span class="comment">// Atlas position
+                            <span class="comment">// Image size
                             </span><span class="number">2 </span>=&gt; Float32x2,
+                            <span class="comment">// Rotation
+                            </span><span class="number">3 </span>=&gt; Float32,
+                            <span class="comment">// Atlas position
+                            </span><span class="number">4 </span>=&gt; Float32x2,
                             <span class="comment">// Atlas scale
-                            </span><span class="number">3 </span>=&gt; Float32x2,
+                            </span><span class="number">5 </span>=&gt; Float32x2,
                             <span class="comment">// Layer
-                            </span><span class="number">4 </span>=&gt; Sint32,
+                            </span><span class="number">6 </span>=&gt; Sint32,
                         ),
                     }],
                 },
@@ -796,6 +829,7 @@
                     handle,
                     filter_method,
                     bounds,
+                    rotation,
                 } =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(atlas_entry) =
                         cache.upload_raster(device, encoder, handle)
@@ -803,6 +837,7 @@
                         add_instances(
                             [bounds.x, bounds.y],
                             [bounds.width, bounds.height],
+                            f32::from(<span class="kw-2">*</span>rotation),
                             atlas_entry,
                             <span class="kw">match </span>filter_method {
                                 <span class="kw">crate</span>::core::image::FilterMethod::Nearest =&gt; {
@@ -823,6 +858,7 @@
                     handle,
                     color,
                     bounds,
+                    rotation,
                 } =&gt; {
                     <span class="kw">let </span>size = [bounds.width, bounds.height];
 
@@ -832,6 +868,7 @@
                         add_instances(
                             [bounds.x, bounds.y],
                             size,
+                            f32::from(<span class="kw-2">*</span>rotation),
                             atlas_entry,
                             nearest_instances,
                         );
@@ -1059,7 +1096,9 @@
 #[derive(Debug, Clone, Copy, Zeroable, Pod)]
 </span><span class="kw">struct </span>Instance {
     _position: [f32; <span class="number">2</span>],
+    _center: [f32; <span class="number">2</span>],
     _size: [f32; <span class="number">2</span>],
+    _rotation: f32,
     _position_in_atlas: [f32; <span class="number">2</span>],
     _size_in_atlas: [f32; <span class="number">2</span>],
     _layer: u32,
@@ -1078,12 +1117,25 @@
 <span class="kw">fn </span>add_instances(
     image_position: [f32; <span class="number">2</span>],
     image_size: [f32; <span class="number">2</span>],
+    rotation: f32,
     entry: <span class="kw-2">&amp;</span>atlas::Entry,
     instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt;,
 ) {
+    <span class="kw">let </span>center = [
+        image_position[<span class="number">0</span>] + image_size[<span class="number">0</span>] / <span class="number">2.0</span>,
+        image_position[<span class="number">1</span>] + image_size[<span class="number">1</span>] / <span class="number">2.0</span>,
+    ];
+
     <span class="kw">match </span>entry {
         atlas::Entry::Contiguous(allocation) =&gt; {
-            add_instance(image_position, image_size, allocation, instances);
+            add_instance(
+                image_position,
+                center,
+                image_size,
+                rotation,
+                allocation,
+                instances,
+            );
         }
         atlas::Entry::Fragmented { fragments, size } =&gt; {
             <span class="kw">let </span>scaling_x = image_size[<span class="number">0</span>] / size.width <span class="kw">as </span>f32;
@@ -1109,7 +1161,9 @@
                     fragment_height <span class="kw">as </span>f32 * scaling_y,
                 ];
 
-                add_instance(position, size, allocation, instances);
+                add_instance(
+                    position, center, size, rotation, allocation, instances,
+                );
             }
         }
     }
@@ -1118,7 +1172,9 @@
 <span class="attr">#[inline]
 </span><span class="kw">fn </span>add_instance(
     position: [f32; <span class="number">2</span>],
+    center: [f32; <span class="number">2</span>],
     size: [f32; <span class="number">2</span>],
+    rotation: f32,
     allocation: <span class="kw-2">&amp;</span>atlas::Allocation,
     instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt;,
 ) {
@@ -1128,7 +1184,9 @@
 
     <span class="kw">let </span>instance = Instance {
         _position: position,
+        _center: center,
         _size: size,
+        _rotation: rotation,
         _position_in_atlas: [
             (x <span class="kw">as </span>f32 + <span class="number">0.5</span>) / atlas::SIZE <span class="kw">as </span>f32,
             (y <span class="kw">as </span>f32 + <span class="number">0.5</span>) / atlas::SIZE <span class="kw">as </span>f32,

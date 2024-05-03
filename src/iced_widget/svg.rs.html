@@ -260,6 +260,28 @@
 <a href="#260" id="260">260</a>
 <a href="#261" id="261">261</a>
 <a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display vector graphics in your application.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
@@ -267,8 +289,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::svg;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::Tree;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Color, ContentFit, Element, Layout, Length, Rectangle, Size, Theme, Vector,
-    Widget,
+    Color, ContentFit, Element, Layout, Length, Point, Rectangle, Rotation,
+    Size, Theme, Vector, Widget,
 };
 
 <span class="kw">use </span>std::path::PathBuf;
@@ -291,6 +313,7 @@
     height: Length,
     content_fit: ContentFit,
     class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
+    rotation: Rotation,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Theme&gt; Svg&lt;<span class="lifetime">'a</span>, Theme&gt;
@@ -305,6 +328,7 @@
             height: Length::Shrink,
             content_fit: ContentFit::Contain,
             class: Theme::default(),
+            rotation: Rotation::default(),
         }
     }
 
@@ -357,6 +381,12 @@
         <span class="self">self</span>.class = class.into();
         <span class="self">self
     </span>}
+
+    <span class="doccomment">/// Applies the given [`Rotation`] to the [`Svg`].
+    </span><span class="kw">pub fn </span>rotation(<span class="kw-2">mut </span><span class="self">self</span>, rotation: <span class="kw">impl </span>Into&lt;Rotation&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.rotation = rotation.into();
+        <span class="self">self
+    </span>}
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
@@ -382,11 +412,14 @@
         </span><span class="kw">let </span>Size { width, height } = renderer.measure_svg(<span class="kw-2">&amp;</span><span class="self">self</span>.handle);
         <span class="kw">let </span>image_size = Size::new(width <span class="kw">as </span>f32, height <span class="kw">as </span>f32);
 
+        <span class="comment">// The rotated size of the svg
+        </span><span class="kw">let </span>rotated_size = <span class="self">self</span>.rotation.apply(image_size);
+
         <span class="comment">// The size to be available to the widget prior to `Shrink`ing
-        </span><span class="kw">let </span>raw_size = limits.resolve(<span class="self">self</span>.width, <span class="self">self</span>.height, image_size);
+        </span><span class="kw">let </span>raw_size = limits.resolve(<span class="self">self</span>.width, <span class="self">self</span>.height, rotated_size);
 
         <span class="comment">// The uncropped size of the image when fit to the bounds above
-        </span><span class="kw">let </span>full_size = <span class="self">self</span>.content_fit.fit(image_size, raw_size);
+        </span><span class="kw">let </span>full_size = <span class="self">self</span>.content_fit.fit(rotated_size, raw_size);
 
         <span class="comment">// Shrink the widget to fit the resized image, if requested
         </span><span class="kw">let </span>final_size = Size {
@@ -415,35 +448,46 @@
     ) {
         <span class="kw">let </span>Size { width, height } = renderer.measure_svg(<span class="kw-2">&amp;</span><span class="self">self</span>.handle);
         <span class="kw">let </span>image_size = Size::new(width <span class="kw">as </span>f32, height <span class="kw">as </span>f32);
+        <span class="kw">let </span>rotated_size = <span class="self">self</span>.rotation.apply(image_size);
 
         <span class="kw">let </span>bounds = layout.bounds();
-        <span class="kw">let </span>adjusted_fit = <span class="self">self</span>.content_fit.fit(image_size, bounds.size());
+        <span class="kw">let </span>adjusted_fit = <span class="self">self</span>.content_fit.fit(rotated_size, bounds.size());
+        <span class="kw">let </span>scale = Vector::new(
+            adjusted_fit.width / rotated_size.width,
+            adjusted_fit.height / rotated_size.height,
+        );
+
+        <span class="kw">let </span>final_size = image_size * scale;
+
+        <span class="kw">let </span>position = <span class="kw">match </span><span class="self">self</span>.content_fit {
+            ContentFit::None =&gt; Point::new(
+                bounds.x + (rotated_size.width - adjusted_fit.width) / <span class="number">2.0</span>,
+                bounds.y + (rotated_size.height - adjusted_fit.height) / <span class="number">2.0</span>,
+            ),
+            <span class="kw">_ </span>=&gt; Point::new(
+                bounds.center_x() - final_size.width / <span class="number">2.0</span>,
+                bounds.center_y() - final_size.height / <span class="number">2.0</span>,
+            ),
+        };
+
+        <span class="kw">let </span>drawing_bounds = Rectangle::new(position, final_size);
+
         <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
 
+        <span class="kw">let </span>status = <span class="kw">if </span>is_mouse_over {
+            Status::Hovered
+        } <span class="kw">else </span>{
+            Status::Idle
+        };
+
+        <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class, status);
+
         <span class="kw">let </span>render = |renderer: <span class="kw-2">&amp;mut </span>Renderer| {
-            <span class="kw">let </span>offset = Vector::new(
-                (bounds.width - adjusted_fit.width).max(<span class="number">0.0</span>) / <span class="number">2.0</span>,
-                (bounds.height - adjusted_fit.height).max(<span class="number">0.0</span>) / <span class="number">2.0</span>,
-            );
-
-            <span class="kw">let </span>drawing_bounds = Rectangle {
-                width: adjusted_fit.width,
-                height: adjusted_fit.height,
-                ..bounds
-            };
-
-            <span class="kw">let </span>status = <span class="kw">if </span>is_mouse_over {
-                Status::Hovered
-            } <span class="kw">else </span>{
-                Status::Idle
-            };
-
-            <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class, status);
-
             renderer.draw_svg(
                 <span class="self">self</span>.handle.clone(),
                 style.color,
-                drawing_bounds + offset,
+                drawing_bounds,
+                <span class="self">self</span>.rotation.radians(),
             );
         };
 
