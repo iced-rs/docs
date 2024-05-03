@@ -599,6 +599,18 @@
 <a href="#599" id="599">599</a>
 <a href="#600" id="600">600</a>
 <a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
+<a href="#606" id="606">606</a>
+<a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
 </pre></div><pre class="rust"><code><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>cache;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>cache::Cache;
 
@@ -738,16 +750,18 @@
                             </span><span class="number">0 </span>=&gt; Float32x2,
                             <span class="comment">// Center
                             </span><span class="number">1 </span>=&gt; Float32x2,
-                            <span class="comment">// Image size
+                            <span class="comment">// Scale
                             </span><span class="number">2 </span>=&gt; Float32x2,
                             <span class="comment">// Rotation
                             </span><span class="number">3 </span>=&gt; Float32,
+                            <span class="comment">// Opacity
+                            </span><span class="number">4 </span>=&gt; Float32,
                             <span class="comment">// Atlas position
-                            </span><span class="number">4 </span>=&gt; Float32x2,
-                            <span class="comment">// Atlas scale
                             </span><span class="number">5 </span>=&gt; Float32x2,
+                            <span class="comment">// Atlas scale
+                            </span><span class="number">6 </span>=&gt; Float32x2,
                             <span class="comment">// Layer
-                            </span><span class="number">6 </span>=&gt; Sint32,
+                            </span><span class="number">7 </span>=&gt; Sint32,
                         ),
                     }],
                 },
@@ -830,6 +844,7 @@
                     filter_method,
                     bounds,
                     rotation,
+                    opacity,
                 } =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(atlas_entry) =
                         cache.upload_raster(device, encoder, handle)
@@ -838,6 +853,7 @@
                             [bounds.x, bounds.y],
                             [bounds.width, bounds.height],
                             f32::from(<span class="kw-2">*</span>rotation),
+                            <span class="kw-2">*</span>opacity,
                             atlas_entry,
                             <span class="kw">match </span>filter_method {
                                 <span class="kw">crate</span>::core::image::FilterMethod::Nearest =&gt; {
@@ -859,6 +875,7 @@
                     color,
                     bounds,
                     rotation,
+                    opacity,
                 } =&gt; {
                     <span class="kw">let </span>size = [bounds.width, bounds.height];
 
@@ -869,6 +886,7 @@
                             [bounds.x, bounds.y],
                             size,
                             f32::from(<span class="kw-2">*</span>rotation),
+                            <span class="kw-2">*</span>opacity,
                             atlas_entry,
                             nearest_instances,
                         );
@@ -1099,6 +1117,7 @@
     _center: [f32; <span class="number">2</span>],
     _size: [f32; <span class="number">2</span>],
     _rotation: f32,
+    _opacity: f32,
     _position_in_atlas: [f32; <span class="number">2</span>],
     _size_in_atlas: [f32; <span class="number">2</span>],
     _layer: u32,
@@ -1118,6 +1137,7 @@
     image_position: [f32; <span class="number">2</span>],
     image_size: [f32; <span class="number">2</span>],
     rotation: f32,
+    opacity: f32,
     entry: <span class="kw-2">&amp;</span>atlas::Entry,
     instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt;,
 ) {
@@ -1133,6 +1153,7 @@
                 center,
                 image_size,
                 rotation,
+                opacity,
                 allocation,
                 instances,
             );
@@ -1162,7 +1183,8 @@
                 ];
 
                 add_instance(
-                    position, center, size, rotation, allocation, instances,
+                    position, center, size, rotation, opacity, allocation,
+                    instances,
                 );
             }
         }
@@ -1175,6 +1197,7 @@
     center: [f32; <span class="number">2</span>],
     size: [f32; <span class="number">2</span>],
     rotation: f32,
+    opacity: f32,
     allocation: <span class="kw-2">&amp;</span>atlas::Allocation,
     instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt;,
 ) {
@@ -1187,6 +1210,7 @@
         _center: center,
         _size: size,
         _rotation: rotation,
+        _opacity: opacity,
         _position_in_atlas: [
             (x <span class="kw">as </span>f32 + <span class="number">0.5</span>) / atlas::SIZE <span class="kw">as </span>f32,
             (y <span class="kw">as </span>f32 + <span class="number">0.5</span>) / atlas::SIZE <span class="kw">as </span>f32,
