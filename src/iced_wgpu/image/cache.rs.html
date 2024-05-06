@@ -84,32 +84,10 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{<span class="self">self</span>, Size};
 <span class="kw">use </span><span class="kw">crate</span>::image::atlas::{<span class="self">self</span>, Atlas};
 
-<span class="kw">use </span>std::cell::{RefCell, RefMut};
-<span class="kw">use </span>std::rc::Rc;
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Cache {
@@ -121,14 +99,22 @@
 }
 
 <span class="kw">impl </span>Cache {
-    <span class="kw">pub fn </span>new(device: <span class="kw-2">&amp;</span>wgpu::Device, backend: wgpu::Backend) -&gt; <span class="self">Self </span>{
+    <span class="kw">pub fn </span>new(
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        backend: wgpu::Backend,
+        layout: Arc&lt;wgpu::BindGroupLayout&gt;,
+    ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            atlas: Atlas::new(device, backend),
+            atlas: Atlas::new(device, backend, layout),
             <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
             </span>raster: <span class="kw">crate</span>::image::raster::Cache::default(),
             <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
             </span>vector: <span class="kw">crate</span>::image::vector::Cache::default(),
         }
+    }
+
+    <span class="kw">pub fn </span>bind_group(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>wgpu::BindGroup {
+        <span class="self">self</span>.atlas.bind_group()
     }
 
     <span class="kw">pub fn </span>layer_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
@@ -176,40 +162,12 @@
         )
     }
 
-    <span class="kw">pub fn </span>create_bind_group(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        device: <span class="kw-2">&amp;</span>wgpu::Device,
-        layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
-    ) -&gt; wgpu::BindGroup {
-        device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
-            label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image texture atlas bind group"</span>),
-            layout,
-            entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
-                binding: <span class="number">0</span>,
-                resource: wgpu::BindingResource::TextureView(<span class="self">self</span>.atlas.view()),
-            }],
-        })
-    }
-
     <span class="kw">pub fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
         </span><span class="self">self</span>.raster.trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>.atlas);
 
         <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
         </span><span class="self">self</span>.vector.trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>.atlas);
-    }
-}
-
-<span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>Shared(Rc&lt;RefCell&lt;Cache&gt;&gt;);
-
-<span class="kw">impl </span>Shared {
-    <span class="kw">pub fn </span>new(cache: Cache) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>(Rc::new(RefCell::new(cache)))
-    }
-
-    <span class="kw">pub fn </span>lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;<span class="lifetime">'_</span>, Cache&gt; {
-        <span class="self">self</span>.<span class="number">0</span>.borrow_mut()
     }
 }
 </code></pre></div></section></main></body></html>

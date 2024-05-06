@@ -605,6 +605,16 @@
 <a href="#605" id="605">605</a>
 <a href="#606" id="606">606</a>
 <a href="#607" id="607">607</a>
+<a href="#608" id="608">608</a>
+<a href="#609" id="609">609</a>
+<a href="#610" id="610">610</a>
+<a href="#611" id="611">611</a>
+<a href="#612" id="612">612</a>
+<a href="#613" id="613">613</a>
+<a href="#614" id="614">614</a>
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A [`wgpu`] renderer for [Iced].
 //!
 //! ![The native path of the Iced ecosystem](https://github.com/iced-rs/iced/blob/0525d76ff94e828b7b21634fa94a747022001c83/docs/graphs/native.png?raw=true)
@@ -674,6 +684,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::graphics::text::{Editor, Paragraph};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::Viewport;
 
+<span class="kw">use </span>std::cell::RefCell;
+
 <span class="doccomment">/// A [`wgpu`] graphics renderer for [`iced`].
 ///
 /// [`wgpu`]: https://github.com/gfx-rs/wgpu-rs
@@ -689,11 +701,12 @@
 
     <span class="comment">// TODO: Centralize all the image feature handling
     </span><span class="attr">#[cfg(any(feature = <span class="string">"svg"</span>, feature = <span class="string">"image"</span>))]
-    </span>image_cache: image::cache::Shared,
+    </span>image_cache: RefCell&lt;image::Cache&gt;,
 }
 
 <span class="kw">impl </span>Renderer {
     <span class="kw">pub fn </span>new(
+        _device: <span class="kw-2">&amp;</span>wgpu::Device,
         _engine: <span class="kw-2">&amp;</span>Engine,
         default_font: Font,
         default_text_size: Pixels,
@@ -707,7 +720,7 @@
             text_storage: text::Storage::new(),
 
             <span class="attr">#[cfg(any(feature = <span class="string">"svg"</span>, feature = <span class="string">"image"</span>))]
-            </span>image_cache: _engine.image_cache().clone(),
+            </span>image_cache: RefCell::new(_engine.create_image_cache(_device)),
         }
     }
 
@@ -729,6 +742,9 @@
 
         <span class="self">self</span>.triangle_storage.trim();
         <span class="self">self</span>.text_storage.trim();
+
+        <span class="attr">#[cfg(any(feature = <span class="string">"svg"</span>, feature = <span class="string">"image"</span>))]
+        </span><span class="self">self</span>.image_cache.borrow_mut().trim();
     }
 
     <span class="kw">fn </span>prepare(
@@ -798,6 +814,7 @@
                     device,
                     encoder,
                     <span class="kw-2">&amp;mut </span>engine.staging_belt,
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.image_cache.borrow_mut(),
                     <span class="kw-2">&amp;</span>layer.images,
                     viewport.projection(),
                     scale_factor,
@@ -853,6 +870,8 @@
 
         <span class="attr">#[cfg(any(feature = <span class="string">"svg"</span>, feature = <span class="string">"image"</span>))]
         </span><span class="kw">let </span><span class="kw-2">mut </span>image_layer = <span class="number">0</span>;
+        <span class="attr">#[cfg(any(feature = <span class="string">"svg"</span>, feature = <span class="string">"image"</span>))]
+        </span><span class="kw">let </span>image_cache = <span class="self">self</span>.image_cache.borrow();
 
         <span class="kw">let </span>scale_factor = viewport.scale_factor() <span class="kw">as </span>f32;
         <span class="kw">let </span>physical_bounds = Rectangle::&lt;f32&gt;::from(Rectangle::with_size(
@@ -966,6 +985,7 @@
             <span class="attr">#[cfg(any(feature = <span class="string">"svg"</span>, feature = <span class="string">"image"</span>))]
             </span><span class="kw">if </span>!layer.images.is_empty() {
                 engine.image_pipeline.render(
+                    <span class="kw-2">&amp;</span>image_cache,
                     image_layer,
                     scissor_rect,
                     <span class="kw-2">&amp;mut </span>render_pass,
@@ -1116,7 +1136,7 @@
     <span class="kw">type </span>Handle = core::image::Handle;
 
     <span class="kw">fn </span>measure_image(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span><span class="self">Self</span>::Handle) -&gt; Size&lt;u32&gt; {
-        <span class="self">self</span>.image_cache.lock().measure_image(handle)
+        <span class="self">self</span>.image_cache.borrow_mut().measure_image(handle)
     }
 
     <span class="kw">fn </span>draw_image(
@@ -1142,7 +1162,7 @@
 <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
 </span><span class="kw">impl </span>core::svg::Renderer <span class="kw">for </span>Renderer {
     <span class="kw">fn </span>measure_svg(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>core::svg::Handle) -&gt; Size&lt;u32&gt; {
-        <span class="self">self</span>.image_cache.lock().measure_svg(handle)
+        <span class="self">self</span>.image_cache.borrow_mut().measure_svg(handle)
     }
 
     <span class="kw">fn </span>draw_svg(
