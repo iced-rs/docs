@@ -842,10 +842,6 @@
 <a href="#842" id="842">842</a>
 <a href="#843" id="843">843</a>
 <a href="#844" id="844">844</a>
-<a href="#845" id="845">845</a>
-<a href="#846" id="846">846</a>
-<a href="#847" id="847">847</a>
-<a href="#848" id="848">848</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Convert [`winit`] types into [`iced_runtime`] types, and viceversa.
 //!
 //! [`winit`]: https://github.com/rust-windowing/winit
@@ -856,16 +852,16 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Event, Point, Size};
 
-<span class="doccomment">/// Converts some [`window::Settings`] into a `WindowBuilder` from `winit`.
-</span><span class="kw">pub fn </span>window_settings(
+<span class="doccomment">/// Converts some [`window::Settings`] into some `WindowAttributes` from `winit`.
+</span><span class="kw">pub fn </span>window_attributes(
     settings: window::Settings,
     title: <span class="kw-2">&amp;</span>str,
     primary_monitor: <span class="prelude-ty">Option</span>&lt;winit::monitor::MonitorHandle&gt;,
     _id: <span class="prelude-ty">Option</span>&lt;String&gt;,
-) -&gt; winit::window::WindowBuilder {
-    <span class="kw">let </span><span class="kw-2">mut </span>window_builder = winit::window::WindowBuilder::new();
+) -&gt; winit::window::WindowAttributes {
+    <span class="kw">let </span><span class="kw-2">mut </span>attributes = winit::window::WindowAttributes::default();
 
-    window_builder = window_builder
+    attributes = attributes
         .with_title(title)
         .with_inner_size(winit::dpi::LogicalSize {
             width: settings.size.width,
@@ -887,23 +883,21 @@
     <span class="kw">if let </span><span class="prelude-val">Some</span>(position) =
         position(primary_monitor.as_ref(), settings.size, settings.position)
     {
-        window_builder = window_builder.with_position(position);
+        attributes = attributes.with_position(position);
     }
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(min_size) = settings.min_size {
-        window_builder =
-            window_builder.with_min_inner_size(winit::dpi::LogicalSize {
-                width: min_size.width,
-                height: min_size.height,
-            });
+        attributes = attributes.with_min_inner_size(winit::dpi::LogicalSize {
+            width: min_size.width,
+            height: min_size.height,
+        });
     }
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(max_size) = settings.max_size {
-        window_builder =
-            window_builder.with_max_inner_size(winit::dpi::LogicalSize {
-                width: max_size.width,
-                height: max_size.height,
-            });
+        attributes = attributes.with_max_inner_size(winit::dpi::LogicalSize {
+            width: max_size.width,
+            height: max_size.height,
+        });
     }
 
     <span class="attr">#[cfg(any(
@@ -913,35 +907,33 @@
         target_os = <span class="string">"openbsd"
     </span>))]
     </span>{
-        <span class="comment">// `with_name` is available on both `WindowBuilderExtWayland` and `WindowBuilderExtX11` and they do
-        // exactly the same thing. We arbitrarily choose `WindowBuilderExtWayland` here.
-        </span><span class="kw">use </span>::winit::platform::wayland::WindowBuilderExtWayland;
+        <span class="kw">use </span>::winit::platform::wayland::WindowAttributesExtWayland;
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(id) = _id {
-            window_builder = window_builder.with_name(id.clone(), id);
+            attributes = attributes.with_name(id.clone(), id);
         }
     }
 
     <span class="attr">#[cfg(target_os = <span class="string">"windows"</span>)]
     </span>{
-        <span class="kw">use </span>winit::platform::windows::WindowBuilderExtWindows;
+        <span class="kw">use </span>winit::platform::windows::WindowAttributesExtWindows;
         <span class="attr">#[allow(unsafe_code)]
         </span><span class="kw">unsafe </span>{
-            window_builder = window_builder
+            attributes = attributes
                 .with_parent_window(settings.platform_specific.parent);
         }
-        window_builder = window_builder
+        attributes = attributes
             .with_drag_and_drop(settings.platform_specific.drag_and_drop);
 
-        window_builder = window_builder
+        attributes = attributes
             .with_skip_taskbar(settings.platform_specific.skip_taskbar);
     }
 
     <span class="attr">#[cfg(target_os = <span class="string">"macos"</span>)]
     </span>{
-        <span class="kw">use </span>winit::platform::macos::WindowBuilderExtMacOS;
+        <span class="kw">use </span>winit::platform::macos::WindowAttributesExtMacOS;
 
-        window_builder = window_builder
+        attributes = attributes
             .with_title_hidden(settings.platform_specific.title_hidden)
             .with_titlebar_transparent(
                 settings.platform_specific.titlebar_transparent,
@@ -955,25 +947,25 @@
     </span>{
         <span class="attr">#[cfg(feature = <span class="string">"x11"</span>)]
         </span>{
-            <span class="kw">use </span>winit::platform::x11::WindowBuilderExtX11;
+            <span class="kw">use </span>winit::platform::x11::WindowAttributesExtX11;
 
-            window_builder = window_builder.with_name(
+            attributes = attributes.with_name(
                 <span class="kw-2">&amp;</span>settings.platform_specific.application_id,
                 <span class="kw-2">&amp;</span>settings.platform_specific.application_id,
             );
         }
         <span class="attr">#[cfg(feature = <span class="string">"wayland"</span>)]
         </span>{
-            <span class="kw">use </span>winit::platform::wayland::WindowBuilderExtWayland;
+            <span class="kw">use </span>winit::platform::wayland::WindowAttributesExtWayland;
 
-            window_builder = window_builder.with_name(
+            attributes = attributes.with_name(
                 <span class="kw-2">&amp;</span>settings.platform_specific.application_id,
                 <span class="kw-2">&amp;</span>settings.platform_specific.application_id,
             );
         }
     }
 
-    window_builder
+    attributes
 }
 
 <span class="doccomment">/// Converts a winit window event into an iced event.
