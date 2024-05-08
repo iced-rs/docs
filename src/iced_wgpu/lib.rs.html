@@ -615,6 +615,11 @@
 <a href="#615" id="615">615</a>
 <a href="#616" id="616">616</a>
 <a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a>
+<a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A [`wgpu`] renderer for [Iced].
 //!
 //! ![The native path of the Iced ecosystem](https://github.com/iced-rs/iced/blob/0525d76ff94e828b7b21634fa94a747022001c83/docs/graphs/native.png?raw=true)
@@ -696,6 +701,7 @@
 
     triangle_storage: triangle::Storage,
     text_storage: text::Storage,
+    text_viewport: text::Viewport,
 
     <span class="comment">// TODO: Centralize all the image feature handling
     </span><span class="attr">#[cfg(any(feature = <span class="string">"svg"</span>, feature = <span class="string">"image"</span>))]
@@ -704,8 +710,8 @@
 
 <span class="kw">impl </span>Renderer {
     <span class="kw">pub fn </span>new(
-        _device: <span class="kw-2">&amp;</span>wgpu::Device,
-        _engine: <span class="kw-2">&amp;</span>Engine,
+        device: <span class="kw-2">&amp;</span>wgpu::Device,
+        engine: <span class="kw-2">&amp;</span>Engine,
         default_font: Font,
         default_text_size: Pixels,
     ) -&gt; <span class="self">Self </span>{
@@ -716,10 +722,11 @@
 
             triangle_storage: triangle::Storage::new(),
             text_storage: text::Storage::new(),
+            text_viewport: engine.text_pipeline.create_viewport(device),
 
             <span class="attr">#[cfg(any(feature = <span class="string">"svg"</span>, feature = <span class="string">"image"</span>))]
             </span>image_cache: std::cell::RefCell::new(
-                _engine.create_image_cache(_device),
+                engine.create_image_cache(device),
             ),
         }
     }
@@ -757,6 +764,8 @@
         viewport: <span class="kw-2">&amp;</span>Viewport,
     ) {
         <span class="kw">let </span>scale_factor = viewport.scale_factor() <span class="kw">as </span>f32;
+
+        <span class="self">self</span>.text_viewport.update(queue, viewport.physical_size());
 
         <span class="kw">for </span>layer <span class="kw">in </span><span class="self">self</span>.layers.iter_mut() {
             <span class="kw">if </span>!layer.quads.is_empty() {
@@ -799,12 +808,12 @@
                 engine.text_pipeline.prepare(
                     device,
                     queue,
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.text_viewport,
                     encoder,
                     <span class="kw-2">&amp;mut </span><span class="self">self</span>.text_storage,
                     <span class="kw-2">&amp;</span>layer.text,
                     layer.bounds,
                     Transformation::scale(scale_factor),
-                    viewport.physical_size(),
                 );
             }
 
@@ -974,6 +983,7 @@
 
             <span class="kw">if </span>!layer.text.is_empty() {
                 text_layer += engine.text_pipeline.render(
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.text_viewport,
                     <span class="kw-2">&amp;</span><span class="self">self</span>.text_storage,
                     text_layer,
                     <span class="kw-2">&amp;</span>layer.text,

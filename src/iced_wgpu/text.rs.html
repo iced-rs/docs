@@ -618,6 +618,29 @@
 <a href="#618" id="618">618</a>
 <a href="#619" id="619">619</a>
 <a href="#620" id="620">620</a>
+<a href="#621" id="621">621</a>
+<a href="#622" id="622">622</a>
+<a href="#623" id="623">623</a>
+<a href="#624" id="624">624</a>
+<a href="#625" id="625">625</a>
+<a href="#626" id="626">626</a>
+<a href="#627" id="627">627</a>
+<a href="#628" id="628">628</a>
+<a href="#629" id="629">629</a>
+<a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
+<a href="#634" id="634">634</a>
+<a href="#635" id="635">635</a>
+<a href="#636" id="636">636</a>
+<a href="#637" id="637">637</a>
+<a href="#638" id="638">638</a>
+<a href="#639" id="639">639</a>
+<a href="#640" id="640">640</a>
+<a href="#641" id="641">641</a>
+<a href="#642" id="642">642</a>
+<a href="#643" id="643">643</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Rectangle, Size, Transformation};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::cache;
@@ -733,12 +756,13 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
         queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+        viewport: <span class="kw-2">&amp;</span>glyphon::Viewport,
         encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
         format: wgpu::TextureFormat,
+        state: <span class="kw-2">&amp;</span>glyphon::Cache,
         cache: <span class="kw-2">&amp;</span>Cache,
         new_transformation: Transformation,
         bounds: Rectangle,
-        target_size: Size&lt;u32&gt;,
     ) {
         <span class="kw">let </span>group_count = <span class="self">self</span>.groups.len();
 
@@ -751,7 +775,7 @@
 
             Group {
                 atlas: glyphon::TextAtlas::with_color_mode(
-                    device, queue, format, COLOR_MODE,
+                    device, queue, state, format, COLOR_MODE,
                 ),
                 version: <span class="number">0</span>,
                 should_trim: <span class="bool-val">false</span>,
@@ -771,6 +795,7 @@
                         <span class="kw">let _ </span>= prepare(
                             device,
                             queue,
+                            viewport,
                             encoder,
                             <span class="kw-2">&amp;mut </span>upload.renderer,
                             <span class="kw-2">&amp;mut </span>group.atlas,
@@ -778,7 +803,6 @@
                             <span class="kw-2">&amp;</span>cache.text,
                             bounds,
                             new_transformation,
-                            target_size,
                         );
                     }
 
@@ -808,6 +832,7 @@
                     <span class="kw">let _ </span>= prepare(
                         device,
                         queue,
+                        viewport,
                         encoder,
                         <span class="kw-2">&amp;mut </span>renderer,
                         <span class="kw-2">&amp;mut </span>group.atlas,
@@ -815,7 +840,6 @@
                         <span class="kw-2">&amp;</span>cache.text,
                         bounds,
                         new_transformation,
-                        target_size,
                     );
                 }
 
@@ -877,8 +901,23 @@
     }
 }
 
+<span class="kw">pub struct </span>Viewport(glyphon::Viewport);
+
+<span class="kw">impl </span>Viewport {
+    <span class="kw">pub fn </span>update(<span class="kw-2">&amp;mut </span><span class="self">self</span>, queue: <span class="kw-2">&amp;</span>wgpu::Queue, resolution: Size&lt;u32&gt;) {
+        <span class="self">self</span>.<span class="number">0</span>.update(
+            queue,
+            glyphon::Resolution {
+                width: resolution.width,
+                height: resolution.height,
+            },
+        );
+    }
+}
+
 <span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Pipeline {
+    state: glyphon::Cache,
     format: wgpu::TextureFormat,
     atlas: glyphon::TextAtlas,
     renderers: Vec&lt;glyphon::TextRenderer&gt;,
@@ -892,12 +931,16 @@
         queue: <span class="kw-2">&amp;</span>wgpu::Queue,
         format: wgpu::TextureFormat,
     ) -&gt; <span class="self">Self </span>{
+        <span class="kw">let </span>state = glyphon::Cache::new(device);
+        <span class="kw">let </span>atlas = glyphon::TextAtlas::with_color_mode(
+            device, queue, <span class="kw-2">&amp;</span>state, format, COLOR_MODE,
+        );
+
         Pipeline {
+            state,
             format,
             renderers: Vec::new(),
-            atlas: glyphon::TextAtlas::with_color_mode(
-                device, queue, format, COLOR_MODE,
-            ),
+            atlas,
             prepare_layer: <span class="number">0</span>,
             cache: BufferCache::new(),
         }
@@ -907,12 +950,12 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         device: <span class="kw-2">&amp;</span>wgpu::Device,
         queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+        viewport: <span class="kw-2">&amp;</span>Viewport,
         encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
         storage: <span class="kw-2">&amp;mut </span>Storage,
         batch: <span class="kw-2">&amp;</span>Batch,
         layer_bounds: Rectangle,
         layer_transformation: Transformation,
-        target_size: Size&lt;u32&gt;,
     ) {
         <span class="kw">for </span>item <span class="kw">in </span>batch {
             <span class="kw">match </span>item {
@@ -933,6 +976,7 @@
                     <span class="kw">let </span>result = prepare(
                         device,
                         queue,
+                        <span class="kw-2">&amp;</span>viewport.<span class="number">0</span>,
                         encoder,
                         renderer,
                         <span class="kw-2">&amp;mut </span><span class="self">self</span>.atlas,
@@ -940,7 +984,6 @@
                         text,
                         layer_bounds * layer_transformation,
                         layer_transformation * <span class="kw-2">*</span>transformation,
-                        target_size,
                     );
 
                     <span class="kw">match </span>result {
@@ -961,12 +1004,13 @@
                     storage.prepare(
                         device,
                         queue,
+                        <span class="kw-2">&amp;</span>viewport.<span class="number">0</span>,
                         encoder,
                         <span class="self">self</span>.format,
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.state,
                         cache,
                         layer_transformation * <span class="kw-2">*</span>transformation,
                         layer_bounds * layer_transformation,
-                        target_size,
                     );
                 }
             }
@@ -975,6 +1019,7 @@
 
     <span class="kw">pub fn </span>render&lt;<span class="lifetime">'a</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>,
+        viewport: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Viewport,
         storage: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Storage,
         start: usize,
         batch: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Batch,
@@ -996,7 +1041,7 @@
                     <span class="kw">let </span>renderer = <span class="kw-2">&amp;</span><span class="self">self</span>.renderers[start + layer_count];
 
                     renderer
-                        .render(<span class="kw-2">&amp;</span><span class="self">self</span>.atlas, render_pass)
+                        .render(<span class="kw-2">&amp;</span><span class="self">self</span>.atlas, <span class="kw-2">&amp;</span>viewport.<span class="number">0</span>, render_pass)
                         .expect(<span class="string">"Render text"</span>);
 
                     layer_count += <span class="number">1</span>;
@@ -1005,7 +1050,7 @@
                     <span class="kw">if let </span><span class="prelude-val">Some</span>((atlas, upload)) = storage.get(cache) {
                         upload
                             .renderer
-                            .render(atlas, render_pass)
+                            .render(atlas, <span class="kw-2">&amp;</span>viewport.<span class="number">0</span>, render_pass)
                             .expect(<span class="string">"Render cached text"</span>);
                     }
                 }
@@ -1013,6 +1058,10 @@
         }
 
         layer_count
+    }
+
+    <span class="kw">pub fn </span>create_viewport(<span class="kw-2">&amp;</span><span class="self">self</span>, device: <span class="kw-2">&amp;</span>wgpu::Device) -&gt; Viewport {
+        Viewport(glyphon::Viewport::new(device, <span class="kw-2">&amp;</span><span class="self">self</span>.state))
     }
 
     <span class="kw">pub fn </span>end_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
@@ -1026,6 +1075,7 @@
 <span class="kw">fn </span>prepare(
     device: <span class="kw-2">&amp;</span>wgpu::Device,
     queue: <span class="kw-2">&amp;</span>wgpu::Queue,
+    viewport: <span class="kw-2">&amp;</span>glyphon::Viewport,
     encoder: <span class="kw-2">&amp;mut </span>wgpu::CommandEncoder,
     renderer: <span class="kw-2">&amp;mut </span>glyphon::TextRenderer,
     atlas: <span class="kw-2">&amp;mut </span>glyphon::TextAtlas,
@@ -1033,7 +1083,6 @@
     sections: <span class="kw-2">&amp;</span>[Text],
     layer_bounds: Rectangle,
     layer_transformation: Transformation,
-    target_size: Size&lt;u32&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;(), glyphon::PrepareError&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>font_system = font_system().write().expect(<span class="string">"Write font system"</span>);
     <span class="kw">let </span>font_system = font_system.raw();
@@ -1230,10 +1279,7 @@
         encoder,
         font_system,
         atlas,
-        glyphon::Resolution {
-            width: target_size.width,
-            height: target_size.height,
-        },
+        viewport,
         text_areas,
         <span class="kw-2">&amp;mut </span>glyphon::SwashCache::new(),
     )
