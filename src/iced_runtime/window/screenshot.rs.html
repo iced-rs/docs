@@ -96,6 +96,16 @@
 <a href="#96" id="96">96</a>
 <a href="#97" id="97">97</a>
 <a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Take screenshots of a window.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::{Rectangle, Size};
 
@@ -109,16 +119,20 @@
 </span><span class="kw">pub struct </span>Screenshot {
     <span class="doccomment">/// The bytes of the [`Screenshot`].
     </span><span class="kw">pub </span>bytes: Bytes,
-    <span class="doccomment">/// The size of the [`Screenshot`].
+    <span class="doccomment">/// The size of the [`Screenshot`] in physical pixels.
     </span><span class="kw">pub </span>size: Size&lt;u32&gt;,
+    <span class="doccomment">/// The scale factor of the [`Screenshot`]. This can be useful when converting between widget
+    /// bounds (which are in logical pixels) to crop screenshots.
+    </span><span class="kw">pub </span>scale_factor: f64,
 }
 
 <span class="kw">impl </span>Debug <span class="kw">for </span>Screenshot {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         <span class="macro">write!</span>(
             f,
-            <span class="string">"Screenshot: {{ \n bytes: {}\n size: {:?} }}"</span>,
+            <span class="string">"Screenshot: {{ \n bytes: {}\n scale: {}\n size: {:?} }}"</span>,
             <span class="self">self</span>.bytes.len(),
+            <span class="self">self</span>.scale_factor,
             <span class="self">self</span>.size
         )
     }
@@ -126,10 +140,15 @@
 
 <span class="kw">impl </span>Screenshot {
     <span class="doccomment">/// Creates a new [`Screenshot`].
-    </span><span class="kw">pub fn </span>new(bytes: <span class="kw">impl </span>Into&lt;Bytes&gt;, size: Size&lt;u32&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new(
+        bytes: <span class="kw">impl </span>Into&lt;Bytes&gt;,
+        size: Size&lt;u32&gt;,
+        scale_factor: f64,
+    ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             bytes: bytes.into(),
             size,
+            scale_factor,
         }
     }
 
@@ -168,6 +187,7 @@
         <span class="prelude-val">Ok</span>(<span class="self">Self </span>{
             bytes: Bytes::from(chopped),
             size: Size::new(region.width, region.height),
+            scale_factor: <span class="self">self</span>.scale_factor,
         })
     }
 }
