@@ -1487,6 +1487,14 @@
 <a href="#1487" id="1487">1487</a>
 <a href="#1488" id="1488">1488</a>
 <a href="#1489" id="1489">1489</a>
+<a href="#1490" id="1490">1490</a>
+<a href="#1491" id="1491">1491</a>
+<a href="#1492" id="1492">1492</a>
+<a href="#1493" id="1493">1493</a>
+<a href="#1494" id="1494">1494</a>
+<a href="#1495" id="1495">1495</a>
+<a href="#1496" id="1496">1496</a>
+<a href="#1497" id="1497">1497</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
@@ -2315,7 +2323,7 @@
                             }
                         }
                         keyboard::Key::Named(key::Named::Backspace) =&gt; {
-                            <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
+                            <span class="kw">if </span>modifiers.jump()
                                 &amp;&amp; state.cursor.selection(<span class="kw-2">&amp;</span><span class="self">self</span>.value).is_none()
                             {
                                 <span class="kw">if </span><span class="self">self</span>.is_secure {
@@ -2339,7 +2347,7 @@
                             update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
                         }
                         keyboard::Key::Named(key::Named::Delete) =&gt; {
-                            <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
+                            <span class="kw">if </span>modifiers.jump()
                                 &amp;&amp; state.cursor.selection(<span class="kw-2">&amp;</span><span class="self">self</span>.value).is_none()
                             {
                                 <span class="kw">if </span><span class="self">self</span>.is_secure {
@@ -2365,44 +2373,6 @@
 
                             update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
                         }
-                        keyboard::Key::Named(key::Named::ArrowLeft) =&gt; {
-                            <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
-                                &amp;&amp; !<span class="self">self</span>.is_secure
-                            {
-                                <span class="kw">if </span>modifiers.shift() {
-                                    state
-                                        .cursor
-                                        .select_left_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
-                                } <span class="kw">else </span>{
-                                    state
-                                        .cursor
-                                        .move_left_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
-                                }
-                            } <span class="kw">else if </span>modifiers.shift() {
-                                state.cursor.select_left(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
-                            } <span class="kw">else </span>{
-                                state.cursor.move_left(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
-                            }
-                        }
-                        keyboard::Key::Named(key::Named::ArrowRight) =&gt; {
-                            <span class="kw">if </span>platform::is_jump_modifier_pressed(modifiers)
-                                &amp;&amp; !<span class="self">self</span>.is_secure
-                            {
-                                <span class="kw">if </span>modifiers.shift() {
-                                    state
-                                        .cursor
-                                        .select_right_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
-                                } <span class="kw">else </span>{
-                                    state
-                                        .cursor
-                                        .move_right_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
-                                }
-                            } <span class="kw">else if </span>modifiers.shift() {
-                                state.cursor.select_right(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
-                            } <span class="kw">else </span>{
-                                state.cursor.move_right(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
-                            }
-                        }
                         keyboard::Key::Named(key::Named::Home) =&gt; {
                             <span class="kw">if </span>modifiers.shift() {
                                 state.cursor.select_range(
@@ -2421,6 +2391,64 @@
                                 );
                             } <span class="kw">else </span>{
                                 state.cursor.move_to(<span class="self">self</span>.value.len());
+                            }
+                        }
+                        keyboard::Key::Named(key::Named::ArrowLeft)
+                            <span class="kw">if </span>modifiers.macos_command() =&gt;
+                        {
+                            <span class="kw">if </span>modifiers.shift() {
+                                state.cursor.select_range(
+                                    state.cursor.start(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
+                                    <span class="number">0</span>,
+                                );
+                            } <span class="kw">else </span>{
+                                state.cursor.move_to(<span class="number">0</span>);
+                            }
+                        }
+                        keyboard::Key::Named(key::Named::ArrowRight)
+                            <span class="kw">if </span>modifiers.macos_command() =&gt;
+                        {
+                            <span class="kw">if </span>modifiers.shift() {
+                                state.cursor.select_range(
+                                    state.cursor.start(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
+                                    <span class="self">self</span>.value.len(),
+                                );
+                            } <span class="kw">else </span>{
+                                state.cursor.move_to(<span class="self">self</span>.value.len());
+                            }
+                        }
+                        keyboard::Key::Named(key::Named::ArrowLeft) =&gt; {
+                            <span class="kw">if </span>modifiers.jump() &amp;&amp; !<span class="self">self</span>.is_secure {
+                                <span class="kw">if </span>modifiers.shift() {
+                                    state
+                                        .cursor
+                                        .select_left_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                } <span class="kw">else </span>{
+                                    state
+                                        .cursor
+                                        .move_left_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                }
+                            } <span class="kw">else if </span>modifiers.shift() {
+                                state.cursor.select_left(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                            } <span class="kw">else </span>{
+                                state.cursor.move_left(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                            }
+                        }
+                        keyboard::Key::Named(key::Named::ArrowRight) =&gt; {
+                            <span class="kw">if </span>modifiers.jump() &amp;&amp; !<span class="self">self</span>.is_secure {
+                                <span class="kw">if </span>modifiers.shift() {
+                                    state
+                                        .cursor
+                                        .select_right_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                } <span class="kw">else </span>{
+                                    state
+                                        .cursor
+                                        .move_right_by_words(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                                }
+                            } <span class="kw">else if </span>modifiers.shift() {
+                                state.cursor.select_right(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
+                            } <span class="kw">else </span>{
+                                state.cursor.move_right(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
                             }
                         }
                         keyboard::Key::Named(key::Named::Escape) =&gt; {
@@ -2767,18 +2795,6 @@
 
     <span class="kw">fn </span>select_all(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         State::select_all(<span class="self">self</span>);
-    }
-}
-
-<span class="kw">mod </span>platform {
-    <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
-
-    <span class="kw">pub fn </span>is_jump_modifier_pressed(modifiers: keyboard::Modifiers) -&gt; bool {
-        <span class="kw">if </span><span class="macro">cfg!</span>(target_os = <span class="string">"macos"</span>) {
-            modifiers.alt()
-        } <span class="kw">else </span>{
-            modifiers.control()
-        }
     }
 }
 

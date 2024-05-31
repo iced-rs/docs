@@ -912,10 +912,6 @@
 <a href="#912" id="912">912</a>
 <a href="#913" id="913">913</a>
 <a href="#914" id="914">914</a>
-<a href="#915" id="915">915</a>
-<a href="#916" id="916">916</a>
-<a href="#917" id="917">917</a>
-<a href="#918" id="918">918</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a multi-line text input for text editing.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::clipboard::{<span class="self">self</span>, Clipboard};
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -1686,9 +1682,17 @@
 
                     <span class="kw">if let </span>keyboard::Key::Named(named_key) = key.as_ref() {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(motion) = motion(named_key) {
-                            <span class="kw">let </span>motion = <span class="kw">if </span>platform::is_jump_modifier_pressed(
-                                modifiers,
-                            ) {
+                            <span class="kw">let </span>motion = <span class="kw">if </span>modifiers.macos_command() {
+                                <span class="kw">match </span>motion {
+                                    Motion::Left =&gt; Motion::Home,
+                                    Motion::Right =&gt; Motion::End,
+                                    <span class="kw">_ </span>=&gt; motion,
+                                }
+                            } <span class="kw">else </span>{
+                                motion
+                            };
+
+                            <span class="kw">let </span>motion = <span class="kw">if </span>modifiers.jump() {
                                 motion.widen()
                             } <span class="kw">else </span>{
                                 motion
@@ -1722,18 +1726,6 @@
         key::Named::PageUp =&gt; <span class="prelude-val">Some</span>(Motion::PageUp),
         key::Named::PageDown =&gt; <span class="prelude-val">Some</span>(Motion::PageDown),
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-    }
-}
-
-<span class="kw">mod </span>platform {
-    <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
-
-    <span class="kw">pub fn </span>is_jump_modifier_pressed(modifiers: keyboard::Modifiers) -&gt; bool {
-        <span class="kw">if </span><span class="macro">cfg!</span>(target_os = <span class="string">"macos"</span>) {
-            modifiers.alt()
-        } <span class="kw">else </span>{
-            modifiers.control()
-        }
     }
 }
 
