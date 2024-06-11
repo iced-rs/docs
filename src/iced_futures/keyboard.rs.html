@@ -54,13 +54,9 @@
 <a href="#54" id="54">54</a>
 <a href="#55" id="55">55</a>
 <a href="#56" id="56">56</a>
-<a href="#57" id="57">57</a>
-<a href="#58" id="58">58</a>
-<a href="#59" id="59">59</a>
-<a href="#60" id="60">60</a>
-<a href="#61" id="61">61</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Listen to keyboard events.
 </span><span class="kw">use </span><span class="kw">crate</span>::core;
+<span class="kw">use </span><span class="kw">crate</span>::core::event;
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard::{Event, Key, Modifiers};
 <span class="kw">use </span><span class="kw">crate</span>::subscription::{<span class="self">self</span>, Subscription};
 <span class="kw">use </span><span class="kw">crate</span>::MaybeSend;
@@ -79,16 +75,14 @@
     <span class="attr">#[derive(Hash)]
     </span><span class="kw">struct </span>OnKeyPress;
 
-    subscription::filter_map((OnKeyPress, f), <span class="kw">move </span>|event, status| {
-        <span class="kw">match </span>(event, status) {
-            (
-                core::Event::Keyboard(Event::KeyPressed {
-                    key, modifiers, ..
-                }),
-                core::event::Status::Ignored,
-            ) =&gt; f(key, modifiers),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        }
+    subscription::filter_map((OnKeyPress, f), <span class="kw">move </span>|event| <span class="kw">match </span>event {
+        subscription::Event::Interaction {
+            event:
+                core::Event::Keyboard(Event::KeyPressed { key, modifiers, .. }),
+            status: event::Status::Ignored,
+            ..
+        } =&gt; f(key, modifiers),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     })
 }
 
@@ -106,18 +100,14 @@
     <span class="attr">#[derive(Hash)]
     </span><span class="kw">struct </span>OnKeyRelease;
 
-    subscription::filter_map((OnKeyRelease, f), <span class="kw">move </span>|event, status| {
-        <span class="kw">match </span>(event, status) {
-            (
-                core::Event::Keyboard(Event::KeyReleased {
-                    key,
-                    modifiers,
-                    ..
-                }),
-                core::event::Status::Ignored,
-            ) =&gt; f(key, modifiers),
-            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-        }
+    subscription::filter_map((OnKeyRelease, f), <span class="kw">move </span>|event| <span class="kw">match </span>event {
+        subscription::Event::Interaction {
+            event:
+                core::Event::Keyboard(Event::KeyReleased { key, modifiers, .. }),
+            status: event::Status::Ignored,
+            ..
+        } =&gt; f(key, modifiers),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     })
 }
 </code></pre></div></section></main></body></html>

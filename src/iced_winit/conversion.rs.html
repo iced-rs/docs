@@ -864,13 +864,6 @@
 <a href="#864" id="864">864</a>
 <a href="#865" id="865">865</a>
 <a href="#866" id="866">866</a>
-<a href="#867" id="867">867</a>
-<a href="#868" id="868">868</a>
-<a href="#869" id="869">869</a>
-<a href="#870" id="870">870</a>
-<a href="#871" id="871">871</a>
-<a href="#872" id="872">872</a>
-<a href="#873" id="873">873</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Convert [`winit`] types into [`iced_runtime`] types, and viceversa.
 //!
 //! [`winit`]: https://github.com/rust-windowing/winit
@@ -999,7 +992,6 @@
 
 <span class="doccomment">/// Converts a winit window event into an iced event.
 </span><span class="kw">pub fn </span>window_event(
-    id: window::Id,
     event: winit::event::WindowEvent,
     scale_factor: f64,
     modifiers: winit::keyboard::ModifiersState,
@@ -1010,16 +1002,13 @@
         WindowEvent::Resized(new_size) =&gt; {
             <span class="kw">let </span>logical_size = new_size.to_logical(scale_factor);
 
-            <span class="prelude-val">Some</span>(Event::Window(
-                id,
-                window::Event::Resized {
-                    width: logical_size.width,
-                    height: logical_size.height,
-                },
-            ))
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::Resized {
+                width: logical_size.width,
+                height: logical_size.height,
+            }))
         }
         WindowEvent::CloseRequested =&gt; {
-            <span class="prelude-val">Some</span>(Event::Window(id, window::Event::CloseRequested))
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::CloseRequested))
         }
         WindowEvent::CursorMoved { position, .. } =&gt; {
             <span class="kw">let </span>position = position.to_logical::&lt;f64&gt;(scale_factor);
@@ -1137,22 +1126,19 @@
                 <span class="self">self</span>::modifiers(new_modifiers.state()),
             )))
         }
-        WindowEvent::Focused(focused) =&gt; <span class="prelude-val">Some</span>(Event::Window(
-            id,
-            <span class="kw">if </span>focused {
-                window::Event::Focused
-            } <span class="kw">else </span>{
-                window::Event::Unfocused
-            },
-        )),
+        WindowEvent::Focused(focused) =&gt; <span class="prelude-val">Some</span>(Event::Window(<span class="kw">if </span>focused {
+            window::Event::Focused
+        } <span class="kw">else </span>{
+            window::Event::Unfocused
+        })),
         WindowEvent::HoveredFile(path) =&gt; {
-            <span class="prelude-val">Some</span>(Event::Window(id, window::Event::FileHovered(path.clone())))
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::FileHovered(path.clone())))
         }
         WindowEvent::DroppedFile(path) =&gt; {
-            <span class="prelude-val">Some</span>(Event::Window(id, window::Event::FileDropped(path.clone())))
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::FileDropped(path.clone())))
         }
         WindowEvent::HoveredFileCancelled =&gt; {
-            <span class="prelude-val">Some</span>(Event::Window(id, window::Event::FilesHoveredLeft))
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::FilesHoveredLeft))
         }
         WindowEvent::Touch(touch) =&gt; {
             <span class="prelude-val">Some</span>(Event::Touch(touch_event(touch, scale_factor)))
@@ -1161,7 +1147,7 @@
             <span class="kw">let </span>winit::dpi::LogicalPosition { x, y } =
                 position.to_logical(scale_factor);
 
-            <span class="prelude-val">Some</span>(Event::Window(id, window::Event::Moved { x, y }))
+            <span class="prelude-val">Some</span>(Event::Window(window::Event::Moved { x, y }))
         }
         <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
     }

@@ -1362,6 +1362,7 @@
 <a href="#1362" id="1362">1362</a>
 <a href="#1363" id="1363">1363</a>
 <a href="#1364" id="1364">1364</a>
+<a href="#1365" id="1365">1365</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
@@ -1380,7 +1381,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures::executor;
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures::task;
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures::{Future, StreamExt};
-<span class="kw">use </span><span class="kw">crate</span>::futures::{Executor, Runtime, Subscription};
+<span class="kw">use </span><span class="kw">crate</span>::futures::subscription::{<span class="self">self</span>, Subscription};
+<span class="kw">use </span><span class="kw">crate</span>::futures::{Executor, Runtime};
 <span class="kw">use </span><span class="kw">crate</span>::graphics;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::{compositor, Compositor};
 <span class="kw">use </span><span class="kw">crate</span>::multi_window::window_manager::WindowManager;
@@ -1855,14 +1857,11 @@
     <span class="kw">let </span><span class="kw-2">mut </span>clipboard = Clipboard::connect(<span class="kw-2">&amp;</span>main_window.raw);
     <span class="kw">let </span><span class="kw-2">mut </span>events = {
         <span class="macro">vec!</span>[(
-            <span class="prelude-val">Some</span>(window::Id::MAIN),
-            core::Event::Window(
-                window::Id::MAIN,
-                window::Event::Opened {
-                    position: main_window.position(),
-                    size: main_window.size(),
-                },
-            ),
+            window::Id::MAIN,
+            core::Event::Window(window::Event::Opened {
+                position: main_window.position(),
+                size: main_window.size(),
+            }),
         )]
     };
 
@@ -1928,14 +1927,11 @@
                 <span class="kw">let _ </span>= ui_caches.insert(id, user_interface::Cache::default());
 
                 events.push((
-                    <span class="prelude-val">Some</span>(id),
-                    core::Event::Window(
-                        id,
-                        window::Event::Opened {
-                            position: window.position(),
-                            size: window.size(),
-                        },
-                    ),
+                    id,
+                    core::Event::Window(window::Event::Opened {
+                        position: window.position(),
+                        size: window.size(),
+                    }),
                 ));
             }
             Event::EventLoopAwakened(event) =&gt; {
@@ -1955,16 +1951,13 @@
                             event::MacOS::ReceivedUrl(url),
                         ),
                     ) =&gt; {
-                        <span class="kw">use </span><span class="kw">crate</span>::core::event;
-
-                        events.push((
-                            <span class="prelude-val">None</span>,
-                            event::Event::PlatformSpecific(
-                                event::PlatformSpecific::MacOS(
-                                    event::MacOS::ReceivedUrl(url),
+                        runtime.broadcast(
+                            subscription::Event::PlatformSpecific(
+                                subscription::PlatformSpecific::MacOS(
+                                    subscription::MacOS::ReceivedUrl(url),
                                 ),
                             ),
-                        ));
+                        );
                     }
                     event::Event::UserEvent(message) =&gt; {
                         messages.push(message);
@@ -1987,7 +1980,6 @@
                         // Then, we can use the `interface_state` here to decide if a redraw
                         // is needed right away, or simply wait until a specific time.
                         </span><span class="kw">let </span>redraw_event = core::Event::Window(
-                            id,
                             window::Event::RedrawRequested(Instant::now()),
                         );
 
@@ -2026,10 +2018,11 @@
                             window.mouse_interaction = new_mouse_interaction;
                         }
 
-                        runtime.broadcast(
-                            redraw_event.clone(),
-                            core::event::Status::Ignored,
-                        );
+                        runtime.broadcast(subscription::Event::Interaction {
+                            window: id,
+                            event: redraw_event,
+                            status: core::event::Status::Ignored,
+                        });
 
                         <span class="kw">let _ </span>= control_sender.start_send(Control::ChangeFlow(
                             <span class="kw">match </span>ui_state {
@@ -2165,8 +2158,8 @@
                             <span class="kw">let _ </span>= ui_caches.remove(<span class="kw-2">&amp;</span>id);
 
                             events.push((
-                                <span class="prelude-val">None</span>,
-                                core::Event::Window(id, window::Event::Closed),
+                                id,
+                                core::Event::Window(window::Event::Closed),
                             ));
 
                             <span class="kw">if </span>window_manager.is_empty() {
@@ -2180,12 +2173,11 @@
                             );
 
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = conversion::window_event(
-                                id,
                                 window_event,
                                 window.state.scale_factor(),
                                 window.state.modifiers(),
                             ) {
-                                events.push((<span class="prelude-val">Some</span>(id), event));
+                                events.push((id, event));
                             }
                         }
                     }
@@ -2201,8 +2193,7 @@
                             <span class="kw">let </span><span class="kw-2">mut </span>window_events = <span class="macro">vec!</span>[];
 
                             events.retain(|(window_id, event)| {
-                                <span class="kw">if </span><span class="kw-2">*</span>window_id == <span class="prelude-val">Some</span>(id) || window_id.is_none()
-                                {
+                                <span class="kw">if </span><span class="kw-2">*</span>window_id == id {
                                     window_events.push(event.clone());
                                     <span class="bool-val">false
                                 </span>} <span class="kw">else </span>{
@@ -2238,8 +2229,24 @@
                                 .into_iter()
                                 .zip(statuses.into_iter())
                             {
-                                runtime.broadcast(event, status);
+                                runtime.broadcast(
+                                    subscription::Event::Interaction {
+                                        window: id,
+                                        event,
+                                        status,
+                                    },
+                                );
                             }
+                        }
+
+                        <span class="kw">for </span>(id, event) <span class="kw">in </span>events.drain(..) {
+                            runtime.broadcast(
+                                subscription::Event::Interaction {
+                                    window: id,
+                                    event,
+                                    status: core::event::Status::Ignored,
+                                },
+                            );
                         }
 
                         debug.event_processing_finished();
@@ -2636,25 +2643,20 @@
                     std::mem::take(ui_caches),
                 );
 
-                <span class="lifetime">'operate</span>: <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>operation) =
-                    current_operation.take()
-                {
+                <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>operation) = current_operation.take() {
                     <span class="kw">for </span>(id, ui) <span class="kw">in </span>uis.iter_mut() {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(<span class="kw-2">*</span>id) {
                             ui.operate(<span class="kw-2">&amp;</span>window.renderer, operation.as_mut());
+                        }
+                    }
 
-                            <span class="kw">match </span>operation.finish() {
-                                operation::Outcome::None =&gt; {}
-                                operation::Outcome::Some(message) =&gt; {
-                                    proxy.send(message);
-
-                                    <span class="comment">// operation completed, don't need to try to operate on rest of UIs
-                                    </span><span class="kw">break </span><span class="lifetime">'operate</span>;
-                                }
-                                operation::Outcome::Chain(next) =&gt; {
-                                    current_operation = <span class="prelude-val">Some</span>(next);
-                                }
-                            }
+                    <span class="kw">match </span>operation.finish() {
+                        operation::Outcome::None =&gt; {}
+                        operation::Outcome::Some(message) =&gt; {
+                            proxy.send(message);
+                        }
+                        operation::Outcome::Chain(next) =&gt; {
+                            current_operation = <span class="prelude-val">Some</span>(next);
                         }
                     }
                 }

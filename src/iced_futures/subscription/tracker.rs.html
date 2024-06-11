@@ -151,9 +151,7 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
-<span class="kw">use </span><span class="kw">crate</span>::subscription::{Hasher, Recipe};
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::subscription::{Event, Hasher, Recipe};
 <span class="kw">use crate</span>::{BoxFuture, MaybeSend};
 
 <span class="kw">use </span>futures::channel::mpsc;
@@ -177,7 +175,7 @@
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Execution {
     _cancel: futures::channel::oneshot::Sender&lt;()&gt;,
-    listener: <span class="prelude-ty">Option</span>&lt;futures::channel::mpsc::Sender&lt;(Event, event::Status)&gt;&gt;,
+    listener: <span class="prelude-ty">Option</span>&lt;futures::channel::mpsc::Sender&lt;Event&gt;&gt;,
 }
 
 <span class="kw">impl </span>Tracker {
@@ -293,12 +291,12 @@
     /// currently open.
     ///
     /// [`Recipe::stream`]: crate::subscription::Recipe::stream
-    </span><span class="kw">pub fn </span>broadcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: Event, status: event::Status) {
+    </span><span class="kw">pub fn </span>broadcast(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: Event) {
         <span class="self">self</span>.subscriptions
             .values_mut()
             .filter_map(|connection| connection.listener.as_mut())
             .for_each(|listener| {
-                <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = listener.try_send((event.clone(), status)) {
+                <span class="kw">if let </span><span class="prelude-val">Err</span>(error) = listener.try_send(event.clone()) {
                     <span class="macro">log::warn!</span>(
                         <span class="string">"Error sending event to subscription: {error:?}"
                     </span>);

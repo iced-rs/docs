@@ -57,6 +57,38 @@
 <a href="#57" id="57">57</a>
 <a href="#58" id="58">58</a>
 <a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Listen to runtime events.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
@@ -68,7 +100,7 @@
 /// This subscription will notify your application of any [`Event`] that was
 /// not captured by any widget.
 </span><span class="kw">pub fn </span>listen() -&gt; Subscription&lt;Event&gt; {
-    listen_with(|event, status| <span class="kw">match </span>status {
+    listen_with(|event, status, _window| <span class="kw">match </span>status {
         event::Status::Ignored =&gt; <span class="prelude-val">Some</span>(event),
         event::Status::Captured =&gt; <span class="prelude-val">None</span>,
     })
@@ -83,7 +115,7 @@
 /// - Returns `None`, the [`Event`] will be discarded.
 /// - Returns `Some` message, the `Message` will be produced.
 </span><span class="kw">pub fn </span>listen_with&lt;Message&gt;(
-    f: <span class="kw">fn</span>(Event, event::Status) -&gt; <span class="prelude-ty">Option</span>&lt;Message&gt;,
+    f: <span class="kw">fn</span>(Event, event::Status, window::Id) -&gt; <span class="prelude-ty">Option</span>&lt;Message&gt;,
 ) -&gt; Subscription&lt;Message&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'static </span>+ MaybeSend,
@@ -91,13 +123,18 @@
     <span class="attr">#[derive(Hash)]
     </span><span class="kw">struct </span>EventsWith;
 
-    subscription::filter_map(
-        (EventsWith, f),
-        <span class="kw">move </span>|event, status| <span class="kw">match </span>event {
-            Event::Window(<span class="kw">_</span>, window::Event::RedrawRequested(<span class="kw">_</span>)) =&gt; <span class="prelude-val">None</span>,
-            <span class="kw">_ </span>=&gt; f(event, status),
-        },
-    )
+    subscription::filter_map((EventsWith, f), <span class="kw">move </span>|event| <span class="kw">match </span>event {
+        subscription::Event::Interaction {
+            event: Event::Window(window::Event::RedrawRequested(<span class="kw">_</span>)),
+            ..
+        }
+        | subscription::Event::PlatformSpecific(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+        subscription::Event::Interaction {
+            window,
+            event,
+            status,
+        } =&gt; f(event, status, window),
+    })
 }
 
 <span class="doccomment">/// Creates a [`Subscription`] that produces a message for every runtime event,
@@ -106,7 +143,7 @@
 /// **Warning:** This [`Subscription`], if unfiltered, may produce messages in
 /// an infinite loop.
 </span><span class="kw">pub fn </span>listen_raw&lt;Message&gt;(
-    f: <span class="kw">fn</span>(Event, event::Status) -&gt; <span class="prelude-ty">Option</span>&lt;Message&gt;,
+    f: <span class="kw">fn</span>(Event, event::Status, window::Id) -&gt; <span class="prelude-ty">Option</span>&lt;Message&gt;,
 ) -&gt; Subscription&lt;Message&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'static </span>+ MaybeSend,
@@ -114,6 +151,33 @@
     <span class="attr">#[derive(Hash)]
     </span><span class="kw">struct </span>RawEvents;
 
-    subscription::filter_map((RawEvents, f), f)
+    subscription::filter_map((RawEvents, f), <span class="kw">move </span>|event| <span class="kw">match </span>event {
+        subscription::Event::Interaction {
+            window,
+            event,
+            status,
+        } =&gt; f(event, status, window),
+        subscription::Event::PlatformSpecific(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+    })
+}
+
+<span class="doccomment">/// Creates a [`Subscription`] that notifies of custom application URL
+/// received from the system.
+///
+/// _**Note:** Currently, it only triggers on macOS and the executable needs to be properly [bundled]!_
+///
+/// [bundled]: https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html#//apple_ref/doc/uid/10000123i-CH101-SW19
+</span><span class="kw">pub fn </span>listen_url() -&gt; Subscription&lt;String&gt; {
+    <span class="attr">#[derive(Hash)]
+    </span><span class="kw">struct </span>ListenUrl;
+
+    subscription::filter_map(ListenUrl, <span class="kw">move </span>|event| <span class="kw">match </span>event {
+        subscription::Event::PlatformSpecific(
+            subscription::PlatformSpecific::MacOS(
+                subscription::MacOS::ReceivedUrl(url),
+            ),
+        ) =&gt; <span class="prelude-val">Some</span>(url),
+        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+    })
 }
 </code></pre></div></section></main></body></html>

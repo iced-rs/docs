@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Event","MacOS","PlatformSpecific","Status"],"fn":["listen","listen_raw","listen_with"]};
+window.SIDEBAR_ITEMS = {"enum":["Event","Status"],"fn":["listen","listen_raw","listen_url","listen_with"]};

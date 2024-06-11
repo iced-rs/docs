@@ -1129,6 +1129,11 @@
 <a href="#1129" id="1129">1129</a>
 <a href="#1130" id="1130">1130</a>
 <a href="#1131" id="1131">1131</a>
+<a href="#1132" id="1132">1132</a>
+<a href="#1133" id="1133">1133</a>
+<a href="#1134" id="1134">1134</a>
+<a href="#1135" id="1135">1135</a>
+<a href="#1136" id="1136">1136</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications.
 </span><span class="kw">mod </span>state;
 
@@ -1143,7 +1148,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Color, Event, Point, Size, Theme};
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures;
-<span class="kw">use </span><span class="kw">crate</span>::futures::{Executor, Runtime, Subscription};
+<span class="kw">use </span><span class="kw">crate</span>::futures::subscription::{<span class="self">self</span>, Subscription};
+<span class="kw">use </span><span class="kw">crate</span>::futures::{Executor, Runtime};
 <span class="kw">use </span><span class="kw">crate</span>::graphics;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::compositor::{<span class="self">self</span>, Compositor};
 <span class="kw">use </span><span class="kw">crate</span>::runtime::clipboard;
@@ -1705,12 +1711,10 @@
             event::Event::PlatformSpecific(event::PlatformSpecific::MacOS(
                 event::MacOS::ReceivedUrl(url),
             )) =&gt; {
-                <span class="kw">use </span><span class="kw">crate</span>::core::event;
-
-                events.push(Event::PlatformSpecific(
-                    event::PlatformSpecific::MacOS(event::MacOS::ReceivedUrl(
-                        url,
-                    )),
+                runtime.broadcast(subscription::Event::PlatformSpecific(
+                    subscription::PlatformSpecific::MacOS(
+                        subscription::MacOS::ReceivedUrl(url),
+                    ),
                 ));
             }
             event::Event::UserEvent(message) =&gt; {
@@ -1754,7 +1758,6 @@
                 // Then, we can use the `interface_state` here to decide if a redraw
                 // is needed right away, or simply wait until a specific time.
                 </span><span class="kw">let </span>redraw_event = Event::Window(
-                    window::Id::MAIN,
                     window::Event::RedrawRequested(Instant::now()),
                 );
 
@@ -1782,7 +1785,11 @@
                     <span class="kw">_ </span>=&gt; ControlFlow::Wait,
                 });
 
-                runtime.broadcast(redraw_event, core::event::Status::Ignored);
+                runtime.broadcast(subscription::Event::Interaction {
+                    window: window::Id::MAIN,
+                    event: redraw_event,
+                    status: core::event::Status::Ignored,
+                });
 
                 debug.draw_started();
                 <span class="kw">let </span>new_mouse_interaction = user_interface.draw(
@@ -1845,7 +1852,6 @@
                 state.update(<span class="kw-2">&amp;</span>window, <span class="kw-2">&amp;</span>window_event, <span class="kw-2">&amp;mut </span>debug);
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(event) = conversion::window_event(
-                    window::Id::MAIN,
                     window_event,
                     state.scale_factor(),
                     state.modifiers(),
@@ -1873,7 +1879,11 @@
                 <span class="kw">for </span>(event, status) <span class="kw">in
                     </span>events.drain(..).zip(statuses.into_iter())
                 {
-                    runtime.broadcast(event, status);
+                    runtime.broadcast(subscription::Event::Interaction {
+                        window: window::Id::MAIN,
+                        event,
+                        status,
+                    });
                 }
 
                 <span class="kw">if </span>!messages.is_empty()
