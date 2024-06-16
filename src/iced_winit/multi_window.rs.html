@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `winit/src/multi_window.rs`."><title>multi_window.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-46f98efaafac5295.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-e883e87179a81222.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.76.0-nightly (d86d65bbc 2023-12-10)" data-channel="nightly" data-search-js="search-5a66c239c06b3a66.js" data-settings-js="settings-fe03fdc259827cd2.js" ><script src="../../static.files/storage-bc37acceda91d44a.js"></script><script defer src="../../static.files/src-script-3280b574d94e47b4.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-77dede896d6ac08e.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-5d8b3c7633ad77ba.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"></nav><main><nav class="sub"><a class="sub-logo-container" href="../../iced_winit/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="iced_winit"></a><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-7b819b6101059cd0.svg"></a></div></form></nav><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `winit/src/multi_window.rs`."><title>multi_window.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0-nightly (3cf924b93 2024-06-15)" data-channel="nightly" data-search-js="search-0fe7219eb170c82e.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1320,49 +1320,6 @@
 <a href="#1320" id="1320">1320</a>
 <a href="#1321" id="1321">1321</a>
 <a href="#1322" id="1322">1322</a>
-<a href="#1323" id="1323">1323</a>
-<a href="#1324" id="1324">1324</a>
-<a href="#1325" id="1325">1325</a>
-<a href="#1326" id="1326">1326</a>
-<a href="#1327" id="1327">1327</a>
-<a href="#1328" id="1328">1328</a>
-<a href="#1329" id="1329">1329</a>
-<a href="#1330" id="1330">1330</a>
-<a href="#1331" id="1331">1331</a>
-<a href="#1332" id="1332">1332</a>
-<a href="#1333" id="1333">1333</a>
-<a href="#1334" id="1334">1334</a>
-<a href="#1335" id="1335">1335</a>
-<a href="#1336" id="1336">1336</a>
-<a href="#1337" id="1337">1337</a>
-<a href="#1338" id="1338">1338</a>
-<a href="#1339" id="1339">1339</a>
-<a href="#1340" id="1340">1340</a>
-<a href="#1341" id="1341">1341</a>
-<a href="#1342" id="1342">1342</a>
-<a href="#1343" id="1343">1343</a>
-<a href="#1344" id="1344">1344</a>
-<a href="#1345" id="1345">1345</a>
-<a href="#1346" id="1346">1346</a>
-<a href="#1347" id="1347">1347</a>
-<a href="#1348" id="1348">1348</a>
-<a href="#1349" id="1349">1349</a>
-<a href="#1350" id="1350">1350</a>
-<a href="#1351" id="1351">1351</a>
-<a href="#1352" id="1352">1352</a>
-<a href="#1353" id="1353">1353</a>
-<a href="#1354" id="1354">1354</a>
-<a href="#1355" id="1355">1355</a>
-<a href="#1356" id="1356">1356</a>
-<a href="#1357" id="1357">1357</a>
-<a href="#1358" id="1358">1358</a>
-<a href="#1359" id="1359">1359</a>
-<a href="#1360" id="1360">1360</a>
-<a href="#1361" id="1361">1361</a>
-<a href="#1362" id="1362">1362</a>
-<a href="#1363" id="1363">1363</a>
-<a href="#1364" id="1364">1364</a>
-<a href="#1365" id="1365">1365</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
@@ -1386,10 +1343,10 @@
 <span class="kw">use </span><span class="kw">crate</span>::graphics;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::{compositor, Compositor};
 <span class="kw">use </span><span class="kw">crate</span>::multi_window::window_manager::WindowManager;
-<span class="kw">use </span><span class="kw">crate</span>::runtime::command::{<span class="self">self</span>, Command};
 <span class="kw">use </span><span class="kw">crate</span>::runtime::multi_window::Program;
 <span class="kw">use </span><span class="kw">crate</span>::runtime::user_interface::{<span class="self">self</span>, UserInterface};
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Debug;
+<span class="kw">use </span><span class="kw">crate</span>::runtime::{Action, Task};
 <span class="kw">use crate</span>::{Clipboard, Error, Proxy, Settings};
 
 <span class="kw">pub use </span><span class="kw">crate</span>::application::{default, Appearance, DefaultStyle};
@@ -1406,7 +1363,7 @@
 /// its own window.
 ///
 /// An [`Application`] can execute asynchronous actions by returning a
-/// [`Command`] in some of its methods.
+/// [`Task`] in some of its methods.
 ///
 /// When using an [`Application`] with the `debug` feature enabled, a debug view
 /// can be toggled by pressing `F12`.
@@ -1422,10 +1379,10 @@
     ///
     /// Here is where you should return the initial state of your app.
     ///
-    /// Additionally, you can return a [`Command`] if you need to perform some
+    /// Additionally, you can return a [`Task`] if you need to perform some
     /// async action in the background on startup. This is useful if you want to
     /// load state from a file, perform an initial HTTP request, etc.
-    </span><span class="kw">fn </span>new(flags: <span class="self">Self</span>::Flags) -&gt; (<span class="self">Self</span>, Command&lt;<span class="self">Self</span>::Message&gt;);
+    </span><span class="kw">fn </span>new(flags: <span class="self">Self</span>::Flags) -&gt; (<span class="self">Self</span>, Task&lt;<span class="self">Self</span>::Message&gt;);
 
     <span class="doccomment">/// Returns the current title of the [`Application`].
     ///
@@ -1492,18 +1449,22 @@
 
     <span class="kw">let </span>(proxy, worker) = Proxy::new(event_loop.create_proxy());
 
-    <span class="kw">let </span>runtime = {
+    <span class="kw">let </span><span class="kw-2">mut </span>runtime = {
         <span class="kw">let </span>executor = E::new().map_err(Error::ExecutorCreationFailed)<span class="question-mark">?</span>;
         executor.spawn(worker);
 
         Runtime::new(executor, proxy.clone())
     };
 
-    <span class="kw">let </span>(application, init_command) = {
+    <span class="kw">let </span>(application, task) = {
         <span class="kw">let </span>flags = settings.flags;
 
         runtime.enter(|| A::new(flags))
     };
+
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(stream) = task.into_stream() {
+        runtime.run(stream);
+    }
 
     <span class="kw">let </span>id = settings.id;
     <span class="kw">let </span>title = application.title(window::Id::MAIN);
@@ -1520,7 +1481,6 @@
         boot_receiver,
         event_receiver,
         control_sender,
-        init_command,
     ));
 
     <span class="kw">let </span>context = task::Context::from_waker(task::noop_waker_ref());
@@ -1813,13 +1773,12 @@
 
 <span class="kw">async fn </span>run_instance&lt;A, E, C&gt;(
     <span class="kw-2">mut </span>application: A,
-    <span class="kw-2">mut </span>runtime: Runtime&lt;E, Proxy&lt;A::Message&gt;, A::Message&gt;,
+    <span class="kw-2">mut </span>runtime: Runtime&lt;E, Proxy&lt;A::Message&gt;, Action&lt;A::Message&gt;&gt;,
     <span class="kw-2">mut </span>proxy: Proxy&lt;A::Message&gt;,
     <span class="kw-2">mut </span>debug: Debug,
     <span class="kw-2">mut </span>boot: oneshot::Receiver&lt;Boot&lt;C&gt;&gt;,
-    <span class="kw-2">mut </span>event_receiver: mpsc::UnboundedReceiver&lt;Event&lt;A::Message&gt;&gt;,
+    <span class="kw-2">mut </span>event_receiver: mpsc::UnboundedReceiver&lt;Event&lt;Action&lt;A::Message&gt;&gt;&gt;,
     <span class="kw-2">mut </span>control_sender: mpsc::UnboundedSender&lt;Control&gt;,
-    init_command: Command&lt;A::Message&gt;,
 ) <span class="kw">where
     </span>A: Application + <span class="lifetime">'static</span>,
     E: Executor + <span class="lifetime">'static</span>,
@@ -1876,20 +1835,12 @@
         )]),
     ));
 
-    run_command(
-        <span class="kw-2">&amp;</span>application,
-        <span class="kw-2">&amp;mut </span>compositor,
-        init_command,
-        <span class="kw-2">&amp;mut </span>runtime,
-        <span class="kw-2">&amp;mut </span>clipboard,
-        <span class="kw-2">&amp;mut </span>control_sender,
-        <span class="kw-2">&amp;mut </span>proxy,
-        <span class="kw-2">&amp;mut </span>debug,
-        <span class="kw-2">&amp;mut </span>window_manager,
-        <span class="kw-2">&amp;mut </span>ui_caches,
+    runtime.track(
+        application
+            .subscription()
+            .map(Action::Output)
+            .into_recipes(),
     );
-
-    runtime.track(application.subscription().into_recipes());
 
     <span class="kw">let </span><span class="kw-2">mut </span>messages = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>user_events = <span class="number">0</span>;
@@ -1959,8 +1910,19 @@
                             ),
                         );
                     }
-                    event::Event::UserEvent(message) =&gt; {
-                        messages.push(message);
+                    event::Event::UserEvent(action) =&gt; {
+                        run_action(
+                            action,
+                            <span class="kw-2">&amp;</span>application,
+                            <span class="kw-2">&amp;mut </span>compositor,
+                            <span class="kw-2">&amp;mut </span>messages,
+                            <span class="kw-2">&amp;mut </span>clipboard,
+                            <span class="kw-2">&amp;mut </span>control_sender,
+                            <span class="kw-2">&amp;mut </span>debug,
+                            <span class="kw-2">&amp;mut </span>user_interfaces,
+                            <span class="kw-2">&amp;mut </span>window_manager,
+                            <span class="kw-2">&amp;mut </span>ui_caches,
+                        );
                         user_events += <span class="number">1</span>;
                     }
                     event::Event::WindowEvent {
@@ -2253,7 +2215,7 @@
 
                         <span class="comment">// TODO mw application update returns which window IDs to update
                         </span><span class="kw">if </span>!messages.is_empty() || uis_stale {
-                            <span class="kw">let </span><span class="kw-2">mut </span>cached_interfaces: FxHashMap&lt;
+                            <span class="kw">let </span>cached_interfaces: FxHashMap&lt;
                                 window::Id,
                                 user_interface::Cache,
                             &gt; = ManuallyDrop::into_inner(user_interfaces)
@@ -2264,15 +2226,9 @@
                             <span class="comment">// Update application
                             </span>update(
                                 <span class="kw-2">&amp;mut </span>application,
-                                <span class="kw-2">&amp;mut </span>compositor,
                                 <span class="kw-2">&amp;mut </span>runtime,
-                                <span class="kw-2">&amp;mut </span>clipboard,
-                                <span class="kw-2">&amp;mut </span>control_sender,
-                                <span class="kw-2">&amp;mut </span>proxy,
                                 <span class="kw-2">&amp;mut </span>debug,
                                 <span class="kw-2">&amp;mut </span>messages,
-                                <span class="kw-2">&amp;mut </span>window_manager,
-                                <span class="kw-2">&amp;mut </span>cached_interfaces,
                             );
 
                             <span class="comment">// we must synchronize all window states with application state after an
@@ -2336,63 +2292,46 @@
     user_interface
 }
 
-<span class="doccomment">/// Updates a multi-window [`Application`] by feeding it messages, spawning any
-/// resulting [`Command`], and tracking its [`Subscription`].
-</span><span class="kw">fn </span>update&lt;A: Application, C, E: Executor&gt;(
+<span class="kw">fn </span>update&lt;A: Application, E: Executor&gt;(
     application: <span class="kw-2">&amp;mut </span>A,
-    compositor: <span class="kw-2">&amp;mut </span>C,
-    runtime: <span class="kw-2">&amp;mut </span>Runtime&lt;E, Proxy&lt;A::Message&gt;, A::Message&gt;,
-    clipboard: <span class="kw-2">&amp;mut </span>Clipboard,
-    control_sender: <span class="kw-2">&amp;mut </span>mpsc::UnboundedSender&lt;Control&gt;,
-    proxy: <span class="kw-2">&amp;mut </span>Proxy&lt;A::Message&gt;,
+    runtime: <span class="kw-2">&amp;mut </span>Runtime&lt;E, Proxy&lt;A::Message&gt;, Action&lt;A::Message&gt;&gt;,
     debug: <span class="kw-2">&amp;mut </span>Debug,
     messages: <span class="kw-2">&amp;mut </span>Vec&lt;A::Message&gt;,
-    window_manager: <span class="kw-2">&amp;mut </span>WindowManager&lt;A, C&gt;,
-    ui_caches: <span class="kw-2">&amp;mut </span>FxHashMap&lt;window::Id, user_interface::Cache&gt;,
 ) <span class="kw">where
-    </span>C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
-    A::Theme: DefaultStyle,
+    </span>A::Theme: DefaultStyle,
 {
     <span class="kw">for </span>message <span class="kw">in </span>messages.drain(..) {
         debug.log_message(<span class="kw-2">&amp;</span>message);
         debug.update_started();
 
-        <span class="kw">let </span>command = runtime.enter(|| application.update(message));
+        <span class="kw">let </span>task = runtime.enter(|| application.update(message));
         debug.update_finished();
 
-        run_command(
-            application,
-            compositor,
-            command,
-            runtime,
-            clipboard,
-            control_sender,
-            proxy,
-            debug,
-            window_manager,
-            ui_caches,
-        );
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(stream) = task.into_stream() {
+            runtime.run(stream);
+        }
     }
 
     <span class="kw">let </span>subscription = application.subscription();
-    runtime.track(subscription.into_recipes());
+    runtime.track(subscription.map(Action::Output).into_recipes());
 }
 
-<span class="doccomment">/// Runs the actions of a [`Command`].
-</span><span class="kw">fn </span>run_command&lt;A, C, E&gt;(
+<span class="kw">fn </span>run_action&lt;A, C&gt;(
+    action: Action&lt;A::Message&gt;,
     application: <span class="kw-2">&amp;</span>A,
     compositor: <span class="kw-2">&amp;mut </span>C,
-    command: Command&lt;A::Message&gt;,
-    runtime: <span class="kw-2">&amp;mut </span>Runtime&lt;E, Proxy&lt;A::Message&gt;, A::Message&gt;,
+    messages: <span class="kw-2">&amp;mut </span>Vec&lt;A::Message&gt;,
     clipboard: <span class="kw-2">&amp;mut </span>Clipboard,
     control_sender: <span class="kw-2">&amp;mut </span>mpsc::UnboundedSender&lt;Control&gt;,
-    proxy: <span class="kw-2">&amp;mut </span>Proxy&lt;A::Message&gt;,
     debug: <span class="kw-2">&amp;mut </span>Debug,
+    interfaces: <span class="kw-2">&amp;mut </span>FxHashMap&lt;
+        window::Id,
+        UserInterface&lt;<span class="lifetime">'_</span>, A::Message, A::Theme, A::Renderer&gt;,
+    &gt;,
     window_manager: <span class="kw-2">&amp;mut </span>WindowManager&lt;A, C&gt;,
     ui_caches: <span class="kw-2">&amp;mut </span>FxHashMap&lt;window::Id, user_interface::Cache&gt;,
 ) <span class="kw">where
     </span>A: Application,
-    E: Executor,
     C: Compositor&lt;Renderer = A::Renderer&gt; + <span class="lifetime">'static</span>,
     A::Theme: DefaultStyle,
 {
@@ -2400,279 +2339,254 @@
     <span class="kw">use </span><span class="kw">crate</span>::runtime::system;
     <span class="kw">use </span><span class="kw">crate</span>::runtime::window;
 
-    <span class="kw">for </span>action <span class="kw">in </span>command.actions() {
-        <span class="kw">match </span>action {
-            command::Action::Future(future) =&gt; {
-                runtime.spawn(Box::pin(future));
+    <span class="kw">match </span>action {
+        Action::Output(message) =&gt; {
+            messages.push(message);
+        }
+        Action::Clipboard(action) =&gt; <span class="kw">match </span>action {
+            clipboard::Action::Read { target, channel } =&gt; {
+                <span class="kw">let _ </span>= channel.send(clipboard.read(target));
             }
-            command::Action::Stream(stream) =&gt; {
-                runtime.run(Box::pin(stream));
+            clipboard::Action::Write { target, contents } =&gt; {
+                clipboard.write(target, contents);
             }
-            command::Action::Clipboard(action) =&gt; <span class="kw">match </span>action {
-                clipboard::Action::Read(tag, kind) =&gt; {
-                    <span class="kw">let </span>message = tag(clipboard.read(kind));
+        },
+        Action::Window(action) =&gt; <span class="kw">match </span>action {
+            window::Action::Open(id, settings, channel) =&gt; {
+                <span class="kw">let </span>monitor = window_manager.last_monitor();
 
-                    proxy.send(message);
-                }
-                clipboard::Action::Write(contents, kind) =&gt; {
-                    clipboard.write(kind, contents);
-                }
-            },
-            command::Action::Window(action) =&gt; <span class="kw">match </span>action {
-                window::Action::Spawn(id, settings) =&gt; {
-                    <span class="kw">let </span>monitor = window_manager.last_monitor();
+                control_sender
+                    .start_send(Control::CreateWindow {
+                        id,
+                        settings,
+                        title: application.title(id),
+                        monitor,
+                    })
+                    .expect(<span class="string">"Send control action"</span>);
 
+                <span class="kw">let _ </span>= channel.send(id);
+            }
+            window::Action::Close(id) =&gt; {
+                <span class="kw">let _ </span>= window_manager.remove(id);
+                <span class="kw">let _ </span>= ui_caches.remove(<span class="kw-2">&amp;</span>id);
+
+                <span class="kw">if </span>window_manager.is_empty() {
                     control_sender
-                        .start_send(Control::CreateWindow {
-                            id,
-                            settings,
-                            title: application.title(id),
-                            monitor,
-                        })
+                        .start_send(Control::Exit)
                         .expect(<span class="string">"Send control action"</span>);
                 }
-                window::Action::Close(id) =&gt; {
-                    <span class="kw">let _ </span>= window_manager.remove(id);
-                    <span class="kw">let _ </span>= ui_caches.remove(<span class="kw-2">&amp;</span>id);
+            }
+            window::Action::Drag(id) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    <span class="kw">let _ </span>= window.raw.drag_window();
+                }
+            }
+            window::Action::Resize(id, size) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    <span class="kw">let _ </span>= window.raw.request_inner_size(
+                        winit::dpi::LogicalSize {
+                            width: size.width,
+                            height: size.height,
+                        },
+                    );
+                }
+            }
+            window::Action::FetchSize(id, channel) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    <span class="kw">let </span>size = window
+                        .raw
+                        .inner_size()
+                        .to_logical(window.raw.scale_factor());
 
-                    <span class="kw">if </span>window_manager.is_empty() {
-                        control_sender
-                            .start_send(Control::Exit)
-                            .expect(<span class="string">"Send control action"</span>);
-                    }
+                    <span class="kw">let _ </span>= channel.send(Size::new(size.width, size.height));
                 }
-                window::Action::Drag(id) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        <span class="kw">let _ </span>= window.raw.drag_window();
-                    }
+            }
+            window::Action::FetchMaximized(id, channel) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    <span class="kw">let _ </span>= channel.send(window.raw.is_maximized());
                 }
-                window::Action::Resize(id, size) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        <span class="kw">let _ </span>= window.raw.request_inner_size(
-                            winit::dpi::LogicalSize {
-                                width: size.width,
-                                height: size.height,
-                            },
-                        );
-                    }
+            }
+            window::Action::Maximize(id, maximized) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    window.raw.set_maximized(maximized);
                 }
-                window::Action::FetchSize(id, callback) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        <span class="kw">let </span>size = window
-                            .raw
-                            .inner_size()
-                            .to_logical(window.raw.scale_factor());
+            }
+            window::Action::FetchMinimized(id, channel) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    <span class="kw">let _ </span>= channel.send(window.raw.is_minimized());
+                }
+            }
+            window::Action::Minimize(id, minimized) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    window.raw.set_minimized(minimized);
+                }
+            }
+            window::Action::FetchPosition(id, channel) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    <span class="kw">let </span>position = window
+                        .raw
+                        .inner_position()
+                        .map(|position| {
+                            <span class="kw">let </span>position = position
+                                .to_logical::&lt;f32&gt;(window.raw.scale_factor());
 
-                        proxy
-                            .send(callback(Size::new(size.width, size.height)));
-                    }
-                }
-                window::Action::FetchMaximized(id, callback) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        proxy.send(callback(window.raw.is_maximized()));
-                    }
-                }
-                window::Action::Maximize(id, maximized) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        window.raw.set_maximized(maximized);
-                    }
-                }
-                window::Action::FetchMinimized(id, callback) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        proxy.send(callback(window.raw.is_minimized()));
-                    }
-                }
-                window::Action::Minimize(id, minimized) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        window.raw.set_minimized(minimized);
-                    }
-                }
-                window::Action::FetchPosition(id, callback) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        <span class="kw">let </span>position = window
-                            .raw
-                            .inner_position()
-                            .map(|position| {
-                                <span class="kw">let </span>position = position.to_logical::&lt;f32&gt;(
-                                    window.raw.scale_factor(),
-                                );
+                            Point::new(position.x, position.y)
+                        })
+                        .ok();
 
-                                Point::new(position.x, position.y)
-                            })
-                            .ok();
+                    <span class="kw">let _ </span>= channel.send(position);
+                }
+            }
+            window::Action::Move(id, position) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    window.raw.set_outer_position(
+                        winit::dpi::LogicalPosition {
+                            x: position.x,
+                            y: position.y,
+                        },
+                    );
+                }
+            }
+            window::Action::ChangeMode(id, mode) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    window.raw.set_visible(conversion::visible(mode));
+                    window.raw.set_fullscreen(conversion::fullscreen(
+                        window.raw.current_monitor(),
+                        mode,
+                    ));
+                }
+            }
+            window::Action::ChangeIcon(id, icon) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    window.raw.set_window_icon(conversion::icon(icon));
+                }
+            }
+            window::Action::FetchMode(id, channel) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    <span class="kw">let </span>mode = <span class="kw">if </span>window.raw.is_visible().unwrap_or(<span class="bool-val">true</span>) {
+                        conversion::mode(window.raw.fullscreen())
+                    } <span class="kw">else </span>{
+                        core::window::Mode::Hidden
+                    };
 
-                        proxy.send(callback(position));
-                    }
+                    <span class="kw">let _ </span>= channel.send(mode);
                 }
-                window::Action::Move(id, position) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        window.raw.set_outer_position(
-                            winit::dpi::LogicalPosition {
-                                x: position.x,
-                                y: position.y,
-                            },
-                        );
-                    }
+            }
+            window::Action::ToggleMaximize(id) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    window.raw.set_maximized(!window.raw.is_maximized());
                 }
-                window::Action::ChangeMode(id, mode) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        window.raw.set_visible(conversion::visible(mode));
-                        window.raw.set_fullscreen(conversion::fullscreen(
-                            window.raw.current_monitor(),
-                            mode,
-                        ));
-                    }
+            }
+            window::Action::ToggleDecorations(id) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    window.raw.set_decorations(!window.raw.is_decorated());
                 }
-                window::Action::ChangeIcon(id, icon) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        window.raw.set_window_icon(conversion::icon(icon));
-                    }
+            }
+            window::Action::RequestUserAttention(id, attention_type) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    window.raw.request_user_attention(
+                        attention_type.map(conversion::user_attention),
+                    );
                 }
-                window::Action::FetchMode(id, tag) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        <span class="kw">let </span>mode = <span class="kw">if </span>window.raw.is_visible().unwrap_or(<span class="bool-val">true</span>) {
-                            conversion::mode(window.raw.fullscreen())
-                        } <span class="kw">else </span>{
-                            core::window::Mode::Hidden
-                        };
-
-                        proxy.send(tag(mode));
-                    }
+            }
+            window::Action::GainFocus(id) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    window.raw.focus_window();
                 }
-                window::Action::ToggleMaximize(id) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        window.raw.set_maximized(!window.raw.is_maximized());
-                    }
+            }
+            window::Action::ChangeLevel(id, level) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    window
+                        .raw
+                        .set_window_level(conversion::window_level(level));
                 }
-                window::Action::ToggleDecorations(id) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        window.raw.set_decorations(!window.raw.is_decorated());
-                    }
-                }
-                window::Action::RequestUserAttention(id, attention_type) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        window.raw.request_user_attention(
-                            attention_type.map(conversion::user_attention),
-                        );
-                    }
-                }
-                window::Action::GainFocus(id) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        window.raw.focus_window();
-                    }
-                }
-                window::Action::ChangeLevel(id, level) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        window
-                            .raw
-                            .set_window_level(conversion::window_level(level));
-                    }
-                }
-                window::Action::ShowSystemMenu(id) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        <span class="kw">if let </span>mouse::Cursor::Available(point) =
-                            window.state.cursor()
-                        {
-                            window.raw.show_window_menu(
-                                winit::dpi::LogicalPosition {
-                                    x: point.x,
-                                    y: point.y,
-                                },
-                            );
-                        }
-                    }
-                }
-                window::Action::FetchId(id, tag) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        proxy.send(tag(window.raw.id().into()));
-                    }
-                }
-                window::Action::RunWithHandle(id, tag) =&gt; {
-                    <span class="kw">use </span>window::raw_window_handle::HasWindowHandle;
-
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = window_manager
-                        .get_mut(id)
-                        .and_then(|window| window.raw.window_handle().ok())
+            }
+            window::Action::ShowSystemMenu(id) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    <span class="kw">if let </span>mouse::Cursor::Available(point) =
+                        window.state.cursor()
                     {
-                        proxy.send(tag(handle));
-                    }
-                }
-                window::Action::Screenshot(id, tag) =&gt; {
-                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
-                        <span class="kw">let </span>bytes = compositor.screenshot(
-                            <span class="kw-2">&amp;mut </span>window.renderer,
-                            <span class="kw-2">&amp;mut </span>window.surface,
-                            window.state.viewport(),
-                            window.state.background_color(),
-                            <span class="kw-2">&amp;</span>debug.overlay(),
+                        window.raw.show_window_menu(
+                            winit::dpi::LogicalPosition {
+                                x: point.x,
+                                y: point.y,
+                            },
                         );
-
-                        proxy.send(tag(window::Screenshot::new(
-                            bytes,
-                            window.state.physical_size(),
-                            window.state.viewport().scale_factor(),
-                        )));
                     }
                 }
-            },
-            command::Action::System(action) =&gt; <span class="kw">match </span>action {
-                system::Action::QueryInformation(_tag) =&gt; {
-                    <span class="attr">#[cfg(feature = <span class="string">"system"</span>)]
-                    </span>{
-                        <span class="kw">let </span>graphics_info = compositor.fetch_information();
-                        <span class="kw">let </span><span class="kw-2">mut </span>proxy = proxy.clone();
+            }
+            window::Action::FetchRawId(id, channel) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    <span class="kw">let _ </span>= channel.send(window.raw.id().into());
+                }
+            }
+            window::Action::RunWithHandle(id, f) =&gt; {
+                <span class="kw">use </span>window::raw_window_handle::HasWindowHandle;
 
-                        <span class="kw">let _ </span>= std::thread::spawn(<span class="kw">move </span>|| {
-                            <span class="kw">let </span>information =
-                                <span class="kw">crate</span>::system::information(graphics_info);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = window_manager
+                    .get_mut(id)
+                    .and_then(|window| window.raw.window_handle().ok())
+                {
+                    f(handle);
+                }
+            }
+            window::Action::Screenshot(id, channel) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(id) {
+                    <span class="kw">let </span>bytes = compositor.screenshot(
+                        <span class="kw-2">&amp;mut </span>window.renderer,
+                        <span class="kw-2">&amp;mut </span>window.surface,
+                        window.state.viewport(),
+                        window.state.background_color(),
+                        <span class="kw-2">&amp;</span>debug.overlay(),
+                    );
 
-                            <span class="kw">let </span>message = _tag(information);
+                    <span class="kw">let _ </span>= channel.send(window::Screenshot::new(
+                        bytes,
+                        window.state.physical_size(),
+                        window.state.viewport().scale_factor(),
+                    ));
+                }
+            }
+        },
+        Action::System(action) =&gt; <span class="kw">match </span>action {
+            system::Action::QueryInformation(_channel) =&gt; {
+                <span class="attr">#[cfg(feature = <span class="string">"system"</span>)]
+                </span>{
+                    <span class="kw">let </span>graphics_info = compositor.fetch_information();
 
-                            proxy.send(message);
-                        });
+                    <span class="kw">let _ </span>= std::thread::spawn(<span class="kw">move </span>|| {
+                        <span class="kw">let </span>information =
+                            <span class="kw">crate</span>::system::information(graphics_info);
+
+                        <span class="kw">let _ </span>= _channel.send(information);
+                    });
+                }
+            }
+        },
+        Action::Widget(operation) =&gt; {
+            <span class="kw">let </span><span class="kw-2">mut </span>current_operation = <span class="prelude-val">Some</span>(operation);
+
+            <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>operation) = current_operation.take() {
+                <span class="kw">for </span>(id, ui) <span class="kw">in </span>interfaces.iter_mut() {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(<span class="kw-2">*</span>id) {
+                        ui.operate(<span class="kw-2">&amp;</span>window.renderer, operation.as_mut());
                     }
                 }
-            },
-            command::Action::Widget(action) =&gt; {
-                <span class="kw">let </span><span class="kw-2">mut </span>current_operation = <span class="prelude-val">Some</span>(action);
 
-                <span class="kw">let </span><span class="kw-2">mut </span>uis = build_user_interfaces(
-                    application,
-                    debug,
-                    window_manager,
-                    std::mem::take(ui_caches),
-                );
-
-                <span class="kw">while let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>operation) = current_operation.take() {
-                    <span class="kw">for </span>(id, ui) <span class="kw">in </span>uis.iter_mut() {
-                        <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.get_mut(<span class="kw-2">*</span>id) {
-                            ui.operate(<span class="kw-2">&amp;</span>window.renderer, operation.as_mut());
-                        }
-                    }
-
-                    <span class="kw">match </span>operation.finish() {
-                        operation::Outcome::None =&gt; {}
-                        operation::Outcome::Some(message) =&gt; {
-                            proxy.send(message);
-                        }
-                        operation::Outcome::Chain(next) =&gt; {
-                            current_operation = <span class="prelude-val">Some</span>(next);
-                        }
+                <span class="kw">match </span>operation.finish() {
+                    operation::Outcome::None =&gt; {}
+                    operation::Outcome::Some(()) =&gt; {}
+                    operation::Outcome::Chain(next) =&gt; {
+                        current_operation = <span class="prelude-val">Some</span>(next);
                     }
                 }
+            }
+        }
+        Action::LoadFont { bytes, channel } =&gt; {
+            <span class="comment">// TODO: Error handling (?)
+            </span>compositor.load_font(bytes.clone());
 
-                <span class="kw-2">*</span>ui_caches =
-                    uis.drain().map(|(id, ui)| (id, ui.into_cache())).collect();
-            }
-            command::Action::LoadFont { bytes, tagger } =&gt; {
-                <span class="comment">// TODO: Error handling (?)
-                </span>compositor.load_font(bytes.clone());
-
-                proxy.send(tagger(<span class="prelude-val">Ok</span>(())));
-            }
-            command::Action::Custom(<span class="kw">_</span>) =&gt; {
-                <span class="macro">log::warn!</span>(<span class="string">"Unsupported custom action in `iced_winit` shell"</span>);
-            }
+            <span class="kw">let _ </span>= channel.send(<span class="prelude-val">Ok</span>(()));
         }
     }
 }

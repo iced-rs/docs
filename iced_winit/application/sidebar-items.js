@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["build_user_interface","default","requests_exit","run","run_command","update"],"struct":["Appearance","State"],"trait":["Application","DefaultStyle"]};
+window.SIDEBAR_ITEMS = {"fn":["build_user_interface","default","requests_exit","run","run_action","update"],"struct":["Appearance","State"],"trait":["Application","DefaultStyle"]};
