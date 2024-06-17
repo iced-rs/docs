@@ -440,16 +440,20 @@
 <a href="#440" id="440">440</a>
 <a href="#441" id="441">441</a>
 <a href="#442" id="442">442</a>
+<a href="#443" id="443">443</a>
+<a href="#444" id="444">444</a>
+<a href="#445" id="445">445</a>
+<a href="#446" id="446">446</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Zoom and pan on an image.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
-<span class="kw">use </span><span class="kw">crate</span>::core::image;
+<span class="kw">use </span><span class="kw">crate</span>::core::image::{<span class="self">self</span>, FilterMethod};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Clipboard, Element, Layout, Length, Pixels, Point, Radians, Rectangle,
-    Shell, Size, Vector, Widget,
+    Clipboard, ContentFit, Element, Layout, Length, Pixels, Point, Radians,
+    Rectangle, Shell, Size, Vector, Widget,
 };
 
 <span class="doccomment">/// A frame that displays an image with the ability to zoom in/out and pan.
@@ -462,27 +466,35 @@
     max_scale: f32,
     scale_step: f32,
     handle: Handle,
-    filter_method: image::FilterMethod,
+    filter_method: FilterMethod,
+    content_fit: ContentFit,
 }
 
 <span class="kw">impl</span>&lt;Handle&gt; Viewer&lt;Handle&gt; {
     <span class="doccomment">/// Creates a new [`Viewer`] with the given [`State`].
-    </span><span class="kw">pub fn </span>new(handle: Handle) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>new&lt;T: Into&lt;Handle&gt;&gt;(handle: T) -&gt; <span class="self">Self </span>{
         Viewer {
-            handle,
+            handle: handle.into(),
             padding: <span class="number">0.0</span>,
             width: Length::Shrink,
             height: Length::Shrink,
             min_scale: <span class="number">0.25</span>,
             max_scale: <span class="number">10.0</span>,
             scale_step: <span class="number">0.10</span>,
-            filter_method: image::FilterMethod::default(),
+            filter_method: FilterMethod::default(),
+            content_fit: ContentFit::default(),
         }
     }
 
-    <span class="doccomment">/// Sets the [`image::FilterMethod`] of the [`Viewer`].
+    <span class="doccomment">/// Sets the [`FilterMethod`] of the [`Viewer`].
     </span><span class="kw">pub fn </span>filter_method(<span class="kw-2">mut </span><span class="self">self</span>, filter_method: image::FilterMethod) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.filter_method = filter_method;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the [`ContentFit`] of the [`Viewer`].
+    </span><span class="kw">pub fn </span>content_fit(<span class="kw-2">mut </span><span class="self">self</span>, content_fit: ContentFit) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.content_fit = content_fit;
         <span class="self">self
     </span>}
 
@@ -557,36 +569,30 @@
         renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        <span class="kw">let </span>Size { width, height } = renderer.measure_image(<span class="kw-2">&amp;</span><span class="self">self</span>.handle);
+        <span class="comment">// The raw w/h of the underlying image
+        </span><span class="kw">let </span>image_size = renderer.measure_image(<span class="kw-2">&amp;</span><span class="self">self</span>.handle);
+        <span class="kw">let </span>image_size =
+            Size::new(image_size.width <span class="kw">as </span>f32, image_size.height <span class="kw">as </span>f32);
 
-        <span class="kw">let </span><span class="kw-2">mut </span>size = limits.resolve(
-            <span class="self">self</span>.width,
-            <span class="self">self</span>.height,
-            Size::new(width <span class="kw">as </span>f32, height <span class="kw">as </span>f32),
-        );
+        <span class="comment">// The size to be available to the widget prior to `Shrink`ing
+        </span><span class="kw">let </span>raw_size = limits.resolve(<span class="self">self</span>.width, <span class="self">self</span>.height, image_size);
 
-        <span class="kw">let </span>expansion_size = <span class="kw">if </span>height &gt; width {
-            <span class="self">self</span>.width
-        } <span class="kw">else </span>{
-            <span class="self">self</span>.height
+        <span class="comment">// The uncropped size of the image when fit to the bounds above
+        </span><span class="kw">let </span>full_size = <span class="self">self</span>.content_fit.fit(image_size, raw_size);
+
+        <span class="comment">// Shrink the widget to fit the resized image, if requested
+        </span><span class="kw">let </span>final_size = Size {
+            width: <span class="kw">match </span><span class="self">self</span>.width {
+                Length::Shrink =&gt; f32::min(raw_size.width, full_size.width),
+                <span class="kw">_ </span>=&gt; raw_size.width,
+            },
+            height: <span class="kw">match </span><span class="self">self</span>.height {
+                Length::Shrink =&gt; f32::min(raw_size.height, full_size.height),
+                <span class="kw">_ </span>=&gt; raw_size.height,
+            },
         };
 
-        <span class="comment">// Only calculate viewport sizes if the images are constrained to a limited space.
-        // If they are Fill|Portion let them expand within their allotted space.
-        </span><span class="kw">match </span>expansion_size {
-            Length::Shrink | Length::Fixed(<span class="kw">_</span>) =&gt; {
-                <span class="kw">let </span>aspect_ratio = width <span class="kw">as </span>f32 / height <span class="kw">as </span>f32;
-                <span class="kw">let </span>viewport_aspect_ratio = size.width / size.height;
-                <span class="kw">if </span>viewport_aspect_ratio &gt; aspect_ratio {
-                    size.width = width <span class="kw">as </span>f32 * size.height / height <span class="kw">as </span>f32;
-                } <span class="kw">else </span>{
-                    size.height = height <span class="kw">as </span>f32 * size.width / width <span class="kw">as </span>f32;
-                }
-            }
-            Length::Fill | Length::FillPortion(<span class="kw">_</span>) =&gt; {}
-        }
-
-        layout::Node::new(size)
+        layout::Node::new(final_size)
     }
 
     <span class="kw">fn </span>on_event(
@@ -624,11 +630,12 @@
                             })
                             .clamp(<span class="self">self</span>.min_scale, <span class="self">self</span>.max_scale);
 
-                            <span class="kw">let </span>image_size = image_size(
+                            <span class="kw">let </span>scaled_size = scaled_image_size(
                                 renderer,
                                 <span class="kw-2">&amp;</span><span class="self">self</span>.handle,
                                 state,
                                 bounds.size(),
+                                <span class="self">self</span>.content_fit,
                             );
 
                             <span class="kw">let </span>factor = state.scale / previous_scale - <span class="number">1.0</span>;
@@ -640,12 +647,12 @@
                                 + state.current_offset * factor;
 
                             state.current_offset = Vector::new(
-                                <span class="kw">if </span>image_size.width &gt; bounds.width {
+                                <span class="kw">if </span>scaled_size.width &gt; bounds.width {
                                     state.current_offset.x + adjustment.x
                                 } <span class="kw">else </span>{
                                     <span class="number">0.0
                                 </span>},
-                                <span class="kw">if </span>image_size.height &gt; bounds.height {
+                                <span class="kw">if </span>scaled_size.height &gt; bounds.height {
                                     state.current_offset.y + adjustment.y
                                 } <span class="kw">else </span>{
                                     <span class="number">0.0
@@ -684,32 +691,32 @@
                 <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&gt;();
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(origin) = state.cursor_grabbed_at {
-                    <span class="kw">let </span>image_size = image_size(
+                    <span class="kw">let </span>scaled_size = scaled_image_size(
                         renderer,
                         <span class="kw-2">&amp;</span><span class="self">self</span>.handle,
                         state,
                         bounds.size(),
+                        <span class="self">self</span>.content_fit,
                     );
-
-                    <span class="kw">let </span>hidden_width = (image_size.width - bounds.width / <span class="number">2.0</span>)
+                    <span class="kw">let </span>hidden_width = (scaled_size.width - bounds.width / <span class="number">2.0</span>)
                         .max(<span class="number">0.0</span>)
                         .round();
 
-                    <span class="kw">let </span>hidden_height = (image_size.height
+                    <span class="kw">let </span>hidden_height = (scaled_size.height
                         - bounds.height / <span class="number">2.0</span>)
                         .max(<span class="number">0.0</span>)
                         .round();
 
                     <span class="kw">let </span>delta = position - origin;
 
-                    <span class="kw">let </span>x = <span class="kw">if </span>bounds.width &lt; image_size.width {
+                    <span class="kw">let </span>x = <span class="kw">if </span>bounds.width &lt; scaled_size.width {
                         (state.starting_offset.x - delta.x)
                             .clamp(-hidden_width, hidden_width)
                     } <span class="kw">else </span>{
                         <span class="number">0.0
                     </span>};
 
-                    <span class="kw">let </span>y = <span class="kw">if </span>bounds.height &lt; image_size.height {
+                    <span class="kw">let </span>y = <span class="kw">if </span>bounds.height &lt; scaled_size.height {
                         (state.starting_offset.y - delta.y)
                             .clamp(-hidden_height, hidden_height)
                     } <span class="kw">else </span>{
@@ -761,33 +768,43 @@
         <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&gt;();
         <span class="kw">let </span>bounds = layout.bounds();
 
-        <span class="kw">let </span>image_size =
-            image_size(renderer, <span class="kw-2">&amp;</span><span class="self">self</span>.handle, state, bounds.size());
+        <span class="kw">let </span>final_size = scaled_image_size(
+            renderer,
+            <span class="kw-2">&amp;</span><span class="self">self</span>.handle,
+            state,
+            bounds.size(),
+            <span class="self">self</span>.content_fit,
+        );
 
         <span class="kw">let </span>translation = {
-            <span class="kw">let </span>image_top_left = Vector::new(
-                bounds.width / <span class="number">2.0 </span>- image_size.width / <span class="number">2.0</span>,
-                bounds.height / <span class="number">2.0 </span>- image_size.height / <span class="number">2.0</span>,
-            );
+            <span class="kw">let </span>diff_w = bounds.width - final_size.width;
+            <span class="kw">let </span>diff_h = bounds.height - final_size.height;
 
-            image_top_left - state.offset(bounds, image_size)
+            <span class="kw">let </span>image_top_left = <span class="kw">match </span><span class="self">self</span>.content_fit {
+                ContentFit::None =&gt; {
+                    Vector::new(diff_w.max(<span class="number">0.0</span>) / <span class="number">2.0</span>, diff_h.max(<span class="number">0.0</span>) / <span class="number">2.0</span>)
+                }
+                <span class="kw">_ </span>=&gt; Vector::new(diff_w / <span class="number">2.0</span>, diff_h / <span class="number">2.0</span>),
+            };
+
+            image_top_left - state.offset(bounds, final_size)
         };
 
-        renderer.with_layer(bounds, |renderer| {
+        <span class="kw">let </span>drawing_bounds = Rectangle::new(bounds.position(), final_size);
+
+        <span class="kw">let </span>render = |renderer: <span class="kw-2">&amp;mut </span>Renderer| {
             renderer.with_translation(translation, |renderer| {
                 renderer.draw_image(
                     <span class="self">self</span>.handle.clone(),
                     <span class="self">self</span>.filter_method,
-                    Rectangle {
-                        x: bounds.x,
-                        y: bounds.y,
-                        ..Rectangle::with_size(image_size)
-                    },
+                    drawing_bounds,
                     Radians(<span class="number">0.0</span>),
                     <span class="number">1.0</span>,
                 );
             });
-        });
+        };
+
+        renderer.with_layer(bounds, render);
     }
 }
 
@@ -853,33 +870,24 @@
 <span class="doccomment">/// Returns the bounds of the underlying image, given the bounds of
 /// the [`Viewer`]. Scaling will be applied and original aspect ratio
 /// will be respected.
-</span><span class="kw">pub fn </span>image_size&lt;Renderer&gt;(
+</span><span class="kw">pub fn </span>scaled_image_size&lt;Renderer&gt;(
     renderer: <span class="kw-2">&amp;</span>Renderer,
     handle: <span class="kw-2">&amp;</span>&lt;Renderer <span class="kw">as </span>image::Renderer&gt;::Handle,
     state: <span class="kw-2">&amp;</span>State,
     bounds: Size,
+    content_fit: ContentFit,
 ) -&gt; Size
 <span class="kw">where
     </span>Renderer: image::Renderer,
 {
     <span class="kw">let </span>Size { width, height } = renderer.measure_image(handle);
+    <span class="kw">let </span>image_size = Size::new(width <span class="kw">as </span>f32, height <span class="kw">as </span>f32);
 
-    <span class="kw">let </span>(width, height) = {
-        <span class="kw">let </span>dimensions = (width <span class="kw">as </span>f32, height <span class="kw">as </span>f32);
+    <span class="kw">let </span>adjusted_fit = content_fit.fit(image_size, bounds);
 
-        <span class="kw">let </span>width_ratio = bounds.width / dimensions.<span class="number">0</span>;
-        <span class="kw">let </span>height_ratio = bounds.height / dimensions.<span class="number">1</span>;
-
-        <span class="kw">let </span>ratio = width_ratio.min(height_ratio);
-        <span class="kw">let </span>scale = state.scale;
-
-        <span class="kw">if </span>ratio &lt; <span class="number">1.0 </span>{
-            (dimensions.<span class="number">0 </span>* ratio * scale, dimensions.<span class="number">1 </span>* ratio * scale)
-        } <span class="kw">else </span>{
-            (dimensions.<span class="number">0 </span>* scale, dimensions.<span class="number">1 </span>* scale)
-        }
-    };
-
-    Size::new(width, height)
+    Size::new(
+        adjusted_fit.width * state.scale,
+        adjusted_fit.height * state.scale,
+    )
 }
 </code></pre></div></section></main></body></html>

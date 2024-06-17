@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["image_size"],"struct":["State","Viewer"]};
+window.SIDEBAR_ITEMS = {"fn":["scaled_image_size"],"struct":["State","Viewer"]};
