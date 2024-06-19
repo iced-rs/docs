@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["build_user_interfaces","run","user_force_quit"],"struct":["State"],"trait":["Application"]};

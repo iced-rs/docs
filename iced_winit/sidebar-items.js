@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Error"],"mod":["application","clipboard","conversion","multi_window","settings","system"],"struct":["Proxy"]};
+window.SIDEBAR_ITEMS = {"enum":["Error"],"mod":["clipboard","conversion","program","settings","system"],"struct":["Proxy"]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/src/window.rs`."><title>window.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0-nightly (59e2c01c2 2024-06-17)" data-channel="nightly" data-search-js="search-0fe7219eb170c82e.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/src/window.rs`."><title>window.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0-nightly (8fcd4dd08 2024-06-18)" data-channel="nightly" data-search-js="search-0fe7219eb170c82e.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -366,6 +366,22 @@
 <a href="#366" id="366">366</a>
 <a href="#367" id="367">367</a>
 <a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build window-based GUI applications.
 </span><span class="kw">pub mod </span>screenshot;
 
@@ -394,6 +410,12 @@
     <span class="doccomment">/// Close the window and exits the application.
     </span>Close(Id),
 
+    <span class="doccomment">/// Gets the [`Id`] of the oldest window.
+    </span>GetOldest(oneshot::Sender&lt;<span class="prelude-ty">Option</span>&lt;Id&gt;&gt;),
+
+    <span class="doccomment">/// Gets the [`Id`] of the latest window.
+    </span>GetLatest(oneshot::Sender&lt;<span class="prelude-ty">Option</span>&lt;Id&gt;&gt;),
+
     <span class="doccomment">/// Move the window with the left mouse button until the button is
     /// released.
     ///
@@ -404,26 +426,26 @@
     <span class="doccomment">/// Resize the window to the given logical dimensions.
     </span>Resize(Id, Size),
 
-    <span class="doccomment">/// Fetch the current logical dimensions of the window.
-    </span>FetchSize(Id, oneshot::Sender&lt;Size&gt;),
+    <span class="doccomment">/// Get the current logical dimensions of the window.
+    </span>GetSize(Id, oneshot::Sender&lt;Size&gt;),
 
-    <span class="doccomment">/// Fetch if the current window is maximized or not.
-    </span>FetchMaximized(Id, oneshot::Sender&lt;bool&gt;),
+    <span class="doccomment">/// Get if the current window is maximized or not.
+    </span>GetMaximized(Id, oneshot::Sender&lt;bool&gt;),
 
     <span class="doccomment">/// Set the window to maximized or back
     </span>Maximize(Id, bool),
 
-    <span class="doccomment">/// Fetch if the current window is minimized or not.
+    <span class="doccomment">/// Get if the current window is minimized or not.
     ///
     /// ## Platform-specific
     /// - **Wayland:** Always `None`.
-    </span>FetchMinimized(Id, oneshot::Sender&lt;<span class="prelude-ty">Option</span>&lt;bool&gt;&gt;),
+    </span>GetMinimized(Id, oneshot::Sender&lt;<span class="prelude-ty">Option</span>&lt;bool&gt;&gt;),
 
     <span class="doccomment">/// Set the window to minimized or back
     </span>Minimize(Id, bool),
 
-    <span class="doccomment">/// Fetch the current logical coordinates of the window.
-    </span>FetchPosition(Id, oneshot::Sender&lt;<span class="prelude-ty">Option</span>&lt;Point&gt;&gt;),
+    <span class="doccomment">/// Get the current logical coordinates of the window.
+    </span>GetPosition(Id, oneshot::Sender&lt;<span class="prelude-ty">Option</span>&lt;Point&gt;&gt;),
 
     <span class="doccomment">/// Move the window to the given logical coordinates.
     ///
@@ -433,8 +455,8 @@
     <span class="doccomment">/// Change the [`Mode`] of the window.
     </span>ChangeMode(Id, Mode),
 
-    <span class="doccomment">/// Fetch the current [`Mode`] of the window.
-    </span>FetchMode(Id, oneshot::Sender&lt;Mode&gt;),
+    <span class="doccomment">/// Get the current [`Mode`] of the window.
+    </span>GetMode(Id, oneshot::Sender&lt;Mode&gt;),
 
     <span class="doccomment">/// Toggle the window to maximized or back
     </span>ToggleMaximize(Id),
@@ -482,8 +504,8 @@
     /// Android / iOS / macOS / Orbital / Web / X11: Unsupported.
     </span>ShowSystemMenu(Id),
 
-    <span class="doccomment">/// Fetch the raw identifier unique to the window.
-    </span>FetchRawId(Id, oneshot::Sender&lt;u64&gt;),
+    <span class="doccomment">/// Get the raw identifier unique to the window.
+    </span>GetRawId(Id, oneshot::Sender&lt;u64&gt;),
 
     <span class="doccomment">/// Change the window [`Icon`].
     ///
@@ -582,6 +604,16 @@
     Task::effect(<span class="kw">crate</span>::Action::Window(Action::Close(id)))
 }
 
+<span class="doccomment">/// Gets the window [`Id`] of the oldest window.
+</span><span class="kw">pub fn </span>get_oldest() -&gt; Task&lt;<span class="prelude-ty">Option</span>&lt;Id&gt;&gt; {
+    Task::oneshot(|channel| <span class="kw">crate</span>::Action::Window(Action::GetOldest(channel)))
+}
+
+<span class="doccomment">/// Gets the window [`Id`] of the latest window.
+</span><span class="kw">pub fn </span>get_latest() -&gt; Task&lt;<span class="prelude-ty">Option</span>&lt;Id&gt;&gt; {
+    Task::oneshot(|channel| <span class="kw">crate</span>::Action::Window(Action::GetLatest(channel)))
+}
+
 <span class="doccomment">/// Begins dragging the window while the left mouse button is held.
 </span><span class="kw">pub fn </span>drag&lt;T&gt;(id: Id) -&gt; Task&lt;T&gt; {
     Task::effect(<span class="kw">crate</span>::Action::Window(Action::Drag(id)))
@@ -592,17 +624,17 @@
     Task::effect(<span class="kw">crate</span>::Action::Window(Action::Resize(id, new_size)))
 }
 
-<span class="doccomment">/// Fetches the window's size in logical dimensions.
-</span><span class="kw">pub fn </span>fetch_size(id: Id) -&gt; Task&lt;Size&gt; {
+<span class="doccomment">/// Get the window's size in logical dimensions.
+</span><span class="kw">pub fn </span>get_size(id: Id) -&gt; Task&lt;Size&gt; {
     Task::oneshot(<span class="kw">move </span>|channel| {
-        <span class="kw">crate</span>::Action::Window(Action::FetchSize(id, channel))
+        <span class="kw">crate</span>::Action::Window(Action::GetSize(id, channel))
     })
 }
 
-<span class="doccomment">/// Fetches if the window is maximized.
-</span><span class="kw">pub fn </span>fetch_maximized(id: Id) -&gt; Task&lt;bool&gt; {
+<span class="doccomment">/// Gets the maximized state of the window with the given [`Id`].
+</span><span class="kw">pub fn </span>get_maximized(id: Id) -&gt; Task&lt;bool&gt; {
     Task::oneshot(<span class="kw">move </span>|channel| {
-        <span class="kw">crate</span>::Action::Window(Action::FetchMaximized(id, channel))
+        <span class="kw">crate</span>::Action::Window(Action::GetMaximized(id, channel))
     })
 }
 
@@ -611,10 +643,10 @@
     Task::effect(<span class="kw">crate</span>::Action::Window(Action::Maximize(id, maximized)))
 }
 
-<span class="doccomment">/// Fetches if the window is minimized.
-</span><span class="kw">pub fn </span>fetch_minimized(id: Id) -&gt; Task&lt;<span class="prelude-ty">Option</span>&lt;bool&gt;&gt; {
+<span class="doccomment">/// Gets the minimized state of the window with the given [`Id`].
+</span><span class="kw">pub fn </span>get_minimized(id: Id) -&gt; Task&lt;<span class="prelude-ty">Option</span>&lt;bool&gt;&gt; {
     Task::oneshot(<span class="kw">move </span>|channel| {
-        <span class="kw">crate</span>::Action::Window(Action::FetchMinimized(id, channel))
+        <span class="kw">crate</span>::Action::Window(Action::GetMinimized(id, channel))
     })
 }
 
@@ -623,10 +655,10 @@
     Task::effect(<span class="kw">crate</span>::Action::Window(Action::Minimize(id, minimized)))
 }
 
-<span class="doccomment">/// Fetches the current window position in logical coordinates.
-</span><span class="kw">pub fn </span>fetch_position(id: Id) -&gt; Task&lt;<span class="prelude-ty">Option</span>&lt;Point&gt;&gt; {
+<span class="doccomment">/// Gets the position in logical coordinates of the window with the given [`Id`].
+</span><span class="kw">pub fn </span>get_position(id: Id) -&gt; Task&lt;<span class="prelude-ty">Option</span>&lt;Point&gt;&gt; {
     Task::oneshot(<span class="kw">move </span>|channel| {
-        <span class="kw">crate</span>::Action::Window(Action::FetchPosition(id, channel))
+        <span class="kw">crate</span>::Action::Window(Action::GetPosition(id, channel))
     })
 }
 
@@ -640,10 +672,10 @@
     Task::effect(<span class="kw">crate</span>::Action::Window(Action::ChangeMode(id, mode)))
 }
 
-<span class="doccomment">/// Fetches the current [`Mode`] of the window.
-</span><span class="kw">pub fn </span>fetch_mode(id: Id) -&gt; Task&lt;Mode&gt; {
+<span class="doccomment">/// Gets the current [`Mode`] of the window.
+</span><span class="kw">pub fn </span>get_mode(id: Id) -&gt; Task&lt;Mode&gt; {
     Task::oneshot(<span class="kw">move </span>|channel| {
-        <span class="kw">crate</span>::Action::Window(Action::FetchMode(id, channel))
+        <span class="kw">crate</span>::Action::Window(Action::GetMode(id, channel))
     })
 }
 
@@ -695,11 +727,11 @@
     Task::effect(<span class="kw">crate</span>::Action::Window(Action::ShowSystemMenu(id)))
 }
 
-<span class="doccomment">/// Fetches an identifier unique to the window, provided by the underlying windowing system. This is
+<span class="doccomment">/// Gets an identifier unique to the window, provided by the underlying windowing system. This is
 /// not to be confused with [`Id`].
-</span><span class="kw">pub fn </span>fetch_raw_id&lt;Message&gt;(id: Id) -&gt; Task&lt;u64&gt; {
+</span><span class="kw">pub fn </span>get_raw_id&lt;Message&gt;(id: Id) -&gt; Task&lt;u64&gt; {
     Task::oneshot(|channel| {
-        <span class="kw">crate</span>::Action::Window(Action::FetchRawId(id, channel))
+        <span class="kw">crate</span>::Action::Window(Action::GetRawId(id, channel))
     })
 }
 
