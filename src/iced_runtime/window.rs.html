@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/src/window.rs`."><title>window.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0-nightly (cf2df68d1 2024-07-01)" data-channel="nightly" data-search-js="search-0fe7219eb170c82e.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/src/window.rs`."><title>window.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0-nightly (aa1d4f682 2024-07-03)" data-channel="nightly" data-search-js="search-0fe7219eb170c82e.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -395,7 +395,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::futures::event;
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures::channel::oneshot;
 <span class="kw">use </span><span class="kw">crate</span>::futures::Subscription;
-<span class="kw">use </span><span class="kw">crate</span>::Task;
+<span class="kw">use </span><span class="kw">crate</span>::task::{<span class="self">self</span>, Task};
 
 <span class="kw">pub use </span>raw_window_handle;
 
@@ -594,99 +594,99 @@
 </span><span class="kw">pub fn </span>open(settings: Settings) -&gt; Task&lt;Id&gt; {
     <span class="kw">let </span>id = Id::unique();
 
-    Task::oneshot(|channel| {
+    task::oneshot(|channel| {
         <span class="kw">crate</span>::Action::Window(Action::Open(id, settings, channel))
     })
 }
 
 <span class="doccomment">/// Closes the window with `id`.
 </span><span class="kw">pub fn </span>close&lt;T&gt;(id: Id) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::Close(id)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::Close(id)))
 }
 
 <span class="doccomment">/// Gets the window [`Id`] of the oldest window.
 </span><span class="kw">pub fn </span>get_oldest() -&gt; Task&lt;<span class="prelude-ty">Option</span>&lt;Id&gt;&gt; {
-    Task::oneshot(|channel| <span class="kw">crate</span>::Action::Window(Action::GetOldest(channel)))
+    task::oneshot(|channel| <span class="kw">crate</span>::Action::Window(Action::GetOldest(channel)))
 }
 
 <span class="doccomment">/// Gets the window [`Id`] of the latest window.
 </span><span class="kw">pub fn </span>get_latest() -&gt; Task&lt;<span class="prelude-ty">Option</span>&lt;Id&gt;&gt; {
-    Task::oneshot(|channel| <span class="kw">crate</span>::Action::Window(Action::GetLatest(channel)))
+    task::oneshot(|channel| <span class="kw">crate</span>::Action::Window(Action::GetLatest(channel)))
 }
 
 <span class="doccomment">/// Begins dragging the window while the left mouse button is held.
 </span><span class="kw">pub fn </span>drag&lt;T&gt;(id: Id) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::Drag(id)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::Drag(id)))
 }
 
 <span class="doccomment">/// Resizes the window to the given logical dimensions.
 </span><span class="kw">pub fn </span>resize&lt;T&gt;(id: Id, new_size: Size) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::Resize(id, new_size)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::Resize(id, new_size)))
 }
 
 <span class="doccomment">/// Get the window's size in logical dimensions.
 </span><span class="kw">pub fn </span>get_size(id: Id) -&gt; Task&lt;Size&gt; {
-    Task::oneshot(<span class="kw">move </span>|channel| {
+    task::oneshot(<span class="kw">move </span>|channel| {
         <span class="kw">crate</span>::Action::Window(Action::GetSize(id, channel))
     })
 }
 
 <span class="doccomment">/// Gets the maximized state of the window with the given [`Id`].
 </span><span class="kw">pub fn </span>get_maximized(id: Id) -&gt; Task&lt;bool&gt; {
-    Task::oneshot(<span class="kw">move </span>|channel| {
+    task::oneshot(<span class="kw">move </span>|channel| {
         <span class="kw">crate</span>::Action::Window(Action::GetMaximized(id, channel))
     })
 }
 
 <span class="doccomment">/// Maximizes the window.
 </span><span class="kw">pub fn </span>maximize&lt;T&gt;(id: Id, maximized: bool) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::Maximize(id, maximized)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::Maximize(id, maximized)))
 }
 
 <span class="doccomment">/// Gets the minimized state of the window with the given [`Id`].
 </span><span class="kw">pub fn </span>get_minimized(id: Id) -&gt; Task&lt;<span class="prelude-ty">Option</span>&lt;bool&gt;&gt; {
-    Task::oneshot(<span class="kw">move </span>|channel| {
+    task::oneshot(<span class="kw">move </span>|channel| {
         <span class="kw">crate</span>::Action::Window(Action::GetMinimized(id, channel))
     })
 }
 
 <span class="doccomment">/// Minimizes the window.
 </span><span class="kw">pub fn </span>minimize&lt;T&gt;(id: Id, minimized: bool) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::Minimize(id, minimized)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::Minimize(id, minimized)))
 }
 
 <span class="doccomment">/// Gets the position in logical coordinates of the window with the given [`Id`].
 </span><span class="kw">pub fn </span>get_position(id: Id) -&gt; Task&lt;<span class="prelude-ty">Option</span>&lt;Point&gt;&gt; {
-    Task::oneshot(<span class="kw">move </span>|channel| {
+    task::oneshot(<span class="kw">move </span>|channel| {
         <span class="kw">crate</span>::Action::Window(Action::GetPosition(id, channel))
     })
 }
 
 <span class="doccomment">/// Moves the window to the given logical coordinates.
 </span><span class="kw">pub fn </span>move_to&lt;T&gt;(id: Id, position: Point) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::Move(id, position)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::Move(id, position)))
 }
 
 <span class="doccomment">/// Changes the [`Mode`] of the window.
 </span><span class="kw">pub fn </span>change_mode&lt;T&gt;(id: Id, mode: Mode) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::ChangeMode(id, mode)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::ChangeMode(id, mode)))
 }
 
 <span class="doccomment">/// Gets the current [`Mode`] of the window.
 </span><span class="kw">pub fn </span>get_mode(id: Id) -&gt; Task&lt;Mode&gt; {
-    Task::oneshot(<span class="kw">move </span>|channel| {
+    task::oneshot(<span class="kw">move </span>|channel| {
         <span class="kw">crate</span>::Action::Window(Action::GetMode(id, channel))
     })
 }
 
 <span class="doccomment">/// Toggles the window to maximized or back.
 </span><span class="kw">pub fn </span>toggle_maximize&lt;T&gt;(id: Id) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::ToggleMaximize(id)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::ToggleMaximize(id)))
 }
 
 <span class="doccomment">/// Toggles the window decorations.
 </span><span class="kw">pub fn </span>toggle_decorations&lt;T&gt;(id: Id) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::ToggleDecorations(id)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::ToggleDecorations(id)))
 }
 
 <span class="doccomment">/// Request user attention to the window. This has no effect if the application
@@ -699,7 +699,7 @@
     id: Id,
     user_attention: <span class="prelude-ty">Option</span>&lt;UserAttention&gt;,
 ) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::RequestUserAttention(
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::RequestUserAttention(
         id,
         user_attention,
     )))
@@ -712,32 +712,32 @@
 /// you are certain that's what the user wants. Focus stealing can cause an extremely disruptive
 /// user experience.
 </span><span class="kw">pub fn </span>gain_focus&lt;T&gt;(id: Id) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::GainFocus(id)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::GainFocus(id)))
 }
 
 <span class="doccomment">/// Changes the window [`Level`].
 </span><span class="kw">pub fn </span>change_level&lt;T&gt;(id: Id, level: Level) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::ChangeLevel(id, level)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::ChangeLevel(id, level)))
 }
 
 <span class="doccomment">/// Show the [system menu] at cursor position.
 ///
 /// [system menu]: https://en.wikipedia.org/wiki/Common_menus_in_Microsoft_Windows#System_menu
 </span><span class="kw">pub fn </span>show_system_menu&lt;T&gt;(id: Id) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::ShowSystemMenu(id)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::ShowSystemMenu(id)))
 }
 
 <span class="doccomment">/// Gets an identifier unique to the window, provided by the underlying windowing system. This is
 /// not to be confused with [`Id`].
 </span><span class="kw">pub fn </span>get_raw_id&lt;Message&gt;(id: Id) -&gt; Task&lt;u64&gt; {
-    Task::oneshot(|channel| {
+    task::oneshot(|channel| {
         <span class="kw">crate</span>::Action::Window(Action::GetRawId(id, channel))
     })
 }
 
 <span class="doccomment">/// Changes the [`Icon`] of the window.
 </span><span class="kw">pub fn </span>change_icon&lt;T&gt;(id: Id, icon: Icon) -&gt; Task&lt;T&gt; {
-    Task::effect(<span class="kw">crate</span>::Action::Window(Action::ChangeIcon(id, icon)))
+    task::effect(<span class="kw">crate</span>::Action::Window(Action::ChangeIcon(id, icon)))
 }
 
 <span class="doccomment">/// Runs the given callback with the native window handle for the window with the given id.
@@ -750,7 +750,7 @@
 <span class="kw">where
     </span>T: Send + <span class="lifetime">'static</span>,
 {
-    Task::oneshot(<span class="kw">move </span>|channel| {
+    task::oneshot(<span class="kw">move </span>|channel| {
         <span class="kw">crate</span>::Action::Window(Action::RunWithHandle(
             id,
             Box::new(<span class="kw">move </span>|handle| {
@@ -762,7 +762,7 @@
 
 <span class="doccomment">/// Captures a [`Screenshot`] from the window.
 </span><span class="kw">pub fn </span>screenshot(id: Id) -&gt; Task&lt;Screenshot&gt; {
-    Task::oneshot(<span class="kw">move </span>|channel| {
+    task::oneshot(<span class="kw">move </span>|channel| {
         <span class="kw">crate</span>::Action::Window(Action::Screenshot(id, channel))
     })
 }
