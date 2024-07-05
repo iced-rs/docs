@@ -453,6 +453,7 @@
 <a href="#453" id="453">453</a>
 <a href="#454" id="454">454</a>
 <a href="#455" id="455">455</a>
+<a href="#456" id="456">456</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Listen to external events in your application.
 </span><span class="kw">mod </span>tracker;
 
@@ -460,11 +461,9 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::core::event;
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
-<span class="kw">use </span><span class="kw">crate</span>::futures::{Future, Stream};
+<span class="kw">use </span><span class="kw">crate</span>::futures::Stream;
 <span class="kw">use crate</span>::{BoxStream, MaybeSend};
 
-<span class="kw">use </span>futures::channel::mpsc;
-<span class="kw">use </span>futures::never::Never;
 <span class="kw">use </span>std::any::TypeId;
 <span class="kw">use </span>std::hash::Hash;
 
@@ -516,20 +515,66 @@
 
 <span class="doccomment">/// A request to listen to external events.
 ///
-/// Besides performing async actions on demand with `Command`, most
+/// Besides performing async actions on demand with `Task`, most
 /// applications also need to listen to external events passively.
 ///
-/// A [`Subscription`] is normally provided to some runtime, like a `Command`,
+/// A [`Subscription`] is normally provided to some runtime, like a `Task`,
 /// and it will generate events as long as the user keeps requesting it.
 ///
 /// For instance, you can use a [`Subscription`] to listen to a `WebSocket`
 /// connection, keyboard presses, mouse events, time ticks, etc.
+///
+/// # The Lifetime of a [`Subscription`]
+/// Much like a [`Future`] or a [`Stream`], a [`Subscription`] does not produce any effects
+/// on its own. For a [`Subscription`] to run, it must be returned to the iced runtime—normally
+/// in the `subscription` function of an `application` or a `daemon`.
+///
+/// When a [`Subscription`] is provided to the runtime for the first time, the runtime will
+/// start running it asynchronously. Running a [`Subscription`] consists in building its underlying
+/// [`Stream`] and executing it in an async runtime.
+///
+/// Therefore, you can think of a [`Subscription`] as a "stream builder". It simply represents a way
+/// to build a certain [`Stream`] together with some way to _identify_ it.
+///
+/// Identification is important because when a specific [`Subscription`] stops being returned to the
+/// iced runtime, the runtime will kill its associated [`Stream`]. The runtime uses the identity of a
+/// [`Subscription`] to keep track of it.
+///
+/// This way, iced allows you to declaratively __subscribe__ to particular streams of data temporarily
+/// and whenever necessary.
+///
+/// ```
+/// # mod iced {
+/// #     pub mod time {
+/// #         pub use iced_futures::backend::default::time::every;
+/// #         pub use std::time::{Duration, Instant};
+/// #     }
+/// #
+/// #     pub use iced_futures::Subscription;
+/// # }
+/// use iced::time::{self, Duration, Instant};
+/// use iced::Subscription;
+///
+/// struct State {
+///     timer_enabled: bool,
+/// }
+///
+/// fn subscription(state: &amp;State) -&gt; Subscription&lt;Instant&gt; {
+///     if state.timer_enabled {
+///         time::every(Duration::from_secs(1))
+///     } else {
+///         Subscription::none()
+///     }
+/// }
+/// ```
+///
+/// [`Future`]: std::future::Future
 </span><span class="attr">#[must_use = <span class="string">"`Subscription` must be returned to runtime to take effect"</span>]
-</span><span class="kw">pub struct </span>Subscription&lt;Message&gt; {
-    recipes: Vec&lt;Box&lt;<span class="kw">dyn </span>Recipe&lt;Output = Message&gt;&gt;&gt;,
+</span><span class="kw">pub struct </span>Subscription&lt;T&gt; {
+    recipes: Vec&lt;Box&lt;<span class="kw">dyn </span>Recipe&lt;Output = T&gt;&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;Message&gt; Subscription&lt;Message&gt; {
+<span class="kw">impl</span>&lt;T&gt; Subscription&lt;T&gt; {
     <span class="doccomment">/// Returns an empty [`Subscription`] that will not produce any output.
     </span><span class="kw">pub fn </span>none() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
@@ -537,19 +582,102 @@
         }
     }
 
-    <span class="doccomment">/// Creates a [`Subscription`] from a [`Recipe`] describing it.
-    </span><span class="kw">pub fn </span>from_recipe(
-        recipe: <span class="kw">impl </span>Recipe&lt;Output = Message&gt; + <span class="lifetime">'static</span>,
-    ) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            recipes: <span class="macro">vec!</span>[Box::new(recipe)],
-        }
+    <span class="doccomment">/// Returns a [`Subscription`] that will call the given function to create and
+    /// asynchronously run the given [`Stream`].
+    ///
+    /// # Creating an asynchronous worker with bidirectional communication
+    /// You can leverage this helper to create a [`Subscription`] that spawns
+    /// an asynchronous worker in the background and establish a channel of
+    /// communication with an `iced` application.
+    ///
+    /// You can achieve this by creating an `mpsc` channel inside the closure
+    /// and returning the `Sender` as a `Message` for the `Application`:
+    ///
+    /// ```
+    /// use iced_futures::subscription::{self, Subscription};
+    /// use iced_futures::stream;
+    /// use iced_futures::futures::channel::mpsc;
+    /// use iced_futures::futures::sink::SinkExt;
+    /// use iced_futures::futures::Stream;
+    ///
+    /// pub enum Event {
+    ///     Ready(mpsc::Sender&lt;Input&gt;),
+    ///     WorkFinished,
+    ///     // ...
+    /// }
+    ///
+    /// enum Input {
+    ///     DoSomeWork,
+    ///     // ...
+    /// }
+    ///
+    /// fn some_worker() -&gt; impl Stream&lt;Item = Event&gt; {
+    ///     stream::channel(100, |mut output| async move {
+    ///         // Create channel
+    ///         let (sender, mut receiver) = mpsc::channel(100);
+    ///
+    ///         // Send the sender back to the application
+    ///         output.send(Event::Ready(sender)).await;
+    ///
+    ///         loop {
+    ///             use iced_futures::futures::StreamExt;
+    ///
+    ///             // Read next input sent from `Application`
+    ///             let input = receiver.select_next_some().await;
+    ///
+    ///             match input {
+    ///                 Input::DoSomeWork =&gt; {
+    ///                     // Do some async work...
+    ///
+    ///                     // Finally, we can optionally produce a message to tell the
+    ///                     // `Application` the work is done
+    ///                     output.send(Event::WorkFinished).await;
+    ///                 }
+    ///             }
+    ///         }
+    ///     })
+    /// }
+    ///
+    /// fn subscription() -&gt; Subscription&lt;Event&gt; {
+    ///     Subscription::run(some_worker)
+    /// }
+    /// ```
+    ///
+    /// Check out the [`websocket`] example, which showcases this pattern to maintain a `WebSocket`
+    /// connection open.
+    ///
+    /// [`websocket`]: https://github.com/iced-rs/iced/tree/0.12/examples/websocket
+    </span><span class="kw">pub fn </span>run&lt;S&gt;(builder: <span class="kw">fn</span>() -&gt; S) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>S: Stream&lt;Item = T&gt; + MaybeSend + <span class="lifetime">'static</span>,
+        T: <span class="lifetime">'static</span>,
+    {
+        from_recipe(Runner {
+            id: builder,
+            spawn: <span class="kw">move </span>|<span class="kw">_</span>| builder(),
+        })
+    }
+
+    <span class="doccomment">/// Returns a [`Subscription`] that will create and asynchronously run the
+    /// given [`Stream`].
+    ///
+    /// The `id` will be used to uniquely identify the [`Subscription`].
+    </span><span class="kw">pub fn </span>run_with_id&lt;I, S&gt;(id: I, stream: S) -&gt; Subscription&lt;T&gt;
+    <span class="kw">where
+        </span>I: Hash + <span class="lifetime">'static</span>,
+        S: Stream&lt;Item = T&gt; + MaybeSend + <span class="lifetime">'static</span>,
+        T: <span class="lifetime">'static</span>,
+    {
+        from_recipe(Runner {
+            id,
+            spawn: <span class="kw">move </span>|<span class="kw">_</span>| stream,
+        })
     }
 
     <span class="doccomment">/// Batches all the provided subscriptions and returns the resulting
     /// [`Subscription`].
     </span><span class="kw">pub fn </span>batch(
-        subscriptions: <span class="kw">impl </span>IntoIterator&lt;Item = Subscription&lt;Message&gt;&gt;,
+        subscriptions: <span class="kw">impl </span>IntoIterator&lt;Item = Subscription&lt;T&gt;&gt;,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             recipes: subscriptions
@@ -559,18 +687,13 @@
         }
     }
 
-    <span class="doccomment">/// Returns the different recipes of the [`Subscription`].
-    </span><span class="kw">pub fn </span>into_recipes(<span class="self">self</span>) -&gt; Vec&lt;Box&lt;<span class="kw">dyn </span>Recipe&lt;Output = Message&gt;&gt;&gt; {
-        <span class="self">self</span>.recipes
-    }
-
     <span class="doccomment">/// Adds a value to the [`Subscription`] context.
     ///
     /// The value will be part of the identity of a [`Subscription`].
-    </span><span class="kw">pub fn </span>with&lt;T&gt;(<span class="kw-2">mut </span><span class="self">self</span>, value: T) -&gt; Subscription&lt;(T, Message)&gt;
+    </span><span class="kw">pub fn </span>with&lt;A&gt;(<span class="kw-2">mut </span><span class="self">self</span>, value: A) -&gt; Subscription&lt;(A, T)&gt;
     <span class="kw">where
-        </span>Message: <span class="lifetime">'static</span>,
-        T: std::hash::Hash + Clone + Send + Sync + <span class="lifetime">'static</span>,
+        </span>T: <span class="lifetime">'static</span>,
+        A: std::hash::Hash + Clone + Send + Sync + <span class="lifetime">'static</span>,
     {
         Subscription {
             recipes: <span class="self">self
@@ -578,7 +701,7 @@
                 .drain(..)
                 .map(|recipe| {
                     Box::new(With::new(recipe, value.clone()))
-                        <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>Recipe&lt;Output = (T, Message)&gt;&gt;
+                        <span class="kw">as </span>Box&lt;<span class="kw">dyn </span>Recipe&lt;Output = (A, T)&gt;&gt;
                 })
                 .collect(),
         }
@@ -591,8 +714,8 @@
     /// will panic in debug mode otherwise.
     </span><span class="kw">pub fn </span>map&lt;F, A&gt;(<span class="kw-2">mut </span><span class="self">self</span>, f: F) -&gt; Subscription&lt;A&gt;
     <span class="kw">where
-        </span>Message: <span class="lifetime">'static</span>,
-        F: Fn(Message) -&gt; A + MaybeSend + Clone + <span class="lifetime">'static</span>,
+        </span>T: <span class="lifetime">'static</span>,
+        F: Fn(T) -&gt; A + MaybeSend + Clone + <span class="lifetime">'static</span>,
         A: <span class="lifetime">'static</span>,
     {
         <span class="macro">debug_assert!</span>(
@@ -614,7 +737,23 @@
     }
 }
 
-<span class="kw">impl</span>&lt;Message&gt; std::fmt::Debug <span class="kw">for </span>Subscription&lt;Message&gt; {
+<span class="doccomment">/// Creates a [`Subscription`] from a [`Recipe`] describing it.
+</span><span class="kw">pub fn </span>from_recipe&lt;T&gt;(
+    recipe: <span class="kw">impl </span>Recipe&lt;Output = T&gt; + <span class="lifetime">'static</span>,
+) -&gt; Subscription&lt;T&gt; {
+    Subscription {
+        recipes: <span class="macro">vec!</span>[Box::new(recipe)],
+    }
+}
+
+<span class="doccomment">/// Returns the different recipes of the [`Subscription`].
+</span><span class="kw">pub fn </span>into_recipes&lt;T&gt;(
+    subscription: Subscription&lt;T&gt;,
+) -&gt; Vec&lt;Box&lt;<span class="kw">dyn </span>Recipe&lt;Output = T&gt;&gt;&gt; {
+    subscription.recipes
+}
+
+<span class="kw">impl</span>&lt;T&gt; std::fmt::Debug <span class="kw">for </span>Subscription&lt;T&gt; {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         f.debug_struct(<span class="string">"Subscription"</span>).finish()
     }
@@ -728,65 +867,13 @@
     }
 }
 
-<span class="doccomment">/// Returns a [`Subscription`] that will call the given function to create and
-/// asynchronously run the given [`Stream`].
-</span><span class="kw">pub fn </span>run&lt;S, Message&gt;(builder: <span class="kw">fn</span>() -&gt; S) -&gt; Subscription&lt;Message&gt;
-<span class="kw">where
-    </span>S: Stream&lt;Item = Message&gt; + MaybeSend + <span class="lifetime">'static</span>,
-    Message: <span class="lifetime">'static</span>,
-{
-    Subscription::from_recipe(Runner {
-        id: builder,
-        spawn: <span class="kw">move </span>|<span class="kw">_</span>| builder(),
-    })
-}
-
-<span class="doccomment">/// Returns a [`Subscription`] that will create and asynchronously run the
-/// given [`Stream`].
-///
-/// The `id` will be used to uniquely identify the [`Subscription`].
-</span><span class="kw">pub fn </span>run_with_id&lt;I, S, Message&gt;(id: I, stream: S) -&gt; Subscription&lt;Message&gt;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>filter_map&lt;I, F, T&gt;(id: I, f: F) -&gt; Subscription&lt;T&gt;
 <span class="kw">where
     </span>I: Hash + <span class="lifetime">'static</span>,
-    S: Stream&lt;Item = Message&gt; + MaybeSend + <span class="lifetime">'static</span>,
-    Message: <span class="lifetime">'static</span>,
+    F: Fn(Event) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; + MaybeSend + <span class="lifetime">'static</span>,
+    T: <span class="lifetime">'static </span>+ MaybeSend,
 {
-    Subscription::from_recipe(Runner {
-        id,
-        spawn: <span class="kw">move </span>|<span class="kw">_</span>| stream,
-    })
-}
-
-<span class="doccomment">/// Returns a [`Subscription`] that will create and asynchronously run a
-/// [`Stream`] that will call the provided closure to produce every `Message`.
-///
-/// The `id` will be used to uniquely identify the [`Subscription`].
-</span><span class="kw">pub fn </span>unfold&lt;I, T, Fut, Message&gt;(
-    id: I,
-    initial: T,
-    <span class="kw-2">mut </span>f: <span class="kw">impl </span>FnMut(T) -&gt; Fut + MaybeSend + Sync + <span class="lifetime">'static</span>,
-) -&gt; Subscription&lt;Message&gt;
-<span class="kw">where
-    </span>I: Hash + <span class="lifetime">'static</span>,
-    T: MaybeSend + <span class="lifetime">'static</span>,
-    Fut: Future&lt;Output = (Message, T)&gt; + MaybeSend + <span class="lifetime">'static</span>,
-    Message: <span class="lifetime">'static </span>+ MaybeSend,
-{
-    <span class="kw">use </span>futures::future::FutureExt;
-
-    run_with_id(
-        id,
-        futures::stream::unfold(initial, <span class="kw">move </span>|state| f(state).map(<span class="prelude-val">Some</span>)),
-    )
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>filter_map&lt;I, F, Message&gt;(id: I, f: F) -&gt; Subscription&lt;Message&gt;
-<span class="kw">where
-    </span>I: Hash + <span class="lifetime">'static</span>,
-    F: Fn(Event) -&gt; <span class="prelude-ty">Option</span>&lt;Message&gt; + MaybeSend + <span class="lifetime">'static</span>,
-    Message: <span class="lifetime">'static </span>+ MaybeSend,
-{
-    Subscription::from_recipe(Runner {
+    from_recipe(Runner {
         id,
         spawn: |events| {
             <span class="kw">use </span>futures::future;
@@ -797,107 +884,22 @@
     })
 }
 
-<span class="doccomment">/// Creates a [`Subscription`] that publishes the events sent from a [`Future`]
-/// to an [`mpsc::Sender`] with the given bounds.
-///
-/// # Creating an asynchronous worker with bidirectional communication
-/// You can leverage this helper to create a [`Subscription`] that spawns
-/// an asynchronous worker in the background and establish a channel of
-/// communication with an `iced` application.
-///
-/// You can achieve this by creating an `mpsc` channel inside the closure
-/// and returning the `Sender` as a `Message` for the `Application`:
-///
-/// ```
-/// use iced_futures::subscription::{self, Subscription};
-/// use iced_futures::futures::channel::mpsc;
-/// use iced_futures::futures::sink::SinkExt;
-///
-/// pub enum Event {
-///     Ready(mpsc::Sender&lt;Input&gt;),
-///     WorkFinished,
-///     // ...
-/// }
-///
-/// enum Input {
-///     DoSomeWork,
-///     // ...
-/// }
-///
-/// fn some_worker() -&gt; Subscription&lt;Event&gt; {
-///     struct SomeWorker;
-///
-///     subscription::channel(std::any::TypeId::of::&lt;SomeWorker&gt;(), 100, |mut output| async move {
-///         // Create channel
-///         let (sender, mut receiver) = mpsc::channel(100);
-///
-///         // Send the sender back to the application
-///         output.send(Event::Ready(sender)).await;
-///
-///         loop {
-///             use iced_futures::futures::StreamExt;
-///
-///             // Read next input sent from `Application`
-///             let input = receiver.select_next_some().await;
-///
-///             match input {
-///                 Input::DoSomeWork =&gt; {
-///                     // Do some async work...
-///
-///                     // Finally, we can optionally produce a message to tell the
-///                     // `Application` the work is done
-///                     output.send(Event::WorkFinished).await;
-///                 }
-///             }
-///         }
-///     })
-/// }
-/// ```
-///
-/// Check out the [`websocket`] example, which showcases this pattern to maintain a `WebSocket`
-/// connection open.
-///
-/// [`websocket`]: https://github.com/iced-rs/iced/tree/0.12/examples/websocket
-</span><span class="kw">pub fn </span>channel&lt;I, Fut, Message&gt;(
-    id: I,
-    size: usize,
-    f: <span class="kw">impl </span>FnOnce(mpsc::Sender&lt;Message&gt;) -&gt; Fut + MaybeSend + <span class="lifetime">'static</span>,
-) -&gt; Subscription&lt;Message&gt;
-<span class="kw">where
-    </span>I: Hash + <span class="lifetime">'static</span>,
-    Fut: Future&lt;Output = Never&gt; + MaybeSend + <span class="lifetime">'static</span>,
-    Message: <span class="lifetime">'static </span>+ MaybeSend,
-{
-    <span class="kw">use </span>futures::stream::{<span class="self">self</span>, StreamExt};
-
-    Subscription::from_recipe(Runner {
-        id,
-        spawn: <span class="kw">move </span>|<span class="kw">_</span>| {
-            <span class="kw">let </span>(sender, receiver) = mpsc::channel(size);
-
-            <span class="kw">let </span>runner = stream::once(f(sender)).map(|<span class="kw">_</span>| <span class="macro">unreachable!</span>());
-
-            stream::select(receiver, runner)
-        },
-    })
-}
-
-<span class="kw">struct </span>Runner&lt;I, F, S, Message&gt;
+<span class="kw">struct </span>Runner&lt;I, F, S, T&gt;
 <span class="kw">where
     </span>F: FnOnce(EventStream) -&gt; S,
-    S: Stream&lt;Item = Message&gt;,
+    S: Stream&lt;Item = T&gt;,
 {
     id: I,
     spawn: F,
 }
 
-<span class="kw">impl</span>&lt;I, S, F, Message&gt; Recipe <span class="kw">for </span>Runner&lt;I, F, S, Message&gt;
+<span class="kw">impl</span>&lt;I, F, S, T&gt; Recipe <span class="kw">for </span>Runner&lt;I, F, S, T&gt;
 <span class="kw">where
     </span>I: Hash + <span class="lifetime">'static</span>,
     F: FnOnce(EventStream) -&gt; S,
-    S: Stream&lt;Item = Message&gt; + MaybeSend + <span class="lifetime">'static</span>,
+    S: Stream&lt;Item = T&gt; + MaybeSend + <span class="lifetime">'static</span>,
 {
-    <span class="kw">type </span>Output = Message;
+    <span class="kw">type </span>Output = T;
 
     <span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>Hasher) {
         std::any::TypeId::of::&lt;I&gt;().hash(state);
