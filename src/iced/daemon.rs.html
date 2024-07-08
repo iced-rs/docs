@@ -279,23 +279,6 @@
 <a href="#279" id="279">279</a>
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create and run daemons that run in the background.
 </span><span class="kw">use </span><span class="kw">crate</span>::application;
 <span class="kw">use </span><span class="kw">crate</span>::program::{<span class="self">self</span>, Program};
@@ -352,10 +335,6 @@
         <span class="kw">type </span>Theme = Theme;
         <span class="kw">type </span>Renderer = Renderer;
         <span class="kw">type </span>Executor = iced_futures::backend::default::Executor;
-
-        <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Task&lt;<span class="self">Self</span>::Message&gt; {
-            Task::none()
-        }
 
         <span class="kw">fn </span>update(
             <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -414,14 +393,14 @@
         </span><span class="self">Self</span>: <span class="lifetime">'static</span>,
         P::State: Default,
     {
-        <span class="self">self</span>.run_with(P::State::default)
+        <span class="self">self</span>.raw.run(<span class="self">self</span>.settings, <span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Runs the [`Daemon`] with a closure that creates the initial state.
     </span><span class="kw">pub fn </span>run_with&lt;I&gt;(<span class="self">self</span>, initialize: I) -&gt; <span class="prelude-ty">Result
     </span><span class="kw">where
         </span><span class="self">Self</span>: <span class="lifetime">'static</span>,
-        I: Fn() -&gt; P::State + Clone + <span class="lifetime">'static</span>,
+        I: Fn() -&gt; (P::State, Task&lt;P::Message&gt;) + Clone + <span class="lifetime">'static</span>,
     {
         <span class="self">self</span>.raw.run_with(<span class="self">self</span>.settings, <span class="prelude-val">None</span>, initialize)
     }
@@ -470,19 +449,6 @@
             raw: program::with_title(<span class="self">self</span>.raw, <span class="kw">move </span>|state, window| {
                 title.title(state, window)
             }),
-            settings: <span class="self">self</span>.settings,
-        }
-    }
-
-    <span class="doccomment">/// Runs the [`Task`] produced by the closure at startup.
-    </span><span class="kw">pub fn </span>load(
-        <span class="self">self</span>,
-        f: <span class="kw">impl </span>Fn() -&gt; Task&lt;P::Message&gt;,
-    ) -&gt; Daemon&lt;
-        <span class="kw">impl </span>Program&lt;State = P::State, Message = P::Message, Theme = P::Theme&gt;,
-    &gt; {
-        Daemon {
-            raw: program::with_load(<span class="self">self</span>.raw, f),
             settings: <span class="self">self</span>.settings,
         }
     }

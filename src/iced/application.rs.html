@@ -457,24 +457,6 @@
 <a href="#457" id="457">457</a>
 <a href="#458" id="458">458</a>
 <a href="#459" id="459">459</a>
-<a href="#460" id="460">460</a>
-<a href="#461" id="461">461</a>
-<a href="#462" id="462">462</a>
-<a href="#463" id="463">463</a>
-<a href="#464" id="464">464</a>
-<a href="#465" id="465">465</a>
-<a href="#466" id="466">466</a>
-<a href="#467" id="467">467</a>
-<a href="#468" id="468">468</a>
-<a href="#469" id="469">469</a>
-<a href="#470" id="470">470</a>
-<a href="#471" id="471">471</a>
-<a href="#472" id="472">472</a>
-<a href="#473" id="473">473</a>
-<a href="#474" id="474">474</a>
-<a href="#475" id="475">475</a>
-<a href="#476" id="476">476</a>
-<a href="#477" id="477">477</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create and run iced applications step by step.
 //!
 //! # Example
@@ -580,10 +562,6 @@
         <span class="kw">type </span>Renderer = Renderer;
         <span class="kw">type </span>Executor = iced_futures::backend::default::Executor;
 
-        <span class="kw">fn </span>load(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Task&lt;<span class="self">Self</span>::Message&gt; {
-            Task::none()
-        }
-
         <span class="kw">fn </span>update(
             <span class="kw-2">&amp;</span><span class="self">self</span>,
             state: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::State,
@@ -643,14 +621,14 @@
         </span><span class="self">Self</span>: <span class="lifetime">'static</span>,
         P::State: Default,
     {
-        <span class="self">self</span>.run_with(P::State::default)
+        <span class="self">self</span>.raw.run(<span class="self">self</span>.settings, <span class="prelude-val">Some</span>(<span class="self">self</span>.window))
     }
 
     <span class="doccomment">/// Runs the [`Application`] with a closure that creates the initial state.
     </span><span class="kw">pub fn </span>run_with&lt;I&gt;(<span class="self">self</span>, initialize: I) -&gt; <span class="prelude-ty">Result
     </span><span class="kw">where
         </span><span class="self">Self</span>: <span class="lifetime">'static</span>,
-        I: Fn() -&gt; P::State + Clone + <span class="lifetime">'static</span>,
+        I: Fn() -&gt; (P::State, Task&lt;P::Message&gt;) + Clone + <span class="lifetime">'static</span>,
     {
         <span class="self">self</span>.raw
             .run_with(<span class="self">self</span>.settings, <span class="prelude-val">Some</span>(<span class="self">self</span>.window), initialize)
@@ -795,20 +773,6 @@
             raw: program::with_title(<span class="self">self</span>.raw, <span class="kw">move </span>|state, _window| {
                 title.title(state)
             }),
-            settings: <span class="self">self</span>.settings,
-            window: <span class="self">self</span>.window,
-        }
-    }
-
-    <span class="doccomment">/// Runs the [`Task`] produced by the closure at startup.
-    </span><span class="kw">pub fn </span>load(
-        <span class="self">self</span>,
-        f: <span class="kw">impl </span>Fn() -&gt; Task&lt;P::Message&gt;,
-    ) -&gt; Application&lt;
-        <span class="kw">impl </span>Program&lt;State = P::State, Message = P::Message, Theme = P::Theme&gt;,
-    &gt; {
-        Application {
-            raw: program::with_load(<span class="self">self</span>.raw, f),
             settings: <span class="self">self</span>.settings,
             window: <span class="self">self</span>.window,
         }
