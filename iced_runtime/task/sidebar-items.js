@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["channel","effect","into_stream","oneshot","widget"],"struct":["Task"]};
+window.SIDEBAR_ITEMS = {"fn":["channel","effect","into_stream","oneshot","widget"],"struct":["Handle","Task"]};
