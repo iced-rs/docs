@@ -1462,6 +1462,16 @@
 <a href="#1462" id="1462">1462</a>
 <a href="#1463" id="1463">1463</a>
 <a href="#1464" id="1464">1464</a>
+<a href="#1465" id="1465">1465</a>
+<a href="#1466" id="1466">1466</a>
+<a href="#1467" id="1467">1467</a>
+<a href="#1468" id="1468">1468</a>
+<a href="#1469" id="1469">1469</a>
+<a href="#1470" id="1470">1470</a>
+<a href="#1471" id="1471">1471</a>
+<a href="#1472" id="1472">1472</a>
+<a href="#1473" id="1473">1473</a>
+<a href="#1474" id="1474">1474</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
@@ -1958,6 +1968,8 @@
                                 <span class="kw">let </span>exit_on_close_request =
                                     settings.exit_on_close_request;
 
+                                <span class="kw">let </span>visible = settings.visible;
+
                                 <span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
                                 </span><span class="kw">let </span>target =
                                     settings.platform_specific.target.clone();
@@ -1971,7 +1983,8 @@
                                                 .or(event_loop
                                                     .primary_monitor()),
                                             <span class="self">self</span>.id.clone(),
-                                        ),
+                                        )
+                                        .with_visible(<span class="bool-val">false</span>),
                                     )
                                     .expect(<span class="string">"Create window"</span>);
 
@@ -2027,6 +2040,7 @@
                                         id,
                                         window,
                                         exit_on_close_request,
+                                        make_visible: visible,
                                     },
                                 );
                             }
@@ -2076,6 +2090,7 @@
         id: window::Id,
         window: winit::window::Window,
         exit_on_close_request: bool,
+        make_visible: bool,
     },
     EventLoopAwakened(winit::event::Event&lt;Message&gt;),
 }
@@ -2131,6 +2146,7 @@
                 id,
                 window,
                 exit_on_close_request,
+                make_visible,
             } =&gt; {
                 <span class="kw">let </span>window = window_manager.insert(
                     id,
@@ -2154,6 +2170,10 @@
                     ),
                 );
                 <span class="kw">let _ </span>= ui_caches.insert(id, user_interface::Cache::default());
+
+                <span class="kw">if </span>make_visible {
+                    window.raw.set_visible(<span class="bool-val">true</span>);
+                }
 
                 events.push((
                     id,
