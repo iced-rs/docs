@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["channel"]};
+window.SIDEBAR_ITEMS = {"fn":["channel","try_channel"]};
