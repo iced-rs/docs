@@ -1469,9 +1469,6 @@
 <a href="#1469" id="1469">1469</a>
 <a href="#1470" id="1470">1470</a>
 <a href="#1471" id="1471">1471</a>
-<a href="#1472" id="1472">1472</a>
-<a href="#1473" id="1473">1473</a>
-<a href="#1474" id="1474">1474</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
@@ -1676,6 +1673,16 @@
     };
 
     <span class="kw">let </span>(program, task) = runtime.enter(|| P::new(flags));
+    <span class="kw">let </span>is_daemon = window_settings.is_none();
+
+    <span class="kw">let </span>task = <span class="kw">if let </span><span class="prelude-val">Some</span>(window_settings) = window_settings {
+        <span class="kw">let </span><span class="kw-2">mut </span>task = <span class="prelude-val">Some</span>(task);
+
+        runtime::window::open(window_settings)
+            .then(<span class="kw">move </span>|<span class="kw">_</span>| task.take().unwrap_or(Task::none()))
+    } <span class="kw">else </span>{
+        task
+    };
 
     <span class="kw">if let </span><span class="prelude-val">Some</span>(stream) = runtime::task::into_stream(task) {
         runtime.run(stream);
@@ -1697,6 +1704,7 @@
         boot_receiver,
         event_receiver,
         control_sender,
+        is_daemon,
     ));
 
     <span class="kw">let </span>context = task::Context::from_waker(task::noop_waker_ref());
@@ -1705,7 +1713,7 @@
         instance: std::pin::Pin&lt;Box&lt;F&gt;&gt;,
         context: task::Context&lt;<span class="lifetime">'static</span>&gt;,
         id: <span class="prelude-ty">Option</span>&lt;String&gt;,
-        boot: <span class="prelude-ty">Option</span>&lt;BootConfig&lt;Message, C&gt;&gt;,
+        boot: <span class="prelude-ty">Option</span>&lt;BootConfig&lt;C&gt;&gt;,
         sender: mpsc::UnboundedSender&lt;Event&lt;Action&lt;Message&gt;&gt;&gt;,
         receiver: mpsc::UnboundedReceiver&lt;Control&gt;,
         error: <span class="prelude-ty">Option</span>&lt;Error&gt;,
@@ -1716,11 +1724,9 @@
         </span>queued_events: Vec&lt;Event&lt;Action&lt;Message&gt;&gt;&gt;,
     }
 
-    <span class="kw">struct </span>BootConfig&lt;Message: <span class="lifetime">'static</span>, C&gt; {
-        proxy: Proxy&lt;Message&gt;,
+    <span class="kw">struct </span>BootConfig&lt;C&gt; {
         sender: oneshot::Sender&lt;Boot&lt;C&gt;&gt;,
         fonts: Vec&lt;Cow&lt;<span class="lifetime">'static</span>, [u8]&gt;&gt;,
-        window_settings: <span class="prelude-ty">Option</span>&lt;window::Settings&gt;,
         graphics_settings: graphics::Settings,
     }
 
@@ -1729,10 +1735,8 @@
         context,
         id: settings.id,
         boot: <span class="prelude-val">Some</span>(BootConfig {
-            proxy,
             sender: boot_sender,
             fonts: settings.fonts,
-            window_settings,
             graphics_settings,
         }),
         sender: event_sender,
@@ -1754,10 +1758,8 @@
     {
         <span class="kw">fn </span>resumed(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event_loop: <span class="kw-2">&amp;</span>winit::event_loop::ActiveEventLoop) {
             <span class="kw">let </span><span class="prelude-val">Some</span>(BootConfig {
-                <span class="kw-2">mut </span>proxy,
                 sender,
                 fonts,
-                window_settings,
                 graphics_settings,
             }) = <span class="self">self</span>.boot.take()
             <span class="kw">else </span>{
@@ -1790,22 +1792,9 @@
                         compositor,
                         clipboard,
                         window: window.id(),
-                        is_daemon: window_settings.is_none(),
                     })
                     .ok()
                     .expect(<span class="string">"Send boot event"</span>);
-
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(window_settings) = window_settings {
-                    <span class="kw">let </span>(sender, _receiver) = oneshot::channel();
-
-                    proxy.send_action(Action::Window(
-                        runtime::window::Action::Open(
-                            window::Id::unique(),
-                            window_settings,
-                            sender,
-                        ),
-                    ));
-                }
 
                 <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, graphics::Error&gt;(())
             };
@@ -1964,6 +1953,7 @@
                                 settings,
                                 title,
                                 monitor,
+                                on_open,
                             } =&gt; {
                                 <span class="kw">let </span>exit_on_close_request =
                                     settings.exit_on_close_request;
@@ -2041,6 +2031,7 @@
                                         window,
                                         exit_on_close_request,
                                         make_visible: visible,
+                                        on_open,
                                     },
                                 );
                             }
@@ -2082,7 +2073,6 @@
     compositor: C,
     clipboard: Clipboard,
     window: winit::window::WindowId,
-    is_daemon: bool,
 }
 
 <span class="kw">enum </span>Event&lt;Message: <span class="lifetime">'static</span>&gt; {
@@ -2091,6 +2081,7 @@
         window: winit::window::Window,
         exit_on_close_request: bool,
         make_visible: bool,
+        on_open: oneshot::Sender&lt;window::Id&gt;,
     },
     EventLoopAwakened(winit::event::Event&lt;Message&gt;),
 }
@@ -2103,6 +2094,7 @@
         settings: window::Settings,
         title: String,
         monitor: <span class="prelude-ty">Option</span>&lt;winit::monitor::MonitorHandle&gt;,
+        on_open: oneshot::Sender&lt;window::Id&gt;,
     },
 }
 
@@ -2114,6 +2106,7 @@
     <span class="kw-2">mut </span>boot: oneshot::Receiver&lt;Boot&lt;C&gt;&gt;,
     <span class="kw-2">mut </span>event_receiver: mpsc::UnboundedReceiver&lt;Event&lt;Action&lt;P::Message&gt;&gt;&gt;,
     <span class="kw-2">mut </span>control_sender: mpsc::UnboundedSender&lt;Control&gt;,
+    is_daemon: bool,
 ) <span class="kw">where
     </span>P: Program + <span class="lifetime">'static</span>,
     C: Compositor&lt;Renderer = P::Renderer&gt; + <span class="lifetime">'static</span>,
@@ -2126,7 +2119,6 @@
         <span class="kw-2">mut </span>compositor,
         <span class="kw-2">mut </span>clipboard,
         window: boot_window,
-        is_daemon,
     } = boot.try_recv().ok().flatten().expect(<span class="string">"Receive boot"</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>window_manager = WindowManager::new();
@@ -2147,6 +2139,7 @@
                 window,
                 exit_on_close_request,
                 make_visible,
+                on_open,
             } =&gt; {
                 <span class="kw">let </span>window = window_manager.insert(
                     id,
@@ -2182,6 +2175,8 @@
                         size: window.size(),
                     }),
                 ));
+
+                <span class="kw">let _ </span>= on_open.send(id);
             }
             Event::EventLoopAwakened(event) =&gt; {
                 <span class="kw">match </span>event {
@@ -2654,10 +2649,9 @@
                         settings,
                         title: program.title(id),
                         monitor,
+                        on_open: channel,
                     })
                     .expect(<span class="string">"Send control action"</span>);
-
-                <span class="kw">let _ </span>= channel.send(id);
             }
             window::Action::Close(id) =&gt; {
                 <span class="kw">let _ </span>= window_manager.remove(id);
