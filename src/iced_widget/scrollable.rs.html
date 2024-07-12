@@ -1816,8 +1816,44 @@
 <a href="#1816" id="1816">1816</a>
 <a href="#1817" id="1817">1817</a>
 <a href="#1818" id="1818">1818</a>
+<a href="#1819" id="1819">1819</a>
+<a href="#1820" id="1820">1820</a>
+<a href="#1821" id="1821">1821</a>
+<a href="#1822" id="1822">1822</a>
+<a href="#1823" id="1823">1823</a>
+<a href="#1824" id="1824">1824</a>
+<a href="#1825" id="1825">1825</a>
+<a href="#1826" id="1826">1826</a>
+<a href="#1827" id="1827">1827</a>
+<a href="#1828" id="1828">1828</a>
+<a href="#1829" id="1829">1829</a>
+<a href="#1830" id="1830">1830</a>
+<a href="#1831" id="1831">1831</a>
+<a href="#1832" id="1832">1832</a>
+<a href="#1833" id="1833">1833</a>
+<a href="#1834" id="1834">1834</a>
+<a href="#1835" id="1835">1835</a>
+<a href="#1836" id="1836">1836</a>
+<a href="#1837" id="1837">1837</a>
+<a href="#1838" id="1838">1838</a>
+<a href="#1839" id="1839">1839</a>
+<a href="#1840" id="1840">1840</a>
+<a href="#1841" id="1841">1841</a>
+<a href="#1842" id="1842">1842</a>
+<a href="#1843" id="1843">1843</a>
+<a href="#1844" id="1844">1844</a>
+<a href="#1845" id="1845">1845</a>
+<a href="#1846" id="1846">1846</a>
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
+<span class="kw">use </span><span class="kw">crate</span>::core::border::{<span class="self">self</span>, Border};
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -1829,8 +1865,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::operation::{<span class="self">self</span>, Operation};
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    <span class="self">self</span>, Background, Border, Clipboard, Color, Element, Layout, Length,
-    Padding, Pixels, Point, Rectangle, Shell, Size, Theme, Vector, Widget,
+    <span class="self">self</span>, Background, Clipboard, Color, Element, Layout, Length, Padding,
+    Pixels, Point, Rectangle, Shell, Size, Theme, Vector, Widget,
 };
 <span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<span class="self">self</span>, Task};
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Action;
@@ -1927,53 +1963,70 @@
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the alignment of the horizontal direction of the [`Scrollable`], if applicable.
-    </span><span class="kw">pub fn </span>align_x(<span class="kw-2">mut </span><span class="self">self</span>, alignment: Alignment) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Anchors the vertical [`Scrollable`] direction to the top.
+    </span><span class="kw">pub fn </span>anchor_top(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.anchor_y(Anchor::Start)
+    }
+
+    <span class="doccomment">/// Anchors the vertical [`Scrollable`] direction to the bottom.
+    </span><span class="kw">pub fn </span>anchor_bottom(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.anchor_y(Anchor::End)
+    }
+
+    <span class="doccomment">/// Anchors the horizontal [`Scrollable`] direction to the left.
+    </span><span class="kw">pub fn </span>anchor_left(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.anchor_x(Anchor::Start)
+    }
+
+    <span class="doccomment">/// Anchors the horizontal [`Scrollable`] direction to the right.
+    </span><span class="kw">pub fn </span>anchor_right(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.anchor_x(Anchor::End)
+    }
+
+    <span class="doccomment">/// Sets the [`Anchor`] of the horizontal direction of the [`Scrollable`], if applicable.
+    </span><span class="kw">pub fn </span>anchor_x(<span class="kw-2">mut </span><span class="self">self</span>, alignment: Anchor) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.direction {
-            Direction::Horizontal(horizontal)
+            Direction::Horizontal {
+                scrollbar: horizontal,
+                ..
+            }
             | Direction::Both { horizontal, .. } =&gt; {
                 horizontal.alignment = alignment;
             }
-            Direction::Vertical(<span class="kw">_</span>) =&gt; {}
+            Direction::Vertical { .. } =&gt; {}
         }
 
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the alignment of the vertical direction of the [`Scrollable`], if applicable.
-    </span><span class="kw">pub fn </span>align_y(<span class="kw-2">mut </span><span class="self">self</span>, alignment: Alignment) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Sets the [`Anchor`] of the vertical direction of the [`Scrollable`], if applicable.
+    </span><span class="kw">pub fn </span>anchor_y(<span class="kw-2">mut </span><span class="self">self</span>, alignment: Anchor) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.direction {
-            Direction::Vertical(vertical)
+            Direction::Vertical {
+                scrollbar: vertical,
+                ..
+            }
             | Direction::Both { vertical, .. } =&gt; {
                 vertical.alignment = alignment;
             }
-            Direction::Horizontal(<span class="kw">_</span>) =&gt; {}
+            Direction::Horizontal { .. } =&gt; {}
         }
 
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets whether the horizontal [`Scrollbar`] should be embedded in the [`Scrollable`].
-    </span><span class="kw">pub fn </span>embed_x(<span class="kw-2">mut </span><span class="self">self</span>, embedded: bool) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Embeds the [`Scrollbar`] into the [`Scrollable`], instead of floating on top of the
+    /// content.
+    ///
+    /// The `spacing` provided will be used as space between the [`Scrollbar`] and the contents
+    /// of the [`Scrollable`].
+    </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, new_spacing: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.direction {
-            Direction::Horizontal(horizontal)
-            | Direction::Both { horizontal, .. } =&gt; {
-                horizontal.embedded = embedded;
+            Direction::Horizontal { spacing, .. }
+            | Direction::Vertical { spacing, .. } =&gt; {
+                <span class="kw-2">*</span>spacing = <span class="prelude-val">Some</span>(new_spacing.into().<span class="number">0</span>);
             }
-            Direction::Vertical(<span class="kw">_</span>) =&gt; {}
-        }
-
-        <span class="self">self
-    </span>}
-
-    <span class="doccomment">/// Sets whether the vertical [`Scrollbar`] should be embedded in the [`Scrollable`].
-    </span><span class="kw">pub fn </span>embed_y(<span class="kw-2">mut </span><span class="self">self</span>, embedded: bool) -&gt; <span class="self">Self </span>{
-        <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.direction {
-            Direction::Vertical(vertical)
-            | Direction::Both { vertical, .. } =&gt; {
-                vertical.embedded = embedded;
-            }
-            Direction::Horizontal(<span class="kw">_</span>) =&gt; {}
+            Direction::Both { .. } =&gt; {}
         }
 
         <span class="self">self
@@ -2002,9 +2055,19 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
 </span><span class="kw">pub enum </span>Direction {
     <span class="doccomment">/// Vertical scrolling
-    </span>Vertical(Scrollbar),
+    </span>Vertical {
+        <span class="doccomment">/// The vertical [`Scrollbar`].
+        </span>scrollbar: Scrollbar,
+        <span class="doccomment">/// The amount of spacing between the [`Scrollbar`] and the contents, if embedded.
+        </span>spacing: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    },
     <span class="doccomment">/// Horizontal scrolling
-    </span>Horizontal(Scrollbar),
+    </span>Horizontal {
+        <span class="doccomment">/// The horizontal [`Scrollbar`].
+        </span>scrollbar: Scrollbar,
+        <span class="doccomment">/// The amount of spacing between the [`Scrollbar`] and the contents, if embedded.
+        </span>spacing: <span class="prelude-ty">Option</span>&lt;f32&gt;,
+    },
     <span class="doccomment">/// Both vertical and horizontal scrolling
     </span>Both {
         <span class="doccomment">/// The properties of the vertical scrollbar.
@@ -2018,25 +2081,28 @@
     <span class="doccomment">/// Returns the horizontal [`Scrollbar`], if any.
     </span><span class="kw">pub fn </span>horizontal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Scrollbar&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Horizontal(properties) =&gt; <span class="prelude-val">Some</span>(properties),
+            <span class="self">Self</span>::Horizontal { scrollbar, .. } =&gt; <span class="prelude-val">Some</span>(scrollbar),
             <span class="self">Self</span>::Both { horizontal, .. } =&gt; <span class="prelude-val">Some</span>(horizontal),
-            <span class="self">Self</span>::Vertical(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Vertical { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Returns the vertical [`Scrollbar`], if any.
     </span><span class="kw">pub fn </span>vertical(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Scrollbar&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Vertical(properties) =&gt; <span class="prelude-val">Some</span>(properties),
+            <span class="self">Self</span>::Vertical { scrollbar, .. } =&gt; <span class="prelude-val">Some</span>(scrollbar),
             <span class="self">Self</span>::Both { vertical, .. } =&gt; <span class="prelude-val">Some</span>(vertical),
-            <span class="self">Self</span>::Horizontal(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Horizontal { .. } =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Direction {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Vertical(Scrollbar::default())
+        <span class="self">Self</span>::Vertical {
+            scrollbar: Scrollbar::default(),
+            spacing: <span class="prelude-val">None</span>,
+        }
     }
 }
 
@@ -2046,8 +2112,8 @@
     width: f32,
     margin: f32,
     scroller_width: f32,
-    alignment: Alignment,
-    embedded: bool,
+    alignment: Anchor,
+    spacing: <span class="prelude-ty">Option</span>&lt;f32&gt;,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Scrollbar {
@@ -2056,8 +2122,8 @@
             width: <span class="number">10.0</span>,
             margin: <span class="number">0.0</span>,
             scroller_width: <span class="number">10.0</span>,
-            alignment: Alignment::Start,
-            embedded: <span class="bool-val">false</span>,
+            alignment: Anchor::Start,
+            spacing: <span class="prelude-val">None</span>,
         }
     }
 }
@@ -2068,47 +2134,49 @@
         <span class="self">Self</span>::default()
     }
 
-    <span class="doccomment">/// Sets the scrollbar width of the [`Scrollable`] .
+    <span class="doccomment">/// Sets the scrollbar width of the [`Scrollbar`] .
     </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.width = width.into().<span class="number">0</span>.max(<span class="number">0.0</span>);
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the scrollbar margin of the [`Scrollable`] .
+    <span class="doccomment">/// Sets the scrollbar margin of the [`Scrollbar`] .
     </span><span class="kw">pub fn </span>margin(<span class="kw-2">mut </span><span class="self">self</span>, margin: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.margin = margin.into().<span class="number">0</span>;
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the scroller width of the [`Scrollable`] .
+    <span class="doccomment">/// Sets the scroller width of the [`Scrollbar`] .
     </span><span class="kw">pub fn </span>scroller_width(<span class="kw-2">mut </span><span class="self">self</span>, scroller_width: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.scroller_width = scroller_width.into().<span class="number">0</span>.max(<span class="number">0.0</span>);
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets the alignment of the [`Scrollable`] .
-    </span><span class="kw">pub fn </span>alignment(<span class="kw-2">mut </span><span class="self">self</span>, alignment: Alignment) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// Sets the [`Anchor`] of the [`Scrollbar`] .
+    </span><span class="kw">pub fn </span>anchor(<span class="kw-2">mut </span><span class="self">self</span>, alignment: Anchor) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.alignment = alignment;
         <span class="self">self
     </span>}
 
-    <span class="doccomment">/// Sets whether the [`Scrollbar`] should be embedded in the [`Scrollable`].
+    <span class="doccomment">/// Sets whether the [`Scrollbar`] should be embedded in the [`Scrollable`], using
+    /// the given spacing between itself and the contents.
     ///
     /// An embedded [`Scrollbar`] will always be displayed, will take layout space,
     /// and will not float over the contents.
-    </span><span class="kw">pub fn </span>embedded(<span class="kw-2">mut </span><span class="self">self</span>, embedded: bool) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.embedded = embedded;
+    </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, spacing: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.spacing = <span class="prelude-val">Some</span>(spacing.into().<span class="number">0</span>);
         <span class="self">self
     </span>}
 }
 
-<span class="doccomment">/// Alignment of the scrollable's content relative to it's [`Viewport`] in one direction.
+<span class="doccomment">/// The anchor of the scroller of the [`Scrollable`] relative to its [`Viewport`]
+/// on a given axis.
 </span><span class="attr">#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-</span><span class="kw">pub enum </span>Alignment {
-    <span class="doccomment">/// Content is aligned to the start of the [`Viewport`].
+</span><span class="kw">pub enum </span>Anchor {
+    <span class="doccomment">/// Scroller is anchoer to the start of the [`Viewport`].
     </span><span class="attr">#[default]
     </span>Start,
-    <span class="doccomment">/// Content is aligned to the end of the [`Viewport`]
+    <span class="doccomment">/// Content is aligned to the end of the [`Viewport`].
     </span>End,
 }
 
@@ -2148,12 +2216,14 @@
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
         <span class="kw">let </span>(right_padding, bottom_padding) = <span class="kw">match </span><span class="self">self</span>.direction {
-            Direction::Vertical(scrollbar) <span class="kw">if </span>scrollbar.embedded =&gt; {
-                (scrollbar.width + scrollbar.margin * <span class="number">2.0</span>, <span class="number">0.0</span>)
-            }
-            Direction::Horizontal(scrollbar) <span class="kw">if </span>scrollbar.embedded =&gt; {
-                (<span class="number">0.0</span>, scrollbar.width + scrollbar.margin * <span class="number">2.0</span>)
-            }
+            Direction::Vertical {
+                scrollbar,
+                spacing: <span class="prelude-val">Some</span>(spacing),
+            } =&gt; (scrollbar.width + scrollbar.margin * <span class="number">2.0 </span>+ spacing, <span class="number">0.0</span>),
+            Direction::Horizontal {
+                scrollbar,
+                spacing: <span class="prelude-val">Some</span>(spacing),
+            } =&gt; (<span class="number">0.0</span>, scrollbar.width + scrollbar.margin * <span class="number">2.0 </span>+ spacing),
             <span class="kw">_ </span>=&gt; (<span class="number">0.0</span>, <span class="number">0.0</span>),
         };
 
@@ -2977,13 +3047,13 @@
         <span class="self">self</span>,
         viewport: f32,
         content: f32,
-        alignment: Alignment,
+        alignment: Anchor,
     ) -&gt; f32 {
         <span class="kw">let </span>offset = <span class="self">self</span>.absolute(viewport, content);
 
         <span class="kw">match </span>alignment {
-            Alignment::Start =&gt; offset,
-            Alignment::End =&gt; ((content - viewport).max(<span class="number">0.0</span>) - offset).max(<span class="number">0.0</span>),
+            Anchor::Start =&gt; offset,
+            Anchor::End =&gt; ((content - viewport).max(<span class="number">0.0</span>) - offset).max(<span class="number">0.0</span>),
         }
     }
 }
@@ -3070,9 +3140,9 @@
             .map(|p| p.alignment)
             .unwrap_or_default();
 
-        <span class="kw">let </span>align = |alignment: Alignment, delta: f32| <span class="kw">match </span>alignment {
-            Alignment::Start =&gt; delta,
-            Alignment::End =&gt; -delta,
+        <span class="kw">let </span>align = |alignment: Anchor, delta: f32| <span class="kw">match </span>alignment {
+            Anchor::Start =&gt; delta,
+            Anchor::End =&gt; -delta,
         };
 
         <span class="kw">let </span>delta = Vector::new(
@@ -3203,11 +3273,11 @@
         <span class="kw">let </span>translation = state.translation(direction, bounds, content_bounds);
 
         <span class="kw">let </span>show_scrollbar_x = direction.horizontal().filter(|scrollbar| {
-            scrollbar.embedded || content_bounds.width &gt; bounds.width
+            scrollbar.spacing.is_some() || content_bounds.width &gt; bounds.width
         });
 
         <span class="kw">let </span>show_scrollbar_y = direction.vertical().filter(|scrollbar| {
-            scrollbar.embedded || content_bounds.height &gt; bounds.height
+            scrollbar.spacing.is_some() || content_bounds.height &gt; bounds.height
         });
 
         <span class="kw">let </span>y_scrollbar = <span class="kw">if let </span><span class="prelude-val">Some</span>(vertical) = show_scrollbar_y {
@@ -3410,14 +3480,14 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>internals {
     <span class="kw">use </span><span class="kw">crate</span>::core::{Point, Rectangle};
 
-    <span class="kw">use </span><span class="kw">super</span>::Alignment;
+    <span class="kw">use </span><span class="kw">super</span>::Anchor;
 
     <span class="attr">#[derive(Debug, Copy, Clone)]
     </span><span class="kw">pub struct </span>Scrollbar {
         <span class="kw">pub </span>total_bounds: Rectangle,
         <span class="kw">pub </span>bounds: Rectangle,
         <span class="kw">pub </span>scroller: <span class="prelude-ty">Option</span>&lt;Scroller&gt;,
-        <span class="kw">pub </span>alignment: Alignment,
+        <span class="kw">pub </span>alignment: Anchor,
     }
 
     <span class="kw">impl </span>Scrollbar {
@@ -3439,8 +3509,8 @@
                     / (<span class="self">self</span>.bounds.height - scroller.bounds.height);
 
                 <span class="kw">match </span><span class="self">self</span>.alignment {
-                    Alignment::Start =&gt; percentage,
-                    Alignment::End =&gt; <span class="number">1.0 </span>- percentage,
+                    Anchor::Start =&gt; percentage,
+                    Anchor::End =&gt; <span class="number">1.0 </span>- percentage,
                 }
             } <span class="kw">else </span>{
                 <span class="number">0.0
@@ -3460,8 +3530,8 @@
                     / (<span class="self">self</span>.bounds.width - scroller.bounds.width);
 
                 <span class="kw">match </span><span class="self">self</span>.alignment {
-                    Alignment::Start =&gt; percentage,
-                    Alignment::End =&gt; <span class="number">1.0 </span>- percentage,
+                    Anchor::Start =&gt; percentage,
+                    Anchor::End =&gt; <span class="number">1.0 </span>- percentage,
                 }
             } <span class="kw">else </span>{
                 <span class="number">0.0
@@ -3564,10 +3634,10 @@
 
     <span class="kw">let </span>scrollbar = Rail {
         background: <span class="prelude-val">Some</span>(palette.background.weak.color.into()),
-        border: Border::rounded(<span class="number">2</span>),
+        border: border::rounded(<span class="number">2</span>),
         scroller: Scroller {
             color: palette.background.strong.color,
-            border: Border::rounded(<span class="number">2</span>),
+            border: border::rounded(<span class="number">2</span>),
         },
     };
 
