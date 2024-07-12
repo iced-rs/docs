@@ -321,6 +321,41 @@
 <a href="#321" id="321">321</a>
 <a href="#322" id="322">322</a>
 <a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create runtime tasks.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::widget;
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures::channel::mpsc;
@@ -491,9 +526,21 @@
             <span class="prelude-val">Some</span>(stream) =&gt; {
                 <span class="kw">let </span>(stream, handle) = stream::abortable(stream);
 
-                (<span class="self">Self</span>(<span class="prelude-val">Some</span>(boxed_stream(stream))), Handle(<span class="prelude-val">Some</span>(handle)))
+                (
+                    <span class="self">Self</span>(<span class="prelude-val">Some</span>(boxed_stream(stream))),
+                    Handle {
+                        raw: <span class="prelude-val">Some</span>(handle),
+                        abort_on_drop: <span class="bool-val">false</span>,
+                    },
+                )
             }
-            <span class="prelude-val">None </span>=&gt; (<span class="self">Self</span>(<span class="prelude-val">None</span>), Handle(<span class="prelude-val">None</span>)),
+            <span class="prelude-val">None </span>=&gt; (
+                <span class="self">Self</span>(<span class="prelude-val">None</span>),
+                Handle {
+                    raw: <span class="prelude-val">None</span>,
+                    abort_on_drop: <span class="bool-val">false</span>,
+                },
+            ),
         }
     }
 
@@ -518,23 +565,46 @@
 
 <span class="doccomment">/// A handle to a [`Task`] that can be used for aborting it.
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>Handle(<span class="prelude-ty">Option</span>&lt;stream::AbortHandle&gt;);
+</span><span class="kw">pub struct </span>Handle {
+    raw: <span class="prelude-ty">Option</span>&lt;stream::AbortHandle&gt;,
+    abort_on_drop: bool,
+}
 
 <span class="kw">impl </span>Handle {
     <span class="doccomment">/// Aborts the [`Task`] of this [`Handle`].
     </span><span class="kw">pub fn </span>abort(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = <span class="kw-2">&amp;</span><span class="self">self</span>.raw {
             handle.abort();
+        }
+    }
+
+    <span class="doccomment">/// Returns a new [`Handle`] that will call [`Handle::abort`] whenever
+    /// it is dropped.
+    ///
+    /// This can be really useful if you do not want to worry about calling
+    /// [`Handle::abort`] yourself.
+    </span><span class="kw">pub fn </span>abort_on_drop(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">Self </span>{
+            raw: <span class="self">self</span>.raw.take(),
+            abort_on_drop: <span class="bool-val">true</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the [`Task`] of this [`Handle`] has been aborted.
     </span><span class="kw">pub fn </span>is_aborted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0 </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = <span class="kw-2">&amp;</span><span class="self">self</span>.raw {
             handle.is_aborted()
         } <span class="kw">else </span>{
             <span class="bool-val">true
         </span>}
+    }
+}
+
+<span class="kw">impl </span>Drop <span class="kw">for </span>Handle {
+    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+        <span class="kw">if </span><span class="self">self</span>.abort_on_drop {
+            <span class="self">self</span>.abort();
+        }
     }
 }
 
