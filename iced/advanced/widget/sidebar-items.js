@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["operation","text","tree"],"struct":["Id","Text","Tree"],"trait":["Operation","Widget"]};
+window.SIDEBAR_ITEMS = {"fn":["operate"],"mod":["operation","text","tree"],"struct":["Id","Text","Tree"],"trait":["Operation","Widget"]};
