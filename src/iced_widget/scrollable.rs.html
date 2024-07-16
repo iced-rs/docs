@@ -1836,21 +1836,6 @@
 <a href="#1836" id="1836">1836</a>
 <a href="#1837" id="1837">1837</a>
 <a href="#1838" id="1838">1838</a>
-<a href="#1839" id="1839">1839</a>
-<a href="#1840" id="1840">1840</a>
-<a href="#1841" id="1841">1841</a>
-<a href="#1842" id="1842">1842</a>
-<a href="#1843" id="1843">1843</a>
-<a href="#1844" id="1844">1844</a>
-<a href="#1845" id="1845">1845</a>
-<a href="#1846" id="1846">1846</a>
-<a href="#1847" id="1847">1847</a>
-<a href="#1848" id="1848">1848</a>
-<a href="#1849" id="1849">1849</a>
-<a href="#1850" id="1850">1850</a>
-<a href="#1851" id="1851">1851</a>
-<a href="#1852" id="1852">1852</a>
-<a href="#1853" id="1853">1853</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::border::{<span class="self">self</span>, Border};
@@ -1986,10 +1971,7 @@
     <span class="doccomment">/// Sets the [`Anchor`] of the horizontal direction of the [`Scrollable`], if applicable.
     </span><span class="kw">pub fn </span>anchor_x(<span class="kw-2">mut </span><span class="self">self</span>, alignment: Anchor) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.direction {
-            Direction::Horizontal {
-                scrollbar: horizontal,
-                ..
-            }
+            Direction::Horizontal(horizontal)
             | Direction::Both { horizontal, .. } =&gt; {
                 horizontal.alignment = alignment;
             }
@@ -2002,10 +1984,7 @@
     <span class="doccomment">/// Sets the [`Anchor`] of the vertical direction of the [`Scrollable`], if applicable.
     </span><span class="kw">pub fn </span>anchor_y(<span class="kw-2">mut </span><span class="self">self</span>, alignment: Anchor) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.direction {
-            Direction::Vertical {
-                scrollbar: vertical,
-                ..
-            }
+            Direction::Vertical(vertical)
             | Direction::Both { vertical, .. } =&gt; {
                 vertical.alignment = alignment;
             }
@@ -2022,9 +2001,9 @@
     /// of the [`Scrollable`].
     </span><span class="kw">pub fn </span>spacing(<span class="kw-2">mut </span><span class="self">self</span>, new_spacing: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.direction {
-            Direction::Horizontal { spacing, .. }
-            | Direction::Vertical { spacing, .. } =&gt; {
-                <span class="kw-2">*</span>spacing = <span class="prelude-val">Some</span>(new_spacing.into().<span class="number">0</span>);
+            Direction::Horizontal(scrollbar)
+            | Direction::Vertical(scrollbar) =&gt; {
+                scrollbar.spacing = <span class="prelude-val">Some</span>(new_spacing.into().<span class="number">0</span>);
             }
             Direction::Both { .. } =&gt; {}
         }
@@ -2055,19 +2034,9 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq)]
 </span><span class="kw">pub enum </span>Direction {
     <span class="doccomment">/// Vertical scrolling
-    </span>Vertical {
-        <span class="doccomment">/// The vertical [`Scrollbar`].
-        </span>scrollbar: Scrollbar,
-        <span class="doccomment">/// The amount of spacing between the [`Scrollbar`] and the contents, if embedded.
-        </span>spacing: <span class="prelude-ty">Option</span>&lt;f32&gt;,
-    },
+    </span>Vertical(Scrollbar),
     <span class="doccomment">/// Horizontal scrolling
-    </span>Horizontal {
-        <span class="doccomment">/// The horizontal [`Scrollbar`].
-        </span>scrollbar: Scrollbar,
-        <span class="doccomment">/// The amount of spacing between the [`Scrollbar`] and the contents, if embedded.
-        </span>spacing: <span class="prelude-ty">Option</span>&lt;f32&gt;,
-    },
+    </span>Horizontal(Scrollbar),
     <span class="doccomment">/// Both vertical and horizontal scrolling
     </span>Both {
         <span class="doccomment">/// The properties of the vertical scrollbar.
@@ -2081,28 +2050,25 @@
     <span class="doccomment">/// Returns the horizontal [`Scrollbar`], if any.
     </span><span class="kw">pub fn </span>horizontal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Scrollbar&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Horizontal { scrollbar, .. } =&gt; <span class="prelude-val">Some</span>(scrollbar),
+            <span class="self">Self</span>::Horizontal(scrollbar) =&gt; <span class="prelude-val">Some</span>(scrollbar),
             <span class="self">Self</span>::Both { horizontal, .. } =&gt; <span class="prelude-val">Some</span>(horizontal),
-            <span class="self">Self</span>::Vertical { .. } =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Vertical(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Returns the vertical [`Scrollbar`], if any.
     </span><span class="kw">pub fn </span>vertical(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Scrollbar&gt; {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Vertical { scrollbar, .. } =&gt; <span class="prelude-val">Some</span>(scrollbar),
+            <span class="self">Self</span>::Vertical(scrollbar) =&gt; <span class="prelude-val">Some</span>(scrollbar),
             <span class="self">Self</span>::Both { vertical, .. } =&gt; <span class="prelude-val">Some</span>(vertical),
-            <span class="self">Self</span>::Horizontal { .. } =&gt; <span class="prelude-val">None</span>,
+            <span class="self">Self</span>::Horizontal(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Direction {
     <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Vertical {
-            scrollbar: Scrollbar::default(),
-            spacing: <span class="prelude-val">None</span>,
-        }
+        <span class="self">Self</span>::Vertical(Scrollbar::default())
     }
 }
 
@@ -2216,14 +2182,18 @@
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
         <span class="kw">let </span>(right_padding, bottom_padding) = <span class="kw">match </span><span class="self">self</span>.direction {
-            Direction::Vertical {
-                scrollbar,
+            Direction::Vertical(Scrollbar {
+                width,
+                margin,
                 spacing: <span class="prelude-val">Some</span>(spacing),
-            } =&gt; (scrollbar.width + scrollbar.margin * <span class="number">2.0 </span>+ spacing, <span class="number">0.0</span>),
-            Direction::Horizontal {
-                scrollbar,
+                ..
+            }) =&gt; (width + margin * <span class="number">2.0 </span>+ spacing, <span class="number">0.0</span>),
+            Direction::Horizontal(Scrollbar {
+                width,
+                margin,
                 spacing: <span class="prelude-val">Some</span>(spacing),
-            } =&gt; (<span class="number">0.0</span>, scrollbar.width + scrollbar.margin * <span class="number">2.0 </span>+ spacing),
+                ..
+            }) =&gt; (<span class="number">0.0</span>, width + margin * <span class="number">2.0 </span>+ spacing),
             <span class="kw">_ </span>=&gt; (<span class="number">0.0</span>, <span class="number">0.0</span>),
         };
 
