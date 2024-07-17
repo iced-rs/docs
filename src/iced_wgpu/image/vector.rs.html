@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/image/vector.rs`."><title>vector.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0-nightly (24d2ac0b5 2024-07-15)" data-channel="nightly" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/image/vector.rs`."><title>vector.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dd39b87e5fcfba68.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.81.0-nightly (032be6f7b 2024-07-16)" data-channel="nightly" data-search-js="search-d234aafac6c221dd.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-20a3ad099b048cf2.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -203,20 +203,12 @@
 <a href="#203" id="203">203</a>
 <a href="#204" id="204">204</a>
 <a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::svg;
 <span class="kw">use </span><span class="kw">crate</span>::core::{Color, Size};
-<span class="kw">use </span><span class="kw">crate</span>::graphics::text;
 <span class="kw">use </span><span class="kw">crate</span>::image::atlas::{<span class="self">self</span>, Atlas};
 
 <span class="kw">use </span>resvg::tiny_skia;
-<span class="kw">use </span>resvg::usvg::{<span class="self">self</span>, TreeTextToPath};
+<span class="kw">use </span>resvg::usvg;
 <span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::fs;
 
@@ -233,7 +225,7 @@
     </span><span class="kw">pub fn </span>viewport_dimensions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;u32&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             Svg::Loaded(tree) =&gt; {
-                <span class="kw">let </span>size = tree.size;
+                <span class="kw">let </span>size = tree.size();
 
                 Size::new(size.width() <span class="kw">as </span>u32, size.height() <span class="kw">as </span>u32)
             }
@@ -257,37 +249,32 @@
 <span class="kw">impl </span>Cache {
     <span class="doccomment">/// Load svg
     </span><span class="kw">pub fn </span>load(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>svg::Handle) -&gt; <span class="kw-2">&amp;</span>Svg {
-        <span class="kw">use </span>usvg::TreeParsing;
-
         <span class="kw">if </span><span class="self">self</span>.svgs.contains_key(<span class="kw-2">&amp;</span>handle.id()) {
             <span class="kw">return </span><span class="self">self</span>.svgs.get(<span class="kw-2">&amp;</span>handle.id()).unwrap();
         }
 
-        <span class="kw">let </span><span class="kw-2">mut </span>svg = <span class="kw">match </span>handle.data() {
+        <span class="kw">let </span>svg = <span class="kw">match </span>handle.data() {
             svg::Data::Path(path) =&gt; fs::read_to_string(path)
                 .ok()
                 .and_then(|contents| {
-                    usvg::Tree::from_str(<span class="kw-2">&amp;</span>contents, <span class="kw-2">&amp;</span>usvg::Options::default())
-                        .ok()
+                    usvg::Tree::from_str(
+                        <span class="kw-2">&amp;</span>contents,
+                        <span class="kw-2">&amp;</span>usvg::Options::default(), <span class="comment">// TODO: Set usvg::Options::fontdb
+                    </span>)
+                    .ok()
                 })
                 .map(Svg::Loaded)
                 .unwrap_or(Svg::NotFound),
             svg::Data::Bytes(bytes) =&gt; {
-                <span class="kw">match </span>usvg::Tree::from_data(bytes, <span class="kw-2">&amp;</span>usvg::Options::default()) {
+                <span class="kw">match </span>usvg::Tree::from_data(
+                    bytes,
+                    <span class="kw-2">&amp;</span>usvg::Options::default(), <span class="comment">// TODO: Set usvg::Options::fontdb
+                </span>) {
                     <span class="prelude-val">Ok</span>(tree) =&gt; Svg::Loaded(tree),
                     <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; Svg::NotFound,
                 }
             }
         };
-
-        <span class="kw">if let </span>Svg::Loaded(svg) = <span class="kw-2">&amp;mut </span>svg {
-            <span class="kw">if </span>svg.has_text_nodes() {
-                <span class="kw">let </span><span class="kw-2">mut </span>font_system =
-                    text::font_system().write().expect(<span class="string">"Write font system"</span>);
-
-                svg.convert_text(font_system.raw().db_mut());
-            }
-        }
 
         <span class="self">self</span>.should_trim = <span class="bool-val">true</span>;
 
@@ -339,7 +326,7 @@
                 // It would be cool to be able to smooth resize the `svg` example.
                 </span><span class="kw">let </span><span class="kw-2">mut </span>img = tiny_skia::Pixmap::new(width, height)<span class="question-mark">?</span>;
 
-                <span class="kw">let </span>tree_size = tree.size.to_int_size();
+                <span class="kw">let </span>tree_size = tree.size().to_int_size();
 
                 <span class="kw">let </span>target_size = <span class="kw">if </span>width &gt; height {
                     tree_size.scale_to_width(width)
@@ -359,8 +346,7 @@
                     tiny_skia::Transform::default()
                 };
 
-                resvg::Tree::from_usvg(tree)
-                    .render(transform, <span class="kw-2">&amp;mut </span>img.as_mut());
+                resvg::render(tree, transform, <span class="kw-2">&amp;mut </span>img.as_mut());
 
                 <span class="kw">let </span><span class="kw-2">mut </span>rgba = img.take();
 
