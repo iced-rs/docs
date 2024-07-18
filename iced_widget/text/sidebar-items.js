@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["LineHeight","Shaping"],"fn":["base","danger","default","draw","layout","primary","secondary","success"],"struct":["State","Style"],"trait":["Catalog","IntoFragment"],"type":["Fragment","StyleFn","Text"]};
+window.SIDEBAR_ITEMS = {"enum":["LineHeight","Shaping"],"fn":["base","danger","default","draw","layout","primary","secondary","success"],"struct":["Rich","Span","State","Style"],"trait":["Catalog","Highlighter","IntoFragment"],"type":["Fragment","StyleFn","Text"]};
