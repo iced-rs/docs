@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Item"],"fn":["parse","view"],"struct":["Url"]};
+window.SIDEBAR_ITEMS = {"enum":["HeadingLevel","Item"],"fn":["parse","view"],"struct":["Settings","Url"]};
