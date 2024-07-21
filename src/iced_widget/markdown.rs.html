@@ -324,6 +324,17 @@
 <a href="#324" id="324">324</a>
 <a href="#325" id="325">325</a>
 <a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Parse and display Markdown.
 //!
 //! You can enable the `highlighter` feature for syntax highligting
@@ -336,17 +347,19 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::{<span class="self">self</span>, Element, Length};
 <span class="kw">use crate</span>::{column, container, rich_text, row, span, text};
 
+<span class="kw">pub use </span>url::Url;
+
 <span class="doccomment">/// A Markdown item.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>Item {
     <span class="doccomment">/// A heading.
-    </span>Heading(Vec&lt;text::Span&lt;<span class="lifetime">'static</span>, String&gt;&gt;),
+    </span>Heading(Vec&lt;text::Span&lt;<span class="lifetime">'static</span>, Url&gt;&gt;),
     <span class="doccomment">/// A paragraph.
-    </span>Paragraph(Vec&lt;text::Span&lt;<span class="lifetime">'static</span>, String&gt;&gt;),
+    </span>Paragraph(Vec&lt;text::Span&lt;<span class="lifetime">'static</span>, Url&gt;&gt;),
     <span class="doccomment">/// A code block.
     ///
     /// You can enable the `highlighter` feature for syntax highligting.
-    </span>CodeBlock(Vec&lt;text::Span&lt;<span class="lifetime">'static</span>, String&gt;&gt;),
+    </span>CodeBlock(Vec&lt;text::Span&lt;<span class="lifetime">'static</span>, Url&gt;&gt;),
     <span class="doccomment">/// A list.
     </span>List {
         <span class="doccomment">/// The first number of the list, if it is ordered.
@@ -422,7 +435,16 @@
             pulldown_cmark::Tag::Link { dest_url, .. }
                 <span class="kw">if </span>!metadata &amp;&amp; !table =&gt;
             {
-                link = <span class="prelude-val">Some</span>(dest_url);
+                <span class="kw">match </span>Url::parse(<span class="kw-2">&amp;</span>dest_url) {
+                    <span class="prelude-val">Ok</span>(url)
+                        <span class="kw">if </span>url.scheme() == <span class="string">"http"
+                            </span>|| url.scheme() == <span class="string">"https" </span>=&gt;
+                    {
+                        link = <span class="prelude-val">Some</span>(url);
+                    }
+                    <span class="kw">_ </span>=&gt; {}
+                }
+
                 <span class="prelude-val">None
             </span>}
             pulldown_cmark::Tag::List(first_item) <span class="kw">if </span>!metadata &amp;&amp; !table =&gt; {
@@ -574,7 +596,7 @@
             };
 
             <span class="kw">let </span>span = <span class="kw">if let </span><span class="prelude-val">Some</span>(link) = link.as_ref() {
-                span.color(palette.primary).link(link.to_string())
+                span.color(palette.primary).link(link.clone())
             } <span class="kw">else </span>{
                 span
             };
@@ -604,7 +626,7 @@
 /// You can obtain the items with [`parse`].
 </span><span class="kw">pub fn </span>view&lt;<span class="lifetime">'a</span>, Message, Renderer&gt;(
     items: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Item&gt;,
-    on_link: <span class="kw">impl </span>Fn(String) -&gt; Message + Copy + <span class="lifetime">'a</span>,
+    on_link: <span class="kw">impl </span>Fn(Url) -&gt; Message + Copy + <span class="lifetime">'a</span>,
 ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Message: <span class="lifetime">'a</span>,
