@@ -1473,6 +1473,8 @@
 <a href="#1473" id="1473">1473</a>
 <a href="#1474" id="1474">1474</a>
 <a href="#1475" id="1475">1475</a>
+<a href="#1476" id="1476">1476</a>
+<a href="#1477" id="1477">1477</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
@@ -1795,7 +1797,6 @@
                     .send(Boot {
                         compositor,
                         clipboard,
-                        window: window.id(),
                     })
                     .ok()
                     .expect(<span class="string">"Send boot event"</span>);
@@ -2076,10 +2077,10 @@
 <span class="kw">struct </span>Boot&lt;C&gt; {
     compositor: C,
     clipboard: Clipboard,
-    window: winit::window::WindowId,
 }
 
-<span class="kw">enum </span>Event&lt;Message: <span class="lifetime">'static</span>&gt; {
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">enum </span>Event&lt;Message: <span class="lifetime">'static</span>&gt; {
     WindowCreated {
         id: window::Id,
         window: winit::window::Window,
@@ -2090,7 +2091,8 @@
     EventLoopAwakened(winit::event::Event&lt;Message&gt;),
 }
 
-<span class="kw">enum </span>Control {
+<span class="attr">#[derive(Debug)]
+</span><span class="kw">enum </span>Control {
     ChangeFlow(winit::event_loop::ControlFlow),
     Exit,
     CreateWindow {
@@ -2122,10 +2124,10 @@
     <span class="kw">let </span>Boot {
         <span class="kw-2">mut </span>compositor,
         <span class="kw-2">mut </span>clipboard,
-        window: boot_window,
     } = boot.try_recv().ok().flatten().expect(<span class="string">"Receive boot"</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>window_manager = WindowManager::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>boot_window_closed = <span class="bool-val">false</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>events = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>messages = Vec::new();
@@ -2401,14 +2403,16 @@
                                 window_event,
                                 winit::event::WindowEvent::Destroyed
                             )
-                            &amp;&amp; window_id != boot_window
-                            &amp;&amp; window_manager.is_empty()
                         {
-                            control_sender
-                                .start_send(Control::Exit)
-                                .expect(<span class="string">"Send control action"</span>);
+                            <span class="kw">if </span>boot_window_closed &amp;&amp; window_manager.is_empty() {
+                                control_sender
+                                    .start_send(Control::Exit)
+                                    .expect(<span class="string">"Send control action"</span>);
 
-                            <span class="kw">continue</span>;
+                                <span class="kw">continue</span>;
+                            }
+
+                            boot_window_closed = <span class="bool-val">true</span>;
                         }
 
                         <span class="kw">let </span><span class="prelude-val">Some</span>((id, window)) =
