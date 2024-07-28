@@ -509,6 +509,30 @@
 <a href="#509" id="509">509</a>
 <a href="#510" id="510">510</a>
 <a href="#511" id="511">511</a>
+<a href="#512" id="512">512</a>
+<a href="#513" id="513">513</a>
+<a href="#514" id="514">514</a>
+<a href="#515" id="515">515</a>
+<a href="#516" id="516">516</a>
+<a href="#517" id="517">517</a>
+<a href="#518" id="518">518</a>
+<a href="#519" id="519">519</a>
+<a href="#520" id="520">520</a>
+<a href="#521" id="521">521</a>
+<a href="#522" id="522">522</a>
+<a href="#523" id="523">523</a>
+<a href="#524" id="524">524</a>
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a>
+<a href="#530" id="530">530</a>
+<a href="#531" id="531">531</a>
+<a href="#532" id="532">532</a>
+<a href="#533" id="533">533</a>
+<a href="#534" id="534">534</a>
+<a href="#535" id="535">535</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::event;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -765,7 +789,11 @@
             <span class="kw">let </span>is_hovered_link =
                 span.link.is_some() &amp;&amp; <span class="prelude-val">Some</span>(index) == hovered_span;
 
-            <span class="kw">if </span>span.highlight.is_some() || span.underline || is_hovered_link {
+            <span class="kw">if </span>span.highlight.is_some()
+                || span.underline
+                || span.strikethrough
+                || is_hovered_link
+            {
                 <span class="kw">let </span>translation = layout.position() - Point::ORIGIN;
                 <span class="kw">let </span>regions = state.paragraph.span_bounds(index);
 
@@ -795,7 +823,7 @@
                     }
                 }
 
-                <span class="kw">if </span>span.underline || is_hovered_link {
+                <span class="kw">if </span>span.underline || span.strikethrough || is_hovered_link {
                     <span class="kw">let </span>size = span
                         .size
                         .or(<span class="self">self</span>.size)
@@ -806,27 +834,47 @@
                         .unwrap_or(<span class="self">self</span>.line_height)
                         .to_absolute(size);
 
-                    <span class="kw">for </span>bounds <span class="kw">in </span>regions {
-                        renderer.fill_quad(
-                            renderer::Quad {
-                                bounds: Rectangle::new(
-                                    bounds.position()
-                                        + translation
-                                        + Vector::new(
-                                            <span class="number">0.0</span>,
-                                            size.<span class="number">0
-                                                </span>+ (line_height.<span class="number">0 </span>- size.<span class="number">0</span>)
-                                                    / <span class="number">2.0
-                                                </span>- size.<span class="number">0 </span>* <span class="number">0.08</span>,
-                                        ),
-                                    Size::new(bounds.width, <span class="number">1.0</span>),
-                                ),
-                                ..Default::default()
-                            },
-                            span.color
-                                .or(style.color)
-                                .unwrap_or(defaults.text_color),
+                    <span class="kw">let </span>color = span
+                        .color
+                        .or(style.color)
+                        .unwrap_or(defaults.text_color);
+
+                    <span class="kw">let </span>baseline = translation
+                        + Vector::new(
+                            <span class="number">0.0</span>,
+                            size.<span class="number">0 </span>+ (line_height.<span class="number">0 </span>- size.<span class="number">0</span>) / <span class="number">2.0</span>,
                         );
+
+                    <span class="kw">if </span>span.underline || is_hovered_link {
+                        <span class="kw">for </span>bounds <span class="kw">in </span><span class="kw-2">&amp;</span>regions {
+                            renderer.fill_quad(
+                                renderer::Quad {
+                                    bounds: Rectangle::new(
+                                        bounds.position() + baseline
+                                            - Vector::new(<span class="number">0.0</span>, size.<span class="number">0 </span>* <span class="number">0.08</span>),
+                                        Size::new(bounds.width, <span class="number">1.0</span>),
+                                    ),
+                                    ..Default::default()
+                                },
+                                color,
+                            );
+                        }
+                    }
+
+                    <span class="kw">if </span>span.strikethrough {
+                        <span class="kw">for </span>bounds <span class="kw">in </span><span class="kw-2">&amp;</span>regions {
+                            renderer.fill_quad(
+                                renderer::Quad {
+                                    bounds: Rectangle::new(
+                                        bounds.position() + baseline
+                                            - Vector::new(<span class="number">0.0</span>, size.<span class="number">0 </span>/ <span class="number">2.0</span>),
+                                        Size::new(bounds.width, <span class="number">1.0</span>),
+                                    ),
+                                    ..Default::default()
+                                },
+                                color,
+                            );
+                        }
                     }
                 }
             }

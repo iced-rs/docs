@@ -421,6 +421,17 @@
 <a href="#421" id="421">421</a>
 <a href="#422" id="422">422</a>
 <a href="#423" id="423">423</a>
+<a href="#424" id="424">424</a>
+<a href="#425" id="425">425</a>
+<a href="#426" id="426">426</a>
+<a href="#427" id="427">427</a>
+<a href="#428" id="428">428</a>
+<a href="#429" id="429">429</a>
+<a href="#430" id="430">430</a>
+<a href="#431" id="431">431</a>
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Parse and display Markdown.
 //!
 //! You can enable the `highlighter` feature for syntax highligting
@@ -470,6 +481,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>spans = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>strong = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>emphasis = <span class="bool-val">false</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>strikethrough = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>metadata = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>table = <span class="bool-val">false</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>link = <span class="prelude-val">None</span>;
@@ -482,7 +494,8 @@
         markdown,
         pulldown_cmark::Options::ENABLE_YAML_STYLE_METADATA_BLOCKS
             | pulldown_cmark::Options::ENABLE_PLUSES_DELIMITED_METADATA_BLOCKS
-            | pulldown_cmark::Options::ENABLE_TABLES,
+            | pulldown_cmark::Options::ENABLE_TABLES
+            | pulldown_cmark::Options::ENABLE_STRIKETHROUGH,
     );
 
     <span class="kw">let </span>produce = |lists: <span class="kw-2">&amp;mut </span>Vec&lt;List&gt;, item| {
@@ -511,6 +524,10 @@
             </span>}
             pulldown_cmark::Tag::Emphasis <span class="kw">if </span>!metadata &amp;&amp; !table =&gt; {
                 emphasis = <span class="bool-val">true</span>;
+                <span class="prelude-val">None
+            </span>}
+            pulldown_cmark::Tag::Strikethrough <span class="kw">if </span>!metadata &amp;&amp; !table =&gt; {
+                strikethrough = <span class="bool-val">true</span>;
                 <span class="prelude-val">None
             </span>}
             pulldown_cmark::Tag::Link { dest_url, .. }
@@ -578,12 +595,16 @@
                     Item::Heading(level, spans.drain(..).collect()),
                 )
             }
+            pulldown_cmark::TagEnd::Strong <span class="kw">if </span>!metadata &amp;&amp; !table =&gt; {
+                strong = <span class="bool-val">false</span>;
+                <span class="prelude-val">None
+            </span>}
             pulldown_cmark::TagEnd::Emphasis <span class="kw">if </span>!metadata &amp;&amp; !table =&gt; {
                 emphasis = <span class="bool-val">false</span>;
                 <span class="prelude-val">None
             </span>}
-            pulldown_cmark::TagEnd::Strong <span class="kw">if </span>!metadata &amp;&amp; !table =&gt; {
-                strong = <span class="bool-val">false</span>;
+            pulldown_cmark::TagEnd::Strikethrough <span class="kw">if </span>!metadata &amp;&amp; !table =&gt; {
+                strikethrough = <span class="bool-val">false</span>;
                 <span class="prelude-val">None
             </span>}
             pulldown_cmark::TagEnd::Link <span class="kw">if </span>!metadata &amp;&amp; !table =&gt; {
@@ -650,7 +671,7 @@
                 <span class="kw">return </span><span class="prelude-val">None</span>;
             }
 
-            <span class="kw">let </span>span = span(text.into_string());
+            <span class="kw">let </span>span = span(text.into_string()).strikethrough(strikethrough);
 
             <span class="kw">let </span>span = <span class="kw">if </span>strong || emphasis {
                 span.font(Font {
@@ -686,7 +707,8 @@
                 .color(Color::WHITE)
                 .background(<span class="macro">color!</span>(<span class="number">0x111111</span>))
                 .border(border::rounded(<span class="number">2</span>))
-                .padding(padding::left(<span class="number">2</span>).right(<span class="number">2</span>));
+                .padding(padding::left(<span class="number">2</span>).right(<span class="number">2</span>))
+                .strikethrough(strikethrough);
 
             <span class="kw">let </span>span = <span class="kw">if let </span><span class="prelude-val">Some</span>(link) = link.as_ref() {
                 span.color(palette.primary).link(link.clone())
@@ -698,7 +720,7 @@
             <span class="prelude-val">None
         </span>}
         pulldown_cmark::Event::SoftBreak <span class="kw">if </span>!metadata &amp;&amp; !table =&gt; {
-            spans.push(span(<span class="string">" "</span>));
+            spans.push(span(<span class="string">" "</span>).strikethrough(strikethrough));
             <span class="prelude-val">None
         </span>}
         pulldown_cmark::Event::HardBreak <span class="kw">if </span>!metadata &amp;&amp; !table =&gt; {
