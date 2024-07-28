@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Difference","Hit","LineHeight","Shaping"],"mod":["editor","highlighter","paragraph"],"struct":["Span","Text"],"trait":["Editor","Highlighter","IntoFragment","Paragraph","Renderer"],"type":["Fragment"]};
+window.SIDEBAR_ITEMS = {"enum":["Difference","Hit","LineHeight","Shaping"],"mod":["editor","highlighter","paragraph"],"struct":["Highlight","Span","Text"],"trait":["Editor","Highlighter","IntoFragment","Paragraph","Renderer"],"type":["Fragment"]};
