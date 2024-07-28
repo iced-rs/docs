@@ -461,6 +461,54 @@
 <a href="#461" id="461">461</a>
 <a href="#462" id="462">462</a>
 <a href="#463" id="463">463</a>
+<a href="#464" id="464">464</a>
+<a href="#465" id="465">465</a>
+<a href="#466" id="466">466</a>
+<a href="#467" id="467">467</a>
+<a href="#468" id="468">468</a>
+<a href="#469" id="469">469</a>
+<a href="#470" id="470">470</a>
+<a href="#471" id="471">471</a>
+<a href="#472" id="472">472</a>
+<a href="#473" id="473">473</a>
+<a href="#474" id="474">474</a>
+<a href="#475" id="475">475</a>
+<a href="#476" id="476">476</a>
+<a href="#477" id="477">477</a>
+<a href="#478" id="478">478</a>
+<a href="#479" id="479">479</a>
+<a href="#480" id="480">480</a>
+<a href="#481" id="481">481</a>
+<a href="#482" id="482">482</a>
+<a href="#483" id="483">483</a>
+<a href="#484" id="484">484</a>
+<a href="#485" id="485">485</a>
+<a href="#486" id="486">486</a>
+<a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a>
+<a href="#501" id="501">501</a>
+<a href="#502" id="502">502</a>
+<a href="#503" id="503">503</a>
+<a href="#504" id="504">504</a>
+<a href="#505" id="505">505</a>
+<a href="#506" id="506">506</a>
+<a href="#507" id="507">507</a>
+<a href="#508" id="508">508</a>
+<a href="#509" id="509">509</a>
+<a href="#510" id="510">510</a>
+<a href="#511" id="511">511</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::event;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -700,7 +748,7 @@
         theme: <span class="kw-2">&amp;</span>Theme,
         defaults: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-        _cursor_position: mouse::Cursor,
+        cursor: mouse::Cursor,
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
         <span class="kw">let </span>state = tree
@@ -709,29 +757,77 @@
 
         <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class);
 
+        <span class="kw">let </span>hovered_span = cursor
+            .position_in(layout.bounds())
+            .and_then(|position| state.paragraph.hit_span(position));
+
         <span class="kw">for </span>(index, span) <span class="kw">in </span><span class="self">self</span>.spans.iter().enumerate() {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(highlight) = span.highlight {
+            <span class="kw">let </span>is_hovered_link =
+                span.link.is_some() &amp;&amp; <span class="prelude-val">Some</span>(index) == hovered_span;
+
+            <span class="kw">if </span>span.highlight.is_some() || span.underline || is_hovered_link {
                 <span class="kw">let </span>translation = layout.position() - Point::ORIGIN;
+                <span class="kw">let </span>regions = state.paragraph.span_bounds(index);
 
-                <span class="kw">for </span>bounds <span class="kw">in </span>state.paragraph.span_bounds(index) {
-                    <span class="kw">let </span>bounds = Rectangle::new(
-                        bounds.position()
-                            - Vector::new(span.padding.left, span.padding.top),
-                        bounds.size()
-                            + Size::new(
-                                span.padding.horizontal(),
-                                span.padding.vertical(),
-                            ),
-                    );
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(highlight) = span.highlight {
+                    <span class="kw">for </span>bounds <span class="kw">in </span><span class="kw-2">&amp;</span>regions {
+                        <span class="kw">let </span>bounds = Rectangle::new(
+                            bounds.position()
+                                - Vector::new(
+                                    span.padding.left,
+                                    span.padding.top,
+                                ),
+                            bounds.size()
+                                + Size::new(
+                                    span.padding.horizontal(),
+                                    span.padding.vertical(),
+                                ),
+                        );
 
-                    renderer.fill_quad(
-                        renderer::Quad {
-                            bounds: bounds + translation,
-                            border: highlight.border,
-                            ..Default::default()
-                        },
-                        highlight.background,
-                    );
+                        renderer.fill_quad(
+                            renderer::Quad {
+                                bounds: bounds + translation,
+                                border: highlight.border,
+                                ..Default::default()
+                            },
+                            highlight.background,
+                        );
+                    }
+                }
+
+                <span class="kw">if </span>span.underline || is_hovered_link {
+                    <span class="kw">let </span>size = span
+                        .size
+                        .or(<span class="self">self</span>.size)
+                        .unwrap_or(renderer.default_size());
+
+                    <span class="kw">let </span>line_height = span
+                        .line_height
+                        .unwrap_or(<span class="self">self</span>.line_height)
+                        .to_absolute(size);
+
+                    <span class="kw">for </span>bounds <span class="kw">in </span>regions {
+                        renderer.fill_quad(
+                            renderer::Quad {
+                                bounds: Rectangle::new(
+                                    bounds.position()
+                                        + translation
+                                        + Vector::new(
+                                            <span class="number">0.0</span>,
+                                            size.<span class="number">0
+                                                </span>+ (line_height.<span class="number">0 </span>- size.<span class="number">0</span>)
+                                                    / <span class="number">2.0
+                                                </span>- size.<span class="number">0 </span>* <span class="number">0.08</span>,
+                                        ),
+                                    Size::new(bounds.width, <span class="number">1.0</span>),
+                                ),
+                                ..Default::default()
+                            },
+                            span.color
+                                .or(style.color)
+                                .unwrap_or(defaults.text_color),
+                        );
+                    }
                 }
             }
         }
