@@ -1475,6 +1475,9 @@
 <a href="#1475" id="1475">1475</a>
 <a href="#1476" id="1476">1476</a>
 <a href="#1477" id="1477">1477</a>
+<a href="#1478" id="1478">1478</a>
+<a href="#1479" id="1479">1479</a>
+<a href="#1480" id="1480">1480</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
@@ -2127,7 +2130,7 @@
     } = boot.try_recv().ok().flatten().expect(<span class="string">"Receive boot"</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>window_manager = WindowManager::new();
-    <span class="kw">let </span><span class="kw-2">mut </span>boot_window_closed = <span class="bool-val">false</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>is_window_opening = !is_daemon;
 
     <span class="kw">let </span><span class="kw-2">mut </span>events = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>messages = Vec::new();
@@ -2183,6 +2186,7 @@
                 ));
 
                 <span class="kw">let _ </span>= on_open.send(id);
+                is_window_opening = <span class="bool-val">false</span>;
             }
             Event::EventLoopAwakened(event) =&gt; {
                 <span class="kw">match </span>event {
@@ -2219,6 +2223,7 @@
                             <span class="kw-2">&amp;mut </span>user_interfaces,
                             <span class="kw-2">&amp;mut </span>window_manager,
                             <span class="kw-2">&amp;mut </span>ui_caches,
+                            <span class="kw-2">&amp;mut </span>is_window_opening,
                         );
                         actions += <span class="number">1</span>;
                     }
@@ -2403,16 +2408,14 @@
                                 window_event,
                                 winit::event::WindowEvent::Destroyed
                             )
+                            &amp;&amp; !is_window_opening
+                            &amp;&amp; window_manager.is_empty()
                         {
-                            <span class="kw">if </span>boot_window_closed &amp;&amp; window_manager.is_empty() {
-                                control_sender
-                                    .start_send(Control::Exit)
-                                    .expect(<span class="string">"Send control action"</span>);
+                            control_sender
+                                .start_send(Control::Exit)
+                                .expect(<span class="string">"Send control action"</span>);
 
-                                <span class="kw">continue</span>;
-                            }
-
-                            boot_window_closed = <span class="bool-val">true</span>;
+                            <span class="kw">continue</span>;
                         }
 
                         <span class="kw">let </span><span class="prelude-val">Some</span>((id, window)) =
@@ -2630,6 +2633,7 @@
     &gt;,
     window_manager: <span class="kw-2">&amp;mut </span>WindowManager&lt;P, C&gt;,
     ui_caches: <span class="kw-2">&amp;mut </span>FxHashMap&lt;window::Id, user_interface::Cache&gt;,
+    is_window_opening: <span class="kw-2">&amp;mut </span>bool,
 ) <span class="kw">where
     </span>P: Program,
     C: Compositor&lt;Renderer = P::Renderer&gt; + <span class="lifetime">'static</span>,
@@ -2664,6 +2668,8 @@
                         on_open: channel,
                     })
                     .expect(<span class="string">"Send control action"</span>);
+
+                <span class="kw-2">*</span>is_window_opening = <span class="bool-val">true</span>;
             }
             window::Action::Close(id) =&gt; {
                 <span class="kw">let _ </span>= window_manager.remove(id);
