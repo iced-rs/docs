@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["from_recipe","into_recipes"],"trait":["Recipe"],"type":["EventStream","Hasher"]};
+window.SIDEBAR_ITEMS = {"enum":["Event","MacOS","PlatformSpecific"],"fn":["from_recipe","into_recipes"],"trait":["Recipe"],"type":["EventStream","Hasher"]};
