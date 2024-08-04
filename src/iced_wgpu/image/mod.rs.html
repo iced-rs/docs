@@ -595,6 +595,14 @@
 <a href="#595" id="595">595</a>
 <a href="#596" id="596">596</a>
 <a href="#597" id="597">597</a>
+<a href="#598" id="598">598</a>
+<a href="#599" id="599">599</a>
+<a href="#600" id="600">600</a>
+<a href="#601" id="601">601</a>
+<a href="#602" id="602">602</a>
+<a href="#603" id="603">603</a>
+<a href="#604" id="604">604</a>
+<a href="#605" id="605">605</a>
 </pre></div><pre class="rust"><code><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>cache;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>cache::Cache;
 
@@ -746,6 +754,8 @@
                             </span><span class="number">6 </span>=&gt; Float32x2,
                             <span class="comment">// Layer
                             </span><span class="number">7 </span>=&gt; Sint32,
+                            <span class="comment">// Snap
+                            </span><span class="number">8 </span>=&gt; Uint32,
                         ),
                     }],
                 },
@@ -809,31 +819,24 @@
         transformation: Transformation,
         scale: f32,
     ) {
-        <span class="kw">let </span>transformation = transformation * Transformation::scale(scale);
-
         <span class="kw">let </span>nearest_instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt; = <span class="kw-2">&amp;mut </span>Vec::new();
         <span class="kw">let </span>linear_instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt; = <span class="kw-2">&amp;mut </span>Vec::new();
 
         <span class="kw">for </span>image <span class="kw">in </span>images {
             <span class="kw">match </span><span class="kw-2">&amp;</span>image {
                 <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
-                </span>Image::Raster {
-                    handle,
-                    filter_method,
-                    bounds,
-                    rotation,
-                    opacity,
-                } =&gt; {
+                </span>Image::Raster(image, bounds) =&gt; {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(atlas_entry) =
-                        cache.upload_raster(device, encoder, handle)
+                        cache.upload_raster(device, encoder, <span class="kw-2">&amp;</span>image.handle)
                     {
                         add_instances(
                             [bounds.x, bounds.y],
                             [bounds.width, bounds.height],
-                            f32::from(<span class="kw-2">*</span>rotation),
-                            <span class="kw-2">*</span>opacity,
+                            f32::from(image.rotation),
+                            image.opacity,
+                            image.snap,
                             atlas_entry,
-                            <span class="kw">match </span>filter_method {
+                            <span class="kw">match </span>image.filter_method {
                                 <span class="kw">crate</span>::core::image::FilterMethod::Nearest =&gt; {
                                     nearest_instances
                                 }
@@ -848,23 +851,23 @@
                 </span>Image::Raster { .. } =&gt; {}
 
                 <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
-                </span>Image::Vector {
-                    handle,
-                    color,
-                    bounds,
-                    rotation,
-                    opacity,
-                } =&gt; {
+                </span>Image::Vector(svg, bounds) =&gt; {
                     <span class="kw">let </span>size = [bounds.width, bounds.height];
 
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(atlas_entry) = cache.upload_vector(
-                        device, encoder, handle, <span class="kw-2">*</span>color, size, scale,
+                        device,
+                        encoder,
+                        <span class="kw-2">&amp;</span>svg.handle,
+                        svg.color,
+                        size,
+                        scale,
                     ) {
                         add_instances(
                             [bounds.x, bounds.y],
                             size,
-                            f32::from(<span class="kw-2">*</span>rotation),
-                            <span class="kw-2">*</span>opacity,
+                            f32::from(svg.rotation),
+                            svg.opacity,
+                            <span class="bool-val">true</span>,
                             atlas_entry,
                             nearest_instances,
                         );
@@ -897,6 +900,7 @@
             nearest_instances,
             linear_instances,
             transformation,
+            scale,
         );
 
         <span class="self">self</span>.prepare_layer += <span class="number">1</span>;
@@ -972,9 +976,12 @@
         nearest_instances: <span class="kw-2">&amp;</span>[Instance],
         linear_instances: <span class="kw-2">&amp;</span>[Instance],
         transformation: Transformation,
+        scale_factor: f32,
     ) {
         <span class="kw">let </span>uniforms = Uniforms {
             transform: transformation.into(),
+            scale_factor,
+            _padding: [<span class="number">0.0</span>; <span class="number">3</span>],
         };
 
         <span class="kw">let </span>bytes = bytemuck::bytes_of(<span class="kw-2">&amp;</span>uniforms);
@@ -1089,6 +1096,7 @@
     _position_in_atlas: [f32; <span class="number">2</span>],
     _size_in_atlas: [f32; <span class="number">2</span>],
     _layer: u32,
+    _snap: u32,
 }
 
 <span class="kw">impl </span>Instance {
@@ -1099,6 +1107,10 @@
 #[derive(Debug, Clone, Copy, Zeroable, Pod)]
 </span><span class="kw">struct </span>Uniforms {
     transform: [f32; <span class="number">16</span>],
+    scale_factor: f32,
+    <span class="comment">// Uniforms must be aligned to their largest member,
+    // this uses a mat4x4&lt;f32&gt; which aligns to 16, so align to that
+    </span>_padding: [f32; <span class="number">3</span>],
 }
 
 <span class="kw">fn </span>add_instances(
@@ -1106,6 +1118,7 @@
     image_size: [f32; <span class="number">2</span>],
     rotation: f32,
     opacity: f32,
+    snap: bool,
     entry: <span class="kw-2">&amp;</span>atlas::Entry,
     instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt;,
 ) {
@@ -1122,6 +1135,7 @@
                 image_size,
                 rotation,
                 opacity,
+                snap,
                 allocation,
                 instances,
             );
@@ -1151,8 +1165,8 @@
                 ];
 
                 add_instance(
-                    position, center, size, rotation, opacity, allocation,
-                    instances,
+                    position, center, size, rotation, opacity, snap,
+                    allocation, instances,
                 );
             }
         }
@@ -1166,6 +1180,7 @@
     size: [f32; <span class="number">2</span>],
     rotation: f32,
     opacity: f32,
+    snap: bool,
     allocation: <span class="kw-2">&amp;</span>atlas::Allocation,
     instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt;,
 ) {
@@ -1188,6 +1203,7 @@
             (height <span class="kw">as </span>f32 - <span class="number">1.0</span>) / atlas::SIZE <span class="kw">as </span>f32,
         ],
         _layer: layer <span class="kw">as </span>u32,
+        _snap: snap <span class="kw">as </span>u32,
     };
 
     instances.push(instance);

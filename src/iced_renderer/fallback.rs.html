@@ -615,32 +615,12 @@
 <a href="#615" id="615">615</a>
 <a href="#616" id="616">616</a>
 <a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a>
-<a href="#626" id="626">626</a>
-<a href="#627" id="627">627</a>
-<a href="#628" id="628">628</a>
-<a href="#629" id="629">629</a>
-<a href="#630" id="630">630</a>
-<a href="#631" id="631">631</a>
-<a href="#632" id="632">632</a>
-<a href="#633" id="633">633</a>
-<a href="#634" id="634">634</a>
-<a href="#635" id="635">635</a>
-<a href="#636" id="636">636</a>
-<a href="#637" id="637">637</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Compose existing renderers and create type-safe fallback strategies.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::image;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::svg;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    <span class="self">self</span>, Background, Color, Point, Radians, Rectangle, Size, Transformation,
+    <span class="self">self</span>, Background, Color, Image, Point, Rectangle, Size, Svg, Transformation,
 };
 <span class="kw">use </span><span class="kw">crate</span>::graphics;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::compositor;
@@ -786,25 +766,8 @@
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.measure_image(handle))
     }
 
-    <span class="kw">fn </span>draw_image(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        handle: <span class="self">Self</span>::Handle,
-        filter_method: image::FilterMethod,
-        bounds: Rectangle,
-        rotation: Radians,
-        opacity: f32,
-    ) {
-        <span class="macro">delegate!</span>(
-            <span class="self">self</span>,
-            renderer,
-            renderer.draw_image(
-                handle,
-                filter_method,
-                bounds,
-                rotation,
-                opacity
-            )
-        );
+    <span class="kw">fn </span>draw_image(<span class="kw-2">&amp;mut </span><span class="self">self</span>, image: Image&lt;A::Handle&gt;, bounds: Rectangle) {
+        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.draw_image(image, bounds));
     }
 }
 
@@ -817,19 +780,8 @@
         <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.measure_svg(handle))
     }
 
-    <span class="kw">fn </span>draw_svg(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        handle: svg::Handle,
-        color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
-        bounds: Rectangle,
-        rotation: Radians,
-        opacity: f32,
-    ) {
-        <span class="macro">delegate!</span>(
-            <span class="self">self</span>,
-            renderer,
-            renderer.draw_svg(handle, color, bounds, rotation, opacity)
-        );
+    <span class="kw">fn </span>draw_svg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, svg: Svg, bounds: Rectangle) {
+        <span class="macro">delegate!</span>(<span class="self">self</span>, renderer, renderer.draw_svg(svg, bounds));
     }
 }
 
@@ -1078,9 +1030,9 @@
 <span class="attr">#[cfg(feature = <span class="string">"geometry"</span>)]
 </span><span class="kw">mod </span>geometry {
     <span class="kw">use </span><span class="kw">super</span>::Renderer;
-    <span class="kw">use </span><span class="kw">crate</span>::core::{Point, Radians, Rectangle, Size, Vector};
+    <span class="kw">use </span><span class="kw">crate</span>::core::{Point, Radians, Rectangle, Size, Svg, Vector};
     <span class="kw">use </span><span class="kw">crate</span>::graphics::cache::{<span class="self">self</span>, Cached};
-    <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{<span class="self">self</span>, Fill, Path, Stroke, Text};
+    <span class="kw">use </span><span class="kw">crate</span>::graphics::geometry::{<span class="self">self</span>, Fill, Image, Path, Stroke, Text};
 
     <span class="kw">impl</span>&lt;A, B&gt; geometry::Renderer <span class="kw">for </span>Renderer&lt;A, B&gt;
     <span class="kw">where
@@ -1209,6 +1161,14 @@
             <span class="macro">delegate!</span>(<span class="self">self</span>, frame, frame.fill_text(text));
         }
 
+        <span class="kw">fn </span>draw_image(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle, image: <span class="kw">impl </span>Into&lt;Image&gt;) {
+            <span class="macro">delegate!</span>(<span class="self">self</span>, frame, frame.draw_image(bounds, image));
+        }
+
+        <span class="kw">fn </span>draw_svg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle, svg: <span class="kw">impl </span>Into&lt;Svg&gt;) {
+            <span class="macro">delegate!</span>(<span class="self">self</span>, frame, frame.draw_svg(bounds, svg));
+        }
+
         <span class="kw">fn </span>push_transform(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
             <span class="macro">delegate!</span>(<span class="self">self</span>, frame, frame.push_transform());
         }
@@ -1224,13 +1184,13 @@
             }
         }
 
-        <span class="kw">fn </span>paste(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="self">Self</span>, at: Point) {
+        <span class="kw">fn </span>paste(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: <span class="self">Self</span>) {
             <span class="kw">match </span>(<span class="self">self</span>, frame) {
                 (<span class="self">Self</span>::Primary(target), <span class="self">Self</span>::Primary(source)) =&gt; {
-                    target.paste(source, at);
+                    target.paste(source);
                 }
                 (<span class="self">Self</span>::Secondary(target), <span class="self">Self</span>::Secondary(source)) =&gt; {
-                    target.paste(source, at);
+                    target.paste(source);
                 }
                 <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
             }

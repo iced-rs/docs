@@ -655,10 +655,70 @@
 <a href="#655" id="655">655</a>
 <a href="#656" id="656">656</a>
 <a href="#657" id="657">657</a>
+<a href="#658" id="658">658</a>
+<a href="#659" id="659">659</a>
+<a href="#660" id="660">660</a>
+<a href="#661" id="661">661</a>
+<a href="#662" id="662">662</a>
+<a href="#663" id="663">663</a>
+<a href="#664" id="664">664</a>
+<a href="#665" id="665">665</a>
+<a href="#666" id="666">666</a>
+<a href="#667" id="667">667</a>
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a>
+<a href="#693" id="693">693</a>
+<a href="#694" id="694">694</a>
+<a href="#695" id="695">695</a>
+<a href="#696" id="696">696</a>
+<a href="#697" id="697">697</a>
+<a href="#698" id="698">698</a>
+<a href="#699" id="699">699</a>
+<a href="#700" id="700">700</a>
+<a href="#701" id="701">701</a>
+<a href="#702" id="702">702</a>
+<a href="#703" id="703">703</a>
+<a href="#704" id="704">704</a>
+<a href="#705" id="705">705</a>
+<a href="#706" id="706">706</a>
+<a href="#707" id="707">707</a>
+<a href="#708" id="708">708</a>
+<a href="#709" id="709">709</a>
+<a href="#710" id="710">710</a>
+<a href="#711" id="711">711</a>
+<a href="#712" id="712">712</a>
+<a href="#713" id="713">713</a>
+<a href="#714" id="714">714</a>
+<a href="#715" id="715">715</a>
+<a href="#716" id="716">716</a>
+<a href="#717" id="717">717</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Build and draw geometry.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::text::LineHeight;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Pixels, Point, Radians, Rectangle, Size, Transformation, Vector,
+    <span class="self">self</span>, Pixels, Point, Radians, Rectangle, Size, Svg, Transformation, Vector,
 };
 <span class="kw">use </span><span class="kw">crate</span>::graphics::cache::{<span class="self">self</span>, Cached};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
@@ -668,7 +728,7 @@
 };
 <span class="kw">use </span><span class="kw">crate</span>::graphics::gradient::{<span class="self">self</span>, Gradient};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::mesh::{<span class="self">self</span>, Mesh};
-<span class="kw">use </span><span class="kw">crate</span>::graphics::{<span class="self">self</span>, Text};
+<span class="kw">use </span><span class="kw">crate</span>::graphics::{Image, Text};
 <span class="kw">use </span><span class="kw">crate</span>::text;
 <span class="kw">use </span><span class="kw">crate</span>::triangle;
 
@@ -676,16 +736,22 @@
 <span class="kw">use </span>lyon::tessellation;
 
 <span class="kw">use </span>std::borrow::Cow;
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub enum </span>Geometry {
-    Live { meshes: Vec&lt;Mesh&gt;, text: Vec&lt;Text&gt; },
+    Live {
+        meshes: Vec&lt;Mesh&gt;,
+        images: Vec&lt;Image&gt;,
+        text: Vec&lt;Text&gt;,
+    },
     Cached(Cache),
 }
 
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>Cache {
     <span class="kw">pub </span>meshes: <span class="prelude-ty">Option</span>&lt;triangle::Cache&gt;,
+    <span class="kw">pub </span>images: <span class="prelude-ty">Option</span>&lt;Arc&lt;[Image]&gt;&gt;,
     <span class="kw">pub </span>text: <span class="prelude-ty">Option</span>&lt;text::Cache&gt;,
 }
 
@@ -702,7 +768,17 @@
         previous: <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Cache&gt;,
     ) -&gt; <span class="self">Self</span>::Cache {
         <span class="kw">match </span><span class="self">self </span>{
-            <span class="self">Self</span>::Live { meshes, text } =&gt; {
+            <span class="self">Self</span>::Live {
+                meshes,
+                images,
+                text,
+            } =&gt; {
+                <span class="kw">let </span>images = <span class="kw">if </span>images.is_empty() {
+                    <span class="prelude-val">None
+                </span>} <span class="kw">else </span>{
+                    <span class="prelude-val">Some</span>(Arc::from(images))
+                };
+
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>previous) = previous {
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(cache) = <span class="kw-2">&amp;mut </span>previous.meshes {
                         cache.update(meshes);
@@ -716,10 +792,13 @@
                         previous.text = text::Cache::new(group, text);
                     }
 
+                    previous.images = images;
+
                     previous
                 } <span class="kw">else </span>{
                     Cache {
                         meshes: triangle::Cache::new(meshes),
+                        images,
                         text: text::Cache::new(group, text),
                     }
                 }
@@ -735,6 +814,7 @@
     clip_bounds: Rectangle,
     buffers: BufferStack,
     meshes: Vec&lt;Mesh&gt;,
+    images: Vec&lt;Image&gt;,
     text: Vec&lt;Text&gt;,
     transforms: Transforms,
     fill_tessellator: tessellation::FillTessellator,
@@ -753,6 +833,7 @@
             clip_bounds: bounds,
             buffers: BufferStack::new(),
             meshes: Vec::new(),
+            images: Vec::new(),
             text: Vec::new(),
             transforms: Transforms {
                 previous: Vec::new(),
@@ -927,7 +1008,7 @@
                 height: f32::INFINITY,
             };
 
-            <span class="self">self</span>.text.push(graphics::Text::Cached {
+            <span class="self">self</span>.text.push(Text::Cached {
                 content: text.content,
                 bounds,
                 color: text.color,
@@ -992,10 +1073,11 @@
         Frame::with_clip(clip_bounds)
     }
 
-    <span class="kw">fn </span>paste(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: Frame, _at: Point) {
+    <span class="kw">fn </span>paste(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: Frame) {
         <span class="self">self</span>.meshes
             .extend(frame.buffers.into_meshes(frame.clip_bounds));
 
+        <span class="self">self</span>.images.extend(frame.images);
         <span class="self">self</span>.text.extend(frame.text);
     }
 
@@ -1005,8 +1087,31 @@
 
         Geometry::Live {
             meshes: <span class="self">self</span>.meshes,
+            images: <span class="self">self</span>.images,
             text: <span class="self">self</span>.text,
         }
+    }
+
+    <span class="kw">fn </span>draw_image(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle, image: <span class="kw">impl </span>Into&lt;core::Image&gt;) {
+        <span class="kw">let </span><span class="kw-2">mut </span>image = image.into();
+
+        <span class="kw">let </span>(bounds, external_rotation) =
+            <span class="self">self</span>.transforms.current.transform_rectangle(bounds);
+
+        image.rotation += external_rotation;
+
+        <span class="self">self</span>.images.push(Image::Raster(image, bounds));
+    }
+
+    <span class="kw">fn </span>draw_svg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle, svg: <span class="kw">impl </span>Into&lt;Svg&gt;) {
+        <span class="kw">let </span><span class="kw-2">mut </span>svg = svg.into();
+
+        <span class="kw">let </span>(bounds, external_rotation) =
+            <span class="self">self</span>.transforms.current.transform_rectangle(bounds);
+
+        svg.rotation += external_rotation;
+
+        <span class="self">self</span>.images.push(Image::Vector(svg, bounds));
     }
 }
 
@@ -1174,6 +1279,21 @@
         }
 
         gradient
+    }
+
+    <span class="kw">fn </span>transform_rectangle(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        rectangle: Rectangle,
+    ) -&gt; (Rectangle, Radians) {
+        <span class="kw">let </span>top_left = <span class="self">self</span>.transform_point(rectangle.position());
+        <span class="kw">let </span>top_right = <span class="self">self</span>.transform_point(
+            rectangle.position() + Vector::new(rectangle.width, <span class="number">0.0</span>),
+        );
+        <span class="kw">let </span>bottom_left = <span class="self">self</span>.transform_point(
+            rectangle.position() + Vector::new(<span class="number">0.0</span>, rectangle.height),
+        );
+
+        Rectangle::with_vertices(top_left, top_right, bottom_left)
     }
 }
 <span class="kw">struct </span>GradientVertex2DBuilder {

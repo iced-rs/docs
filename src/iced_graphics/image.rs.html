@@ -134,92 +134,30 @@
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
 <a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Load and operate on images.
 </span><span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
 </span><span class="kw">pub use </span>::image <span class="kw">as </span>image_rs;
 
-<span class="kw">use </span><span class="kw">crate</span>::core::{image, svg, Color, Radians, Rectangle};
+<span class="kw">use </span><span class="kw">crate</span>::core::image;
+<span class="kw">use </span><span class="kw">crate</span>::core::svg;
+<span class="kw">use </span><span class="kw">crate</span>::core::Rectangle;
 
 <span class="doccomment">/// A raster or vector image.
 </span><span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub enum </span>Image {
     <span class="doccomment">/// A raster image.
-    </span>Raster {
-        <span class="doccomment">/// The handle of a raster image.
-        </span>handle: image::Handle,
+    </span>Raster(image::Image, Rectangle),
 
-        <span class="doccomment">/// The filter method of a raster image.
-        </span>filter_method: image::FilterMethod,
-
-        <span class="doccomment">/// The bounds of the image.
-        </span>bounds: Rectangle,
-
-        <span class="doccomment">/// The rotation of the image.
-        </span>rotation: Radians,
-
-        <span class="doccomment">/// The opacity of the image.
-        </span>opacity: f32,
-    },
     <span class="doccomment">/// A vector image.
-    </span>Vector {
-        <span class="doccomment">/// The handle of a vector image.
-        </span>handle: svg::Handle,
-
-        <span class="doccomment">/// The [`Color`] filter
-        </span>color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
-
-        <span class="doccomment">/// The bounds of the image.
-        </span>bounds: Rectangle,
-
-        <span class="doccomment">/// The rotation of the image.
-        </span>rotation: Radians,
-
-        <span class="doccomment">/// The opacity of the image.
-        </span>opacity: f32,
-    },
+    </span>Vector(svg::Svg, Rectangle),
 }
 
 <span class="kw">impl </span>Image {
     <span class="doccomment">/// Returns the bounds of the [`Image`].
     </span><span class="kw">pub fn </span>bounds(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Rectangle {
         <span class="kw">match </span><span class="self">self </span>{
-            Image::Raster {
-                bounds, rotation, ..
-            }
-            | Image::Vector {
-                bounds, rotation, ..
-            } =&gt; bounds.rotate(<span class="kw-2">*</span>rotation),
+            Image::Raster(image, bounds) =&gt; bounds.rotate(image.rotation),
+            Image::Vector(svg, bounds) =&gt; bounds.rotate(svg.rotation),
         }
     }
 }

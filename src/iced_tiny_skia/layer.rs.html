@@ -332,16 +332,9 @@
 <a href="#332" id="332">332</a>
 <a href="#333" id="333">333</a>
 <a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a>
-<a href="#336" id="336">336</a>
-<a href="#337" id="337">337</a>
-<a href="#338" id="338">338</a>
-<a href="#339" id="339">339</a>
-<a href="#340" id="340">340</a>
-<a href="#341" id="341">341</a>
-</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{
-    image, renderer::Quad, svg, Background, Color, Point, Radians, Rectangle,
-    Transformation,
+</pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::renderer::Quad;
+<span class="kw">use </span><span class="kw">crate</span>::core::{
+    <span class="self">self</span>, Background, Color, Point, Rectangle, Svg, Transformation,
 };
 <span class="kw">use </span><span class="kw">crate</span>::graphics::damage;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::layer;
@@ -413,7 +406,7 @@
 
     <span class="kw">pub fn </span>draw_text(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        text: <span class="kw">crate</span>::core::Text,
+        text: core::Text,
         position: Point,
         color: Color,
         clip_bounds: Rectangle,
@@ -456,42 +449,35 @@
             .push(Item::Cached(text, clip_bounds, transformation));
     }
 
-    <span class="kw">pub fn </span>draw_image(
+    <span class="kw">pub fn </span>draw_image(<span class="kw-2">&amp;mut </span><span class="self">self</span>, image: Image, transformation: Transformation) {
+        <span class="kw">match </span>image {
+            Image::Raster(raster, bounds) =&gt; {
+                <span class="self">self</span>.draw_raster(raster, bounds, transformation);
+            }
+            Image::Vector(svg, bounds) =&gt; {
+                <span class="self">self</span>.draw_svg(svg, bounds, transformation);
+            }
+        }
+    }
+
+    <span class="kw">pub fn </span>draw_raster(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        handle: image::Handle,
-        filter_method: image::FilterMethod,
+        image: core::Image,
         bounds: Rectangle,
         transformation: Transformation,
-        rotation: Radians,
-        opacity: f32,
     ) {
-        <span class="kw">let </span>image = Image::Raster {
-            handle,
-            filter_method,
-            bounds: bounds * transformation,
-            rotation,
-            opacity,
-        };
+        <span class="kw">let </span>image = Image::Raster(image, bounds * transformation);
 
         <span class="self">self</span>.images.push(image);
     }
 
     <span class="kw">pub fn </span>draw_svg(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        handle: svg::Handle,
-        color: <span class="prelude-ty">Option</span>&lt;Color&gt;,
+        svg: Svg,
         bounds: Rectangle,
         transformation: Transformation,
-        rotation: Radians,
-        opacity: f32,
     ) {
-        <span class="kw">let </span>svg = Image::Vector {
-            handle,
-            color,
-            bounds: bounds * transformation,
-            rotation,
-            opacity,
-        };
+        <span class="kw">let </span>svg = Image::Vector(svg, bounds * transformation);
 
         <span class="self">self</span>.images.push(svg);
     }
@@ -634,7 +620,7 @@
 
     <span class="kw">fn </span>flush(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {}
 
-    <span class="kw">fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: graphics::core::Rectangle) {
+    <span class="kw">fn </span>resize(<span class="kw-2">&amp;mut </span><span class="self">self</span>, bounds: Rectangle) {
         <span class="self">self</span>.bounds = bounds;
     }
 

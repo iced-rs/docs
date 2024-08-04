@@ -846,18 +846,6 @@
 <a href="#846" id="846">846</a>
 <a href="#847" id="847">847</a>
 <a href="#848" id="848">848</a>
-<a href="#849" id="849">849</a>
-<a href="#850" id="850">850</a>
-<a href="#851" id="851">851</a>
-<a href="#852" id="852">852</a>
-<a href="#853" id="853">853</a>
-<a href="#854" id="854">854</a>
-<a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a>
-<a href="#857" id="857">857</a>
-<a href="#858" id="858">858</a>
-<a href="#859" id="859">859</a>
-<a href="#860" id="860">860</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::renderer::Quad;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
     Background, Color, Gradient, Rectangle, Size, Transformation, Vector,
@@ -1410,13 +1398,7 @@
     ) {
         <span class="kw">match </span>image {
             <span class="attr">#[cfg(feature = <span class="string">"image"</span>)]
-            </span>Image::Raster {
-                handle,
-                filter_method,
-                bounds,
-                rotation,
-                opacity,
-            } =&gt; {
+            </span>Image::Raster(raster, bounds) =&gt; {
                 <span class="kw">let </span>physical_bounds = <span class="kw-2">*</span>bounds * _transformation;
 
                 <span class="kw">if </span>!_clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
@@ -1427,7 +1409,7 @@
                     .then_some(_clip_mask <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">_</span>);
 
                 <span class="kw">let </span>center = physical_bounds.center();
-                <span class="kw">let </span>radians = f32::from(<span class="kw-2">*</span>rotation);
+                <span class="kw">let </span>radians = f32::from(raster.rotation);
 
                 <span class="kw">let </span>transform = into_transform(_transformation).post_rotate_at(
                     radians.to_degrees(),
@@ -1436,23 +1418,17 @@
                 );
 
                 <span class="self">self</span>.raster_pipeline.draw(
-                    handle,
-                    <span class="kw-2">*</span>filter_method,
+                    <span class="kw-2">&amp;</span>raster.handle,
+                    raster.filter_method,
                     <span class="kw-2">*</span>bounds,
-                    <span class="kw-2">*</span>opacity,
+                    raster.opacity,
                     _pixels,
                     transform,
                     clip_mask,
                 );
             }
             <span class="attr">#[cfg(feature = <span class="string">"svg"</span>)]
-            </span>Image::Vector {
-                handle,
-                color,
-                bounds,
-                rotation,
-                opacity,
-            } =&gt; {
+            </span>Image::Vector(svg, bounds) =&gt; {
                 <span class="kw">let </span>physical_bounds = <span class="kw-2">*</span>bounds * _transformation;
 
                 <span class="kw">if </span>!_clip_bounds.intersects(<span class="kw-2">&amp;</span>physical_bounds) {
@@ -1463,7 +1439,7 @@
                     .then_some(_clip_mask <span class="kw">as </span><span class="kw-2">&amp;</span><span class="kw">_</span>);
 
                 <span class="kw">let </span>center = physical_bounds.center();
-                <span class="kw">let </span>radians = f32::from(<span class="kw-2">*</span>rotation);
+                <span class="kw">let </span>radians = f32::from(svg.rotation);
 
                 <span class="kw">let </span>transform = into_transform(_transformation).post_rotate_at(
                     radians.to_degrees(),
@@ -1472,10 +1448,10 @@
                 );
 
                 <span class="self">self</span>.vector_pipeline.draw(
-                    handle,
-                    <span class="kw-2">*</span>color,
+                    <span class="kw-2">&amp;</span>svg.handle,
+                    svg.color,
                     physical_bounds,
-                    <span class="kw-2">*</span>opacity,
+                    svg.opacity,
                     _pixels,
                     transform,
                     clip_mask,

@@ -607,19 +607,6 @@
 <a href="#607" id="607">607</a>
 <a href="#608" id="608">608</a>
 <a href="#609" id="609">609</a>
-<a href="#610" id="610">610</a>
-<a href="#611" id="611">611</a>
-<a href="#612" id="612">612</a>
-<a href="#613" id="613">613</a>
-<a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a>
-<a href="#616" id="616">616</a>
-<a href="#617" id="617">617</a>
-<a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! A [`wgpu`] renderer for [Iced].
 //!
 //! ![The native path of the Iced ecosystem](https://github.com/iced-rs/iced/blob/0525d76ff94e828b7b21634fa94a747022001c83/docs/graphs/native.png?raw=true)
@@ -804,19 +791,6 @@
                 }
             }
 
-            <span class="kw">if </span>!layer.text.is_empty() {
-                engine.text_pipeline.prepare(
-                    device,
-                    queue,
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.text_viewport,
-                    encoder,
-                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.text_storage,
-                    <span class="kw-2">&amp;</span>layer.text,
-                    layer.bounds,
-                    Transformation::scale(scale_factor),
-                );
-            }
-
             <span class="attr">#[cfg(any(feature = <span class="string">"svg"</span>, feature = <span class="string">"image"</span>))]
             </span><span class="kw">if </span>!layer.images.is_empty() {
                 engine.image_pipeline.prepare(
@@ -827,6 +801,19 @@
                     <span class="kw-2">&amp;</span>layer.images,
                     viewport.projection(),
                     scale_factor,
+                );
+            }
+
+            <span class="kw">if </span>!layer.text.is_empty() {
+                engine.text_pipeline.prepare(
+                    device,
+                    queue,
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.text_viewport,
+                    encoder,
+                    <span class="kw-2">&amp;mut </span><span class="self">self</span>.text_storage,
+                    <span class="kw-2">&amp;</span>layer.text,
+                    layer.bounds,
+                    Transformation::scale(scale_factor),
                 );
             }
         }
@@ -981,17 +968,6 @@
                 ));
             }
 
-            <span class="kw">if </span>!layer.text.is_empty() {
-                text_layer += engine.text_pipeline.render(
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.text_viewport,
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.text_storage,
-                    text_layer,
-                    <span class="kw-2">&amp;</span>layer.text,
-                    scissor_rect,
-                    <span class="kw-2">&amp;mut </span>render_pass,
-                );
-            }
-
             <span class="attr">#[cfg(any(feature = <span class="string">"svg"</span>, feature = <span class="string">"image"</span>))]
             </span><span class="kw">if </span>!layer.images.is_empty() {
                 engine.image_pipeline.render(
@@ -1002,6 +978,17 @@
                 );
 
                 image_layer += <span class="number">1</span>;
+            }
+
+            <span class="kw">if </span>!layer.text.is_empty() {
+                text_layer += engine.text_pipeline.render(
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.text_viewport,
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.text_storage,
+                    text_layer,
+                    <span class="kw-2">&amp;</span>layer.text,
+                    scissor_rect,
+                    <span class="kw-2">&amp;mut </span>render_pass,
+                );
             }
         }
 
@@ -1149,23 +1136,9 @@
         <span class="self">self</span>.image_cache.borrow_mut().measure_image(handle)
     }
 
-    <span class="kw">fn </span>draw_image(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        handle: <span class="self">Self</span>::Handle,
-        filter_method: core::image::FilterMethod,
-        bounds: Rectangle,
-        rotation: core::Radians,
-        opacity: f32,
-    ) {
+    <span class="kw">fn </span>draw_image(<span class="kw-2">&amp;mut </span><span class="self">self</span>, image: core::Image, bounds: Rectangle) {
         <span class="kw">let </span>(layer, transformation) = <span class="self">self</span>.layers.current_mut();
-        layer.draw_image(
-            handle,
-            filter_method,
-            bounds,
-            transformation,
-            rotation,
-            opacity,
-        );
+        layer.draw_raster(image, bounds, transformation);
     }
 }
 
@@ -1175,23 +1148,9 @@
         <span class="self">self</span>.image_cache.borrow_mut().measure_svg(handle)
     }
 
-    <span class="kw">fn </span>draw_svg(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        handle: core::svg::Handle,
-        color_filter: <span class="prelude-ty">Option</span>&lt;Color&gt;,
-        bounds: Rectangle,
-        rotation: core::Radians,
-        opacity: f32,
-    ) {
+    <span class="kw">fn </span>draw_svg(<span class="kw-2">&amp;mut </span><span class="self">self</span>, svg: core::Svg, bounds: Rectangle) {
         <span class="kw">let </span>(layer, transformation) = <span class="self">self</span>.layers.current_mut();
-        layer.draw_svg(
-            handle,
-            color_filter,
-            bounds,
-            transformation,
-            rotation,
-            opacity,
-        );
+        layer.draw_svg(svg, bounds, transformation);
     }
 }
 
@@ -1215,13 +1174,28 @@
         <span class="kw">let </span>(layer, transformation) = <span class="self">self</span>.layers.current_mut();
 
         <span class="kw">match </span>geometry {
-            Geometry::Live { meshes, text } =&gt; {
+            Geometry::Live {
+                meshes,
+                images,
+                text,
+            } =&gt; {
                 layer.draw_mesh_group(meshes, transformation);
+
+                <span class="kw">for </span>image <span class="kw">in </span>images {
+                    layer.draw_image(image, transformation);
+                }
+
                 layer.draw_text_group(text, transformation);
             }
             Geometry::Cached(cache) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(meshes) = cache.meshes {
                     layer.draw_mesh_cache(meshes, transformation);
+                }
+
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(images) = cache.images {
+                    <span class="kw">for </span>image <span class="kw">in </span>images.iter().cloned() {
+                        layer.draw_image(image, transformation);
+                    }
                 }
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = cache.text {
