@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/combo_box.rs`."><title>combo_box.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-970bf1bf55bd1c15.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0-nightly (64ebd39da 2024-08-03)" data-channel="nightly" data-search-js="search-ef54e092fea9c776.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9345f17bf569ecba.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/combo_box.rs`."><title>combo_box.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-d10b2a06af903387.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0-nightly (176e54520 2024-08-04)" data-channel="nightly" data-search-js="search-ef54e092fea9c776.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-9345f17bf569ecba.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -827,6 +827,18 @@
 <a href="#827" id="827">827</a>
 <a href="#828" id="828">828</a>
 <a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
+<a href="#834" id="834">834</a>
+<a href="#835" id="835">835</a>
+<a href="#836" id="836">836</a>
+<a href="#837" id="837">837</a>
+<a href="#838" id="838">838</a>
+<a href="#839" id="839">839</a>
+<a href="#840" id="840">840</a>
+<a href="#841" id="841">841</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a dropdown list of searchable and selectable options.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -1037,12 +1049,14 @@
 
 <span class="doccomment">/// The local state of a [`ComboBox`].
 </span><span class="attr">#[derive(Debug, Clone)]
-</span><span class="kw">pub struct </span>State&lt;T&gt;(RefCell&lt;Inner&lt;T&gt;&gt;);
+</span><span class="kw">pub struct </span>State&lt;T&gt; {
+    options: Vec&lt;T&gt;,
+    inner: RefCell&lt;Inner&lt;T&gt;&gt;,
+}
 
 <span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">struct </span>Inner&lt;T&gt; {
     value: String,
-    options: Vec&lt;T&gt;,
     option_matchers: Vec&lt;String&gt;,
     filtered_options: Filtered&lt;T&gt;,
 }
@@ -1076,34 +1090,44 @@
                 .collect(),
         );
 
-        <span class="self">Self</span>(RefCell::new(Inner {
-            value,
+        <span class="self">Self </span>{
             options,
-            option_matchers,
-            filtered_options,
-        }))
+            inner: RefCell::new(Inner {
+                value,
+                option_matchers,
+                filtered_options,
+            }),
+        }
+    }
+
+    <span class="doccomment">/// Returns the options of the [`State`].
+    ///
+    /// These are the options provided when the [`State`]
+    /// was constructed with [`State::new`].
+    </span><span class="kw">pub fn </span>options(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[T] {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.options
     }
 
     <span class="kw">fn </span>value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-        <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.borrow();
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.borrow();
 
         inner.value.clone()
     }
 
     <span class="kw">fn </span>with_inner&lt;O&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>Inner&lt;T&gt;) -&gt; O) -&gt; O {
-        <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.borrow();
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.borrow();
 
         f(<span class="kw-2">&amp;</span>inner)
     }
 
     <span class="kw">fn </span>with_inner_mut(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Inner&lt;T&gt;)) {
-        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.<span class="number">0</span>.borrow_mut();
+        <span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.inner.borrow_mut();
 
         f(<span class="kw-2">&amp;mut </span>inner);
     }
 
     <span class="kw">fn </span>sync_filtered_options(<span class="kw-2">&amp;</span><span class="self">self</span>, options: <span class="kw-2">&amp;mut </span>Filtered&lt;T&gt;) {
-        <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.borrow();
+        <span class="kw">let </span>inner = <span class="self">self</span>.inner.borrow();
 
         inner.filtered_options.sync(options);
     }
@@ -1269,7 +1293,7 @@
 
                 state.filtered_options.update(
                     search(
-                        <span class="kw-2">&amp;</span>state.options,
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.state.options,
                         <span class="kw-2">&amp;</span>state.option_matchers,
                         <span class="kw-2">&amp;</span>state.value,
                     )
@@ -1418,7 +1442,7 @@
             <span class="kw">if let </span><span class="prelude-val">Some</span>(selection) = menu.new_selection.take() {
                 <span class="comment">// Clear the value and reset the options and menu
                 </span>state.value = String::new();
-                state.filtered_options.update(state.options.clone());
+                state.filtered_options.update(<span class="self">self</span>.state.options.clone());
                 menu.menu = menu::State::default();
 
                 <span class="comment">// Notify the selection
