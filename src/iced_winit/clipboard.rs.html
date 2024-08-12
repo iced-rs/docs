@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `winit/src/clipboard.rs`."><title>clipboard.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-d10b2a06af903387.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0-nightly (730d5d409 2024-08-10)" data-channel="nightly" data-search-js="search-ef54e092fea9c776.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-04a29ac50d05d0b1.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `winit/src/clipboard.rs`."><title>clipboard.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-d10b2a06af903387.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.82.0-nightly (41dd149fd 2024-08-11)" data-channel="nightly" data-search-js="search-ef54e092fea9c776.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-04a29ac50d05d0b1.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-df360f571f6edeae.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -77,9 +77,28 @@
 <a href="#77" id="77">77</a>
 <a href="#78" id="78">78</a>
 <a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Access the clipboard.
 
 </span><span class="kw">use </span><span class="kw">crate</span>::core::clipboard::Kind;
+<span class="kw">use </span>std::sync::Arc;
+<span class="kw">use </span>winit::window::Window;
 
 <span class="doccomment">/// A buffer for short-term storage and transfer within and between
 /// applications.
@@ -89,18 +108,33 @@
 }
 
 <span class="kw">enum </span>State {
-    Connected(window_clipboard::Clipboard),
+    Connected {
+        clipboard: window_clipboard::Clipboard,
+        <span class="comment">// Held until drop to satisfy the safety invariants of
+        // `window_clipboard::Clipboard`.
+        //
+        // Note that the field ordering is load-bearing.
+        </span><span class="attr">#[allow(dead_code)]
+        </span>window: Arc&lt;Window&gt;,
+    },
     Unavailable,
 }
 
 <span class="kw">impl </span>Clipboard {
     <span class="doccomment">/// Creates a new [`Clipboard`] for the given window.
-    </span><span class="kw">pub fn </span>connect(window: <span class="kw-2">&amp;</span>winit::window::Window) -&gt; Clipboard {
-        <span class="attr">#[allow(unsafe_code)]
-        </span><span class="kw">let </span>state = <span class="kw">unsafe </span>{ window_clipboard::Clipboard::connect(window) }
-            .ok()
-            .map(State::Connected)
-            .unwrap_or(State::Unavailable);
+    </span><span class="kw">pub fn </span>connect(window: Arc&lt;Window&gt;) -&gt; Clipboard {
+        <span class="comment">// SAFETY: The window handle will stay alive throughout the entire
+        // lifetime of the `window_clipboard::Clipboard` because we hold
+        // the `Arc&lt;Window&gt;` together with `State`, and enum variant fields
+        // get dropped in declaration order.
+        </span><span class="attr">#[allow(unsafe_code)]
+        </span><span class="kw">let </span>clipboard =
+            <span class="kw">unsafe </span>{ window_clipboard::Clipboard::connect(<span class="kw-2">&amp;</span>window) };
+
+        <span class="kw">let </span>state = <span class="kw">match </span>clipboard {
+            <span class="prelude-val">Ok</span>(clipboard) =&gt; State::Connected { clipboard, window },
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; State::Unavailable,
+        };
 
         Clipboard { state }
     }
@@ -116,7 +150,7 @@
     <span class="doccomment">/// Reads the current content of the [`Clipboard`] as text.
     </span><span class="kw">pub fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>, kind: Kind) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.state {
-            State::Connected(clipboard) =&gt; <span class="kw">match </span>kind {
+            State::Connected { clipboard, .. } =&gt; <span class="kw">match </span>kind {
                 Kind::Standard =&gt; clipboard.read().ok(),
                 Kind::Primary =&gt; clipboard.read_primary().and_then(Result::ok),
             },
@@ -127,7 +161,7 @@
     <span class="doccomment">/// Writes the given text contents to the [`Clipboard`].
     </span><span class="kw">pub fn </span>write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, kind: Kind, contents: String) {
         <span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.state {
-            State::Connected(clipboard) =&gt; {
+            State::Connected { clipboard, .. } =&gt; {
                 <span class="kw">let </span>result = <span class="kw">match </span>kind {
                     Kind::Standard =&gt; clipboard.write(contents),
                     Kind::Primary =&gt; {
