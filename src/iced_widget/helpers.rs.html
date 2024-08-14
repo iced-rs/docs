@@ -1061,6 +1061,9 @@
 <a href="#1061" id="1061">1061</a>
 <a href="#1062" id="1062">1062</a>
 <a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Helper functions to create pure widgets.
 </span><span class="kw">use </span><span class="kw">crate</span>::button::{<span class="self">self</span>, Button};
 <span class="kw">use </span><span class="kw">crate</span>::checkbox::{<span class="self">self</span>, Checkbox};
@@ -1371,9 +1374,12 @@
             shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
             viewport: <span class="kw-2">&amp;</span>Rectangle,
         ) -&gt; event::Status {
-            <span class="kw">let </span>is_mouse_press = <span class="macro">matches!</span>(
+            <span class="kw">let </span>is_active_mouse_event = <span class="macro">matches!</span>(
                 event,
-                core::Event::Mouse(mouse::Event::ButtonPressed(<span class="kw">_</span>))
+                core::Event::Mouse(
+                    mouse::Event::ButtonPressed(<span class="kw">_</span>)
+                        | mouse::Event::WheelScrolled { .. }
+                )
             );
 
             <span class="kw">if let </span>core::event::Status::Captured =
@@ -1385,7 +1391,7 @@
                 <span class="kw">return </span>event::Status::Captured;
             }
 
-            <span class="kw">if </span>is_mouse_press &amp;&amp; cursor.is_over(layout.bounds()) {
+            <span class="kw">if </span>is_active_mouse_event &amp;&amp; cursor.is_over(layout.bounds()) {
                 event::Status::Captured
             } <span class="kw">else </span>{
                 event::Status::Ignored
