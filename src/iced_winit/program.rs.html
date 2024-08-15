@@ -1503,6 +1503,19 @@
 <a href="#1503" id="1503">1503</a>
 <a href="#1504" id="1504">1504</a>
 <a href="#1505" id="1505">1505</a>
+<a href="#1506" id="1506">1506</a>
+<a href="#1507" id="1507">1507</a>
+<a href="#1508" id="1508">1508</a>
+<a href="#1509" id="1509">1509</a>
+<a href="#1510" id="1510">1510</a>
+<a href="#1511" id="1511">1511</a>
+<a href="#1512" id="1512">1512</a>
+<a href="#1513" id="1513">1513</a>
+<a href="#1514" id="1514">1514</a>
+<a href="#1515" id="1515">1515</a>
+<a href="#1516" id="1516">1516</a>
+<a href="#1517" id="1517">1517</a>
+<a href="#1518" id="1518">1518</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
@@ -2155,7 +2168,7 @@
     <span class="kw-2">mut </span>runtime: Runtime&lt;P::Executor, Proxy&lt;P::Message&gt;, Action&lt;P::Message&gt;&gt;,
     <span class="kw-2">mut </span>proxy: Proxy&lt;P::Message&gt;,
     <span class="kw-2">mut </span>debug: Debug,
-    <span class="kw-2">mut </span>boot: oneshot::Receiver&lt;Boot&lt;C&gt;&gt;,
+    boot: oneshot::Receiver&lt;Boot&lt;C&gt;&gt;,
     <span class="kw-2">mut </span>event_receiver: mpsc::UnboundedReceiver&lt;Event&lt;Action&lt;P::Message&gt;&gt;&gt;,
     <span class="kw-2">mut </span>control_sender: mpsc::UnboundedSender&lt;Control&gt;,
     is_daemon: bool,
@@ -2170,7 +2183,7 @@
     <span class="kw">let </span>Boot {
         <span class="kw-2">mut </span>compositor,
         <span class="kw-2">mut </span>clipboard,
-    } = boot.try_recv().ok().flatten().expect(<span class="string">"Receive boot"</span>);
+    } = boot.<span class="kw">await</span>.expect(<span class="string">"Receive boot"</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>window_manager = WindowManager::new();
     <span class="kw">let </span><span class="kw-2">mut </span>is_window_opening = !is_daemon;
@@ -2184,7 +2197,18 @@
 
     debug.startup_finished();
 
-    <span class="kw">while let </span><span class="prelude-val">Some</span>(event) = event_receiver.next().<span class="kw">await </span>{
+    <span class="kw">loop </span>{
+        <span class="comment">// Empty the queue if possible
+        </span><span class="kw">let </span>event = <span class="kw">if let </span><span class="prelude-val">Ok</span>(event) = event_receiver.try_next() {
+            event
+        } <span class="kw">else </span>{
+            event_receiver.next().<span class="kw">await
+        </span>};
+
+        <span class="kw">let </span><span class="prelude-val">Some</span>(event) = event <span class="kw">else </span>{
+            <span class="kw">break</span>;
+        };
+
         <span class="kw">match </span>event {
             Event::WindowCreated {
                 id,
@@ -2717,13 +2741,15 @@
                 <span class="kw-2">*</span>is_window_opening = <span class="bool-val">true</span>;
             }
             window::Action::Close(id) =&gt; {
-                <span class="kw">let _ </span>= window_manager.remove(id);
+                <span class="kw">let </span>window = window_manager.remove(id);
                 <span class="kw">let _ </span>= ui_caches.remove(<span class="kw-2">&amp;</span>id);
 
-                events.push((
-                    id,
-                    core::Event::Window(core::window::Event::Closed),
-                ));
+                <span class="kw">if </span>window.is_some() {
+                    events.push((
+                        id,
+                        core::Event::Window(core::window::Event::Closed),
+                    ));
+                }
             }
             window::Action::GetOldest(channel) =&gt; {
                 <span class="kw">let </span>id =

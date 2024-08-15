@@ -199,6 +199,12 @@
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Operate on widgets that can be focused.
 </span><span class="kw">use </span><span class="kw">crate</span>::widget::operation::{<span class="self">self</span>, Operation, Outcome};
 <span class="kw">use </span><span class="kw">crate</span>::widget::Id;
@@ -295,7 +301,10 @@
 <span class="doccomment">/// Produces an [`Operation`] that searches for the current focused widget, and
 /// - if found, focuses the previous focusable widget.
 /// - if not found, focuses the last focusable widget.
-</span><span class="kw">pub fn </span>focus_previous() -&gt; <span class="kw">impl </span>Operation {
+</span><span class="kw">pub fn </span>focus_previous&lt;T&gt;() -&gt; <span class="kw">impl </span>Operation&lt;T&gt;
+<span class="kw">where
+    </span>T: Send + <span class="lifetime">'static</span>,
+{
     <span class="kw">struct </span>FocusPrevious {
         count: Count,
         current: usize,
@@ -329,13 +338,16 @@
         }
     }
 
-    operation::chain(count(), |count| FocusPrevious { count, current: <span class="number">0 </span>})
+    operation::then(count(), |count| FocusPrevious { count, current: <span class="number">0 </span>})
 }
 
 <span class="doccomment">/// Produces an [`Operation`] that searches for the current focused widget, and
 /// - if found, focuses the next focusable widget.
 /// - if not found, focuses the first focusable widget.
-</span><span class="kw">pub fn </span>focus_next() -&gt; <span class="kw">impl </span>Operation {
+</span><span class="kw">pub fn </span>focus_next&lt;T&gt;() -&gt; <span class="kw">impl </span>Operation&lt;T&gt;
+<span class="kw">where
+    </span>T: Send + <span class="lifetime">'static</span>,
+{
     <span class="kw">struct </span>FocusNext {
         count: Count,
         current: usize,
@@ -363,7 +375,7 @@
         }
     }
 
-    operation::chain(count(), |count| FocusNext { count, current: <span class="number">0 </span>})
+    operation::then(count(), |count| FocusNext { count, current: <span class="number">0 </span>})
 }
 
 <span class="doccomment">/// Produces an [`Operation`] that searches for the current focused widget
