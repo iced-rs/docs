@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `winit/src/program.rs`."><title>program.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-492a78a4a87dcc01.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0-nightly (94885bc69 2024-09-01)" data-channel="nightly" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `winit/src/program.rs`."><title>program.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-fecee23daa4e8a6d.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_winit" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0-nightly (bd53aa3bf 2024-09-02)" data-channel="nightly" data-search-js="search-a99f1315e7cc5121.js" data-settings-js="settings-4313503d2e1961c2.js" ><script src="../../static.files/storage-118b08c4c78b968e.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-921df33f47b8780c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-3b12f09e550e0385.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers"><a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
@@ -1523,6 +1523,18 @@
 <a href="#1523" id="1523">1523</a>
 <a href="#1524" id="1524">1524</a>
 <a href="#1525" id="1525">1525</a>
+<a href="#1526" id="1526">1526</a>
+<a href="#1527" id="1527">1527</a>
+<a href="#1528" id="1528">1528</a>
+<a href="#1529" id="1529">1529</a>
+<a href="#1530" id="1530">1530</a>
+<a href="#1531" id="1531">1531</a>
+<a href="#1532" id="1532">1532</a>
+<a href="#1533" id="1533">1533</a>
+<a href="#1534" id="1534">1534</a>
+<a href="#1535" id="1535">1535</a>
+<a href="#1536" id="1536">1536</a>
+<a href="#1537" id="1537">1537</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
@@ -1832,8 +1844,6 @@
                 }
             };
 
-            <span class="kw">let </span>clipboard = Clipboard::connect(window.clone());
-
             <span class="kw">let </span>finish_boot = <span class="kw">async move </span>{
                 <span class="kw">let </span><span class="kw-2">mut </span>compositor =
                     C::new(graphics_settings, window.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -1843,10 +1853,7 @@
                 }
 
                 sender
-                    .send(Boot {
-                        compositor,
-                        clipboard,
-                    })
+                    .send(Boot { compositor })
                     .ok()
                     .expect(<span class="string">"Send boot event"</span>);
 
@@ -2142,7 +2149,6 @@
 
 <span class="kw">struct </span>Boot&lt;C&gt; {
     compositor: C,
-    clipboard: Clipboard,
 }
 
 <span class="attr">#[derive(Debug)]
@@ -2187,10 +2193,7 @@
     <span class="kw">use </span>winit::event;
     <span class="kw">use </span>winit::event_loop::ControlFlow;
 
-    <span class="kw">let </span>Boot {
-        <span class="kw-2">mut </span>compositor,
-        <span class="kw-2">mut </span>clipboard,
-    } = boot.<span class="kw">await</span>.expect(<span class="string">"Receive boot"</span>);
+    <span class="kw">let </span>Boot { <span class="kw-2">mut </span>compositor } = boot.<span class="kw">await</span>.expect(<span class="string">"Receive boot"</span>);
 
     <span class="kw">let </span><span class="kw-2">mut </span>window_manager = WindowManager::new();
     <span class="kw">let </span><span class="kw-2">mut </span>is_window_opening = !is_daemon;
@@ -2201,6 +2204,7 @@
 
     <span class="kw">let </span><span class="kw-2">mut </span>ui_caches = FxHashMap::default();
     <span class="kw">let </span><span class="kw-2">mut </span>user_interfaces = ManuallyDrop::new(FxHashMap::default());
+    <span class="kw">let </span><span class="kw-2">mut </span>clipboard = Clipboard::unconnected();
 
     debug.startup_finished();
 
@@ -2258,6 +2262,10 @@
                         size: window.size(),
                     }),
                 ));
+
+                <span class="kw">if </span>clipboard.window_id().is_none() {
+                    clipboard = Clipboard::connect(window.raw.clone());
+                }
 
                 <span class="kw">let _ </span>= on_open.send(id);
                 is_window_opening = <span class="bool-val">false</span>;
@@ -2504,14 +2512,22 @@
                             winit::event::WindowEvent::CloseRequested
                         ) &amp;&amp; window.exit_on_close_request
                         {
-                            <span class="kw">let _ </span>= window_manager.remove(id);
-                            <span class="kw">let _ </span>= user_interfaces.remove(<span class="kw-2">&amp;</span>id);
-                            <span class="kw">let _ </span>= ui_caches.remove(<span class="kw-2">&amp;</span>id);
-
-                            events.push((
-                                id,
-                                core::Event::Window(window::Event::Closed),
-                            ));
+                            run_action(
+                                Action::Window(runtime::window::Action::Close(
+                                    id,
+                                )),
+                                <span class="kw-2">&amp;</span>program,
+                                <span class="kw-2">&amp;mut </span>compositor,
+                                <span class="kw-2">&amp;mut </span>events,
+                                <span class="kw-2">&amp;mut </span>messages,
+                                <span class="kw-2">&amp;mut </span>clipboard,
+                                <span class="kw-2">&amp;mut </span>control_sender,
+                                <span class="kw-2">&amp;mut </span>debug,
+                                <span class="kw-2">&amp;mut </span>user_interfaces,
+                                <span class="kw-2">&amp;mut </span>window_manager,
+                                <span class="kw-2">&amp;mut </span>ui_caches,
+                                <span class="kw-2">&amp;mut </span>is_window_opening,
+                            );
                         } <span class="kw">else </span>{
                             window.state.update(
                                 <span class="kw-2">&amp;</span>window.raw,
@@ -2748,10 +2764,18 @@
                 <span class="kw-2">*</span>is_window_opening = <span class="bool-val">true</span>;
             }
             window::Action::Close(id) =&gt; {
-                <span class="kw">let </span>window = window_manager.remove(id);
                 <span class="kw">let _ </span>= ui_caches.remove(<span class="kw-2">&amp;</span>id);
+                <span class="kw">let _ </span>= interfaces.remove(<span class="kw-2">&amp;</span>id);
 
-                <span class="kw">if </span>window.is_some() {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(window) = window_manager.remove(id) {
+                    <span class="kw">if </span>clipboard.window_id() == <span class="prelude-val">Some</span>(window.raw.id()) {
+                        <span class="kw-2">*</span>clipboard = window_manager
+                            .first()
+                            .map(|window| window.raw.clone())
+                            .map(Clipboard::connect)
+                            .unwrap_or_else(Clipboard::unconnected);
+                    }
+
                     events.push((
                         id,
                         core::Event::Window(core::window::Event::Closed),
