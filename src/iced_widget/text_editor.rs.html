@@ -1225,6 +1225,17 @@
 <a href="#1225" id="1225">1225</a>
 <a href="#1226" id="1226">1226</a>
 <a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Display a multi-line text input for text editing.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::clipboard::{<span class="self">self</span>, Clipboard};
@@ -1236,7 +1247,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::text::editor::{Cursor, Editor <span class="kw">as _</span>};
 <span class="kw">use </span><span class="kw">crate</span>::core::text::highlighter::{<span class="self">self</span>, Highlighter};
-<span class="kw">use </span><span class="kw">crate</span>::core::text::{<span class="self">self</span>, LineHeight, Text};
+<span class="kw">use </span><span class="kw">crate</span>::core::text::{<span class="self">self</span>, LineHeight, Text, Wrapping};
 <span class="kw">use </span><span class="kw">crate</span>::core::time::{Duration, Instant};
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::operation;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::{<span class="self">self</span>, Widget};
@@ -1274,6 +1285,7 @@
     width: Length,
     height: Length,
     padding: Padding,
+    wrapping: Wrapping,
     class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
     key_binding: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(KeyPress) -&gt; <span class="prelude-ty">Option</span>&lt;Binding&lt;Message&gt;&gt; + <span class="lifetime">'a</span>&gt;&gt;,
     on_edit: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Action) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
@@ -1301,6 +1313,7 @@
             width: Length::Fill,
             height: Length::Shrink,
             padding: Padding::new(<span class="number">5.0</span>),
+            wrapping: Wrapping::default(),
             class: Theme::default(),
             key_binding: <span class="prelude-val">None</span>,
             on_edit: <span class="prelude-val">None</span>,
@@ -1375,6 +1388,12 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Sets the [`Wrapping`] strategy of the [`TextEditor`].
+    </span><span class="kw">pub fn </span>wrapping(<span class="kw-2">mut </span><span class="self">self</span>, wrapping: Wrapping) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.wrapping = wrapping;
+        <span class="self">self
+    </span>}
+
     <span class="doccomment">/// Highlights the [`TextEditor`] using the given syntax and theme.
     </span><span class="attr">#[cfg(feature = <span class="string">"highlighter"</span>)]
     </span><span class="kw">pub fn </span>highlight(
@@ -1413,6 +1432,7 @@
             width: <span class="self">self</span>.width,
             height: <span class="self">self</span>.height,
             padding: <span class="self">self</span>.padding,
+            wrapping: <span class="self">self</span>.wrapping,
             class: <span class="self">self</span>.class,
             key_binding: <span class="self">self</span>.key_binding,
             on_edit: <span class="self">self</span>.on_edit,
@@ -1723,6 +1743,7 @@
             <span class="self">self</span>.font.unwrap_or_else(|| renderer.default_font()),
             <span class="self">self</span>.text_size.unwrap_or_else(|| renderer.default_size()),
             <span class="self">self</span>.line_height,
+            <span class="self">self</span>.wrapping,
             state.highlighter.borrow_mut().deref_mut(),
         );
 
@@ -2011,6 +2032,7 @@
                         horizontal_alignment: alignment::Horizontal::Left,
                         vertical_alignment: alignment::Vertical::Top,
                         shaping: text::Shaping::Advanced,
+                        wrapping: <span class="self">self</span>.wrapping,
                     },
                     text_bounds.position(),
                     style.placeholder,

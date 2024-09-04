@@ -485,6 +485,15 @@
 <a href="#485" id="485">485</a>
 <a href="#486" id="486">486</a>
 <a href="#487" id="487">487</a>
+<a href="#488" id="488">488</a>
+<a href="#489" id="489">489</a>
+<a href="#490" id="490">490</a>
+<a href="#491" id="491">491</a>
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Show toggle controls using togglers.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::event;
@@ -513,7 +522,7 @@
 ///
 /// let is_toggled = true;
 ///
-/// Toggler::new(String::from("Toggle me!"), is_toggled, |b| Message::TogglerToggled(b));
+/// Toggler::new(Some("Toggle me!"), is_toggled, |b| Message::TogglerToggled(b));
 /// ```
 </span><span class="attr">#[allow(missing_debug_implementations)]
 </span><span class="kw">pub struct </span>Toggler&lt;
@@ -527,13 +536,14 @@
 {
     is_toggled: bool,
     on_toggle: Box&lt;<span class="kw">dyn </span>Fn(bool) -&gt; Message + <span class="lifetime">'a</span>&gt;,
-    label: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    label: <span class="prelude-ty">Option</span>&lt;text::Fragment&lt;<span class="lifetime">'a</span>&gt;&gt;,
     width: Length,
     size: f32,
     text_size: <span class="prelude-ty">Option</span>&lt;Pixels&gt;,
     text_line_height: text::LineHeight,
     text_alignment: alignment::Horizontal,
     text_shaping: text::Shaping,
+    text_wrapping: text::Wrapping,
     spacing: f32,
     font: <span class="prelude-ty">Option</span>&lt;Renderer::Font&gt;,
     class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
@@ -556,7 +566,7 @@
     ///     will receive the new state of the [`Toggler`] and must produce a
     ///     `Message`.
     </span><span class="kw">pub fn </span>new&lt;F&gt;(
-        label: <span class="kw">impl </span>Into&lt;<span class="prelude-ty">Option</span>&lt;String&gt;&gt;,
+        label: <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>text::IntoFragment&lt;<span class="lifetime">'a</span>&gt;&gt;,
         is_toggled: bool,
         f: F,
     ) -&gt; <span class="self">Self
@@ -566,13 +576,14 @@
         Toggler {
             is_toggled,
             on_toggle: Box::new(f),
-            label: label.into(),
+            label: label.map(text::IntoFragment::into_fragment),
             width: Length::Shrink,
             size: <span class="self">Self</span>::DEFAULT_SIZE,
             text_size: <span class="prelude-val">None</span>,
             text_line_height: text::LineHeight::default(),
             text_alignment: alignment::Horizontal::Left,
-            text_shaping: text::Shaping::Basic,
+            text_shaping: text::Shaping::default(),
+            text_wrapping: text::Wrapping::default(),
             spacing: <span class="self">Self</span>::DEFAULT_SIZE / <span class="number">2.0</span>,
             font: <span class="prelude-val">None</span>,
             class: Theme::default(),
@@ -615,6 +626,12 @@
     <span class="doccomment">/// Sets the [`text::Shaping`] strategy of the [`Toggler`].
     </span><span class="kw">pub fn </span>text_shaping(<span class="kw-2">mut </span><span class="self">self</span>, shaping: text::Shaping) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.text_shaping = shaping;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the [`text::Wrapping`] strategy of the [`Toggler`].
+    </span><span class="kw">pub fn </span>text_wrapping(<span class="kw-2">mut </span><span class="self">self</span>, wrapping: text::Wrapping) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.text_wrapping = wrapping;
         <span class="self">self
     </span>}
 
@@ -703,6 +720,7 @@
                         <span class="self">self</span>.text_alignment,
                         alignment::Vertical::Top,
                         <span class="self">self</span>.text_shaping,
+                        <span class="self">self</span>.text_wrapping,
                     )
                 } <span class="kw">else </span>{
                     layout::Node::new(Size::ZERO)

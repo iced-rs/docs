@@ -774,12 +774,17 @@
 <a href="#774" id="774">774</a>
 <a href="#775" id="775">775</a>
 <a href="#776" id="776">776</a>
+<a href="#777" id="777">777</a>
+<a href="#778" id="778">778</a>
+<a href="#779" id="779">779</a>
+<a href="#780" id="780">780</a>
+<a href="#781" id="781">781</a>
 </pre></div><pre class="rust"><code><span class="doccomment">//! Draw and edit text.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::text::editor::{
     <span class="self">self</span>, Action, Cursor, Direction, Edit, Motion,
 };
 <span class="kw">use </span><span class="kw">crate</span>::core::text::highlighter::{<span class="self">self</span>, Highlighter};
-<span class="kw">use </span><span class="kw">crate</span>::core::text::LineHeight;
+<span class="kw">use </span><span class="kw">crate</span>::core::text::{LineHeight, Wrapping};
 <span class="kw">use </span><span class="kw">crate</span>::core::{Font, Pixels, Point, Rectangle, Size};
 <span class="kw">use </span><span class="kw">crate</span>::text;
 
@@ -1213,6 +1218,7 @@
         new_font: Font,
         new_size: Pixels,
         new_line_height: LineHeight,
+        new_wrapping: Wrapping,
         new_highlighter: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Highlighter,
     ) {
         <span class="kw">let </span>editor =
@@ -1224,13 +1230,12 @@
         <span class="kw">let </span><span class="kw-2">mut </span>font_system =
             text::font_system().write().expect(<span class="string">"Write font system"</span>);
 
+        <span class="kw">let </span>buffer = buffer_mut_from_editor(<span class="kw-2">&amp;mut </span>internal.editor);
+
         <span class="kw">if </span>font_system.version() != internal.version {
             <span class="macro">log::trace!</span>(<span class="string">"Updating `FontSystem` of `Editor`..."</span>);
 
-            <span class="kw">for </span>line <span class="kw">in </span>buffer_mut_from_editor(<span class="kw-2">&amp;mut </span>internal.editor)
-                .lines
-                .iter_mut()
-            {
+            <span class="kw">for </span>line <span class="kw">in </span>buffer.lines.iter_mut() {
                 line.reset();
             }
 
@@ -1241,10 +1246,7 @@
         <span class="kw">if </span>new_font != internal.font {
             <span class="macro">log::trace!</span>(<span class="string">"Updating font of `Editor`..."</span>);
 
-            <span class="kw">for </span>line <span class="kw">in </span>buffer_mut_from_editor(<span class="kw-2">&amp;mut </span>internal.editor)
-                .lines
-                .iter_mut()
-            {
+            <span class="kw">for </span>line <span class="kw">in </span>buffer.lines.iter_mut() {
                 <span class="kw">let _ </span>= line.set_attrs_list(cosmic_text::AttrsList::new(
                     text::to_attributes(new_font),
                 ));
@@ -1254,7 +1256,7 @@
             internal.topmost_line_changed = <span class="prelude-val">Some</span>(<span class="number">0</span>);
         }
 
-        <span class="kw">let </span>metrics = buffer_from_editor(<span class="kw-2">&amp;</span>internal.editor).metrics();
+        <span class="kw">let </span>metrics = buffer.metrics();
         <span class="kw">let </span>new_line_height = new_line_height.to_absolute(new_size);
 
         <span class="kw">if </span>new_size.<span class="number">0 </span>!= metrics.font_size
@@ -1262,16 +1264,24 @@
         {
             <span class="macro">log::trace!</span>(<span class="string">"Updating `Metrics` of `Editor`..."</span>);
 
-            buffer_mut_from_editor(<span class="kw-2">&amp;mut </span>internal.editor).set_metrics(
+            buffer.set_metrics(
                 font_system.raw(),
                 cosmic_text::Metrics::new(new_size.<span class="number">0</span>, new_line_height.<span class="number">0</span>),
             );
         }
 
+        <span class="kw">let </span>new_wrap = text::to_wrap(new_wrapping);
+
+        <span class="kw">if </span>new_wrap != buffer.wrap() {
+            <span class="macro">log::trace!</span>(<span class="string">"Updating `Wrap` strategy of `Editor`..."</span>);
+
+            buffer.set_wrap(font_system.raw(), new_wrap);
+        }
+
         <span class="kw">if </span>new_bounds != internal.bounds {
             <span class="macro">log::trace!</span>(<span class="string">"Updating size of `Editor`..."</span>);
 
-            buffer_mut_from_editor(<span class="kw-2">&amp;mut </span>internal.editor).set_size(
+            buffer.set_size(
                 font_system.raw(),
                 <span class="prelude-val">Some</span>(new_bounds.width),
                 <span class="prelude-val">Some</span>(new_bounds.height),
