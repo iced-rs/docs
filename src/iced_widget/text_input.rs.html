@@ -1557,7 +1557,36 @@
 <a href="#1556" id="1556">1556</a>
 <a href="#1557" id="1557">1557</a>
 <a href="#1558" id="1558">1558</a>
-<a href="#1559" id="1559">1559</a></pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a>
+<a href="#1571" id="1571">1571</a>
+<a href="#1572" id="1572">1572</a>
+<a href="#1573" id="1573">1573</a>
+<a href="#1574" id="1574">1574</a>
+<a href="#1575" id="1575">1575</a>
+<a href="#1576" id="1576">1576</a>
+<a href="#1577" id="1577">1577</a>
+<a href="#1578" id="1578">1578</a>
+<a href="#1579" id="1579">1579</a>
+<a href="#1580" id="1580">1580</a>
+<a href="#1581" id="1581">1581</a>
+<a href="#1582" id="1582">1582</a>
+<a href="#1583" id="1583">1583</a>
+<a href="#1584" id="1584">1584</a>
+<a href="#1585" id="1585">1585</a>
+<a href="#1586" id="1586">1586</a>
+<a href="#1587" id="1587">1587</a>
+<a href="#1588" id="1588">1588</a></pre></div><pre class="rust"><code><span class="doccomment">//! Display fields that can be filled with text.
 //!
 //! A [`TextInput`] has some local [`State`].
 </span><span class="kw">mod </span>editor;
@@ -1688,11 +1717,23 @@
     /// the [`TextInput`].
     ///
     /// If this method is not called, the [`TextInput`] will be disabled.
-    </span><span class="kw">pub fn </span>on_input&lt;F&gt;(<span class="kw-2">mut </span><span class="self">self</span>, callback: F) -&gt; <span class="self">Self
-    </span><span class="kw">where
-        </span>F: <span class="lifetime">'a </span>+ Fn(String) -&gt; Message,
-    {
-        <span class="self">self</span>.on_input = <span class="prelude-val">Some</span>(Box::new(callback));
+    </span><span class="kw">pub fn </span>on_input(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        on_input: <span class="kw">impl </span>Fn(String) -&gt; Message + <span class="lifetime">'a</span>,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.on_input = <span class="prelude-val">Some</span>(Box::new(on_input));
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the message that should be produced when some text is typed into
+    /// the [`TextInput`], if `Some`.
+    ///
+    /// If `None`, the [`TextInput`] will be disabled.
+    </span><span class="kw">pub fn </span>on_input_maybe(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        on_input: <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Fn(String) -&gt; Message + <span class="lifetime">'a</span>&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.on_input = on_input.map(|f| Box::new(f) <span class="kw">as _</span>);
         <span class="self">self
     </span>}
 
@@ -1703,6 +1744,13 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Sets the message that should be produced when the [`TextInput`] is
+    /// focused and the enter key is pressed, if `Some`.
+    </span><span class="kw">pub fn </span>on_submit_maybe(<span class="kw-2">mut </span><span class="self">self</span>, on_submit: <span class="prelude-ty">Option</span>&lt;Message&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.on_submit = on_submit;
+        <span class="self">self
+    </span>}
+
     <span class="doccomment">/// Sets the message that should be produced when some text is pasted into
     /// the [`TextInput`].
     </span><span class="kw">pub fn </span>on_paste(
@@ -1710,6 +1758,16 @@
         on_paste: <span class="kw">impl </span>Fn(String) -&gt; Message + <span class="lifetime">'a</span>,
     ) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.on_paste = <span class="prelude-val">Some</span>(Box::new(on_paste));
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the message that should be produced when some text is pasted into
+    /// the [`TextInput`], if `Some`.
+    </span><span class="kw">pub fn </span>on_paste_maybe(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        on_paste: <span class="prelude-ty">Option</span>&lt;<span class="kw">impl </span>Fn(String) -&gt; Message + <span class="lifetime">'a</span>&gt;,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.on_paste = on_paste.map(|f| Box::new(f) <span class="kw">as _</span>);
         <span class="self">self
     </span>}
 
