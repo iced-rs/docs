@@ -613,7 +613,11 @@
 <a href="#612" id="612">612</a>
 <a href="#613" id="613">613</a>
 <a href="#614" id="614">614</a>
-<a href="#615" id="615">615</a></pre></div><pre class="rust"><code><span class="doccomment">//! Display an interactive selector of a single value from a range of values.
+<a href="#615" id="615">615</a>
+<a href="#616" id="616">616</a>
+<a href="#617" id="617">617</a>
+<a href="#618" id="618">618</a>
+<a href="#619" id="619">619</a></pre></div><pre class="rust"><code><span class="doccomment">//! Display an interactive selector of a single value from a range of values.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::border::{<span class="self">self</span>, Border};
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
@@ -624,8 +628,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::touch;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    <span class="self">self</span>, Clipboard, Color, Element, Layout, Length, Pixels, Point, Rectangle,
-    Shell, Size, Theme, Widget,
+    <span class="self">self</span>, Background, Clipboard, Color, Element, Layout, Length, Pixels, Point,
+    Rectangle, Shell, Size, Theme, Widget,
 };
 
 <span class="kw">use </span>std::ops::RangeInclusive;
@@ -1023,10 +1027,10 @@
                     width: offset + handle_width / <span class="number">2.0</span>,
                     height: style.rail.width,
                 },
-                border: border::rounded(style.rail.border_radius),
+                border: style.rail.border,
                 ..renderer::Quad::default()
             },
-            style.rail.colors.<span class="number">0</span>,
+            style.rail.backgrounds.<span class="number">0</span>,
         );
 
         renderer.fill_quad(
@@ -1037,10 +1041,10 @@
                     width: bounds.width - offset - handle_width / <span class="number">2.0</span>,
                     height: style.rail.width,
                 },
-                border: border::rounded(style.rail.border_radius),
+                border: style.rail.border,
                 ..renderer::Quad::default()
             },
-            style.rail.colors.<span class="number">1</span>,
+            style.rail.backgrounds.<span class="number">1</span>,
         );
 
         renderer.fill_quad(
@@ -1058,7 +1062,7 @@
                 },
                 ..renderer::Quad::default()
             },
-            style.handle.color,
+            style.handle.background,
         );
     }
 
@@ -1139,12 +1143,12 @@
 <span class="doccomment">/// The appearance of a slider rail
 </span><span class="attr">#[derive(Debug, Clone, Copy)]
 </span><span class="kw">pub struct </span>Rail {
-    <span class="doccomment">/// The colors of the rail of the slider.
-    </span><span class="kw">pub </span>colors: (Color, Color),
+    <span class="doccomment">/// The backgrounds of the rail of the slider.
+    </span><span class="kw">pub </span>backgrounds: (Background, Background),
     <span class="doccomment">/// The width of the stroke of a slider rail.
     </span><span class="kw">pub </span>width: f32,
-    <span class="doccomment">/// The border radius of the corners of the rail.
-    </span><span class="kw">pub </span>border_radius: border::Radius,
+    <span class="doccomment">/// The border of the rail.
+    </span><span class="kw">pub </span>border: Border,
 }
 
 <span class="doccomment">/// The appearance of the handle of a slider.
@@ -1152,8 +1156,8 @@
 </span><span class="kw">pub struct </span>Handle {
     <span class="doccomment">/// The shape of the handle.
     </span><span class="kw">pub </span>shape: HandleShape,
-    <span class="doccomment">/// The [`Color`] of the handle.
-    </span><span class="kw">pub </span>color: Color,
+    <span class="doccomment">/// The [`Background`] of the handle.
+    </span><span class="kw">pub </span>background: Background,
     <span class="doccomment">/// The border width of the handle.
     </span><span class="kw">pub </span>border_width: f32,
     <span class="doccomment">/// The border [`Color`] of the handle.
@@ -1216,13 +1220,17 @@
 
     Style {
         rail: Rail {
-            colors: (color, palette.secondary.base.color),
+            backgrounds: (color.into(), palette.secondary.base.color.into()),
             width: <span class="number">4.0</span>,
-            border_radius: <span class="number">2.0</span>.into(),
+            border: Border {
+                radius: <span class="number">2.0</span>.into(),
+                width: <span class="number">0.0</span>,
+                color: Color::TRANSPARENT,
+            },
         },
         handle: Handle {
             shape: HandleShape::Circle { radius: <span class="number">7.0 </span>},
-            color,
+            background: color.into(),
             border_color: Color::TRANSPARENT,
             border_width: <span class="number">0.0</span>,
         },
