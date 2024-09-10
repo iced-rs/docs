@@ -1919,7 +1919,37 @@
 <a href="#1918" id="1918">1918</a>
 <a href="#1919" id="1919">1919</a>
 <a href="#1920" id="1920">1920</a>
-<a href="#1921" id="1921">1921</a></pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
+<a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a>
+<a href="#1942" id="1942">1942</a>
+<a href="#1943" id="1943">1943</a>
+<a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
+<a href="#1947" id="1947">1947</a>
+<a href="#1948" id="1948">1948</a>
+<a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
+<a href="#1951" id="1951">1951</a></pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::border::{<span class="self">self</span>, Border};
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -1933,6 +1963,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::operation::{<span class="self">self</span>, Operation};
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
+<span class="kw">use </span><span class="kw">crate</span>::core::window;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
     <span class="self">self</span>, Background, Clipboard, Color, Element, Layout, Length, Padding,
     Pixels, Point, Rectangle, Shell, Size, Theme, Vector, Widget,
@@ -2447,7 +2478,7 @@
                             content_bounds,
                         );
 
-                        <span class="kw">let _ </span>= notify_on_scroll(
+                        <span class="kw">let _ </span>= notify_scroll(
                             state,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                             bounds,
@@ -2485,7 +2516,7 @@
 
                         state.y_scroller_grabbed_at = <span class="prelude-val">Some</span>(scroller_grabbed_at);
 
-                        <span class="kw">let _ </span>= notify_on_scroll(
+                        <span class="kw">let _ </span>= notify_scroll(
                             state,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                             bounds,
@@ -2518,7 +2549,7 @@
                             content_bounds,
                         );
 
-                        <span class="kw">let _ </span>= notify_on_scroll(
+                        <span class="kw">let _ </span>= notify_scroll(
                             state,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                             bounds,
@@ -2556,7 +2587,7 @@
 
                         state.x_scroller_grabbed_at = <span class="prelude-val">Some</span>(scroller_grabbed_at);
 
-                        <span class="kw">let _ </span>= notify_on_scroll(
+                        <span class="kw">let _ </span>= notify_scroll(
                             state,
                             <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                             bounds,
@@ -2680,7 +2711,7 @@
                     content_bounds,
                 );
 
-                <span class="kw">if </span>notify_on_scroll(
+                <span class="kw">if </span>notify_scroll(
                     state,
                     <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                     bounds,
@@ -2728,7 +2759,7 @@
                                 <span class="prelude-val">Some</span>(cursor_position);
 
                             <span class="comment">// TODO: bubble up touch movements if not consumed.
-                            </span><span class="kw">let _ </span>= notify_on_scroll(
+                            </span><span class="kw">let _ </span>= notify_scroll(
                                 state,
                                 <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
                                 bounds,
@@ -2741,6 +2772,17 @@
                 }
 
                 event::Status::Captured
+            }
+            Event::Window(window::Event::RedrawRequested(<span class="kw">_</span>)) =&gt; {
+                <span class="kw">let _ </span>= notify_viewport(
+                    state,
+                    <span class="kw-2">&amp;</span><span class="self">self</span>.on_scroll,
+                    bounds,
+                    content_bounds,
+                    shell,
+                );
+
+                event::Status::Ignored
             }
             <span class="kw">_ </span>=&gt; event::Status::Ignored,
         }
@@ -3074,8 +3116,23 @@
     )))
 }
 
-<span class="doccomment">/// Returns [`true`] if the viewport actually changed.
-</span><span class="kw">fn </span>notify_on_scroll&lt;Message&gt;(
+<span class="kw">fn </span>notify_scroll&lt;Message&gt;(
+    state: <span class="kw-2">&amp;mut </span>State,
+    on_scroll: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Viewport) -&gt; Message + <span class="lifetime">'_</span>&gt;&gt;,
+    bounds: Rectangle,
+    content_bounds: Rectangle,
+    shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
+) -&gt; bool {
+    <span class="kw">if </span>notify_viewport(state, on_scroll, bounds, content_bounds, shell) {
+        state.last_scrolled = <span class="prelude-val">Some</span>(Instant::now());
+
+        <span class="bool-val">true
+    </span>} <span class="kw">else </span>{
+        <span class="bool-val">false
+    </span>}
+}
+
+<span class="kw">fn </span>notify_viewport&lt;Message&gt;(
     state: <span class="kw-2">&amp;mut </span>State,
     on_scroll: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Viewport) -&gt; Message + <span class="lifetime">'_</span>&gt;&gt;,
     bounds: Rectangle,
@@ -3087,6 +3144,11 @@
     {
         <span class="kw">return </span><span class="bool-val">false</span>;
     }
+
+    <span class="kw">let </span><span class="prelude-val">Some</span>(on_scroll) = on_scroll <span class="kw">else </span>{
+        state.last_notified = <span class="prelude-val">None</span>;
+        <span class="kw">return </span><span class="bool-val">false</span>;
+    };
 
     <span class="kw">let </span>viewport = Viewport {
         offset_x: state.offset_x,
@@ -3107,7 +3169,9 @@
             (a - b).abs() &lt;= f32::EPSILON || (a.is_nan() &amp;&amp; b.is_nan())
         };
 
-        <span class="kw">if </span>unchanged(last_relative_offset.x, current_relative_offset.x)
+        <span class="kw">if </span>last_notified.bounds == bounds
+            &amp;&amp; last_notified.content_bounds == content_bounds
+            &amp;&amp; unchanged(last_relative_offset.x, current_relative_offset.x)
             &amp;&amp; unchanged(last_relative_offset.y, current_relative_offset.y)
             &amp;&amp; unchanged(last_absolute_offset.x, current_absolute_offset.x)
             &amp;&amp; unchanged(last_absolute_offset.y, current_absolute_offset.y)
@@ -3116,12 +3180,8 @@
         }
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(on_scroll) = on_scroll {
-        shell.publish(on_scroll(viewport));
-    }
-
+    shell.publish(on_scroll(viewport));
     state.last_notified = <span class="prelude-val">Some</span>(viewport);
-    state.last_scrolled = <span class="prelude-val">Some</span>(Instant::now());
 
     <span class="bool-val">true
 </span>}
