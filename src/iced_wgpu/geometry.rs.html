@@ -715,7 +715,45 @@
 <a href="#714" id="714">714</a>
 <a href="#715" id="715">715</a>
 <a href="#716" id="716">716</a>
-<a href="#717" id="717">717</a></pre></div><pre class="rust"><code><span class="doccomment">//! Build and draw geometry.
+<a href="#717" id="717">717</a>
+<a href="#718" id="718">718</a>
+<a href="#719" id="719">719</a>
+<a href="#720" id="720">720</a>
+<a href="#721" id="721">721</a>
+<a href="#722" id="722">722</a>
+<a href="#723" id="723">723</a>
+<a href="#724" id="724">724</a>
+<a href="#725" id="725">725</a>
+<a href="#726" id="726">726</a>
+<a href="#727" id="727">727</a>
+<a href="#728" id="728">728</a>
+<a href="#729" id="729">729</a>
+<a href="#730" id="730">730</a>
+<a href="#731" id="731">731</a>
+<a href="#732" id="732">732</a>
+<a href="#733" id="733">733</a>
+<a href="#734" id="734">734</a>
+<a href="#735" id="735">735</a>
+<a href="#736" id="736">736</a>
+<a href="#737" id="737">737</a>
+<a href="#738" id="738">738</a>
+<a href="#739" id="739">739</a>
+<a href="#740" id="740">740</a>
+<a href="#741" id="741">741</a>
+<a href="#742" id="742">742</a>
+<a href="#743" id="743">743</a>
+<a href="#744" id="744">744</a>
+<a href="#745" id="745">745</a>
+<a href="#746" id="746">746</a>
+<a href="#747" id="747">747</a>
+<a href="#748" id="748">748</a>
+<a href="#749" id="749">749</a>
+<a href="#750" id="750">750</a>
+<a href="#751" id="751">751</a>
+<a href="#752" id="752">752</a>
+<a href="#753" id="753">753</a>
+<a href="#754" id="754">754</a>
+<a href="#755" id="755">755</a></pre></div><pre class="rust"><code><span class="doccomment">//! Build and draw geometry.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::text::LineHeight;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
     <span class="self">self</span>, Pixels, Point, Radians, Rectangle, Size, Svg, Transformation, Vector,
@@ -968,6 +1006,44 @@
             )
         }
         .expect(<span class="string">"Stroke path"</span>);
+    }
+
+    <span class="kw">fn </span>stroke_rectangle&lt;<span class="lifetime">'a</span>&gt;(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        top_left: Point,
+        size: Size,
+        stroke: <span class="kw">impl </span>Into&lt;Stroke&lt;<span class="lifetime">'a</span>&gt;&gt;,
+    ) {
+        <span class="kw">let </span>stroke = stroke.into();
+
+        <span class="kw">let </span><span class="kw-2">mut </span>buffer = <span class="self">self
+            </span>.buffers
+            .get_stroke(<span class="kw-2">&amp;</span><span class="self">self</span>.transforms.current.transform_style(stroke.style));
+
+        <span class="kw">let </span>top_left = <span class="self">self
+            </span>.transforms
+            .current
+            .<span class="number">0
+            </span>.transform_point(lyon::math::Point::new(top_left.x, top_left.y));
+
+        <span class="kw">let </span>size =
+            <span class="self">self</span>.transforms.current.<span class="number">0</span>.transform_vector(
+                lyon::math::Vector::new(size.width, size.height),
+            );
+
+        <span class="kw">let </span><span class="kw-2">mut </span>options = tessellation::StrokeOptions::default();
+        options.line_width = stroke.width;
+        options.start_cap = into_line_cap(stroke.line_cap);
+        options.end_cap = into_line_cap(stroke.line_cap);
+        options.line_join = into_line_join(stroke.line_join);
+
+        <span class="self">self</span>.stroke_tessellator
+            .tessellate_rectangle(
+                <span class="kw-2">&amp;</span>lyon::math::Box2D::new(top_left, top_left + size),
+                <span class="kw-2">&amp;</span>options,
+                buffer.as_mut(),
+            )
+            .expect(<span class="string">"Stroke rectangle"</span>);
     }
 
     <span class="kw">fn </span>fill_text(<span class="kw-2">&amp;mut </span><span class="self">self</span>, text: <span class="kw">impl </span>Into&lt;geometry::Text&gt;) {
