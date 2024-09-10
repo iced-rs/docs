@@ -1891,7 +1891,35 @@
 <a href="#1890" id="1890">1890</a>
 <a href="#1891" id="1891">1891</a>
 <a href="#1892" id="1892">1892</a>
-<a href="#1893" id="1893">1893</a></pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
+<a href="#1896" id="1896">1896</a>
+<a href="#1897" id="1897">1897</a>
+<a href="#1898" id="1898">1898</a>
+<a href="#1899" id="1899">1899</a>
+<a href="#1900" id="1900">1900</a>
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a></pre></div><pre class="rust"><code><span class="doccomment">//! Navigate an endless amount of content with a scrollbar.
 </span><span class="kw">use </span><span class="kw">crate</span>::container;
 <span class="kw">use </span><span class="kw">crate</span>::core::border::{<span class="self">self</span>, Border};
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
@@ -2136,6 +2164,24 @@
             <span class="self">Self</span>::Horizontal(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
         }
     }
+
+    <span class="kw">fn </span>align(<span class="kw-2">&amp;</span><span class="self">self</span>, delta: Vector) -&gt; Vector {
+        <span class="kw">let </span>horizontal_alignment =
+            <span class="self">self</span>.horizontal().map(|p| p.alignment).unwrap_or_default();
+
+        <span class="kw">let </span>vertical_alignment =
+            <span class="self">self</span>.vertical().map(|p| p.alignment).unwrap_or_default();
+
+        <span class="kw">let </span>align = |alignment: Anchor, delta: f32| <span class="kw">match </span>alignment {
+            Anchor::Start =&gt; delta,
+            Anchor::End =&gt; -delta,
+        };
+
+        Vector::new(
+            align(horizontal_alignment, delta.x),
+            align(vertical_alignment, delta.y),
+        )
+    }
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>Direction {
@@ -2323,6 +2369,7 @@
             state,
             <span class="self">self</span>.id.as_ref().map(|id| <span class="kw-2">&amp;</span>id.<span class="number">0</span>),
             bounds,
+            content_bounds,
             translation,
         );
 
@@ -2622,12 +2669,16 @@
                         };
 
                         <span class="comment">// TODO: Configurable speed/friction (?)
-                        </span>movement * <span class="number">60.0
+                        </span>-movement * <span class="number">60.0
                     </span>}
                     mouse::ScrollDelta::Pixels { x, y } =&gt; Vector::new(x, y),
                 };
 
-                state.scroll(delta, <span class="self">self</span>.direction, bounds, content_bounds);
+                state.scroll(
+                    <span class="self">self</span>.direction.align(delta),
+                    bounds,
+                    content_bounds,
+                );
 
                 <span class="kw">if </span>notify_on_scroll(
                     state,
@@ -2663,13 +2714,12 @@
                             };
 
                             <span class="kw">let </span>delta = Vector::new(
-                                cursor_position.x - scroll_box_touched_at.x,
-                                cursor_position.y - scroll_box_touched_at.y,
+                                scroll_box_touched_at.x - cursor_position.x,
+                                scroll_box_touched_at.y - cursor_position.y,
                             );
 
                             state.scroll(
-                                delta,
-                                <span class="self">self</span>.direction,
+                                <span class="self">self</span>.direction.align(delta),
                                 bounds,
                                 content_bounds,
                             );
@@ -3003,15 +3053,23 @@
 }
 
 <span class="doccomment">/// Produces a [`Task`] that snaps the [`Scrollable`] with the given [`Id`]
-/// to the provided `percentage` along the x &amp; y axis.
+/// to the provided [`RelativeOffset`].
 </span><span class="kw">pub fn </span>snap_to&lt;T&gt;(id: Id, offset: RelativeOffset) -&gt; Task&lt;T&gt; {
     task::effect(Action::widget(operation::scrollable::snap_to(id.<span class="number">0</span>, offset)))
 }
 
 <span class="doccomment">/// Produces a [`Task`] that scrolls the [`Scrollable`] with the given [`Id`]
-/// to the provided [`AbsoluteOffset`] along the x &amp; y axis.
+/// to the provided [`AbsoluteOffset`].
 </span><span class="kw">pub fn </span>scroll_to&lt;T&gt;(id: Id, offset: AbsoluteOffset) -&gt; Task&lt;T&gt; {
     task::effect(Action::widget(operation::scrollable::scroll_to(
+        id.<span class="number">0</span>, offset,
+    )))
+}
+
+<span class="doccomment">/// Produces a [`Task`] that scrolls the [`Scrollable`] with the given [`Id`]
+/// by the provided [`AbsoluteOffset`].
+</span><span class="kw">pub fn </span>scroll_by&lt;T&gt;(id: Id, offset: AbsoluteOffset) -&gt; Task&lt;T&gt; {
+    task::effect(Action::widget(operation::scrollable::scroll_by(
         id.<span class="number">0</span>, offset,
     )))
 }
@@ -3102,6 +3160,15 @@
 
     <span class="kw">fn </span>scroll_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, offset: AbsoluteOffset) {
         State::scroll_to(<span class="self">self</span>, offset);
+    }
+
+    <span class="kw">fn </span>scroll_by(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        offset: AbsoluteOffset,
+        bounds: Rectangle,
+        content_bounds: Rectangle,
+    ) {
+        State::scroll_by(<span class="self">self</span>, offset, bounds, content_bounds);
     }
 }
 
@@ -3206,34 +3273,13 @@
     </span><span class="kw">pub fn </span>scroll(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         delta: Vector&lt;f32&gt;,
-        direction: Direction,
         bounds: Rectangle,
         content_bounds: Rectangle,
     ) {
-        <span class="kw">let </span>horizontal_alignment = direction
-            .horizontal()
-            .map(|p| p.alignment)
-            .unwrap_or_default();
-
-        <span class="kw">let </span>vertical_alignment = direction
-            .vertical()
-            .map(|p| p.alignment)
-            .unwrap_or_default();
-
-        <span class="kw">let </span>align = |alignment: Anchor, delta: f32| <span class="kw">match </span>alignment {
-            Anchor::Start =&gt; delta,
-            Anchor::End =&gt; -delta,
-        };
-
-        <span class="kw">let </span>delta = Vector::new(
-            align(horizontal_alignment, delta.x),
-            align(vertical_alignment, delta.y),
-        );
-
         <span class="kw">if </span>bounds.height &lt; content_bounds.height {
             <span class="self">self</span>.offset_y = Offset::Absolute(
                 (<span class="self">self</span>.offset_y.absolute(bounds.height, content_bounds.height)
-                    - delta.y)
+                    + delta.y)
                     .clamp(<span class="number">0.0</span>, content_bounds.height - bounds.height),
             );
         }
@@ -3241,7 +3287,7 @@
         <span class="kw">if </span>bounds.width &lt; content_bounds.width {
             <span class="self">self</span>.offset_x = Offset::Absolute(
                 (<span class="self">self</span>.offset_x.absolute(bounds.width, content_bounds.width)
-                    - delta.x)
+                    + delta.x)
                     .clamp(<span class="number">0.0</span>, content_bounds.width - bounds.width),
             );
         }
@@ -3285,6 +3331,16 @@
     </span><span class="kw">pub fn </span>scroll_to(<span class="kw-2">&amp;mut </span><span class="self">self</span>, offset: AbsoluteOffset) {
         <span class="self">self</span>.offset_x = Offset::Absolute(offset.x.max(<span class="number">0.0</span>));
         <span class="self">self</span>.offset_y = Offset::Absolute(offset.y.max(<span class="number">0.0</span>));
+    }
+
+    <span class="doccomment">/// Scroll by the provided [`AbsoluteOffset`].
+    </span><span class="kw">pub fn </span>scroll_by(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        offset: AbsoluteOffset,
+        bounds: Rectangle,
+        content_bounds: Rectangle,
+    ) {
+        <span class="self">self</span>.scroll(Vector::new(offset.x, offset.y), bounds, content_bounds);
     }
 
     <span class="doccomment">/// Unsnaps the current scroll position, if snapped, given the bounds of the
