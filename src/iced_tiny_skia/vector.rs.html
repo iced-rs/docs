@@ -210,7 +210,18 @@
 <a href="#209" id="209">209</a>
 <a href="#210" id="210">210</a>
 <a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::svg::{Data, Handle};
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::svg::{Data, Handle};
 <span class="kw">use </span><span class="kw">crate</span>::core::{Color, Rectangle, Size};
 
 <span class="kw">use </span>resvg::usvg;
@@ -220,6 +231,7 @@
 <span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>std::collections::hash_map;
 <span class="kw">use </span>std::fs;
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>Pipeline {
@@ -280,6 +292,7 @@
     tree_hits: FxHashSet&lt;u64&gt;,
     rasters: FxHashMap&lt;RasterKey, tiny_skia::Pixmap&gt;,
     raster_hits: FxHashSet&lt;RasterKey&gt;,
+    fontdb: <span class="prelude-ty">Option</span>&lt;Arc&lt;usvg::fontdb::Database&gt;&gt;,
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -293,23 +306,32 @@
     <span class="kw">fn </span>load(<span class="kw-2">&amp;mut </span><span class="self">self</span>, handle: <span class="kw-2">&amp;</span>Handle) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>usvg::Tree&gt; {
         <span class="kw">let </span>id = handle.id();
 
+        <span class="comment">// TODO: Reuse `cosmic-text` font database
+        </span><span class="kw">if </span><span class="self">self</span>.fontdb.is_none() {
+            <span class="kw">let </span><span class="kw-2">mut </span>fontdb = usvg::fontdb::Database::new();
+            fontdb.load_system_fonts();
+
+            <span class="self">self</span>.fontdb = <span class="prelude-val">Some</span>(Arc::new(fontdb));
+        }
+
+        <span class="kw">let </span>options = usvg::Options {
+            fontdb: <span class="self">self
+                </span>.fontdb
+                .as_ref()
+                .expect(<span class="string">"fontdb must be initialized"</span>)
+                .clone(),
+            ..usvg::Options::default()
+        };
+
         <span class="kw">if let </span>hash_map::Entry::Vacant(entry) = <span class="self">self</span>.trees.entry(id) {
             <span class="kw">let </span>svg = <span class="kw">match </span>handle.data() {
                 Data::Path(path) =&gt; {
                     fs::read_to_string(path).ok().and_then(|contents| {
-                        usvg::Tree::from_str(
-                            <span class="kw-2">&amp;</span>contents,
-                            <span class="kw-2">&amp;</span>usvg::Options::default(), <span class="comment">// TODO: Set usvg::Options::fontdb
-                        </span>)
-                        .ok()
+                        usvg::Tree::from_str(<span class="kw-2">&amp;</span>contents, <span class="kw-2">&amp;</span>options).ok()
                     })
                 }
                 Data::Bytes(bytes) =&gt; {
-                    usvg::Tree::from_data(
-                        bytes,
-                        <span class="kw-2">&amp;</span>usvg::Options::default(), <span class="comment">// TODO: Set usvg::Options::fontdb
-                    </span>)
-                    .ok()
+                    usvg::Tree::from_data(bytes, <span class="kw-2">&amp;</span>options).ok()
                 }
             };
 
