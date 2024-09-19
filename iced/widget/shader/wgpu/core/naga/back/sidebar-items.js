@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["glsl","hlsl","msl","spv"],"struct":["RayFlag"]};
+window.SIDEBAR_ITEMS = {"constant":["COMPONENTS","INDENT"],"enum":["FunctionType","RayIntersectionType"],"fn":["binary_operation_str"],"mod":["glsl","pipeline_constants","spv"],"struct":["FunctionCtx","Level","RayFlag"],"type":["NeedBakeExpressions","PipelineConstants"]};

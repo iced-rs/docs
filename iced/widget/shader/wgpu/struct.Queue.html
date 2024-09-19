@@ -4,21 +4,42 @@ for writing to <a href="struct.Queue.html#method.write_buffer" title="method ice
 It can be created along with a <a href="struct.Device.html" title="struct iced::widget::shader::wgpu::Device"><code>Device</code></a> by calling <a href="struct.Adapter.html#method.request_device" title="method iced::widget::shader::wgpu::Adapter::request_device"><code>Adapter::request_device</code></a>.</p>
 <p>Corresponds to <a href="https://gpuweb.github.io/gpuweb/#gpu-queue">WebGPU <code>GPUQueue</code></a>.</p>
 </div></details><h2 id="implementations" class="section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-Queue" class="impl"><a href="#impl-Queue" class="anchor">§</a><h3 class="code-header">impl <a class="struct" href="struct.Queue.html" title="struct iced::widget::shader::wgpu::Queue">Queue</a></h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.write_buffer" class="method"><h4 class="code-header">pub fn <a href="#method.write_buffer" class="fn">write_buffer</a>(&amp;self, buffer: &amp;<a class="struct" href="struct.Buffer.html" title="struct iced::widget::shader::wgpu::Buffer">Buffer</a>, offset: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, data: &amp;[<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>])</h4></section></summary><div class="docblock"><p>Schedule a data write into <code>buffer</code> starting at <code>offset</code>.</p>
-<p>This method is intended to have low performance costs.
-As such, the write is not immediately submitted, and instead enqueued
-internally to happen at the start of the next <code>submit()</code> call.</p>
 <p>This method fails if <code>data</code> overruns the size of <code>buffer</code> starting at <code>offset</code>.</p>
+<p>This does <em>not</em> submit the transfer to the GPU immediately. Calls to
+<code>write_buffer</code> begin execution only on the next call to
+<a href="struct.Queue.html#method.submit" title="method iced::widget::shader::wgpu::Queue::submit"><code>Queue::submit</code></a>. To get a set of scheduled transfers started
+immediately, it’s fine to call <code>submit</code> with no command buffers at all:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>queue.submit([]);</code></pre></div>
+<p>However, <code>data</code> will be immediately copied into staging memory, so the
+caller may discard it any time after this call completes.</p>
+<p>If possible, consider using <a href="struct.Queue.html#method.write_buffer_with" title="method iced::widget::shader::wgpu::Queue::write_buffer_with"><code>Queue::write_buffer_with</code></a> instead. That
+method avoids an intermediate copy and is often able to transfer data
+more efficiently than this one.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.write_buffer_with" class="method"><h4 class="code-header">pub fn <a href="#method.write_buffer_with" class="fn">write_buffer_with</a>&lt;'a&gt;(
     &amp;'a self,
     buffer: &amp;'a <a class="struct" href="struct.Buffer.html" title="struct iced::widget::shader::wgpu::Buffer">Buffer</a>,
     offset: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
     size: <a class="struct" href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZero.html" title="struct core::num::nonzero::NonZero">NonZero</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>&gt;,
-) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="struct.QueueWriteBufferView.html" title="struct iced::widget::shader::wgpu::QueueWriteBufferView">QueueWriteBufferView</a>&lt;'a&gt;&gt;</h4></section></summary><div class="docblock"><p>Schedule a data write into <code>buffer</code> starting at <code>offset</code> via the returned
-<a href="struct.QueueWriteBufferView.html" title="struct iced::widget::shader::wgpu::QueueWriteBufferView"><code>QueueWriteBufferView</code></a>.</p>
-<p>Reading from this buffer is slow and will not yield the actual contents of the buffer.</p>
-<p>This method is intended to have low performance costs.
-As such, the write is not immediately submitted, and instead enqueued
-internally to happen at the start of the next <code>submit()</code> call.</p>
+) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="struct.QueueWriteBufferView.html" title="struct iced::widget::shader::wgpu::QueueWriteBufferView">QueueWriteBufferView</a>&lt;'a&gt;&gt;</h4></section></summary><div class="docblock"><p>Write to a buffer via a directly mapped staging buffer.</p>
+<p>Return a <a href="struct.QueueWriteBufferView.html" title="struct iced::widget::shader::wgpu::QueueWriteBufferView"><code>QueueWriteBufferView</code></a> which, when dropped, schedules a copy
+of its contents into <code>buffer</code> at <code>offset</code>. The returned view
+dereferences to a <code>size</code>-byte long <code>&amp;mut [u8]</code>, in which you should
+store the data you would like written to <code>buffer</code>.</p>
+<p>This method may perform transfers faster than <a href="struct.Queue.html#method.write_buffer" title="method iced::widget::shader::wgpu::Queue::write_buffer"><code>Queue::write_buffer</code></a>,
+because the returned <a href="struct.QueueWriteBufferView.html" title="struct iced::widget::shader::wgpu::QueueWriteBufferView"><code>QueueWriteBufferView</code></a> is actually the staging
+buffer for the write, mapped into the caller’s address space. Writing
+your data directly into this staging buffer avoids the temporary
+CPU-side buffer needed by <code>write_buffer</code>.</p>
+<p>Reading from the returned view is slow, and will not yield the current
+contents of <code>buffer</code>.</p>
+<p>Note that dropping the <a href="struct.QueueWriteBufferView.html" title="struct iced::widget::shader::wgpu::QueueWriteBufferView"><code>QueueWriteBufferView</code></a> does <em>not</em> submit the
+transfer to the GPU immediately. The transfer begins only on the next
+call to <a href="struct.Queue.html#method.submit" title="method iced::widget::shader::wgpu::Queue::submit"><code>Queue::submit</code></a> after the view is dropped. To get a set of
+scheduled transfers started immediately, it’s fine to call <code>submit</code> with
+no command buffers at all:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>queue.submit([]);</code></pre></div>
 <p>This method fails if <code>size</code> is greater than the size of <code>buffer</code> starting at <code>offset</code>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.write_texture" class="method"><h4 class="code-header">pub fn <a href="#method.write_texture" class="fn">write_texture</a>(
     &amp;self,
@@ -36,12 +57,15 @@ have to have tightly packed rows.</li>
 texture (coordinate offset, mip level) that will be overwritten.</li>
 <li><code>size</code> is the size, in texels, of the region to be written.</li>
 </ul>
-<p>This method is intended to have low performance costs.
-As such, the write is not immediately submitted, and instead enqueued
-internally to happen at the start of the next <code>submit()</code> call.
-However, <code>data</code> will be immediately copied into staging memory; so the caller may
-discard it any time after this call completes.</p>
 <p>This method fails if <code>size</code> overruns the size of <code>texture</code>, or if <code>data</code> is too short.</p>
+<p>This does <em>not</em> submit the transfer to the GPU immediately. Calls to
+<code>write_texture</code> begin execution only on the next call to
+<a href="struct.Queue.html#method.submit" title="method iced::widget::shader::wgpu::Queue::submit"><code>Queue::submit</code></a>. To get a set of scheduled transfers started
+immediately, it’s fine to call <code>submit</code> with no command buffers at all:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>queue.submit([]);</code></pre></div>
+<p>However, <code>data</code> will be immediately copied into staging memory, so the
+caller may discard it any time after this call completes.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.submit" class="method"><h4 class="code-header">pub fn <a href="#method.submit" class="fn">submit</a>&lt;I&gt;(&amp;self, command_buffers: I) -&gt; <a class="struct" href="struct.SubmissionIndex.html" title="struct iced::widget::shader::wgpu::SubmissionIndex">SubmissionIndex</a><div class="where">where
     I: <a class="trait" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html" title="trait core::iter::traits::collect::IntoIterator">IntoIterator</a>&lt;Item = <a class="struct" href="struct.CommandBuffer.html" title="struct iced::widget::shader::wgpu::CommandBuffer">CommandBuffer</a>&gt;,</div></h4></section></summary><div class="docblock"><p>Submits a series of finished command buffers for execution.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.get_timestamp_period" class="method"><h4 class="code-header">pub fn <a href="#method.get_timestamp_period" class="fn">get_timestamp_period</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a></h4></section></summary><div class="docblock"><p>Gets the amount of nanoseconds each tick of a timestamp query represents.</p>
