@@ -666,7 +666,29 @@
 <a href="#665" id="665">665</a>
 <a href="#666" id="666">666</a>
 <a href="#667" id="667">667</a>
-<a href="#668" id="668">668</a></pre></div><pre class="rust"><code><span class="doccomment">//! iced is a cross-platform GUI library focused on simplicity and type-safety.
+<a href="#668" id="668">668</a>
+<a href="#669" id="669">669</a>
+<a href="#670" id="670">670</a>
+<a href="#671" id="671">671</a>
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a></pre></div><pre class="rust"><code><span class="doccomment">//! iced is a cross-platform GUI library focused on simplicity and type-safety.
 //! Inspired by [Elm].
 //!
 //! [Elm]: https://elm-lang.org/
@@ -1048,16 +1070,18 @@
 //! #     use iced::{Element, Task};
 //! #     pub struct Contacts;
 //! #     impl Contacts {
-//! #         pub fn update(&amp;mut self, message: Message) -&gt; Task&lt;Message&gt; { unimplemented!() }
+//! #         pub fn update(&amp;mut self, message: Message) -&gt; Action { unimplemented!() }
 //! #         pub fn view(&amp;self) -&gt; Element&lt;Message&gt; { unimplemented!() }
 //! #     }
 //! #     #[derive(Debug)]
 //! #     pub enum Message {}
+//! #     pub enum Action { None, Run(Task&lt;Message&gt;), Chat(()) }
 //! # }
 //! # mod conversation {
 //! #     use iced::{Element, Task};
 //! #     pub struct Conversation;
 //! #     impl Conversation {
+//! #         pub fn new(contact: ()) -&gt; (Self, Task&lt;Message&gt;) { unimplemented!() }
 //! #         pub fn update(&amp;mut self, message: Message) -&gt; Task&lt;Message&gt; { unimplemented!() }
 //! #         pub fn view(&amp;self) -&gt; Element&lt;Message&gt; { unimplemented!() }
 //! #     }
@@ -1087,7 +1111,19 @@
 //!     match message {
 //!         Message::Contacts(message) =&gt; {
 //!             if let Screen::Contacts(contacts) = &amp;mut state.screen {
-//!                 contacts.update(message).map(Message::Contacts)
+//!                 let action = contacts.update(message);
+//!
+//!                 match action {
+//!                     contacts::Action::None =&gt; Task::none(),
+//!                     contacts::Action::Run(task) =&gt; task.map(Message::Contacts),
+//!                     contacts::Action::Chat(contact) =&gt; {
+//!                         let (conversation, task) = Conversation::new(contact);
+//!
+//!                         state.screen = Screen::Conversation(conversation);
+//!
+//!                         task.map(Message::Conversation)
+//!                     }
+//!                  }
 //!             } else {
 //!                 Task::none()    
 //!             }
@@ -1110,8 +1146,16 @@
 //! }
 //! ```
 //!
-//! Functor methods like [`Task::map`], [`Element::map`], and [`Subscription::map`] make this
-//! approach seamless.
+//! The `update` method of a screen can return an `Action` enum that can be leveraged by the parent to
+//! execute a task or transition to a completely different screen altogether. The variants of `Action` can
+//! have associated data. For instance, in the example above, the `Conversation` screen is created when
+//! `Contacts::update` returns an `Action::Chat` with the selected contact.
+//!
+//! Effectively, this approach lets you "tell a story" to connect different screens together in a type safe
+//! way.
+//!
+//! Furthermore, functor methods like [`Task::map`], [`Element::map`], and [`Subscription::map`] make composition
+//! seamless.
 </span><span class="attr">#![doc(
     html_logo_url = <span class="string">"https://raw.githubusercontent.com/iced-rs/iced/bdf0430880f5c29443f5f0a0ae4895866dfef4c6/docs/logo.svg"
 </span>)]
