@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Event"],"mod":["wgpu"],"struct":["Shader","Storage","Viewport"],"trait":["Primitive","Program"]};
+window.SIDEBAR_ITEMS = {"enum":["Event"],"struct":["Shader","Storage","Viewport"],"trait":["Primitive","Program"]};
