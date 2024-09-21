@@ -773,7 +773,7 @@
 <span class="kw">use crate</span>::{column, container, rich_text, row, scrollable, span, text};
 
 <span class="kw">use </span>std::cell::{Cell, RefCell};
-<span class="kw">use </span>std::rc::Rc;
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="kw">pub use </span>core::text::Highlight;
 <span class="kw">pub use </span>pulldown_cmark::HeadingLevel;
@@ -804,7 +804,7 @@
 </span><span class="kw">pub struct </span>Text {
     spans: Vec&lt;Span&gt;,
     last_style: Cell&lt;<span class="prelude-ty">Option</span>&lt;Style&gt;&gt;,
-    last_styled_spans: RefCell&lt;Rc&lt;[text::Span&lt;<span class="lifetime">'static</span>, Url&gt;]&gt;&gt;,
+    last_styled_spans: RefCell&lt;Arc&lt;[text::Span&lt;<span class="lifetime">'static</span>, Url&gt;]&gt;&gt;,
 }
 
 <span class="kw">impl </span>Text {
@@ -820,7 +820,7 @@
     ///
     /// This method performs caching for you. It will only reallocate if the [`Style`]
     /// provided changes.
-    </span><span class="kw">pub fn </span>spans(<span class="kw-2">&amp;</span><span class="self">self</span>, style: Style) -&gt; Rc&lt;[text::Span&lt;<span class="lifetime">'static</span>, Url&gt;]&gt; {
+    </span><span class="kw">pub fn </span>spans(<span class="kw-2">&amp;</span><span class="self">self</span>, style: Style) -&gt; Arc&lt;[text::Span&lt;<span class="lifetime">'static</span>, Url&gt;]&gt; {
         <span class="kw">if </span><span class="prelude-val">Some</span>(style) != <span class="self">self</span>.last_style.get() {
             <span class="kw-2">*</span><span class="self">self</span>.last_styled_spans.borrow_mut() =
                 <span class="self">self</span>.spans.iter().map(|span| span.view(<span class="kw-2">&amp;</span>style)).collect();
