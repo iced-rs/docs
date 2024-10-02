@@ -430,7 +430,15 @@
 <a href="#429" id="429">429</a>
 <a href="#430" id="430">430</a>
 <a href="#431" id="431">431</a>
-<a href="#432" id="432">432</a></pre></div><pre class="rust"><code><span class="doccomment">//! QR codes display information in a type of two-dimensional matrix barcode.
+<a href="#432" id="432">432</a>
+<a href="#433" id="433">433</a>
+<a href="#434" id="434">434</a>
+<a href="#435" id="435">435</a>
+<a href="#436" id="436">436</a>
+<a href="#437" id="437">437</a>
+<a href="#438" id="438">438</a>
+<a href="#439" id="439">439</a>
+<a href="#440" id="440">440</a></pre></div><pre class="rust"><code><span class="doccomment">//! QR codes display information in a type of two-dimensional matrix barcode.
 //!
 //! # Example
 //! ```no_run
@@ -458,15 +466,15 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer::{<span class="self">self</span>, Renderer <span class="kw">as _</span>};
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Color, Element, Layout, Length, Point, Rectangle, Size, Theme, Vector,
-    Widget,
+    Color, Element, Layout, Length, Pixels, Point, Rectangle, Size, Theme,
+    Vector, Widget,
 };
 <span class="kw">use </span><span class="kw">crate</span>::Renderer;
 
 <span class="kw">use </span>std::cell::RefCell;
 <span class="kw">use </span>thiserror::Error;
 
-<span class="kw">const </span>DEFAULT_CELL_SIZE: u16 = <span class="number">4</span>;
+<span class="kw">const </span>DEFAULT_CELL_SIZE: f32 = <span class="number">4.0</span>;
 <span class="kw">const </span>QUIET_ZONE: usize = <span class="number">2</span>;
 
 <span class="doccomment">/// A type of matrix barcode consisting of squares arranged in a grid which
@@ -498,7 +506,7 @@
     </span>Theme: Catalog,
 {
     data: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>Data,
-    cell_size: u16,
+    cell_size: f32,
     class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
@@ -516,8 +524,16 @@
     }
 
     <span class="doccomment">/// Sets the size of the squares of the grid cell of the [`QRCode`].
-    </span><span class="kw">pub fn </span>cell_size(<span class="kw-2">mut </span><span class="self">self</span>, cell_size: u16) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.cell_size = cell_size;
+    </span><span class="kw">pub fn </span>cell_size(<span class="kw-2">mut </span><span class="self">self</span>, cell_size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.cell_size = cell_size.into().<span class="number">0</span>;
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the size of the entire [`QRCode`].
+    </span><span class="kw">pub fn </span>total_size(<span class="kw-2">mut </span><span class="self">self</span>, total_size: <span class="kw">impl </span>Into&lt;Pixels&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.cell_size =
+            total_size.into().<span class="number">0 </span>/ (<span class="self">self</span>.data.width + <span class="number">2 </span>* QUIET_ZONE) <span class="kw">as </span>f32;
+
         <span class="self">self
     </span>}
 
@@ -565,8 +581,8 @@
         _renderer: <span class="kw-2">&amp;</span>Renderer,
         _limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        <span class="kw">let </span>side_length = (<span class="self">self</span>.data.width + <span class="number">2 </span>* QUIET_ZONE) <span class="kw">as </span>f32
-            * f32::from(<span class="self">self</span>.cell_size);
+        <span class="kw">let </span>side_length =
+            (<span class="self">self</span>.data.width + <span class="number">2 </span>* QUIET_ZONE) <span class="kw">as </span>f32 * <span class="self">self</span>.cell_size;
 
         layout::Node::new(Size::new(side_length, side_length))
     }
