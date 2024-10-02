@@ -557,10 +557,7 @@
 <a href="#556" id="556">556</a>
 <a href="#557" id="557">557</a>
 <a href="#558" id="558">558</a>
-<a href="#559" id="559">559</a>
-<a href="#560" id="560">560</a>
-<a href="#561" id="561">561</a>
-<a href="#562" id="562">562</a></pre></div><pre class="rust"><code><span class="doccomment">//! Distribute content horizontally.
+<a href="#559" id="559">559</a></pre></div><pre class="rust"><code><span class="doccomment">//! Distribute content horizontally.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::alignment::{<span class="self">self</span>, Alignment};
 <span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout::{<span class="self">self</span>, Layout};
@@ -878,24 +875,21 @@
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(clipped_viewport) = layout.bounds().intersection(viewport) {
+            <span class="kw">let </span>viewport = <span class="kw">if </span><span class="self">self</span>.clip {
+                <span class="kw-2">&amp;</span>clipped_viewport
+            } <span class="kw">else </span>{
+                viewport
+            };
+
             <span class="kw">for </span>((child, state), layout) <span class="kw">in </span><span class="self">self
                 </span>.children
                 .iter()
                 .zip(<span class="kw-2">&amp;</span>tree.children)
                 .zip(layout.children())
+                .filter(|(<span class="kw">_</span>, layout)| layout.bounds().intersects(viewport))
             {
                 child.as_widget().draw(
-                    state,
-                    renderer,
-                    theme,
-                    style,
-                    layout,
-                    cursor,
-                    <span class="kw">if </span><span class="self">self</span>.clip {
-                        <span class="kw-2">&amp;</span>clipped_viewport
-                    } <span class="kw">else </span>{
-                        viewport
-                    },
+                    state, renderer, theme, style, layout, cursor, viewport,
                 );
             }
         }
