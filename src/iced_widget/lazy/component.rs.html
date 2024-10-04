@@ -670,7 +670,11 @@
 <a href="#669" id="669">669</a>
 <a href="#670" id="670">670</a>
 <a href="#671" id="671">671</a>
-<a href="#672" id="672">672</a></pre></div><pre class="rust"><code><span class="doccomment">//! Build and reuse custom widgets using The Elm Architecture.
+<a href="#672" id="672">672</a>
+<a href="#673" id="673">673</a>
+<a href="#674" id="674">674</a>
+<a href="#675" id="675">675</a>
+<a href="#676" id="676">676</a></pre></div><pre class="rust"><code><span class="doccomment">//! Build and reuse custom widgets using The Elm Architecture.
 </span><span class="attr">#![allow(deprecated)]
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout::{<span class="self">self</span>, Layout};
@@ -1118,44 +1122,48 @@
     ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
         <span class="self">self</span>.rebuild_element_if_necessary();
 
-        <span class="kw">let </span>tree = tree
-            .state
-            .downcast_mut::&lt;Rc&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;Tree&gt;&gt;&gt;&gt;()
-            .borrow_mut()
-            .take()
-            .unwrap();
+        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;Rc&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;Tree&gt;&gt;&gt;&gt;();
+        <span class="kw">let </span>tree = state.borrow_mut().take().unwrap();
 
-        <span class="kw">let </span>overlay = Overlay(<span class="prelude-val">Some</span>(
-            InnerBuilder {
-                instance: <span class="self">self</span>,
-                tree,
-                types: PhantomData,
-                overlay_builder: |instance, tree| {
-                    instance.state.get_mut().as_mut().unwrap().with_element_mut(
-                        <span class="kw">move </span>|element| {
-                            element
-                                .as_mut()
-                                .unwrap()
-                                .as_widget_mut()
-                                .overlay(
-                                    <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
-                                    layout,
-                                    renderer,
-                                    translation,
-                                )
-                                .map(|overlay| {
-                                    RefCell::new(Nested::new(overlay))
-                                })
-                        },
-                    )
-                },
-            }
-            .build(),
-        ));
+        <span class="kw">let </span>overlay = InnerBuilder {
+            instance: <span class="self">self</span>,
+            tree,
+            types: PhantomData,
+            overlay_builder: |instance, tree| {
+                instance.state.get_mut().as_mut().unwrap().with_element_mut(
+                    <span class="kw">move </span>|element| {
+                        element
+                            .as_mut()
+                            .unwrap()
+                            .as_widget_mut()
+                            .overlay(
+                                <span class="kw-2">&amp;mut </span>tree.children[<span class="number">0</span>],
+                                layout,
+                                renderer,
+                                translation,
+                            )
+                            .map(|overlay| RefCell::new(Nested::new(overlay)))
+                    },
+                )
+            },
+        }
+        .build();
 
-        <span class="prelude-val">Some</span>(overlay::Element::new(Box::new(OverlayInstance {
-            overlay: <span class="prelude-val">Some</span>(overlay),
-        })))
+        <span class="attr">#[allow(clippy::redundant_closure_for_method_calls)]
+        </span><span class="kw">if </span>overlay.with_overlay(|overlay| overlay.is_some()) {
+            <span class="prelude-val">Some</span>(overlay::Element::new(Box::new(OverlayInstance {
+                overlay: <span class="prelude-val">Some</span>(Overlay(<span class="prelude-val">Some</span>(overlay))), <span class="comment">// Beautiful, I know
+            </span>})))
+        } <span class="kw">else </span>{
+            <span class="kw">let </span>heads = overlay.into_heads();
+
+            <span class="comment">// - You may not like it, but this is what peak performance looks like
+            // - TODO: Get rid of ouroboros, for good
+            // - What?!
+            </span><span class="kw-2">*</span>state.borrow_mut() = <span class="prelude-val">Some</span>(heads.tree);
+
+            <span class="prelude-val">None
+        </span>}
     }
 }
 
