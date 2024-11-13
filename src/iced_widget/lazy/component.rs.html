@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/lazy/component.rs`."><title>component.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-590a400c.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0-nightly (fbab78289 2024-11-04)" data-channel="nightly" data-search-js="search-c5a66128.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_widget/lazy/</div>component.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/lazy/component.rs`."><title>component.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0-nightly (f7273e004 2024-11-12)" data-channel="nightly" data-search-js="search-853ef39b.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_widget/lazy/</div>component.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -674,15 +674,31 @@
 <a href="#673" id="673">673</a>
 <a href="#674" id="674">674</a>
 <a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a></pre></div><pre class="rust"><code><span class="doccomment">//! Build and reuse custom widgets using The Elm Architecture.
+<a href="#676" id="676">676</a>
+<a href="#677" id="677">677</a>
+<a href="#678" id="678">678</a>
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a>
+<a href="#689" id="689">689</a>
+<a href="#690" id="690">690</a>
+<a href="#691" id="691">691</a>
+<a href="#692" id="692">692</a></pre></div><pre class="rust"><code><span class="doccomment">//! Build and reuse custom widgets using The Elm Architecture.
 </span><span class="attr">#![allow(deprecated)]
-</span><span class="kw">use </span><span class="kw">crate</span>::core::event;
-<span class="kw">use </span><span class="kw">crate</span>::core::layout::{<span class="self">self</span>, Layout};
+</span><span class="kw">use </span><span class="kw">crate</span>::core::layout::{<span class="self">self</span>, Layout};
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::core::overlay;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
+<span class="kw">use </span><span class="kw">crate</span>::core::window;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
     <span class="self">self</span>, Clipboard, Element, Length, Point, Rectangle, Shell, Size, Vector,
     Widget,
@@ -987,7 +1003,7 @@
         })
     }
 
-    <span class="kw">fn </span>on_event(
+    <span class="kw">fn </span>update(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;mut </span>Tree,
         event: core::Event,
@@ -997,13 +1013,13 @@
         clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
         shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
         viewport: <span class="kw-2">&amp;</span>Rectangle,
-    ) -&gt; event::Status {
+    ) {
         <span class="kw">let </span><span class="kw-2">mut </span>local_messages = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>local_shell = Shell::new(<span class="kw-2">&amp;mut </span>local_messages);
 
         <span class="kw">let </span>t = tree.state.downcast_mut::&lt;Rc&lt;RefCell&lt;<span class="prelude-ty">Option</span>&lt;Tree&gt;&gt;&gt;&gt;();
-        <span class="kw">let </span>event_status = <span class="self">self</span>.with_element_mut(|element| {
-            element.as_widget_mut().on_event(
+        <span class="self">self</span>.with_element_mut(|element| {
+            element.as_widget_mut().update(
                 <span class="kw-2">&amp;mut </span>t.borrow_mut().as_mut().unwrap().children[<span class="number">0</span>],
                 event,
                 layout,
@@ -1012,13 +1028,24 @@
                 clipboard,
                 <span class="kw-2">&amp;mut </span>local_shell,
                 viewport,
-            )
+            );
         });
+
+        <span class="kw">if </span>local_shell.is_event_captured() {
+            shell.capture_event();
+        }
 
         local_shell.revalidate_layout(|| shell.invalidate_layout());
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(redraw_request) = local_shell.redraw_request() {
-            shell.request_redraw(redraw_request);
+            <span class="kw">match </span>redraw_request {
+                window::RedrawRequest::NextFrame =&gt; {
+                    shell.request_redraw();
+                }
+                window::RedrawRequest::At(at) =&gt; {
+                    shell.request_redraw_at(at);
+                }
+            }
         }
 
         <span class="kw">if </span>!local_messages.is_empty() {
@@ -1045,8 +1072,6 @@
 
             shell.invalidate_layout();
         }
-
-        event_status
     }
 
     <span class="kw">fn </span>operate(
@@ -1268,7 +1293,7 @@
         .unwrap_or_default()
     }
 
-    <span class="kw">fn </span>on_event(
+    <span class="kw">fn </span>update(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         event: core::Event,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
@@ -1276,27 +1301,36 @@
         renderer: <span class="kw-2">&amp;</span>Renderer,
         clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
         shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
-    ) -&gt; event::Status {
+    ) {
         <span class="kw">let </span><span class="kw-2">mut </span>local_messages = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>local_shell = Shell::new(<span class="kw-2">&amp;mut </span>local_messages);
 
-        <span class="kw">let </span>event_status = <span class="self">self
-            </span>.with_overlay_mut_maybe(|overlay| {
-                overlay.on_event(
-                    event,
-                    layout,
-                    cursor,
-                    renderer,
-                    clipboard,
-                    <span class="kw-2">&amp;mut </span>local_shell,
-                )
-            })
-            .unwrap_or(event::Status::Ignored);
+        <span class="kw">let _ </span>= <span class="self">self</span>.with_overlay_mut_maybe(|overlay| {
+            overlay.update(
+                event,
+                layout,
+                cursor,
+                renderer,
+                clipboard,
+                <span class="kw-2">&amp;mut </span>local_shell,
+            );
+        });
+
+        <span class="kw">if </span>local_shell.is_event_captured() {
+            shell.capture_event();
+        }
 
         local_shell.revalidate_layout(|| shell.invalidate_layout());
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(redraw_request) = local_shell.redraw_request() {
-            shell.request_redraw(redraw_request);
+            <span class="kw">match </span>redraw_request {
+                window::RedrawRequest::NextFrame =&gt; {
+                    shell.request_redraw();
+                }
+                window::RedrawRequest::At(at) =&gt; {
+                    shell.request_redraw_at(at);
+                }
+            }
         }
 
         <span class="kw">if </span>!local_messages.is_empty() {
@@ -1334,8 +1368,6 @@
 
             shell.invalidate_layout();
         }
-
-        event_status
     }
 
     <span class="kw">fn </span>is_over(

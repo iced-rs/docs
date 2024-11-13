@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/text_input.rs`."><title>text_input.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-590a400c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0-nightly (fbab78289 2024-11-04)" data-channel="nightly" data-search-js="search-c5a66128.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_widget/</div>text_input.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/text_input.rs`."><title>text_input.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0-nightly (f7273e004 2024-11-12)" data-channel="nightly" data-search-js="search-853ef39b.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_widget/</div>text_input.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -1644,7 +1644,96 @@
 <a href="#1643" id="1643">1643</a>
 <a href="#1644" id="1644">1644</a>
 <a href="#1645" id="1645">1645</a>
-<a href="#1646" id="1646">1646</a></pre></div><pre class="rust"><code><span class="doccomment">//! Text inputs display fields that can be filled with text.
+<a href="#1646" id="1646">1646</a>
+<a href="#1647" id="1647">1647</a>
+<a href="#1648" id="1648">1648</a>
+<a href="#1649" id="1649">1649</a>
+<a href="#1650" id="1650">1650</a>
+<a href="#1651" id="1651">1651</a>
+<a href="#1652" id="1652">1652</a>
+<a href="#1653" id="1653">1653</a>
+<a href="#1654" id="1654">1654</a>
+<a href="#1655" id="1655">1655</a>
+<a href="#1656" id="1656">1656</a>
+<a href="#1657" id="1657">1657</a>
+<a href="#1658" id="1658">1658</a>
+<a href="#1659" id="1659">1659</a>
+<a href="#1660" id="1660">1660</a>
+<a href="#1661" id="1661">1661</a>
+<a href="#1662" id="1662">1662</a>
+<a href="#1663" id="1663">1663</a>
+<a href="#1664" id="1664">1664</a>
+<a href="#1665" id="1665">1665</a>
+<a href="#1666" id="1666">1666</a>
+<a href="#1667" id="1667">1667</a>
+<a href="#1668" id="1668">1668</a>
+<a href="#1669" id="1669">1669</a>
+<a href="#1670" id="1670">1670</a>
+<a href="#1671" id="1671">1671</a>
+<a href="#1672" id="1672">1672</a>
+<a href="#1673" id="1673">1673</a>
+<a href="#1674" id="1674">1674</a>
+<a href="#1675" id="1675">1675</a>
+<a href="#1676" id="1676">1676</a>
+<a href="#1677" id="1677">1677</a>
+<a href="#1678" id="1678">1678</a>
+<a href="#1679" id="1679">1679</a>
+<a href="#1680" id="1680">1680</a>
+<a href="#1681" id="1681">1681</a>
+<a href="#1682" id="1682">1682</a>
+<a href="#1683" id="1683">1683</a>
+<a href="#1684" id="1684">1684</a>
+<a href="#1685" id="1685">1685</a>
+<a href="#1686" id="1686">1686</a>
+<a href="#1687" id="1687">1687</a>
+<a href="#1688" id="1688">1688</a>
+<a href="#1689" id="1689">1689</a>
+<a href="#1690" id="1690">1690</a>
+<a href="#1691" id="1691">1691</a>
+<a href="#1692" id="1692">1692</a>
+<a href="#1693" id="1693">1693</a>
+<a href="#1694" id="1694">1694</a>
+<a href="#1695" id="1695">1695</a>
+<a href="#1696" id="1696">1696</a>
+<a href="#1697" id="1697">1697</a>
+<a href="#1698" id="1698">1698</a>
+<a href="#1699" id="1699">1699</a>
+<a href="#1700" id="1700">1700</a>
+<a href="#1701" id="1701">1701</a>
+<a href="#1702" id="1702">1702</a>
+<a href="#1703" id="1703">1703</a>
+<a href="#1704" id="1704">1704</a>
+<a href="#1705" id="1705">1705</a>
+<a href="#1706" id="1706">1706</a>
+<a href="#1707" id="1707">1707</a>
+<a href="#1708" id="1708">1708</a>
+<a href="#1709" id="1709">1709</a>
+<a href="#1710" id="1710">1710</a>
+<a href="#1711" id="1711">1711</a>
+<a href="#1712" id="1712">1712</a>
+<a href="#1713" id="1713">1713</a>
+<a href="#1714" id="1714">1714</a>
+<a href="#1715" id="1715">1715</a>
+<a href="#1716" id="1716">1716</a>
+<a href="#1717" id="1717">1717</a>
+<a href="#1718" id="1718">1718</a>
+<a href="#1719" id="1719">1719</a>
+<a href="#1720" id="1720">1720</a>
+<a href="#1721" id="1721">1721</a>
+<a href="#1722" id="1722">1722</a>
+<a href="#1723" id="1723">1723</a>
+<a href="#1724" id="1724">1724</a>
+<a href="#1725" id="1725">1725</a>
+<a href="#1726" id="1726">1726</a>
+<a href="#1727" id="1727">1727</a>
+<a href="#1728" id="1728">1728</a>
+<a href="#1729" id="1729">1729</a>
+<a href="#1730" id="1730">1730</a>
+<a href="#1731" id="1731">1731</a>
+<a href="#1732" id="1732">1732</a>
+<a href="#1733" id="1733">1733</a>
+<a href="#1734" id="1734">1734</a>
+<a href="#1735" id="1735">1735</a></pre></div><pre class="rust"><code><span class="doccomment">//! Text inputs display fields that can be filled with text.
 //!
 //! # Example
 //! ```no_run
@@ -1688,7 +1777,6 @@
 
 <span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::clipboard::{<span class="self">self</span>, Clipboard};
-<span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard;
 <span class="kw">use </span><span class="kw">crate</span>::core::keyboard::key;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -1703,8 +1791,8 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    Background, Border, Color, Element, Layout, Length, Padding, Pixels, Point,
-    Rectangle, Shell, Size, Theme, Vector, Widget,
+    Background, Border, Color, Element, Event, Layout, Length, Padding, Pixels,
+    Point, Rectangle, Shell, Size, Theme, Vector, Widget,
 };
 <span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<span class="self">self</span>, Task};
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Action;
@@ -1766,6 +1854,7 @@
     on_submit: <span class="prelude-ty">Option</span>&lt;Message&gt;,
     icon: <span class="prelude-ty">Option</span>&lt;Icon&lt;Renderer::Font&gt;&gt;,
     class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
+    last_status: <span class="prelude-ty">Option</span>&lt;Status&gt;,
 }
 
 <span class="doccomment">/// The default [`Padding`] of a [`TextInput`].
@@ -1796,6 +1885,7 @@
             on_submit: <span class="prelude-val">None</span>,
             icon: <span class="prelude-val">None</span>,
             class: Theme::default(),
+            last_status: <span class="prelude-val">None</span>,
         }
     }
 
@@ -2046,7 +2136,7 @@
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
         theme: <span class="kw-2">&amp;</span>Theme,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-        cursor: mouse::Cursor,
+        _cursor: mouse::Cursor,
         value: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Value&gt;,
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
@@ -2062,19 +2152,8 @@
         <span class="kw">let </span><span class="kw-2">mut </span>children_layout = layout.children();
         <span class="kw">let </span>text_bounds = children_layout.next().unwrap().bounds();
 
-        <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
-
-        <span class="kw">let </span>status = <span class="kw">if </span>is_disabled {
-            Status::Disabled
-        } <span class="kw">else if </span>state.is_focused() {
-            Status::Focused
-        } <span class="kw">else if </span>is_mouse_over {
-            Status::Hovered
-        } <span class="kw">else </span>{
-            Status::Active
-        };
-
-        <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class, status);
+        <span class="kw">let </span>style = theme
+            .style(<span class="kw-2">&amp;</span><span class="self">self</span>.class, <span class="self">self</span>.last_status.unwrap_or(Status::Disabled));
 
         renderer.fill_quad(
             renderer::Quad {
@@ -2283,7 +2362,7 @@
         operation.text_input(state, <span class="self">self</span>.id.as_ref().map(|id| <span class="kw-2">&amp;</span>id.<span class="number">0</span>));
     }
 
-    <span class="kw">fn </span>on_event(
+    <span class="kw">fn </span>update(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;mut </span>Tree,
         event: Event,
@@ -2293,7 +2372,7 @@
         clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
         shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
-    ) -&gt; event::Status {
+    ) {
         <span class="kw">let </span>update_cache = |state, value| {
             replace_paragraph(
                 renderer,
@@ -2306,22 +2385,21 @@
             );
         };
 
-        <span class="kw">match </span>event {
+        <span class="kw">match </span><span class="kw-2">&amp;</span>event {
             Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
             | Event::Touch(touch::Event::FingerPressed { .. }) =&gt; {
                 <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
+                <span class="kw">let </span>cursor_before = state.cursor;
 
                 <span class="kw">let </span>click_position = cursor.position_over(layout.bounds());
 
                 state.is_focused = <span class="kw">if </span>click_position.is_some() {
-                    state.is_focused.or_else(|| {
-                        <span class="kw">let </span>now = Instant::now();
+                    <span class="kw">let </span>now = Instant::now();
 
-                        <span class="prelude-val">Some</span>(Focus {
-                            updated_at: now,
-                            now,
-                            is_window_focused: <span class="bool-val">true</span>,
-                        })
+                    <span class="prelude-val">Some</span>(Focus {
+                        updated_at: now,
+                        now,
+                        is_window_focused: <span class="bool-val">true</span>,
                     })
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
@@ -2406,7 +2484,11 @@
 
                     state.last_click = <span class="prelude-val">Some</span>(click);
 
-                    <span class="kw">return </span>event::Status::Captured;
+                    <span class="kw">if </span>cursor_before != state.cursor {
+                        shell.request_redraw();
+                    }
+
+                    shell.capture_event();
                 }
             }
             Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left))
@@ -2447,11 +2529,21 @@
                     )
                     .unwrap_or(<span class="number">0</span>);
 
+                    <span class="kw">let </span>selection_before = state.cursor.selection(<span class="kw-2">&amp;</span>value);
+
                     state
                         .cursor
                         .select_range(state.cursor.start(<span class="kw-2">&amp;</span>value), position);
 
-                    <span class="kw">return </span>event::Status::Captured;
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.is_focused {
+                        focus.updated_at = Instant::now();
+                    }
+
+                    <span class="kw">if </span>selection_before != state.cursor.selection(<span class="kw-2">&amp;</span>value) {
+                        shell.request_redraw();
+                    }
+
+                    shell.capture_event();
                 }
             }
             Event::Keyboard(keyboard::Event::KeyPressed {
@@ -2461,7 +2553,6 @@
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.is_focused {
                     <span class="kw">let </span>modifiers = state.keyboard_modifiers;
-                    focus.updated_at = Instant::now();
 
                     <span class="kw">match </span>key.as_ref() {
                         keyboard::Key::Character(<span class="string">"c"</span>)
@@ -2477,14 +2568,15 @@
                                 );
                             }
 
-                            <span class="kw">return </span>event::Status::Captured;
+                            shell.capture_event();
+                            <span class="kw">return</span>;
                         }
                         keyboard::Key::Character(<span class="string">"x"</span>)
                             <span class="kw">if </span>state.keyboard_modifiers.command()
                                 &amp;&amp; !<span class="self">self</span>.is_secure =&gt;
                         {
                             <span class="kw">let </span><span class="prelude-val">Some</span>(on_input) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_input <span class="kw">else </span>{
-                                <span class="kw">return </span>event::Status::Ignored;
+                                <span class="kw">return</span>;
                             };
 
                             <span class="kw">if let </span><span class="prelude-val">Some</span>((start, end)) =
@@ -2502,17 +2594,18 @@
 
                             <span class="kw">let </span>message = (on_input)(editor.contents());
                             shell.publish(message);
+                            shell.capture_event();
 
+                            focus.updated_at = Instant::now();
                             update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
-
-                            <span class="kw">return </span>event::Status::Captured;
+                            <span class="kw">return</span>;
                         }
                         keyboard::Key::Character(<span class="string">"v"</span>)
                             <span class="kw">if </span>state.keyboard_modifiers.command()
                                 &amp;&amp; !state.keyboard_modifiers.alt() =&gt;
                         {
                             <span class="kw">let </span><span class="prelude-val">Some</span>(on_input) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_input <span class="kw">else </span>{
-                                <span class="kw">return </span>event::Status::Ignored;
+                                <span class="kw">return</span>;
                             };
 
                             <span class="kw">let </span>content = <span class="kw">match </span>state.is_pasting.take() {
@@ -2531,7 +2624,6 @@
 
                             <span class="kw">let </span><span class="kw-2">mut </span>editor =
                                 Editor::new(<span class="kw-2">&amp;mut </span><span class="self">self</span>.value, <span class="kw-2">&amp;mut </span>state.cursor);
-
                             editor.paste(content.clone());
 
                             <span class="kw">let </span>message = <span class="kw">if let </span><span class="prelude-val">Some</span>(paste) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_paste {
@@ -2540,26 +2632,35 @@
                                 (on_input)(editor.contents())
                             };
                             shell.publish(message);
+                            shell.capture_event();
 
                             state.is_pasting = <span class="prelude-val">Some</span>(content);
-
+                            focus.updated_at = Instant::now();
                             update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
-
-                            <span class="kw">return </span>event::Status::Captured;
+                            <span class="kw">return</span>;
                         }
                         keyboard::Key::Character(<span class="string">"a"</span>)
                             <span class="kw">if </span>state.keyboard_modifiers.command() =&gt;
                         {
+                            <span class="kw">let </span>cursor_before = state.cursor;
+
                             state.cursor.select_all(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
 
-                            <span class="kw">return </span>event::Status::Captured;
+                            <span class="kw">if </span>cursor_before != state.cursor {
+                                focus.updated_at = Instant::now();
+
+                                shell.request_redraw();
+                            }
+
+                            shell.capture_event();
+                            <span class="kw">return</span>;
                         }
                         <span class="kw">_ </span>=&gt; {}
                     }
 
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(text) = text {
                         <span class="kw">let </span><span class="prelude-val">Some</span>(on_input) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_input <span class="kw">else </span>{
-                            <span class="kw">return </span>event::Status::Ignored;
+                            <span class="kw">return</span>;
                         };
 
                         state.is_pasting = <span class="prelude-val">None</span>;
@@ -2574,12 +2675,11 @@
 
                             <span class="kw">let </span>message = (on_input)(editor.contents());
                             shell.publish(message);
+                            shell.capture_event();
 
                             focus.updated_at = Instant::now();
-
                             update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
-
-                            <span class="kw">return </span>event::Status::Captured;
+                            <span class="kw">return</span>;
                         }
                     }
 
@@ -2587,11 +2687,12 @@
                         keyboard::Key::Named(key::Named::Enter) =&gt; {
                             <span class="kw">if let </span><span class="prelude-val">Some</span>(on_submit) = <span class="self">self</span>.on_submit.clone() {
                                 shell.publish(on_submit);
+                                shell.capture_event();
                             }
                         }
                         keyboard::Key::Named(key::Named::Backspace) =&gt; {
                             <span class="kw">let </span><span class="prelude-val">Some</span>(on_input) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_input <span class="kw">else </span>{
-                                <span class="kw">return </span>event::Status::Ignored;
+                                <span class="kw">return</span>;
                             };
 
                             <span class="kw">if </span>modifiers.jump()
@@ -2614,12 +2715,14 @@
 
                             <span class="kw">let </span>message = (on_input)(editor.contents());
                             shell.publish(message);
+                            shell.capture_event();
 
+                            focus.updated_at = Instant::now();
                             update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
                         }
                         keyboard::Key::Named(key::Named::Delete) =&gt; {
                             <span class="kw">let </span><span class="prelude-val">Some</span>(on_input) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_input <span class="kw">else </span>{
-                                <span class="kw">return </span>event::Status::Ignored;
+                                <span class="kw">return</span>;
                             };
 
                             <span class="kw">if </span>modifiers.jump()
@@ -2645,10 +2748,14 @@
 
                             <span class="kw">let </span>message = (on_input)(editor.contents());
                             shell.publish(message);
+                            shell.capture_event();
 
+                            focus.updated_at = Instant::now();
                             update_cache(state, <span class="kw-2">&amp;</span><span class="self">self</span>.value);
                         }
                         keyboard::Key::Named(key::Named::Home) =&gt; {
+                            <span class="kw">let </span>cursor_before = state.cursor;
+
                             <span class="kw">if </span>modifiers.shift() {
                                 state.cursor.select_range(
                                     state.cursor.start(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
@@ -2657,8 +2764,18 @@
                             } <span class="kw">else </span>{
                                 state.cursor.move_to(<span class="number">0</span>);
                             }
+
+                            <span class="kw">if </span>cursor_before != state.cursor {
+                                focus.updated_at = Instant::now();
+
+                                shell.request_redraw();
+                            }
+
+                            shell.capture_event();
                         }
                         keyboard::Key::Named(key::Named::End) =&gt; {
+                            <span class="kw">let </span>cursor_before = state.cursor;
+
                             <span class="kw">if </span>modifiers.shift() {
                                 state.cursor.select_range(
                                     state.cursor.start(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
@@ -2667,10 +2784,20 @@
                             } <span class="kw">else </span>{
                                 state.cursor.move_to(<span class="self">self</span>.value.len());
                             }
+
+                            <span class="kw">if </span>cursor_before != state.cursor {
+                                focus.updated_at = Instant::now();
+
+                                shell.request_redraw();
+                            }
+
+                            shell.capture_event();
                         }
                         keyboard::Key::Named(key::Named::ArrowLeft)
                             <span class="kw">if </span>modifiers.macos_command() =&gt;
                         {
+                            <span class="kw">let </span>cursor_before = state.cursor;
+
                             <span class="kw">if </span>modifiers.shift() {
                                 state.cursor.select_range(
                                     state.cursor.start(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
@@ -2679,10 +2806,20 @@
                             } <span class="kw">else </span>{
                                 state.cursor.move_to(<span class="number">0</span>);
                             }
+
+                            <span class="kw">if </span>cursor_before != state.cursor {
+                                focus.updated_at = Instant::now();
+
+                                shell.request_redraw();
+                            }
+
+                            shell.capture_event();
                         }
                         keyboard::Key::Named(key::Named::ArrowRight)
                             <span class="kw">if </span>modifiers.macos_command() =&gt;
                         {
+                            <span class="kw">let </span>cursor_before = state.cursor;
+
                             <span class="kw">if </span>modifiers.shift() {
                                 state.cursor.select_range(
                                     state.cursor.start(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
@@ -2691,8 +2828,18 @@
                             } <span class="kw">else </span>{
                                 state.cursor.move_to(<span class="self">self</span>.value.len());
                             }
+
+                            <span class="kw">if </span>cursor_before != state.cursor {
+                                focus.updated_at = Instant::now();
+
+                                shell.request_redraw();
+                            }
+
+                            shell.capture_event();
                         }
                         keyboard::Key::Named(key::Named::ArrowLeft) =&gt; {
+                            <span class="kw">let </span>cursor_before = state.cursor;
+
                             <span class="kw">if </span>modifiers.jump() &amp;&amp; !<span class="self">self</span>.is_secure {
                                 <span class="kw">if </span>modifiers.shift() {
                                     state
@@ -2708,8 +2855,18 @@
                             } <span class="kw">else </span>{
                                 state.cursor.move_left(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
                             }
+
+                            <span class="kw">if </span>cursor_before != state.cursor {
+                                focus.updated_at = Instant::now();
+
+                                shell.request_redraw();
+                            }
+
+                            shell.capture_event();
                         }
                         keyboard::Key::Named(key::Named::ArrowRight) =&gt; {
+                            <span class="kw">let </span>cursor_before = state.cursor;
+
                             <span class="kw">if </span>modifiers.jump() &amp;&amp; !<span class="self">self</span>.is_secure {
                                 <span class="kw">if </span>modifiers.shift() {
                                     state
@@ -2725,6 +2882,14 @@
                             } <span class="kw">else </span>{
                                 state.cursor.move_right(<span class="kw-2">&amp;</span><span class="self">self</span>.value);
                             }
+
+                            <span class="kw">if </span>cursor_before != state.cursor {
+                                focus.updated_at = Instant::now();
+
+                                shell.request_redraw();
+                            }
+
+                            shell.capture_event();
                         }
                         keyboard::Key::Named(key::Named::Escape) =&gt; {
                             state.is_focused = <span class="prelude-val">None</span>;
@@ -2733,39 +2898,22 @@
 
                             state.keyboard_modifiers =
                                 keyboard::Modifiers::default();
-                        }
-                        keyboard::Key::Named(
-                            key::Named::Tab
-                            | key::Named::ArrowUp
-                            | key::Named::ArrowDown,
-                        ) =&gt; {
-                            <span class="kw">return </span>event::Status::Ignored;
+
+                            shell.capture_event();
                         }
                         <span class="kw">_ </span>=&gt; {}
                     }
-
-                    <span class="kw">return </span>event::Status::Captured;
                 }
             }
             Event::Keyboard(keyboard::Event::KeyReleased { key, .. }) =&gt; {
                 <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
 
                 <span class="kw">if </span>state.is_focused.is_some() {
-                    <span class="kw">match </span>key.as_ref() {
-                        keyboard::Key::Character(<span class="string">"v"</span>) =&gt; {
-                            state.is_pasting = <span class="prelude-val">None</span>;
-                        }
-                        keyboard::Key::Named(
-                            key::Named::Tab
-                            | key::Named::ArrowUp
-                            | key::Named::ArrowDown,
-                        ) =&gt; {
-                            <span class="kw">return </span>event::Status::Ignored;
-                        }
-                        <span class="kw">_ </span>=&gt; {}
-                    }
+                    <span class="kw">if let </span>keyboard::Key::Character(<span class="string">"v"</span>) = key.as_ref() {
+                        state.is_pasting = <span class="prelude-val">None</span>;
 
-                    <span class="kw">return </span>event::Status::Captured;
+                        shell.capture_event();
+                    }
                 }
 
                 state.is_pasting = <span class="prelude-val">None</span>;
@@ -2773,7 +2921,7 @@
             Event::Keyboard(keyboard::Event::ModifiersChanged(modifiers)) =&gt; {
                 <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
 
-                state.keyboard_modifiers = modifiers;
+                state.keyboard_modifiers = <span class="kw-2">*</span>modifiers;
             }
             Event::Window(window::Event::Unfocused) =&gt; {
                 <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
@@ -2789,32 +2937,59 @@
                     focus.is_window_focused = <span class="bool-val">true</span>;
                     focus.updated_at = Instant::now();
 
-                    shell.request_redraw(window::RedrawRequest::NextFrame);
+                    shell.request_redraw();
                 }
             }
             Event::Window(window::Event::RedrawRequested(now)) =&gt; {
                 <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
 
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.is_focused {
-                    <span class="kw">if </span>focus.is_window_focused {
-                        focus.now = now;
+                    <span class="kw">if </span>focus.is_window_focused
+                        &amp;&amp; <span class="macro">matches!</span>(
+                            state.cursor.state(<span class="kw-2">&amp;</span><span class="self">self</span>.value),
+                            cursor::State::Index(<span class="kw">_</span>)
+                        )
+                    {
+                        focus.now = <span class="kw-2">*</span>now;
 
                         <span class="kw">let </span>millis_until_redraw = CURSOR_BLINK_INTERVAL_MILLIS
-                            - (now - focus.updated_at).as_millis()
+                            - (<span class="kw-2">*</span>now - focus.updated_at).as_millis()
                                 % CURSOR_BLINK_INTERVAL_MILLIS;
 
-                        shell.request_redraw(window::RedrawRequest::At(
-                            now + Duration::from_millis(
+                        shell.request_redraw_at(
+                            <span class="kw-2">*</span>now + Duration::from_millis(
                                 millis_until_redraw <span class="kw">as </span>u64,
                             ),
-                        ));
+                        );
                     }
                 }
             }
             <span class="kw">_ </span>=&gt; {}
         }
 
-        event::Status::Ignored
+        <span class="kw">let </span>state = state::&lt;Renderer&gt;(tree);
+        <span class="kw">let </span>is_disabled = <span class="self">self</span>.on_input.is_none();
+
+        <span class="kw">let </span>status = <span class="kw">if </span>is_disabled {
+            Status::Disabled
+        } <span class="kw">else if </span>state.is_focused() {
+            Status::Focused {
+                is_hovered: cursor.is_over(layout.bounds()),
+            }
+        } <span class="kw">else if </span>cursor.is_over(layout.bounds()) {
+            Status::Hovered
+        } <span class="kw">else </span>{
+            Status::Active
+        };
+
+        <span class="kw">if let </span>Event::Window(window::Event::RedrawRequested(_now)) = event {
+            <span class="self">self</span>.last_status = <span class="prelude-val">Some</span>(status);
+        } <span class="kw">else if </span><span class="self">self
+            </span>.last_status
+            .is_some_and(|last_status| status != last_status)
+        {
+            shell.request_redraw();
+        }
     }
 
     <span class="kw">fn </span>draw(
@@ -3181,7 +3356,10 @@
     <span class="doccomment">/// The [`TextInput`] is being hovered.
     </span>Hovered,
     <span class="doccomment">/// The [`TextInput`] is focused.
-    </span>Focused,
+    </span>Focused {
+        <span class="doccomment">/// Whether the [`TextInput`] is hovered, while focused.
+        </span>is_hovered: bool,
+    },
     <span class="doccomment">/// The [`TextInput`] cannot be interacted with.
     </span>Disabled,
 }
@@ -3258,7 +3436,7 @@
             },
             ..active
         },
-        Status::Focused =&gt; Style {
+        Status::Focused { .. } =&gt; Style {
             border: Border {
                 color: palette.primary.strong.color,
                 ..active.border

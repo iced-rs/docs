@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/canvas.rs`."><title>canvas.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-590a400c.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0-nightly (fbab78289 2024-11-04)" data-channel="nightly" data-search-js="search-c5a66128.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_widget/</div>canvas.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/canvas.rs`."><title>canvas.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0-nightly (f7273e004 2024-11-12)" data-channel="nightly" data-search-js="search-853ef39b.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_widget/</div>canvas.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -311,7 +311,30 @@
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
 <a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a></pre></div><pre class="rust"><code><span class="doccomment">//! Canvases can be leveraged to draw interactive 2D graphics.
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a></pre></div><pre class="rust"><code><span class="doccomment">//! Canvases can be leveraged to draw interactive 2D graphics.
 //!
 //! # Example: Drawing a Simple Circle
 //! ```no_run
@@ -361,24 +384,24 @@
 //!     canvas(Circle { radius: 50.0 }).into()
 //! }
 //! ```
-</span><span class="kw">pub mod </span>event;
+</span><span class="kw">mod </span>program;
 
-<span class="kw">mod </span>program;
-
-<span class="kw">pub use </span>event::Event;
 <span class="kw">pub use </span>program::Program;
 
+<span class="kw">pub use </span><span class="kw">crate</span>::core::event::Event;
 <span class="kw">pub use </span><span class="kw">crate</span>::graphics::cache::Group;
 <span class="kw">pub use </span><span class="kw">crate</span>::graphics::geometry::{
     fill, gradient, path, stroke, Fill, Gradient, Image, LineCap, LineDash,
     LineJoin, Path, Stroke, Style, Text,
 };
+<span class="kw">pub use </span><span class="kw">crate</span>::Action;
 
-<span class="kw">use </span><span class="kw">crate</span>::core;
+<span class="kw">use </span><span class="kw">crate</span>::core::event;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout::{<span class="self">self</span>, Layout};
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
+<span class="kw">use </span><span class="kw">crate</span>::core::window;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
     Clipboard, Element, Length, Rectangle, Shell, Size, Vector, Widget,
 };
@@ -461,6 +484,7 @@
     message_: PhantomData&lt;Message&gt;,
     theme_: PhantomData&lt;Theme&gt;,
     renderer_: PhantomData&lt;Renderer&gt;,
+    last_mouse_interaction: <span class="prelude-ty">Option</span>&lt;mouse::Interaction&gt;,
 }
 
 <span class="kw">impl</span>&lt;P, Message, Theme, Renderer&gt; Canvas&lt;P, Message, Theme, Renderer&gt;
@@ -479,6 +503,7 @@
             message_: PhantomData,
             theme_: PhantomData,
             renderer_: PhantomData,
+            last_mouse_interaction: <span class="prelude-val">None</span>,
         }
     }
 
@@ -526,42 +551,63 @@
         layout::atomic(limits, <span class="self">self</span>.width, <span class="self">self</span>.height)
     }
 
-    <span class="kw">fn </span>on_event(
+    <span class="kw">fn </span>update(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;mut </span>Tree,
-        event: core::Event,
+        event: Event,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
-        _renderer: <span class="kw-2">&amp;</span>Renderer,
+        renderer: <span class="kw-2">&amp;</span>Renderer,
         _clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
         shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
-        _viewport: <span class="kw-2">&amp;</span>Rectangle,
-    ) -&gt; event::Status {
+        viewport: <span class="kw-2">&amp;</span>Rectangle,
+    ) {
         <span class="kw">let </span>bounds = layout.bounds();
 
-        <span class="kw">let </span>canvas_event = <span class="kw">match </span>event {
-            core::Event::Mouse(mouse_event) =&gt; <span class="prelude-val">Some</span>(Event::Mouse(mouse_event)),
-            core::Event::Touch(touch_event) =&gt; <span class="prelude-val">Some</span>(Event::Touch(touch_event)),
-            core::Event::Keyboard(keyboard_event) =&gt; {
-                <span class="prelude-val">Some</span>(Event::Keyboard(keyboard_event))
-            }
-            core::Event::Window(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
-        };
+        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;P::State&gt;();
+        <span class="kw">let </span>is_redraw_request = <span class="macro">matches!</span>(
+            event,
+            Event::Window(window::Event::RedrawRequested(_now)),
+        );
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(canvas_event) = canvas_event {
-            <span class="kw">let </span>state = tree.state.downcast_mut::&lt;P::State&gt;();
-
-            <span class="kw">let </span>(event_status, message) =
-                <span class="self">self</span>.program.update(state, canvas_event, bounds, cursor);
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(action) = <span class="self">self</span>.program.update(state, event, bounds, cursor)
+        {
+            <span class="kw">let </span>(message, redraw_request, event_status) = action.into_inner();
 
             <span class="kw">if let </span><span class="prelude-val">Some</span>(message) = message {
                 shell.publish(message);
             }
 
-            <span class="kw">return </span>event_status;
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(redraw_request) = redraw_request {
+                <span class="kw">match </span>redraw_request {
+                    window::RedrawRequest::NextFrame =&gt; {
+                        shell.request_redraw();
+                    }
+                    window::RedrawRequest::At(at) =&gt; {
+                        shell.request_redraw_at(at);
+                    }
+                }
+            }
+
+            <span class="kw">if </span>event_status == event::Status::Captured {
+                shell.capture_event();
+            }
         }
 
-        event::Status::Ignored
+        <span class="kw">if </span>shell.redraw_request() != <span class="prelude-val">Some</span>(window::RedrawRequest::NextFrame) {
+            <span class="kw">let </span>mouse_interaction = <span class="self">self
+                </span>.mouse_interaction(tree, layout, cursor, viewport, renderer);
+
+            <span class="kw">if </span>is_redraw_request {
+                <span class="self">self</span>.last_mouse_interaction = <span class="prelude-val">Some</span>(mouse_interaction);
+            } <span class="kw">else if </span><span class="self">self</span>.last_mouse_interaction.is_some_and(
+                |last_mouse_interaction| {
+                    last_mouse_interaction != mouse_interaction
+                },
+            ) {
+                shell.request_redraw();
+            }
+        }
     }
 
     <span class="kw">fn </span>mouse_interaction(
