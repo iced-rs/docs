@@ -257,7 +257,8 @@
 <a href="#256" id="256">256</a>
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{Color, Rectangle, Size};
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::{Color, Rectangle, Size};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::compositor::{<span class="self">self</span>, Information};
 <span class="kw">use </span><span class="kw">crate</span>::graphics::damage;
 <span class="kw">use </span><span class="kw">crate</span>::graphics::error::{<span class="self">self</span>, Error};
@@ -380,12 +381,11 @@
     <span class="kw">fn </span>screenshot&lt;T: AsRef&lt;str&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         renderer: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Renderer,
-        surface: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Surface,
         viewport: <span class="kw-2">&amp;</span>Viewport,
         background_color: Color,
         overlay: <span class="kw-2">&amp;</span>[T],
     ) -&gt; Vec&lt;u8&gt; {
-        screenshot(renderer, surface, viewport, background_color, overlay)
+        screenshot(renderer, viewport, background_color, overlay)
     }
 }
 
@@ -471,7 +471,6 @@
 
 <span class="kw">pub fn </span>screenshot&lt;T: AsRef&lt;str&gt;&gt;(
     renderer: <span class="kw-2">&amp;mut </span>Renderer,
-    surface: <span class="kw-2">&amp;mut </span>Surface,
     viewport: <span class="kw-2">&amp;</span>Viewport,
     background_color: Color,
     overlay: <span class="kw-2">&amp;</span>[T],
@@ -481,6 +480,9 @@
     <span class="kw">let </span><span class="kw-2">mut </span>offscreen_buffer: Vec&lt;u32&gt; =
         <span class="macro">vec!</span>[<span class="number">0</span>; size.width <span class="kw">as </span>usize * size.height <span class="kw">as </span>usize];
 
+    <span class="kw">let </span><span class="kw-2">mut </span>clip_mask = tiny_skia::Mask::new(size.width, size.height)
+        .expect(<span class="string">"Create clip mask"</span>);
+
     renderer.draw(
         <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut::from_bytes(
             bytemuck::cast_slice_mut(<span class="kw-2">&amp;mut </span>offscreen_buffer),
@@ -488,7 +490,7 @@
             size.height,
         )
         .expect(<span class="string">"Create offscreen pixel map"</span>),
-        <span class="kw-2">&amp;mut </span>surface.clip_mask,
+        <span class="kw-2">&amp;mut </span>clip_mask,
         viewport,
         <span class="kw-2">&amp;</span>[Rectangle::with_size(Size::new(
             size.width <span class="kw">as </span>f32,

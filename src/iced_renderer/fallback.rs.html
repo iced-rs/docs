@@ -621,14 +621,7 @@
 <a href="#620" id="620">620</a>
 <a href="#621" id="621">621</a>
 <a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a>
-<a href="#626" id="626">626</a>
-<a href="#627" id="627">627</a>
-<a href="#628" id="628">628</a>
-<a href="#629" id="629">629</a>
-<a href="#630" id="630">630</a></pre></div><pre class="rust"><code><span class="doccomment">//! Compose existing renderers and create type-safe fallback strategies.
+<a href="#623" id="623">623</a></pre></div><pre class="rust"><code><span class="doccomment">//! Compose existing renderers and create type-safe fallback strategies.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::image;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::svg;
@@ -983,34 +976,27 @@
     <span class="kw">fn </span>screenshot&lt;T: AsRef&lt;str&gt;&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         renderer: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Renderer,
-        surface: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Surface,
         viewport: <span class="kw-2">&amp;</span>graphics::Viewport,
         background_color: Color,
         overlay: <span class="kw-2">&amp;</span>[T],
     ) -&gt; Vec&lt;u8&gt; {
-        <span class="kw">match </span>(<span class="self">self</span>, renderer, surface) {
-            (
-                <span class="self">Self</span>::Primary(compositor),
-                Renderer::Primary(renderer),
-                Surface::Primary(surface),
-            ) =&gt; compositor.screenshot(
-                renderer,
-                surface,
-                viewport,
-                background_color,
-                overlay,
-            ),
-            (
-                <span class="self">Self</span>::Secondary(compositor),
-                Renderer::Secondary(renderer),
-                Surface::Secondary(surface),
-            ) =&gt; compositor.screenshot(
-                renderer,
-                surface,
-                viewport,
-                background_color,
-                overlay,
-            ),
+        <span class="kw">match </span>(<span class="self">self</span>, renderer) {
+            (<span class="self">Self</span>::Primary(compositor), Renderer::Primary(renderer)) =&gt; {
+                compositor.screenshot(
+                    renderer,
+                    viewport,
+                    background_color,
+                    overlay,
+                )
+            }
+            (<span class="self">Self</span>::Secondary(compositor), Renderer::Secondary(renderer)) =&gt; {
+                compositor.screenshot(
+                    renderer,
+                    viewport,
+                    background_color,
+                    overlay,
+                )
+            }
             <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
         }
     }
