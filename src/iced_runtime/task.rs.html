@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/src/task.rs`."><title>task.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0-nightly (f7273e004 2024-11-12)" data-channel="nightly" data-search-js="search-853ef39b.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_runtime/</div>task.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/src/task.rs`."><title>task.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-42caa33d.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.84.0-nightly (3fee0f12e 2024-11-20)" data-channel="nightly" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_runtime/</div>task.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -365,7 +365,28 @@
 <a href="#364" id="364">364</a>
 <a href="#365" id="365">365</a>
 <a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a></pre></div><pre class="rust"><code><span class="doccomment">//! Create runtime tasks.
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a></pre></div><pre class="rust"><code><span class="doccomment">//! Create runtime tasks.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::widget;
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures::channel::mpsc;
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures::channel::oneshot;
@@ -376,6 +397,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::Action;
 
 <span class="kw">use </span>std::future::Future;
+<span class="kw">use </span>std::sync::Arc;
 
 <span class="doccomment">/// A set of concurrent actions to be performed by the iced runtime.
 ///
@@ -550,16 +572,16 @@
                 (
                     <span class="self">Self</span>(<span class="prelude-val">Some</span>(boxed_stream(stream))),
                     Handle {
-                        raw: <span class="prelude-val">Some</span>(handle),
-                        abort_on_drop: <span class="bool-val">false</span>,
+                        internal: InternalHandle::Manual(handle),
                     },
                 )
             }
             <span class="prelude-val">None </span>=&gt; (
                 <span class="self">Self</span>(<span class="prelude-val">None</span>),
                 Handle {
-                    raw: <span class="prelude-val">None</span>,
-                    abort_on_drop: <span class="bool-val">false</span>,
+                    internal: InternalHandle::Manual(
+                        stream::AbortHandle::new_pair().<span class="number">0</span>,
+                    ),
                 },
             ),
         }
@@ -587,44 +609,64 @@
 <span class="doccomment">/// A handle to a [`Task`] that can be used for aborting it.
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>Handle {
-    raw: <span class="prelude-ty">Option</span>&lt;stream::AbortHandle&gt;,
-    abort_on_drop: bool,
+    internal: InternalHandle,
+}
+
+<span class="attr">#[derive(Debug, Clone)]
+</span><span class="kw">enum </span>InternalHandle {
+    Manual(stream::AbortHandle),
+    AbortOnDrop(Arc&lt;stream::AbortHandle&gt;),
+}
+
+<span class="kw">impl </span>InternalHandle {
+    <span class="kw">pub fn </span>as_ref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>stream::AbortHandle {
+        <span class="kw">match </span><span class="self">self </span>{
+            InternalHandle::Manual(handle) =&gt; handle,
+            InternalHandle::AbortOnDrop(handle) =&gt; handle.as_ref(),
+        }
+    }
 }
 
 <span class="kw">impl </span>Handle {
     <span class="doccomment">/// Aborts the [`Task`] of this [`Handle`].
     </span><span class="kw">pub fn </span>abort(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = <span class="kw-2">&amp;</span><span class="self">self</span>.raw {
-            handle.abort();
-        }
+        <span class="self">self</span>.internal.as_ref().abort();
     }
 
     <span class="doccomment">/// Returns a new [`Handle`] that will call [`Handle::abort`] whenever
-    /// it is dropped.
+    /// all of its instances are dropped.
+    ///
+    /// If a [`Handle`] is cloned, [`Handle::abort`] will only be called
+    /// once all of the clones are dropped.
     ///
     /// This can be really useful if you do not want to worry about calling
     /// [`Handle::abort`] yourself.
-    </span><span class="kw">pub fn </span>abort_on_drop(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        <span class="self">Self </span>{
-            raw: <span class="self">self</span>.raw.take(),
-            abort_on_drop: <span class="bool-val">true</span>,
+    </span><span class="kw">pub fn </span>abort_on_drop(<span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.internal {
+            InternalHandle::Manual(handle) =&gt; <span class="self">Self </span>{
+                internal: InternalHandle::AbortOnDrop(Arc::new(handle.clone())),
+            },
+            InternalHandle::AbortOnDrop(<span class="kw">_</span>) =&gt; <span class="self">self</span>,
         }
     }
 
     <span class="doccomment">/// Returns `true` if the [`Task`] of this [`Handle`] has been aborted.
     </span><span class="kw">pub fn </span>is_aborted(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = <span class="kw-2">&amp;</span><span class="self">self</span>.raw {
-            handle.is_aborted()
-        } <span class="kw">else </span>{
-            <span class="bool-val">true
-        </span>}
+        <span class="self">self</span>.internal.as_ref().is_aborted()
     }
 }
 
 <span class="kw">impl </span>Drop <span class="kw">for </span>Handle {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">if </span><span class="self">self</span>.abort_on_drop {
-            <span class="self">self</span>.abort();
+        <span class="kw">if let </span>InternalHandle::AbortOnDrop(handle) = <span class="kw-2">&amp;mut </span><span class="self">self</span>.internal {
+            <span class="kw">let </span>handle = std::mem::replace(
+                handle,
+                Arc::new(stream::AbortHandle::new_pair().<span class="number">0</span>),
+            );
+
+            <span class="kw">if let </span><span class="prelude-val">Some</span>(handle) = Arc::into_inner(handle) {
+                handle.abort();
+            }
         }
     }
 }
