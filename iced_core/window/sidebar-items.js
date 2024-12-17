@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Event","Level","Mode","Position","RedrawRequest","UserAttention"],"mod":["icon","settings"],"struct":["Id"]};
+window.SIDEBAR_ITEMS = {"enum":["Event","Level","Mode","Position","RedrawRequest","UserAttention"],"mod":["icon","screenshot","settings"],"struct":["Id"]};

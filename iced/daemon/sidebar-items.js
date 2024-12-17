@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["daemon"],"struct":["Appearance","Daemon"],"trait":["DefaultStyle","Title","View"]};
+window.SIDEBAR_ITEMS = {"fn":["daemon"],"struct":["Daemon"],"trait":["Title","View"]};

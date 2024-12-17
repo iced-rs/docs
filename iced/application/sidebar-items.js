@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["application"],"struct":["Appearance","Application"],"trait":["DefaultStyle","Title","Update","View"]};
+window.SIDEBAR_ITEMS = {"fn":["application"],"struct":["Application"],"trait":["Title","Update","View"]};
