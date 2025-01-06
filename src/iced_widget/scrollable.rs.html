@@ -2020,7 +2020,45 @@
 <a href="#2019" id="2019">2019</a>
 <a href="#2020" id="2020">2020</a>
 <a href="#2021" id="2021">2021</a>
-<a href="#2022" id="2022">2022</a></pre></div><pre class="rust"><code><span class="doccomment">//! Scrollables let users navigate an endless amount of content with a scrollbar.
+<a href="#2022" id="2022">2022</a>
+<a href="#2023" id="2023">2023</a>
+<a href="#2024" id="2024">2024</a>
+<a href="#2025" id="2025">2025</a>
+<a href="#2026" id="2026">2026</a>
+<a href="#2027" id="2027">2027</a>
+<a href="#2028" id="2028">2028</a>
+<a href="#2029" id="2029">2029</a>
+<a href="#2030" id="2030">2030</a>
+<a href="#2031" id="2031">2031</a>
+<a href="#2032" id="2032">2032</a>
+<a href="#2033" id="2033">2033</a>
+<a href="#2034" id="2034">2034</a>
+<a href="#2035" id="2035">2035</a>
+<a href="#2036" id="2036">2036</a>
+<a href="#2037" id="2037">2037</a>
+<a href="#2038" id="2038">2038</a>
+<a href="#2039" id="2039">2039</a>
+<a href="#2040" id="2040">2040</a>
+<a href="#2041" id="2041">2041</a>
+<a href="#2042" id="2042">2042</a>
+<a href="#2043" id="2043">2043</a>
+<a href="#2044" id="2044">2044</a>
+<a href="#2045" id="2045">2045</a>
+<a href="#2046" id="2046">2046</a>
+<a href="#2047" id="2047">2047</a>
+<a href="#2048" id="2048">2048</a>
+<a href="#2049" id="2049">2049</a>
+<a href="#2050" id="2050">2050</a>
+<a href="#2051" id="2051">2051</a>
+<a href="#2052" id="2052">2052</a>
+<a href="#2053" id="2053">2053</a>
+<a href="#2054" id="2054">2054</a>
+<a href="#2055" id="2055">2055</a>
+<a href="#2056" id="2056">2056</a>
+<a href="#2057" id="2057">2057</a>
+<a href="#2058" id="2058">2058</a>
+<a href="#2059" id="2059">2059</a>
+<a href="#2060" id="2060">2060</a></pre></div><pre class="rust"><code><span class="doccomment">//! Scrollables let users navigate an endless amount of content with a scrollbar.
 //!
 //! # Example
 //! ```no_run
@@ -2928,14 +2966,21 @@
                 is_vertical_scrollbar_dragged: state
                     .y_scroller_grabbed_at
                     .is_some(),
+                is_horizontal_scrollbar_disabled: scrollbars.is_x_disabled(),
+                is_vertical_scrollbar_disabled: scrollbars.is_y_disabled(),
             }
         } <span class="kw">else if </span>cursor_over_scrollable.is_some() {
             Status::Hovered {
                 is_horizontal_scrollbar_hovered: mouse_over_x_scrollbar,
                 is_vertical_scrollbar_hovered: mouse_over_y_scrollbar,
+                is_horizontal_scrollbar_disabled: scrollbars.is_x_disabled(),
+                is_vertical_scrollbar_disabled: scrollbars.is_y_disabled(),
             }
         } <span class="kw">else </span>{
-            Status::Active
+            Status::Active {
+                is_horizontal_scrollbar_disabled: scrollbars.is_x_disabled(),
+                is_vertical_scrollbar_disabled: scrollbars.is_y_disabled(),
+            }
         };
 
         <span class="kw">if let </span>Event::Window(window::Event::RedrawRequested(_now)) = event {
@@ -2990,8 +3035,13 @@
             <span class="kw">_ </span>=&gt; mouse::Cursor::Unavailable,
         };
 
-        <span class="kw">let </span>style = theme
-            .style(<span class="kw-2">&amp;</span><span class="self">self</span>.class, <span class="self">self</span>.last_status.unwrap_or(Status::Active));
+        <span class="kw">let </span>style = theme.style(
+            <span class="kw-2">&amp;</span><span class="self">self</span>.class,
+            <span class="self">self</span>.last_status.unwrap_or(Status::Active {
+                is_horizontal_scrollbar_disabled: <span class="bool-val">false</span>,
+                is_vertical_scrollbar_disabled: <span class="bool-val">false</span>,
+            }),
+        );
 
         container::draw_background(renderer, <span class="kw-2">&amp;</span>style.container, layout.bounds());
 
@@ -3683,6 +3733,7 @@
                 bounds: scrollbar_bounds,
                 scroller,
                 alignment: vertical.alignment,
+                disabled: content_bounds.height &lt;= bounds.height,
             })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -3752,6 +3803,7 @@
                 bounds: scrollbar_bounds,
                 scroller,
                 alignment: horizontal.alignment,
+                disabled: content_bounds.width &lt;= bounds.width,
             })
         } <span class="kw">else </span>{
             <span class="prelude-val">None
@@ -3778,6 +3830,14 @@
         } <span class="kw">else </span>{
             (<span class="bool-val">false</span>, <span class="bool-val">false</span>)
         }
+    }
+
+    <span class="kw">fn </span>is_y_disabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.y.map(|y| y.disabled).unwrap_or(<span class="bool-val">false</span>)
+    }
+
+    <span class="kw">fn </span>is_x_disabled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.x.map(|x| x.disabled).unwrap_or(<span class="bool-val">false</span>)
     }
 
     <span class="kw">fn </span>grab_y_scroller(<span class="kw-2">&amp;</span><span class="self">self</span>, cursor_position: Point) -&gt; <span class="prelude-ty">Option</span>&lt;f32&gt; {
@@ -3826,6 +3886,7 @@
         <span class="kw">pub </span>bounds: Rectangle,
         <span class="kw">pub </span>scroller: <span class="prelude-ty">Option</span>&lt;Scroller&gt;,
         <span class="kw">pub </span>alignment: Anchor,
+        <span class="kw">pub </span>disabled: bool,
     }
 
     <span class="kw">impl </span>Scrollbar {
@@ -3889,13 +3950,22 @@
 </span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>Status {
     <span class="doccomment">/// The [`Scrollable`] can be interacted with.
-    </span>Active,
+    </span>Active {
+        <span class="doccomment">/// Whether or not the horizontal scrollbar is disabled meaning the content isn't overflowing.
+        </span>is_horizontal_scrollbar_disabled: bool,
+        <span class="doccomment">/// Whether or not the vertical scrollbar is disabled meaning the content isn't overflowing.
+        </span>is_vertical_scrollbar_disabled: bool,
+    },
     <span class="doccomment">/// The [`Scrollable`] is being hovered.
     </span>Hovered {
         <span class="doccomment">/// Indicates if the horizontal scrollbar is being hovered.
         </span>is_horizontal_scrollbar_hovered: bool,
         <span class="doccomment">/// Indicates if the vertical scrollbar is being hovered.
         </span>is_vertical_scrollbar_hovered: bool,
+        <span class="doccomment">/// Whether or not the horizontal scrollbar is disabled meaning the content isn't overflowing.
+        </span>is_horizontal_scrollbar_disabled: bool,
+        <span class="doccomment">/// Whether or not the vertical scrollbar is disabled meaning the content isn't overflowing.
+        </span>is_vertical_scrollbar_disabled: bool,
     },
     <span class="doccomment">/// The [`Scrollable`] is being dragged.
     </span>Dragged {
@@ -3903,6 +3973,10 @@
         </span>is_horizontal_scrollbar_dragged: bool,
         <span class="doccomment">/// Indicates if the vertical scrollbar is being dragged.
         </span>is_vertical_scrollbar_dragged: bool,
+        <span class="doccomment">/// Whether or not the horizontal scrollbar is disabled meaning the content isn't overflowing.
+        </span>is_horizontal_scrollbar_disabled: bool,
+        <span class="doccomment">/// Whether or not the vertical scrollbar is disabled meaning the content isn't overflowing.
+        </span>is_vertical_scrollbar_disabled: bool,
     },
 }
 
@@ -3980,7 +4054,7 @@
     };
 
     <span class="kw">match </span>status {
-        Status::Active =&gt; Style {
+        Status::Active { .. } =&gt; Style {
             container: container::Style::default(),
             vertical_rail: scrollbar,
             horizontal_rail: scrollbar,
@@ -3989,6 +4063,7 @@
         Status::Hovered {
             is_horizontal_scrollbar_hovered,
             is_vertical_scrollbar_hovered,
+            ..
         } =&gt; {
             <span class="kw">let </span>hovered_scrollbar = Rail {
                 scroller: Scroller {
@@ -4016,6 +4091,7 @@
         Status::Dragged {
             is_horizontal_scrollbar_dragged,
             is_vertical_scrollbar_dragged,
+            ..
         } =&gt; {
             <span class="kw">let </span>dragged_scrollbar = Rail {
                 scroller: Scroller {
