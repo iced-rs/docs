@@ -280,7 +280,10 @@
 <a href="#279" id="279">279</a>
 <a href="#280" id="280">280</a>
 <a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a></pre></div><pre class="rust"><code><span class="doccomment">//! Use the built-in theme and styles.
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a></pre></div><pre class="rust"><code><span class="doccomment">//! Use the built-in theme and styles.
 </span><span class="kw">pub mod </span>palette;
 
 <span class="kw">pub use </span>palette::Palette;
@@ -450,13 +453,16 @@
         </span>{
             <span class="kw">use </span>std::sync::LazyLock;
 
-            <span class="kw">static </span>DEFAULT: LazyLock&lt;Theme&gt; =
-                LazyLock::new(|| <span class="kw">match </span>dark_light::detect() {
+            <span class="kw">static </span>DEFAULT: LazyLock&lt;Theme&gt; = LazyLock::new(|| {
+                <span class="kw">match </span>dark_light::detect()
+                    .unwrap_or(dark_light::Mode::Unspecified)
+                {
                     dark_light::Mode::Dark =&gt; Theme::Dark,
-                    dark_light::Mode::Light | dark_light::Mode::Default =&gt; {
+                    dark_light::Mode::Light | dark_light::Mode::Unspecified =&gt; {
                         Theme::Light
                     }
-                });
+                }
+            });
 
             DEFAULT.clone()
         }
