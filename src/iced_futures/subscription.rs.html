@@ -663,8 +663,8 @@
         T: <span class="lifetime">'static</span>,
     {
         from_recipe(Runner {
-            id: builder,
-            spawn: <span class="kw">move </span>|<span class="kw">_</span>| builder(),
+            data: builder,
+            spawn: |builder, <span class="kw">_</span>| builder(),
         })
     }
 
@@ -672,15 +672,15 @@
     /// given [`Stream`].
     ///
     /// The `id` will be used to uniquely identify the [`Subscription`].
-    </span><span class="kw">pub fn </span>run_with_id&lt;I, S&gt;(id: I, stream: S) -&gt; Subscription&lt;T&gt;
-    <span class="kw">where
-        </span>I: Hash + <span class="lifetime">'static</span>,
+    </span><span class="kw">pub fn </span>run_with&lt;D, S&gt;(data: D, builder: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>D) -&gt; S) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>D: Hash + <span class="lifetime">'static</span>,
         S: Stream&lt;Item = T&gt; + MaybeSend + <span class="lifetime">'static</span>,
         T: <span class="lifetime">'static</span>,
     {
         from_recipe(Runner {
-            id,
-            spawn: <span class="kw">move </span>|<span class="kw">_</span>| stream,
+            data: (data, builder),
+            spawn: |(data, builder), <span class="kw">_</span>| builder(data),
         })
     }
 
@@ -884,8 +884,8 @@
     T: <span class="lifetime">'static </span>+ MaybeSend,
 {
     from_recipe(Runner {
-        id,
-        spawn: |events| {
+        data: id,
+        spawn: |<span class="kw">_</span>, events| {
             <span class="kw">use </span>futures::future;
             <span class="kw">use </span>futures::stream::StreamExt;
 
@@ -896,28 +896,28 @@
 
 <span class="kw">struct </span>Runner&lt;I, F, S, T&gt;
 <span class="kw">where
-    </span>F: FnOnce(EventStream) -&gt; S,
+    </span>F: FnOnce(<span class="kw-2">&amp;</span>I, EventStream) -&gt; S,
     S: Stream&lt;Item = T&gt;,
 {
-    id: I,
+    data: I,
     spawn: F,
 }
 
 <span class="kw">impl</span>&lt;I, F, S, T&gt; Recipe <span class="kw">for </span>Runner&lt;I, F, S, T&gt;
 <span class="kw">where
     </span>I: Hash + <span class="lifetime">'static</span>,
-    F: FnOnce(EventStream) -&gt; S,
+    F: FnOnce(<span class="kw-2">&amp;</span>I, EventStream) -&gt; S,
     S: Stream&lt;Item = T&gt; + MaybeSend + <span class="lifetime">'static</span>,
 {
     <span class="kw">type </span>Output = T;
 
     <span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>Hasher) {
         std::any::TypeId::of::&lt;I&gt;().hash(state);
-        <span class="self">self</span>.id.hash(state);
+        <span class="self">self</span>.data.hash(state);
     }
 
     <span class="kw">fn </span>stream(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, input: EventStream) -&gt; BoxStream&lt;<span class="self">Self</span>::Output&gt; {
-        <span class="kw">crate</span>::boxed_stream((<span class="self">self</span>.spawn)(input))
+        <span class="kw">crate</span>::boxed_stream((<span class="self">self</span>.spawn)(<span class="kw-2">&amp;</span><span class="self">self</span>.data, input))
     }
 }
 </code></pre></div></section></main></body></html>

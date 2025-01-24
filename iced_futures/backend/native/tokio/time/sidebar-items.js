@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["every"]};
+window.SIDEBAR_ITEMS = {"fn":["every","repeat"]};

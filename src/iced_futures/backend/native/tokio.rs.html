@@ -70,7 +70,13 @@
 <a href="#69" id="69">69</a>
 <a href="#70" id="70">70</a>
 <a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a></pre></div><pre class="rust"><code><span class="doccomment">//! A `tokio` backend.
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a></pre></div><pre class="rust"><code><span class="doccomment">//! A `tokio` backend.
 </span><span class="kw">use </span>futures::Future;
 
 <span class="doccomment">/// A `tokio` executor.
@@ -94,40 +100,25 @@
 
 <span class="kw">pub mod </span>time {
     <span class="doccomment">//! Listen and react to time.
-    </span><span class="kw">use </span><span class="kw">crate</span>::subscription::{<span class="self">self</span>, Hasher, Subscription};
+    </span><span class="kw">use </span><span class="kw">crate</span>::core::time::{Duration, Instant};
+    <span class="kw">use </span><span class="kw">crate</span>::stream;
+    <span class="kw">use </span><span class="kw">crate</span>::subscription::Subscription;
+    <span class="kw">use </span><span class="kw">crate</span>::MaybeSend;
+
+    <span class="kw">use </span>futures::SinkExt;
+    <span class="kw">use </span>std::future::Future;
 
     <span class="doccomment">/// Returns a [`Subscription`] that produces messages at a set interval.
     ///
     /// The first message is produced after a `duration`, and then continues to
     /// produce more messages every `duration` after that.
-    </span><span class="kw">pub fn </span>every(
-        duration: std::time::Duration,
-    ) -&gt; Subscription&lt;std::time::Instant&gt; {
-        subscription::from_recipe(Every(duration))
-    }
-
-    <span class="attr">#[derive(Debug)]
-    </span><span class="kw">struct </span>Every(std::time::Duration);
-
-    <span class="kw">impl </span>subscription::Recipe <span class="kw">for </span>Every {
-        <span class="kw">type </span>Output = std::time::Instant;
-
-        <span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>Hasher) {
-            <span class="kw">use </span>std::hash::Hash;
-
-            std::any::TypeId::of::&lt;<span class="self">Self</span>&gt;().hash(state);
-            <span class="self">self</span>.<span class="number">0</span>.hash(state);
-        }
-
-        <span class="kw">fn </span>stream(
-            <span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;,
-            _input: subscription::EventStream,
-        ) -&gt; futures::stream::BoxStream&lt;<span class="lifetime">'static</span>, <span class="self">Self</span>::Output&gt; {
+    </span><span class="kw">pub fn </span>every(duration: Duration) -&gt; Subscription&lt;Instant&gt; {
+        Subscription::run_with(duration, |duration| {
             <span class="kw">use </span>futures::stream::StreamExt;
 
-            <span class="kw">let </span>start = tokio::time::Instant::now() + <span class="self">self</span>.<span class="number">0</span>;
+            <span class="kw">let </span>start = tokio::time::Instant::now() + <span class="kw-2">*</span>duration;
 
-            <span class="kw">let </span><span class="kw-2">mut </span>interval = tokio::time::interval_at(start, <span class="self">self</span>.<span class="number">0</span>);
+            <span class="kw">let </span><span class="kw-2">mut </span>interval = tokio::time::interval_at(start, <span class="kw-2">*</span>duration);
             interval.set_missed_tick_behavior(
                 tokio::time::MissedTickBehavior::Skip,
             );
@@ -139,7 +130,28 @@
             };
 
             stream.map(tokio::time::Instant::into_std).boxed()
-        }
+        })
+    }
+
+    <span class="doccomment">/// Returns a [`Subscription`] that runs the given async function at a
+    /// set interval; producing the result of the function as output.
+    </span><span class="kw">pub fn </span>repeat&lt;F, T&gt;(f: <span class="kw">fn</span>() -&gt; F, interval: Duration) -&gt; Subscription&lt;T&gt;
+    <span class="kw">where
+        </span>F: Future&lt;Output = T&gt; + MaybeSend + <span class="lifetime">'static</span>,
+        T: MaybeSend + <span class="lifetime">'static</span>,
+    {
+        Subscription::run_with((f, interval), |(f, interval)| {
+            <span class="kw">let </span>f = <span class="kw-2">*</span>f;
+            <span class="kw">let </span>interval = <span class="kw-2">*</span>interval;
+
+            stream::channel(<span class="number">1</span>, <span class="kw">move </span>|<span class="kw-2">mut </span>output| <span class="kw">async move </span>{
+                <span class="kw">loop </span>{
+                    <span class="kw">let _ </span>= output.send(f().<span class="kw">await</span>).<span class="kw">await</span>;
+
+                    tokio::time::sleep(interval).<span class="kw">await</span>;
+                }
+            })
+        })
     }
 }
 </code></pre></div></section></main></body></html>
