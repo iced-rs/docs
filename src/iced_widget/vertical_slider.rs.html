@@ -554,7 +554,16 @@
 <a href="#553" id="553">553</a>
 <a href="#554" id="554">554</a>
 <a href="#555" id="555">555</a>
-<a href="#556" id="556">556</a></pre></div><pre class="rust"><code><span class="doccomment">//! Sliders let users set a value by moving an indicator.
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a></pre></div><pre class="rust"><code><span class="doccomment">//! Sliders let users set a value by moving an indicator.
 //!
 //! # Example
 //! ```no_run
@@ -598,6 +607,7 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::touch;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
+<span class="kw">use </span><span class="kw">crate</span>::core::window;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
     <span class="self">self</span>, Clipboard, Element, Event, Length, Pixels, Point, Rectangle, Shell,
     Size, Widget,
@@ -654,6 +664,7 @@
     width: f32,
     height: Length,
     class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
+    status: <span class="prelude-ty">Option</span>&lt;Status&gt;,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt; VerticalSlider&lt;<span class="lifetime">'a</span>, T, Message, Theme&gt;
@@ -700,6 +711,7 @@
             width: <span class="self">Self</span>::DEFAULT_WIDTH,
             height: Length::Fill,
             class: Theme::default(),
+            status: <span class="prelude-val">None</span>,
         }
     }
 
@@ -946,7 +958,9 @@
                     shell.capture_event();
                 }
             }
-            Event::Keyboard(keyboard::Event::KeyPressed { key, .. }) =&gt; {
+            Event::Keyboard(keyboard::Event::KeyPressed {
+                <span class="kw-2">ref </span>key, ..
+            }) =&gt; {
                 <span class="kw">if </span>cursor.is_over(layout.bounds()) {
                     <span class="kw">match </span>key {
                         Key::Named(key::Named::ArrowUp) =&gt; {
@@ -966,32 +980,36 @@
             }
             <span class="kw">_ </span>=&gt; {}
         }
+
+        <span class="kw">let </span>current_status = <span class="kw">if </span>state.is_dragging {
+            Status::Dragged
+        } <span class="kw">else if </span>cursor.is_over(layout.bounds()) {
+            Status::Hovered
+        } <span class="kw">else </span>{
+            Status::Active
+        };
+
+        <span class="kw">if let </span>Event::Window(window::Event::RedrawRequested(_now)) = event {
+            <span class="self">self</span>.status = <span class="prelude-val">Some</span>(current_status);
+        } <span class="kw">else if </span><span class="self">self</span>.status.is_some_and(|status| status != current_status) {
+            shell.request_redraw();
+        }
     }
 
     <span class="kw">fn </span>draw(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        tree: <span class="kw-2">&amp;</span>Tree,
+        _tree: <span class="kw-2">&amp;</span>Tree,
         renderer: <span class="kw-2">&amp;mut </span>Renderer,
         theme: <span class="kw-2">&amp;</span>Theme,
         _style: <span class="kw-2">&amp;</span>renderer::Style,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-        cursor: mouse::Cursor,
+        _cursor: mouse::Cursor,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
-        <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&gt;();
         <span class="kw">let </span>bounds = layout.bounds();
-        <span class="kw">let </span>is_mouse_over = cursor.is_over(bounds);
 
-        <span class="kw">let </span>style = theme.style(
-            <span class="kw-2">&amp;</span><span class="self">self</span>.class,
-            <span class="kw">if </span>state.is_dragging {
-                Status::Dragged
-            } <span class="kw">else if </span>is_mouse_over {
-                Status::Hovered
-            } <span class="kw">else </span>{
-                Status::Active
-            },
-        );
+        <span class="kw">let </span>style =
+            theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class, <span class="self">self</span>.status.unwrap_or(Status::Active));
 
         <span class="kw">let </span>(handle_width, handle_height, handle_border_radius) =
             <span class="kw">match </span>style.handle.shape {

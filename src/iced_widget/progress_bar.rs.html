@@ -291,7 +291,51 @@
 <a href="#290" id="290">290</a>
 <a href="#291" id="291">291</a>
 <a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a></pre></div><pre class="rust"><code><span class="doccomment">//! Progress bars visualize the progression of an extended computer operation, such as a download, file transfer, or installation.
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a></pre></div><pre class="rust"><code><span class="doccomment">//! Progress bars visualize the progression of an extended computer operation, such as a download, file transfer, or installation.
 //!
 //! # Example
 //! ```no_run
@@ -352,8 +396,9 @@
 {
     range: RangeInclusive&lt;f32&gt;,
     value: f32,
-    width: Length,
-    height: <span class="prelude-ty">Option</span>&lt;Length&gt;,
+    length: Length,
+    girth: Length,
+    is_vertical: bool,
     class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
 }
 
@@ -361,8 +406,8 @@
 <span class="kw">where
     </span>Theme: Catalog,
 {
-    <span class="doccomment">/// The default height of a [`ProgressBar`].
-    </span><span class="kw">pub const </span>DEFAULT_HEIGHT: f32 = <span class="number">30.0</span>;
+    <span class="doccomment">/// The default girth of a [`ProgressBar`].
+    </span><span class="kw">pub const </span>DEFAULT_GIRTH: f32 = <span class="number">30.0</span>;
 
     <span class="doccomment">/// Creates a new [`ProgressBar`].
     ///
@@ -373,21 +418,30 @@
         ProgressBar {
             value: value.clamp(<span class="kw-2">*</span>range.start(), <span class="kw-2">*</span>range.end()),
             range,
-            width: Length::Fill,
-            height: <span class="prelude-val">None</span>,
+            length: Length::Fill,
+            girth: Length::from(<span class="self">Self</span>::DEFAULT_GIRTH),
+            is_vertical: <span class="bool-val">false</span>,
             class: Theme::default(),
         }
     }
 
     <span class="doccomment">/// Sets the width of the [`ProgressBar`].
-    </span><span class="kw">pub fn </span>width(<span class="kw-2">mut </span><span class="self">self</span>, width: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.width = width.into();
+    </span><span class="kw">pub fn </span>length(<span class="kw-2">mut </span><span class="self">self</span>, length: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.length = length.into();
         <span class="self">self
     </span>}
 
     <span class="doccomment">/// Sets the height of the [`ProgressBar`].
-    </span><span class="kw">pub fn </span>height(<span class="kw-2">mut </span><span class="self">self</span>, height: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.height = <span class="prelude-val">Some</span>(height.into());
+    </span><span class="kw">pub fn </span>girth(<span class="kw-2">mut </span><span class="self">self</span>, girth: <span class="kw">impl </span>Into&lt;Length&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.girth = girth.into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Turns the [`ProgressBar`] into a vertical [`ProgressBar`].
+    ///
+    /// By default, a [`ProgressBar`] is horizontal.
+    </span><span class="kw">pub fn </span>vertical(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.is_vertical = <span class="bool-val">true</span>;
         <span class="self">self
     </span>}
 
@@ -408,6 +462,22 @@
         <span class="self">self</span>.class = class.into();
         <span class="self">self
     </span>}
+
+    <span class="kw">fn </span>width(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="kw">if </span><span class="self">self</span>.is_vertical {
+            <span class="self">self</span>.girth
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.length
+        }
+    }
+
+    <span class="kw">fn </span>height(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Length {
+        <span class="kw">if </span><span class="self">self</span>.is_vertical {
+            <span class="self">self</span>.length
+        } <span class="kw">else </span>{
+            <span class="self">self</span>.girth
+        }
+    }
 }
 
 <span class="kw">impl</span>&lt;Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
@@ -418,8 +488,8 @@
 {
     <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
         Size {
-            width: <span class="self">self</span>.width,
-            height: <span class="self">self</span>.height.unwrap_or(Length::Fixed(<span class="self">Self</span>::DEFAULT_HEIGHT)),
+            width: <span class="self">self</span>.width(),
+            height: <span class="self">self</span>.height(),
         }
     }
 
@@ -429,11 +499,7 @@
         _renderer: <span class="kw-2">&amp;</span>Renderer,
         limits: <span class="kw-2">&amp;</span>layout::Limits,
     ) -&gt; layout::Node {
-        layout::atomic(
-            limits,
-            <span class="self">self</span>.width,
-            <span class="self">self</span>.height.unwrap_or(Length::Fixed(<span class="self">Self</span>::DEFAULT_HEIGHT)),
-        )
+        layout::atomic(limits, <span class="self">self</span>.width(), <span class="self">self</span>.height())
     }
 
     <span class="kw">fn </span>draw(
@@ -449,11 +515,16 @@
         <span class="kw">let </span>bounds = layout.bounds();
         <span class="kw">let </span>(range_start, range_end) = <span class="self">self</span>.range.clone().into_inner();
 
-        <span class="kw">let </span>active_progress_width = <span class="kw">if </span>range_start &gt;= range_end {
+        <span class="kw">let </span>length = <span class="kw">if </span><span class="self">self</span>.is_vertical {
+            bounds.height
+        } <span class="kw">else </span>{
+            bounds.width
+        };
+
+        <span class="kw">let </span>active_progress_length = <span class="kw">if </span>range_start &gt;= range_end {
             <span class="number">0.0
         </span>} <span class="kw">else </span>{
-            bounds.width * (<span class="self">self</span>.value - range_start)
-                / (range_end - range_start)
+            length * (<span class="self">self</span>.value - range_start) / (range_end - range_start)
         };
 
         <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class);
@@ -467,13 +538,23 @@
             style.background,
         );
 
-        <span class="kw">if </span>active_progress_width &gt; <span class="number">0.0 </span>{
+        <span class="kw">if </span>active_progress_length &gt; <span class="number">0.0 </span>{
+            <span class="kw">let </span>bounds = <span class="kw">if </span><span class="self">self</span>.is_vertical {
+                Rectangle {
+                    y: bounds.y + bounds.height - active_progress_length,
+                    height: active_progress_length,
+                    ..bounds
+                }
+            } <span class="kw">else </span>{
+                Rectangle {
+                    width: active_progress_length,
+                    ..bounds
+                }
+            };
+
             renderer.fill_quad(
                 renderer::Quad {
-                    bounds: Rectangle {
-                        width: active_progress_width,
-                        ..bounds
-                    },
+                    bounds,
                     border: Border {
                         color: Color::TRANSPARENT,
                         ..style.border
@@ -565,6 +646,13 @@
     <span class="kw">let </span>palette = theme.extended_palette();
 
     styled(palette.background.strong.color, palette.success.base.color)
+}
+
+<span class="doccomment">/// The warning style of a [`ProgressBar`].
+</span><span class="kw">pub fn </span>warning(theme: <span class="kw-2">&amp;</span>Theme) -&gt; Style {
+    <span class="kw">let </span>palette = theme.extended_palette();
+
+    styled(palette.background.strong.color, palette.warning.base.color)
 }
 
 <span class="doccomment">/// The danger style of a [`ProgressBar`].
