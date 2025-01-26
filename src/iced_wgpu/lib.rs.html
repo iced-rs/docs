@@ -617,13 +617,7 @@
 <a href="#616" id="616">616</a>
 <a href="#617" id="617">617</a>
 <a href="#618" id="618">618</a>
-<a href="#619" id="619">619</a>
-<a href="#620" id="620">620</a>
-<a href="#621" id="621">621</a>
-<a href="#622" id="622">622</a>
-<a href="#623" id="623">623</a>
-<a href="#624" id="624">624</a>
-<a href="#625" id="625">625</a></pre></div><pre class="rust"><code><span class="doccomment">//! A [`wgpu`] renderer for [Iced].
+<a href="#619" id="619">619</a></pre></div><pre class="rust"><code><span class="doccomment">//! A [`wgpu`] renderer for [Iced].
 //!
 //! ![The native path of the Iced ecosystem](https://github.com/iced-rs/iced/blob/0525d76ff94e828b7b21634fa94a747022001c83/docs/graphs/native.png?raw=true)
 //!
@@ -770,7 +764,19 @@
 
         <span class="self">self</span>.text_viewport.update(queue, viewport.physical_size());
 
+        <span class="kw">let </span>physical_bounds = Rectangle::&lt;f32&gt;::from(Rectangle::with_size(
+            viewport.physical_size(),
+        ));
+
         <span class="kw">for </span>layer <span class="kw">in </span><span class="self">self</span>.layers.iter_mut() {
+            <span class="kw">if </span>physical_bounds
+                .intersection(<span class="kw-2">&amp;</span>(layer.bounds * scale_factor))
+                .and_then(Rectangle::snap)
+                .is_none()
+            {
+                <span class="kw">continue</span>;
+            }
+
             <span class="kw">if </span>!layer.quads.is_empty() {
                 engine.quad_pipeline.prepare(
                     device,
@@ -894,27 +900,9 @@
 
         <span class="kw">for </span>layer <span class="kw">in </span><span class="self">self</span>.layers.iter() {
             <span class="kw">let </span><span class="prelude-val">Some</span>(scissor_rect) = physical_bounds
-                .intersection(<span class="kw-2">&amp;</span>(layer.bounds * scale))
+                .intersection(<span class="kw-2">&amp;</span>(layer.bounds * scale_factor))
                 .and_then(Rectangle::snap)
             <span class="kw">else </span>{
-                <span class="kw">if </span>!layer.quads.is_empty() {
-                    quad_layer += <span class="number">1</span>;
-                }
-
-                <span class="kw">if </span>!layer.triangles.is_empty() {
-                    mesh_layer +=
-                        triangle::Pipeline::layer_count(<span class="kw-2">&amp;</span>layer.triangles);
-                }
-
-                <span class="kw">if </span>!layer.text.is_empty() {
-                    text_layer += text::Pipeline::layer_count(<span class="kw-2">&amp;</span>layer.text);
-                }
-
-                <span class="attr">#[cfg(any(feature = <span class="string">"svg"</span>, feature = <span class="string">"image"</span>))]
-                </span><span class="kw">if </span>!layer.images.is_empty() {
-                    image_layer += <span class="number">1</span>;
-                }
-
                 <span class="kw">continue</span>;
             };
 
