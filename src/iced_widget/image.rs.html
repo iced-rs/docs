@@ -290,7 +290,20 @@
 <a href="#289" id="289">289</a>
 <a href="#290" id="290">290</a>
 <a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a></pre></div><pre class="rust"><code><span class="doccomment">//! Images display raster graphics in different formats (PNG, JPG, etc.).
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a></pre></div><pre class="rust"><code><span class="doccomment">//! Images display raster graphics in different formats (PNG, JPG, etc.).
 //!
 //! # Example
 //! ```no_run
@@ -355,6 +368,7 @@
     filter_method: FilterMethod,
     rotation: Rotation,
     opacity: f32,
+    scale: f32,
 }
 
 <span class="kw">impl</span>&lt;Handle&gt; Image&lt;Handle&gt; {
@@ -368,6 +382,7 @@
             filter_method: FilterMethod::default(),
             rotation: Rotation::default(),
             opacity: <span class="number">1.0</span>,
+            scale: <span class="number">1.0</span>,
         }
     }
 
@@ -409,6 +424,15 @@
     /// and `1.0` meaning completely opaque.
     </span><span class="kw">pub fn </span>opacity(<span class="kw-2">mut </span><span class="self">self</span>, opacity: <span class="kw">impl </span>Into&lt;f32&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.opacity = opacity.into();
+        <span class="self">self
+    </span>}
+
+    <span class="doccomment">/// Sets the scale of the [`Image`].
+    ///
+    /// The region of the [`Image`] drawn will be scaled from the center by the given scale factor.
+    /// This can be useful to create certain effects and animations, like smooth zoom in / out.
+    </span><span class="kw">pub fn </span>scale(<span class="kw-2">mut </span><span class="self">self</span>, scale: <span class="kw">impl </span>Into&lt;f32&gt;) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.scale = scale.into();
         <span class="self">self
     </span>}
 }
@@ -465,6 +489,7 @@
     filter_method: FilterMethod,
     rotation: Rotation,
     opacity: f32,
+    scale: f32,
 ) <span class="kw">where
     </span>Renderer: image::Renderer&lt;Handle = Handle&gt;,
     Handle: Clone,
@@ -476,12 +501,12 @@
     <span class="kw">let </span>bounds = layout.bounds();
     <span class="kw">let </span>adjusted_fit = content_fit.fit(rotated_size, bounds.size());
 
-    <span class="kw">let </span>scale = Vector::new(
+    <span class="kw">let </span>fit_scale = Vector::new(
         adjusted_fit.width / rotated_size.width,
         adjusted_fit.height / rotated_size.height,
     );
 
-    <span class="kw">let </span>final_size = image_size * scale;
+    <span class="kw">let </span>final_size = image_size * fit_scale * scale;
 
     <span class="kw">let </span>position = <span class="kw">match </span>content_fit {
         ContentFit::None =&gt; Point::new(
@@ -568,6 +593,7 @@
             <span class="self">self</span>.filter_method,
             <span class="self">self</span>.rotation,
             <span class="self">self</span>.opacity,
+            <span class="self">self</span>.scale,
         );
     }
 }
