@@ -779,7 +779,14 @@
 <a href="#778" id="778">778</a>
 <a href="#779" id="779">779</a>
 <a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a></pre></div><pre class="rust"><code><span class="doccomment">//! Draw and edit text.
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a></pre></div><pre class="rust"><code><span class="doccomment">//! Draw and edit text.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::text::editor::{
     <span class="self">self</span>, Action, Cursor, Direction, Edit, Motion,
 };
@@ -790,6 +797,7 @@
 
 <span class="kw">use </span>cosmic_text::Edit <span class="kw">as _</span>;
 
+<span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>std::fmt;
 <span class="kw">use </span>std::sync::{<span class="self">self</span>, Arc};
 
@@ -870,11 +878,17 @@
             || (buffer.lines.len() == <span class="number">1 </span>&amp;&amp; buffer.lines[<span class="number">0</span>].text().is_empty())
     }
 
-    <span class="kw">fn </span>line(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
-        <span class="self">self</span>.buffer()
-            .lines
-            .get(index)
-            .map(cosmic_text::BufferLine::text)
+    <span class="kw">fn </span>line(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; <span class="prelude-ty">Option</span>&lt;editor::Line&lt;<span class="lifetime">'_</span>&gt;&gt; {
+        <span class="self">self</span>.buffer().lines.get(index).map(|line| editor::Line {
+            text: Cow::Borrowed(line.text()),
+            ending: <span class="kw">match </span>line.ending() {
+                cosmic_text::LineEnding::Lf =&gt; editor::LineEnding::Lf,
+                cosmic_text::LineEnding::CrLf =&gt; editor::LineEnding::CrLf,
+                cosmic_text::LineEnding::Cr =&gt; editor::LineEnding::Cr,
+                cosmic_text::LineEnding::LfCr =&gt; editor::LineEnding::LfCr,
+                cosmic_text::LineEnding::None =&gt; editor::LineEnding::None,
+            },
+        })
     }
 
     <span class="kw">fn </span>line_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
