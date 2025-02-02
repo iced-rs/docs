@@ -1007,7 +1007,9 @@
 <a href="#1006" id="1006">1006</a>
 <a href="#1007" id="1007">1007</a>
 <a href="#1008" id="1008">1008</a>
-<a href="#1009" id="1009">1009</a></pre></div><pre class="rust"><code><span class="doccomment">//! Markdown widgets can parse and display Markdown.
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a></pre></div><pre class="rust"><code><span class="doccomment">//! Markdown widgets can parse and display Markdown.
 //!
 //! You can enable the `highlighter` feature for syntax highlighting
 //! in code blocks.
@@ -1138,12 +1140,6 @@
 
         <span class="comment">// Re-parse incomplete sections if new references are available
         </span><span class="kw">if </span>!<span class="self">self</span>.incomplete.is_empty() {
-            <span class="kw">let </span><span class="kw-2">mut </span>state = State {
-                leftover: String::new(),
-                references: <span class="self">self</span>.state.references.clone(),
-                highlighter: <span class="prelude-val">None</span>,
-            };
-
             <span class="self">self</span>.incomplete.retain(|index, section| {
                 <span class="kw">if </span><span class="self">self</span>.items.len() &lt;= <span class="kw-2">*</span>index {
                     <span class="kw">return </span><span class="bool-val">false</span>;
@@ -1156,11 +1152,19 @@
                     .retain(|link| !<span class="self">self</span>.state.references.contains_key(link));
 
                 <span class="kw">if </span>broken_links_before != section.broken_links.len() {
+                    <span class="kw">let </span><span class="kw-2">mut </span>state = State {
+                        leftover: String::new(),
+                        references: <span class="self">self</span>.state.references.clone(),
+                        highlighter: <span class="prelude-val">None</span>,
+                    };
+
                     <span class="kw">if let </span><span class="prelude-val">Some</span>((item, _source, _broken_links)) =
                         parse_with(<span class="kw-2">&amp;mut </span>state, <span class="kw-2">&amp;</span>section.content).next()
                     {
                         <span class="self">self</span>.items[<span class="kw-2">*</span>index] = item;
                     }
+
+                    drop(state);
                 }
 
                 !section.broken_links.is_empty()
