@@ -383,10 +383,7 @@
 <a href="#382" id="382">382</a>
 <a href="#383" id="383">383</a>
 <a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a></pre></div><pre class="rust"><code><span class="doccomment">//! Display content on top of other content.
+<a href="#385" id="385">385</a></pre></div><pre class="rust"><code><span class="doccomment">//! Display content on top of other content.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::core::overlay;
@@ -604,15 +601,15 @@
         viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
         <span class="kw">let </span>is_over = cursor.is_over(layout.bounds());
-        <span class="kw">let </span>is_mouse_movement =
-            <span class="macro">matches!</span>(event, Event::Mouse(mouse::Event::CursorMoved { .. }));
+        <span class="kw">let </span>end = <span class="self">self</span>.children.len() - <span class="number">1</span>;
 
-        <span class="kw">for </span>((child, state), layout) <span class="kw">in </span><span class="self">self
+        <span class="kw">for </span>(i, ((child, state), layout)) <span class="kw">in </span><span class="self">self
             </span>.children
             .iter_mut()
             .rev()
             .zip(tree.children.iter_mut().rev())
             .zip(layout.children().rev())
+            .enumerate()
         {
             child.as_widget_mut().update(
                 state,
@@ -625,21 +622,18 @@
                 viewport,
             );
 
-            <span class="kw">if </span>is_over
-                &amp;&amp; !is_mouse_movement
-                &amp;&amp; cursor != mouse::Cursor::Unavailable
-            {
+            <span class="kw">if </span>shell.is_event_captured() {
+                <span class="kw">return</span>;
+            }
+
+            <span class="kw">if </span>i &lt; end &amp;&amp; is_over &amp;&amp; !cursor.is_levitating() {
                 <span class="kw">let </span>interaction = child.as_widget().mouse_interaction(
                     state, layout, cursor, viewport, renderer,
                 );
 
                 <span class="kw">if </span>interaction != mouse::Interaction::None {
-                    cursor = mouse::Cursor::Unavailable;
+                    cursor = cursor.levitate();
                 }
-            }
-
-            <span class="kw">if </span>shell.is_event_captured() {
-                <span class="kw">return</span>;
             }
         }
     }
