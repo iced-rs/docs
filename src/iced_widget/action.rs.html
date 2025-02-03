@@ -83,11 +83,7 @@
 <a href="#82" id="82">82</a>
 <a href="#83" id="83">83</a>
 <a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::event;
+<a href="#85" id="85">85</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::event;
 <span class="kw">use </span><span class="kw">crate</span>::core::time::Instant;
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
 
@@ -95,7 +91,7 @@
 </span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub struct </span>Action&lt;Message&gt; {
     message_to_publish: <span class="prelude-ty">Option</span>&lt;Message&gt;,
-    redraw_request: <span class="prelude-ty">Option</span>&lt;window::RedrawRequest&gt;,
+    redraw_request: window::RedrawRequest,
     event_status: event::Status,
 }
 
@@ -103,7 +99,7 @@
     <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             message_to_publish: <span class="prelude-val">None</span>,
-            redraw_request: <span class="prelude-val">None</span>,
+            redraw_request: window::RedrawRequest::Wait,
             event_status: event::Status::Ignored,
         }
     }
@@ -135,7 +131,7 @@
     /// soon as possible; without publishing any `Message`.
     </span><span class="kw">pub fn </span>request_redraw() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            redraw_request: <span class="prelude-val">Some</span>(window::RedrawRequest::NextFrame),
+            redraw_request: window::RedrawRequest::NextFrame,
             ..<span class="self">Self</span>::new()
         }
     }
@@ -147,7 +143,7 @@
     /// blinking caret on a text input.
     </span><span class="kw">pub fn </span>request_redraw_at(at: Instant) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
-            redraw_request: <span class="prelude-val">Some</span>(window::RedrawRequest::At(at)),
+            redraw_request: window::RedrawRequest::At(at),
             ..<span class="self">Self</span>::new()
         }
     }
@@ -164,11 +160,7 @@
     /// widget implementations.
     </span><span class="kw">pub fn </span>into_inner(
         <span class="self">self</span>,
-    ) -&gt; (
-        <span class="prelude-ty">Option</span>&lt;Message&gt;,
-        <span class="prelude-ty">Option</span>&lt;window::RedrawRequest&gt;,
-        event::Status,
-    ) {
+    ) -&gt; (<span class="prelude-ty">Option</span>&lt;Message&gt;, window::RedrawRequest, event::Status) {
         (
             <span class="self">self</span>.message_to_publish,
             <span class="self">self</span>.redraw_request,

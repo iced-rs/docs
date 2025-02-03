@@ -641,21 +641,16 @@
 <a href="#640" id="640">640</a>
 <a href="#641" id="641">641</a>
 <a href="#642" id="642">642</a>
-<a href="#643" id="643">643</a>
-<a href="#644" id="644">644</a>
-<a href="#645" id="645">645</a>
-<a href="#646" id="646">646</a>
-<a href="#647" id="647">647</a>
-<a href="#648" id="648">648</a>
-<a href="#649" id="649">649</a>
-<a href="#650" id="650">650</a></pre></div><pre class="rust"><code><span class="doccomment">//! Implement your own event loop to drive a user interface.
+<a href="#643" id="643">643</a></pre></div><pre class="rust"><code><span class="doccomment">//! Implement your own event loop to drive a user interface.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::event::{<span class="self">self</span>, Event};
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
 <span class="kw">use </span><span class="kw">crate</span>::core::widget;
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
-<span class="kw">use </span><span class="kw">crate</span>::core::{Clipboard, Element, Layout, Rectangle, Shell, Size, Vector};
+<span class="kw">use </span><span class="kw">crate</span>::core::{
+    Clipboard, Element, InputMethod, Layout, Rectangle, Shell, Size, Vector,
+};
 <span class="kw">use </span><span class="kw">crate</span>::overlay;
 
 <span class="doccomment">/// A set of interactive graphical elements with a specific [`Layout`].
@@ -836,7 +831,8 @@
         <span class="kw">use </span>std::mem::ManuallyDrop;
 
         <span class="kw">let </span><span class="kw-2">mut </span>outdated = <span class="bool-val">false</span>;
-        <span class="kw">let </span><span class="kw-2">mut </span>redraw_request = <span class="prelude-val">None</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>redraw_request = window::RedrawRequest::Wait;
+        <span class="kw">let </span><span class="kw-2">mut </span>input_method = InputMethod::None;
 
         <span class="kw">let </span><span class="kw-2">mut </span>manual_overlay = ManuallyDrop::new(
             <span class="self">self</span>.root
@@ -870,16 +866,8 @@
                 );
 
                 event_statuses.push(shell.event_status());
-
-                <span class="kw">match </span>(redraw_request, shell.redraw_request()) {
-                    (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(at)) =&gt; {
-                        redraw_request = <span class="prelude-val">Some</span>(at);
-                    }
-                    (<span class="prelude-val">Some</span>(current), <span class="prelude-val">Some</span>(new)) <span class="kw">if </span>new &lt; current =&gt; {
-                        redraw_request = <span class="prelude-val">Some</span>(new);
-                    }
-                    <span class="kw">_ </span>=&gt; {}
-                }
+                redraw_request = redraw_request.min(shell.redraw_request());
+                input_method.merge(shell.input_method());
 
                 <span class="kw">if </span>shell.is_layout_invalid() {
                     <span class="kw">let _ </span>= ManuallyDrop::into_inner(manual_overlay);
@@ -973,15 +961,8 @@
                     <span class="self">self</span>.overlay = <span class="prelude-val">None</span>;
                 }
 
-                <span class="kw">match </span>(redraw_request, shell.redraw_request()) {
-                    (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(at)) =&gt; {
-                        redraw_request = <span class="prelude-val">Some</span>(at);
-                    }
-                    (<span class="prelude-val">Some</span>(current), <span class="prelude-val">Some</span>(new)) <span class="kw">if </span>new &lt; current =&gt; {
-                        redraw_request = <span class="prelude-val">Some</span>(new);
-                    }
-                    <span class="kw">_ </span>=&gt; {}
-                }
+                redraw_request = redraw_request.min(shell.redraw_request());
+                input_method.merge(shell.input_method());
 
                 shell.revalidate_layout(|| {
                     <span class="self">self</span>.base = <span class="self">self</span>.root.as_widget().layout(
@@ -1005,7 +986,10 @@
             <span class="kw">if </span>outdated {
                 State::Outdated
             } <span class="kw">else </span>{
-                State::Updated { redraw_request }
+                State::Updated {
+                    redraw_request,
+                    input_method,
+                }
             },
             event_statuses,
         )
@@ -1286,7 +1270,7 @@
 }
 
 <span class="doccomment">/// The resulting state after updating a [`UserInterface`].
-</span><span class="attr">#[derive(Debug, Clone, Copy)]
+</span><span class="attr">#[derive(Debug, Clone)]
 </span><span class="kw">pub enum </span>State {
     <span class="doccomment">/// The [`UserInterface`] is outdated and needs to be rebuilt.
     </span>Outdated,
@@ -1294,8 +1278,10 @@
     <span class="doccomment">/// The [`UserInterface`] is up-to-date and can be reused without
     /// rebuilding.
     </span>Updated {
-        <span class="doccomment">/// The [`window::RedrawRequest`] when a redraw should be performed.
-        </span>redraw_request: <span class="prelude-ty">Option</span>&lt;window::RedrawRequest&gt;,
+        <span class="doccomment">/// The [`window::RedrawRequest`] describing when a redraw should be performed.
+        </span>redraw_request: window::RedrawRequest,
+        <span class="doccomment">/// The current [`InputMethod`] strategy of the user interface.
+        </span>input_method: InputMethod,
     },
 }
 </code></pre></div></section></main></body></html>

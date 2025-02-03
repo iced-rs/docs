@@ -2070,7 +2070,18 @@
 <a href="#2069" id="2069">2069</a>
 <a href="#2070" id="2070">2070</a>
 <a href="#2071" id="2071">2071</a>
-<a href="#2072" id="2072">2072</a></pre></div><pre class="rust"><code><span class="doccomment">//! Scrollables let users navigate an endless amount of content with a scrollbar.
+<a href="#2072" id="2072">2072</a>
+<a href="#2073" id="2073">2073</a>
+<a href="#2074" id="2074">2074</a>
+<a href="#2075" id="2075">2075</a>
+<a href="#2076" id="2076">2076</a>
+<a href="#2077" id="2077">2077</a>
+<a href="#2078" id="2078">2078</a>
+<a href="#2079" id="2079">2079</a>
+<a href="#2080" id="2080">2080</a>
+<a href="#2081" id="2081">2081</a>
+<a href="#2082" id="2082">2082</a>
+<a href="#2083" id="2083">2083</a></pre></div><pre class="rust"><code><span class="doccomment">//! Scrollables let users navigate an endless amount of content with a scrollbar.
 //!
 //! # Example
 //! ```no_run
@@ -2105,8 +2116,9 @@
 <span class="kw">use </span><span class="kw">crate</span>::core::widget::tree::{<span class="self">self</span>, Tree};
 <span class="kw">use </span><span class="kw">crate</span>::core::window;
 <span class="kw">use </span><span class="kw">crate</span>::core::{
-    <span class="self">self</span>, Background, Clipboard, Color, Element, Event, Layout, Length,
-    Padding, Pixels, Point, Rectangle, Shell, Size, Theme, Vector, Widget,
+    <span class="self">self</span>, Background, Clipboard, Color, Element, Event, InputMethod, Layout,
+    Length, Padding, Pixels, Point, Rectangle, Shell, Size, Theme, Vector,
+    Widget,
 };
 <span class="kw">use </span><span class="kw">crate</span>::runtime::task::{<span class="self">self</span>, Task};
 <span class="kw">use </span><span class="kw">crate</span>::runtime::Action;
@@ -2800,6 +2812,8 @@
                     <span class="kw">_ </span>=&gt; mouse::Cursor::Unavailable,
                 };
 
+                <span class="kw">let </span>had_input_method = shell.input_method().is_open();
+
                 <span class="kw">let </span>translation =
                     state.translation(<span class="self">self</span>.direction, bounds, content_bounds);
 
@@ -2817,6 +2831,14 @@
                         ..bounds
                     },
                 );
+
+                <span class="kw">if </span>!had_input_method {
+                    <span class="kw">if let </span>InputMethod::Open { position, .. } =
+                        shell.input_method_mut()
+                    {
+                        <span class="kw-2">*</span>position = <span class="kw-2">*</span>position + translation;
+                    }
+                }
             };
 
             <span class="kw">if </span><span class="macro">matches!</span>(

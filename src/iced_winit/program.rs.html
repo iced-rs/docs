@@ -1600,15 +1600,7 @@
 <a href="#1599" id="1599">1599</a>
 <a href="#1600" id="1600">1600</a>
 <a href="#1601" id="1601">1601</a>
-<a href="#1602" id="1602">1602</a>
-<a href="#1603" id="1603">1603</a>
-<a href="#1604" id="1604">1604</a>
-<a href="#1605" id="1605">1605</a>
-<a href="#1606" id="1606">1606</a>
-<a href="#1607" id="1607">1607</a>
-<a href="#1608" id="1608">1608</a>
-<a href="#1609" id="1609">1609</a>
-<a href="#1610" id="1610">1610</a></pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
+<a href="#1602" id="1602">1602</a></pre></div><pre class="rust"><code><span class="doccomment">//! Create interactive, native cross-platform applications for WGPU.
 </span><span class="kw">mod </span>state;
 <span class="kw">mod </span>window_manager;
 
@@ -2483,19 +2475,15 @@
                         });
 
                         <span class="kw">if let </span>user_interface::State::Updated {
-                            redraw_request: <span class="prelude-val">Some</span>(redraw_request),
+                            redraw_request,
+                            input_method,
                         } = ui_state
                         {
-                            <span class="kw">match </span>redraw_request {
-                                window::RedrawRequest::NextFrame =&gt; {
-                                    window.raw.request_redraw();
-                                    window.redraw_at = <span class="prelude-val">None</span>;
-                                }
-                                window::RedrawRequest::At(at) =&gt; {
-                                    window.redraw_at = <span class="prelude-val">Some</span>(at);
-                                }
-                            }
+                            window.request_redraw(redraw_request);
+                            window.request_input_method(input_method);
                         }
+
+                        window.draw_preedit();
 
                         debug.render_started();
                         <span class="kw">match </span>compositor.present(
@@ -2639,27 +2627,23 @@
                                 );
 
                             <span class="attr">#[cfg(feature = <span class="string">"unconditional-rendering"</span>)]
-                            </span>window.raw.request_redraw();
+                            </span>window.request_redraw(
+                                window::RedrawRequest::NextFrame,
+                            );
 
                             <span class="kw">match </span>ui_state {
-                                <span class="attr">#[cfg(not(
-                                    feature = <span class="string">"unconditional-rendering"
-                                </span>))]
-                                </span>user_interface::State::Updated {
-                                    redraw_request: <span class="prelude-val">Some</span>(redraw_request),
-                                } =&gt; <span class="kw">match </span>redraw_request {
-                                    window::RedrawRequest::NextFrame =&gt; {
-                                        window.raw.request_redraw();
-                                        window.redraw_at = <span class="prelude-val">None</span>;
-                                    }
-                                    window::RedrawRequest::At(at) =&gt; {
-                                        window.redraw_at = <span class="prelude-val">Some</span>(at);
-                                    }
-                                },
+                                user_interface::State::Updated {
+                                    redraw_request: _redraw_request,
+                                    ..
+                                } =&gt; {
+                                    <span class="attr">#[cfg(not(
+                                        feature = <span class="string">"unconditional-rendering"
+                                    </span>))]
+                                    </span>window.request_redraw(_redraw_request);
+                                }
                                 user_interface::State::Outdated =&gt; {
                                     uis_stale = <span class="bool-val">true</span>;
                                 }
-                                user_interface::State::Updated { .. } =&gt; {}
                             }
 
                             <span class="kw">for </span>(event, status) <span class="kw">in </span>window_events
