@@ -1442,7 +1442,8 @@
 <a href="#1441" id="1441">1441</a>
 <a href="#1442" id="1442">1442</a>
 <a href="#1443" id="1443">1443</a>
-<a href="#1444" id="1444">1444</a></pre></div><pre class="rust"><code><span class="doccomment">//! Text editors display a multi-line text input for text editing.
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a></pre></div><pre class="rust"><code><span class="doccomment">//! Text editors display a multi-line text input for text editing.
 //!
 //! # Example
 //! ```no_run
@@ -2095,7 +2096,7 @@
     <span class="kw">fn </span>update(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         tree: <span class="kw-2">&amp;mut </span>widget::Tree,
-        event: Event,
+        event: <span class="kw-2">&amp;</span>Event,
         layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
         cursor: mouse::Cursor,
         renderer: <span class="kw-2">&amp;</span>Renderer,
@@ -2130,17 +2131,18 @@
             Event::Window(window::Event::RedrawRequested(now)) =&gt; {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(focus) = <span class="kw-2">&amp;mut </span>state.focus {
                     <span class="kw">if </span>focus.is_window_focused {
-                        focus.now = now;
+                        focus.now = <span class="kw-2">*</span>now;
 
                         <span class="kw">let </span>millis_until_redraw =
                             Focus::CURSOR_BLINK_INTERVAL_MILLIS
-                                - (now - focus.updated_at).as_millis()
+                                - (focus.now - focus.updated_at).as_millis()
                                     % Focus::CURSOR_BLINK_INTERVAL_MILLIS;
 
                         shell.request_redraw_at(
-                            now + Duration::from_millis(
-                                millis_until_redraw <span class="kw">as </span>u64,
-                            ),
+                            focus.now
+                                + Duration::from_millis(
+                                    millis_until_redraw <span class="kw">as </span>u64,
+                                ),
                         );
                     }
                 }
@@ -2660,7 +2662,7 @@
 
 <span class="kw">impl</span>&lt;Message&gt; Update&lt;Message&gt; {
     <span class="kw">fn </span>from_event&lt;H: Highlighter&gt;(
-        event: Event,
+        event: <span class="kw-2">&amp;</span>Event,
         state: <span class="kw-2">&amp;</span>State&lt;H&gt;,
         bounds: Rectangle,
         padding: Padding,
@@ -2728,14 +2730,14 @@
                     <span class="kw">if </span>state.focus.is_some() =&gt;
                 {
                     <span class="prelude-val">Some</span>(Update::InputMethod(Ime::Preedit {
-                        content,
-                        selection,
+                        content: content.clone(),
+                        selection: selection.clone(),
                     }))
                 }
                 input_method::Event::Commit(content)
                     <span class="kw">if </span>state.focus.is_some() =&gt;
                 {
-                    <span class="prelude-val">Some</span>(Update::InputMethod(Ime::Commit(content)))
+                    <span class="prelude-val">Some</span>(Update::InputMethod(Ime::Commit(content.clone())))
                 }
                 <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
             },
@@ -2754,9 +2756,9 @@
                 };
 
                 <span class="kw">let </span>key_press = KeyPress {
-                    key,
-                    modifiers,
-                    text,
+                    key: key.clone(),
+                    modifiers: <span class="kw-2">*</span>modifiers,
+                    text: text.clone(),
                     status,
                 };
 
