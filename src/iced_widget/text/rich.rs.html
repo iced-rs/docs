@@ -537,7 +537,34 @@
 <a href="#536" id="536">536</a>
 <a href="#537" id="537">537</a>
 <a href="#538" id="538">538</a>
-<a href="#539" id="539">539</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
+<a href="#539" id="539">539</a>
+<a href="#540" id="540">540</a>
+<a href="#541" id="541">541</a>
+<a href="#542" id="542">542</a>
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a>
+<a href="#560" id="560">560</a>
+<a href="#561" id="561">561</a>
+<a href="#562" id="562">562</a>
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <span class="kw">use </span><span class="kw">crate</span>::core::layout;
 <span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <span class="kw">use </span><span class="kw">crate</span>::core::renderer;
@@ -553,8 +580,13 @@
 
 <span class="doccomment">/// A bunch of [`Rich`] text.
 </span><span class="attr">#[allow(missing_debug_implementations)]
-</span><span class="kw">pub struct </span>Rich&lt;<span class="lifetime">'a</span>, Link, Theme = <span class="kw">crate</span>::Theme, Renderer = <span class="kw">crate</span>::Renderer&gt;
-<span class="kw">where
+</span><span class="kw">pub struct </span>Rich&lt;
+    <span class="lifetime">'a</span>,
+    Link,
+    Message,
+    Theme = <span class="kw">crate</span>::Theme,
+    Renderer = <span class="kw">crate</span>::Renderer,
+&gt; <span class="kw">where
     </span>Link: Clone + <span class="lifetime">'static</span>,
     Theme: Catalog,
     Renderer: core::text::Renderer,
@@ -570,9 +602,11 @@
     wrapping: Wrapping,
     class: Theme::Class&lt;<span class="lifetime">'a</span>&gt;,
     hovered_link: <span class="prelude-ty">Option</span>&lt;usize&gt;,
+    on_link_click: <span class="prelude-ty">Option</span>&lt;Box&lt;<span class="kw">dyn </span>Fn(Link) -&gt; Message + <span class="lifetime">'a</span>&gt;&gt;,
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Link, Theme, Renderer&gt; Rich&lt;<span class="lifetime">'a</span>, Link, Theme, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Link, Message, Theme, Renderer&gt;
+    Rich&lt;<span class="lifetime">'a</span>, Link, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Link: Clone + <span class="lifetime">'static</span>,
     Theme: Catalog,
@@ -593,6 +627,7 @@
             wrapping: Wrapping::default(),
             class: Theme::default(),
             hovered_link: <span class="prelude-val">None</span>,
+            on_link_click: <span class="prelude-val">None</span>,
         }
     }
 
@@ -666,6 +701,16 @@
         <span class="self">self
     </span>}
 
+    <span class="doccomment">/// Sets the message that will be produced when a link of the [`Rich`] text
+    /// is clicked.
+    </span><span class="kw">pub fn </span>on_link_click(
+        <span class="kw-2">mut </span><span class="self">self</span>,
+        on_link_clicked: <span class="kw">impl </span>Fn(Link) -&gt; Message + <span class="lifetime">'a</span>,
+    ) -&gt; <span class="self">Self </span>{
+        <span class="self">self</span>.on_link_click = <span class="prelude-val">Some</span>(Box::new(on_link_clicked));
+        <span class="self">self
+    </span>}
+
     <span class="doccomment">/// Sets the default style of the [`Rich`] text.
     </span><span class="attr">#[must_use]
     </span><span class="kw">pub fn </span>style(<span class="kw-2">mut </span><span class="self">self</span>, style: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>Theme) -&gt; Style + <span class="lifetime">'a</span>) -&gt; <span class="self">Self
@@ -703,7 +748,8 @@
     </span>}
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Link, Theme, Renderer&gt; Default <span class="kw">for </span>Rich&lt;<span class="lifetime">'a</span>, Link, Theme, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Link, Message, Theme, Renderer&gt; Default
+    <span class="kw">for </span>Rich&lt;<span class="lifetime">'a</span>, Link, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Link: Clone + <span class="lifetime">'a</span>,
     Theme: Catalog,
@@ -721,8 +767,8 @@
     paragraph: P,
 }
 
-<span class="kw">impl</span>&lt;Link, Theme, Renderer&gt; Widget&lt;Link, Theme, Renderer&gt;
-    <span class="kw">for </span>Rich&lt;<span class="lifetime">'_</span>, Link, Theme, Renderer&gt;
+<span class="kw">impl</span>&lt;Link, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt;
+    <span class="kw">for </span>Rich&lt;<span class="lifetime">'_</span>, Link, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Link: Clone + <span class="lifetime">'static</span>,
     Theme: Catalog,
@@ -791,7 +837,8 @@
         <span class="kw">let </span>style = theme.style(<span class="kw-2">&amp;</span><span class="self">self</span>.class);
 
         <span class="kw">for </span>(index, span) <span class="kw">in </span><span class="self">self</span>.spans.as_ref().as_ref().iter().enumerate() {
-            <span class="kw">let </span>is_hovered_link = <span class="prelude-val">Some</span>(index) == <span class="self">self</span>.hovered_link;
+            <span class="kw">let </span>is_hovered_link = <span class="self">self</span>.on_link_click.is_some()
+                &amp;&amp; <span class="prelude-val">Some</span>(index) == <span class="self">self</span>.hovered_link;
 
             <span class="kw">if </span>span.highlight.is_some()
                 || span.underline
@@ -902,9 +949,13 @@
         cursor: mouse::Cursor,
         _renderer: <span class="kw-2">&amp;</span>Renderer,
         _clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
-        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Link&gt;,
+        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
         _viewport: <span class="kw-2">&amp;</span>Rectangle,
     ) {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(on_link_clicked) = <span class="kw-2">&amp;</span><span class="self">self</span>.on_link_click <span class="kw">else </span>{
+            <span class="kw">return</span>;
+        };
+
         <span class="kw">let </span>was_hovered = <span class="self">self</span>.hovered_link.is_some();
 
         <span class="kw">if let </span><span class="prelude-val">Some</span>(position) = cursor.position_in(layout.bounds()) {
@@ -953,7 +1004,7 @@
                             .get(span)
                             .and_then(|span| span.link.clone())
                         {
-                            shell.publish(link);
+                            shell.publish(on_link_clicked(link));
                         }
                     }
                     <span class="kw">_ </span>=&gt; {}
@@ -1048,8 +1099,9 @@
     })
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Link, Theme, Renderer&gt; FromIterator&lt;Span&lt;<span class="lifetime">'a</span>, Link, Renderer::Font&gt;&gt;
-    <span class="kw">for </span>Rich&lt;<span class="lifetime">'a</span>, Link, Theme, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Link, Message, Theme, Renderer&gt;
+    FromIterator&lt;Span&lt;<span class="lifetime">'a</span>, Link, Renderer::Font&gt;&gt;
+    <span class="kw">for </span>Rich&lt;<span class="lifetime">'a</span>, Link, Message, Theme, Renderer&gt;
 <span class="kw">where
     </span>Link: Clone + <span class="lifetime">'a</span>,
     Theme: Catalog,
@@ -1063,16 +1115,18 @@
     }
 }
 
-<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Link, Theme, Renderer&gt; From&lt;Rich&lt;<span class="lifetime">'a</span>, Link, Theme, Renderer&gt;&gt;
-    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Link, Theme, Renderer&gt;
+<span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Link, Message, Theme, Renderer&gt;
+    From&lt;Rich&lt;<span class="lifetime">'a</span>, Link, Message, Theme, Renderer&gt;&gt;
+    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
 <span class="kw">where
-    </span>Link: Clone + <span class="lifetime">'a</span>,
+    </span>Message: <span class="lifetime">'a</span>,
+    Link: Clone + <span class="lifetime">'a</span>,
     Theme: Catalog + <span class="lifetime">'a</span>,
     Renderer: core::text::Renderer + <span class="lifetime">'a</span>,
 {
     <span class="kw">fn </span>from(
-        text: Rich&lt;<span class="lifetime">'a</span>, Link, Theme, Renderer&gt;,
-    ) -&gt; Element&lt;<span class="lifetime">'a</span>, Link, Theme, Renderer&gt; {
+        text: Rich&lt;<span class="lifetime">'a</span>, Link, Message, Theme, Renderer&gt;,
+    ) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
         Element::new(text)
     }
 }
