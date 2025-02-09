@@ -134,7 +134,19 @@
 <a href="#133" id="133">133</a>
 <a href="#134" id="134">134</a>
 <a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a></pre></div><pre class="rust"><code><span class="doccomment">//! Animate your applications.
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a></pre></div><pre class="rust"><code><span class="doccomment">//! Animate your applications.
 </span><span class="kw">use </span><span class="kw">crate</span>::time::{Duration, Instant};
 
 <span class="kw">pub use </span>lilt::{Easing, FloatRepresentable <span class="kw">as </span>Float, Interpolable};
@@ -149,7 +161,8 @@
     </span>T: Clone + Copy + PartialEq + Float,
 {
     raw: lilt::Animated&lt;T, Instant&gt;,
-}
+    duration: Duration, <span class="comment">// TODO: Expose duration getter in `lilt`
+</span>}
 
 <span class="kw">impl</span>&lt;T&gt; Animation&lt;T&gt;
 <span class="kw">where
@@ -159,6 +172,7 @@
     </span><span class="kw">pub fn </span>new(state: T) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             raw: lilt::Animated::new(state),
+            duration: Duration::from_millis(<span class="number">100</span>),
         }
     }
 
@@ -194,6 +208,7 @@
     <span class="doccomment">/// Sets the duration of the [`Animation`] to the given value.
     </span><span class="kw">pub fn </span>duration(<span class="kw-2">mut </span><span class="self">self</span>, duration: Duration) -&gt; <span class="self">Self </span>{
         <span class="self">self</span>.raw = <span class="self">self</span>.raw.duration(duration.as_secs_f32() * <span class="number">1_000.0</span>);
+        <span class="self">self</span>.duration = duration;
         <span class="self">self
     </span>}
 
@@ -268,6 +283,15 @@
         </span>I: Interpolable + Clone,
     {
         <span class="self">self</span>.raw.animate_bool(start, end, at)
+    }
+
+    <span class="doccomment">/// Returns the remaining [`Duration`] of the [`Animation`].
+    </span><span class="kw">pub fn </span>remaining(<span class="kw-2">&amp;</span><span class="self">self</span>, at: Instant) -&gt; Duration {
+        Duration::from_secs_f32(<span class="self">self</span>.interpolate(
+            <span class="self">self</span>.duration.as_secs_f32(),
+            <span class="number">0.0</span>,
+            at,
+        ))
     }
 }
 </code></pre></div></section></main></body></html>
