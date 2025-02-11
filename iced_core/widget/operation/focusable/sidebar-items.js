@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["count","find_focused","focus","focus_next","focus_previous"],"struct":["Count"],"trait":["Focusable"]};
+window.SIDEBAR_ITEMS = {"fn":["count","find_focused","focus","focus_next","focus_previous","unfocus"],"struct":["Count"],"trait":["Focusable"]};
