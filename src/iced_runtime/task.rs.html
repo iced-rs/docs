@@ -386,18 +386,38 @@
 <a href="#385" id="385">385</a>
 <a href="#386" id="386">386</a>
 <a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a></pre></div><pre class="rust"><code><span class="doccomment">//! Create runtime tasks.
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a>
+<a href="#401" id="401">401</a>
+<a href="#402" id="402">402</a>
+<a href="#403" id="403">403</a>
+<a href="#404" id="404">404</a>
+<a href="#405" id="405">405</a>
+<a href="#406" id="406">406</a></pre></div><pre class="rust"><code><span class="doccomment">//! Create runtime tasks.
 </span><span class="kw">use </span><span class="kw">crate</span>::core::widget;
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures::channel::mpsc;
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures::channel::oneshot;
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures::future::{<span class="self">self</span>, FutureExt};
-<span class="kw">use </span><span class="kw">crate</span>::futures::futures::never::Never;
 <span class="kw">use </span><span class="kw">crate</span>::futures::futures::stream::{<span class="self">self</span>, Stream, StreamExt};
 <span class="kw">use </span><span class="kw">crate</span>::futures::{boxed_stream, BoxStream, MaybeSend};
 <span class="kw">use </span><span class="kw">crate</span>::Action;
 
 <span class="kw">use </span>std::future::Future;
 <span class="kw">use </span>std::sync::Arc;
+
+<span class="attr">#[doc(no_inline)]
+</span><span class="kw">pub use </span>sipper::{sipper, stream, Never, Sender, Sipper, Straw};
 
 <span class="doccomment">/// A set of concurrent actions to be performed by the iced runtime.
 ///
@@ -443,6 +463,22 @@
         </span>T: <span class="lifetime">'static</span>,
     {
         <span class="self">Self</span>::stream(stream.map(f))
+    }
+
+    <span class="doccomment">/// Creates a [`Task`] that runs the given [`Sipper`] to completion, mapping
+    /// progress with the first closure and the output with the second one.
+    </span><span class="kw">pub fn </span>sip&lt;S&gt;(
+        sipper: S,
+        on_progress: <span class="kw">impl </span>FnMut(S::Progress) -&gt; T + MaybeSend + <span class="lifetime">'static</span>,
+        on_output: <span class="kw">impl </span>FnOnce(&lt;S <span class="kw">as </span>Future&gt;::Output) -&gt; T + MaybeSend + <span class="lifetime">'static</span>,
+    ) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>S: sipper::Core + MaybeSend + <span class="lifetime">'static</span>,
+        T: MaybeSend + <span class="lifetime">'static</span>,
+    {
+        <span class="self">Self</span>::stream(stream(sipper::sipper(<span class="kw">move </span>|sender| <span class="kw">async move </span>{
+            on_output(sipper.with(on_progress).run(sender).<span class="kw">await</span>)
+        })))
     }
 
     <span class="doccomment">/// Combines the given tasks and produces a single [`Task`] that will run all of them

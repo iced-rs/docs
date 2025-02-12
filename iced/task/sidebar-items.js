@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Handle","Task"]};
+window.SIDEBAR_ITEMS = {"fn":["sipper","stream"],"struct":["Handle","Task"],"trait":["Sipper","Straw"],"type":["Never"]};

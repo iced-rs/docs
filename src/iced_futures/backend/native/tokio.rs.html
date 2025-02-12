@@ -75,8 +75,7 @@
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
 <a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a></pre></div><pre class="rust"><code><span class="doccomment">//! A `tokio` backend.
+<a href="#77" id="77">77</a></pre></div><pre class="rust"><code><span class="doccomment">//! A `tokio` backend.
 </span><span class="kw">use </span>futures::Future;
 
 <span class="doccomment">/// A `tokio` executor.
@@ -101,11 +100,10 @@
 <span class="kw">pub mod </span>time {
     <span class="doccomment">//! Listen and react to time.
     </span><span class="kw">use </span><span class="kw">crate</span>::core::time::{Duration, Instant};
-    <span class="kw">use </span><span class="kw">crate</span>::stream;
     <span class="kw">use </span><span class="kw">crate</span>::subscription::Subscription;
     <span class="kw">use </span><span class="kw">crate</span>::MaybeSend;
 
-    <span class="kw">use </span>futures::SinkExt;
+    <span class="kw">use </span>futures::stream;
     <span class="kw">use </span>std::future::Future;
 
     <span class="doccomment">/// Returns a [`Subscription`] that produces messages at a set interval.
@@ -144,12 +142,12 @@
             <span class="kw">let </span>f = <span class="kw-2">*</span>f;
             <span class="kw">let </span>interval = <span class="kw-2">*</span>interval;
 
-            stream::channel(<span class="number">1</span>, <span class="kw">move </span>|<span class="kw-2">mut </span>output| <span class="kw">async move </span>{
-                <span class="kw">loop </span>{
-                    <span class="kw">let _ </span>= output.send(f().<span class="kw">await</span>).<span class="kw">await</span>;
-
+            stream::unfold(<span class="number">0</span>, <span class="kw">move </span>|i| <span class="kw">async move </span>{
+                <span class="kw">if </span>i &gt; <span class="number">0 </span>{
                     tokio::time::sleep(interval).<span class="kw">await</span>;
                 }
+
+                <span class="prelude-val">Some</span>((f().<span class="kw">await</span>, i + <span class="number">1</span>))
             })
         })
     }
