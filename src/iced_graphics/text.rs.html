@@ -54,7 +54,7 @@
 <a href=#54 id=54 data-nosnippet>54</a>        <span class="doccomment">/// The font of the text.
 <a href=#55 id=55 data-nosnippet>55</a>        </span>font: Font,
 <a href=#56 id=56 data-nosnippet>56</a>        <span class="doccomment">/// The horizontal alignment of the text.
-<a href=#57 id=57 data-nosnippet>57</a>        </span>horizontal_alignment: alignment::Horizontal,
+<a href=#57 id=57 data-nosnippet>57</a>        </span>horizontal_alignment: <span class="prelude-ty">Option</span>&lt;alignment::Horizontal&gt;,
 <a href=#58 id=58 data-nosnippet>58</a>        <span class="doccomment">/// The vertical alignment of the text.
 <a href=#59 id=59 data-nosnippet>59</a>        </span>vertical_alignment: alignment::Vertical,
 <a href=#60 id=60 data-nosnippet>60</a>        <span class="doccomment">/// The shaping strategy of the text.
@@ -84,7 +84,7 @@
 <a href=#84 id=84 data-nosnippet>84</a>                Rectangle::new(<span class="kw-2">*</span>position, paragraph.min_bounds)
 <a href=#85 id=85 data-nosnippet>85</a>                    .intersection(clip_bounds)
 <a href=#86 id=86 data-nosnippet>86</a>                    .map(|bounds| bounds * <span class="kw-2">*</span>transformation),
-<a href=#87 id=87 data-nosnippet>87</a>                <span class="prelude-val">Some</span>(paragraph.horizontal_alignment),
+<a href=#87 id=87 data-nosnippet>87</a>                paragraph.horizontal_alignment,
 <a href=#88 id=88 data-nosnippet>88</a>                <span class="prelude-val">Some</span>(paragraph.vertical_alignment),
 <a href=#89 id=89 data-nosnippet>89</a>            ),
 <a href=#90 id=90 data-nosnippet>90</a>            Text::Editor {
@@ -108,7 +108,7 @@
 <a href=#108 id=108 data-nosnippet>108</a>                ..
 <a href=#109 id=109 data-nosnippet>109</a>            } =&gt; (
 <a href=#110 id=110 data-nosnippet>110</a>                bounds.intersection(clip_bounds),
-<a href=#111 id=111 data-nosnippet>111</a>                <span class="prelude-val">Some</span>(<span class="kw-2">*</span>horizontal_alignment),
+<a href=#111 id=111 data-nosnippet>111</a>                <span class="kw-2">*</span>horizontal_alignment,
 <a href=#112 id=112 data-nosnippet>112</a>                <span class="prelude-val">Some</span>(<span class="kw-2">*</span>vertical_alignment),
 <a href=#113 id=113 data-nosnippet>113</a>            ),
 <a href=#114 id=114 data-nosnippet>114</a>            Text::Raw { raw, .. } =&gt; (<span class="prelude-val">Some</span>(raw.clip_bounds), <span class="prelude-val">None</span>, <span class="prelude-val">None</span>),
@@ -242,94 +242,106 @@
 <a href=#242 id=242 data-nosnippet>242</a>}
 <a href=#243 id=243 data-nosnippet>243</a>
 <a href=#244 id=244 data-nosnippet>244</a><span class="doccomment">/// Measures the dimensions of the given [`cosmic_text::Buffer`].
-<a href=#245 id=245 data-nosnippet>245</a></span><span class="kw">pub fn </span>measure(buffer: <span class="kw-2">&amp;</span>cosmic_text::Buffer) -&gt; Size {
-<a href=#246 id=246 data-nosnippet>246</a>    <span class="kw">let </span>(width, height) =
-<a href=#247 id=247 data-nosnippet>247</a>        buffer
-<a href=#248 id=248 data-nosnippet>248</a>            .layout_runs()
-<a href=#249 id=249 data-nosnippet>249</a>            .fold((<span class="number">0.0</span>, <span class="number">0.0</span>), |(width, height), run| {
-<a href=#250 id=250 data-nosnippet>250</a>                (run.line_w.max(width), height + run.line_height)
-<a href=#251 id=251 data-nosnippet>251</a>            });
-<a href=#252 id=252 data-nosnippet>252</a>
-<a href=#253 id=253 data-nosnippet>253</a>    Size::new(width, height)
-<a href=#254 id=254 data-nosnippet>254</a>}
-<a href=#255 id=255 data-nosnippet>255</a>
-<a href=#256 id=256 data-nosnippet>256</a><span class="doccomment">/// Returns the attributes of the given [`Font`].
-<a href=#257 id=257 data-nosnippet>257</a></span><span class="kw">pub fn </span>to_attributes(font: Font) -&gt; cosmic_text::Attrs&lt;<span class="lifetime">'static</span>&gt; {
-<a href=#258 id=258 data-nosnippet>258</a>    cosmic_text::Attrs::new()
-<a href=#259 id=259 data-nosnippet>259</a>        .family(to_family(font.family))
-<a href=#260 id=260 data-nosnippet>260</a>        .weight(to_weight(font.weight))
-<a href=#261 id=261 data-nosnippet>261</a>        .stretch(to_stretch(font.stretch))
-<a href=#262 id=262 data-nosnippet>262</a>        .style(to_style(font.style))
-<a href=#263 id=263 data-nosnippet>263</a>}
-<a href=#264 id=264 data-nosnippet>264</a>
-<a href=#265 id=265 data-nosnippet>265</a><span class="kw">fn </span>to_family(family: font::Family) -&gt; cosmic_text::Family&lt;<span class="lifetime">'static</span>&gt; {
-<a href=#266 id=266 data-nosnippet>266</a>    <span class="kw">match </span>family {
-<a href=#267 id=267 data-nosnippet>267</a>        font::Family::Name(name) =&gt; cosmic_text::Family::Name(name),
-<a href=#268 id=268 data-nosnippet>268</a>        font::Family::SansSerif =&gt; cosmic_text::Family::SansSerif,
-<a href=#269 id=269 data-nosnippet>269</a>        font::Family::Serif =&gt; cosmic_text::Family::Serif,
-<a href=#270 id=270 data-nosnippet>270</a>        font::Family::Cursive =&gt; cosmic_text::Family::Cursive,
-<a href=#271 id=271 data-nosnippet>271</a>        font::Family::Fantasy =&gt; cosmic_text::Family::Fantasy,
-<a href=#272 id=272 data-nosnippet>272</a>        font::Family::Monospace =&gt; cosmic_text::Family::Monospace,
-<a href=#273 id=273 data-nosnippet>273</a>    }
-<a href=#274 id=274 data-nosnippet>274</a>}
-<a href=#275 id=275 data-nosnippet>275</a>
-<a href=#276 id=276 data-nosnippet>276</a><span class="kw">fn </span>to_weight(weight: font::Weight) -&gt; cosmic_text::Weight {
-<a href=#277 id=277 data-nosnippet>277</a>    <span class="kw">match </span>weight {
-<a href=#278 id=278 data-nosnippet>278</a>        font::Weight::Thin =&gt; cosmic_text::Weight::THIN,
-<a href=#279 id=279 data-nosnippet>279</a>        font::Weight::ExtraLight =&gt; cosmic_text::Weight::EXTRA_LIGHT,
-<a href=#280 id=280 data-nosnippet>280</a>        font::Weight::Light =&gt; cosmic_text::Weight::LIGHT,
-<a href=#281 id=281 data-nosnippet>281</a>        font::Weight::Normal =&gt; cosmic_text::Weight::NORMAL,
-<a href=#282 id=282 data-nosnippet>282</a>        font::Weight::Medium =&gt; cosmic_text::Weight::MEDIUM,
-<a href=#283 id=283 data-nosnippet>283</a>        font::Weight::Semibold =&gt; cosmic_text::Weight::SEMIBOLD,
-<a href=#284 id=284 data-nosnippet>284</a>        font::Weight::Bold =&gt; cosmic_text::Weight::BOLD,
-<a href=#285 id=285 data-nosnippet>285</a>        font::Weight::ExtraBold =&gt; cosmic_text::Weight::EXTRA_BOLD,
-<a href=#286 id=286 data-nosnippet>286</a>        font::Weight::Black =&gt; cosmic_text::Weight::BLACK,
-<a href=#287 id=287 data-nosnippet>287</a>    }
-<a href=#288 id=288 data-nosnippet>288</a>}
-<a href=#289 id=289 data-nosnippet>289</a>
-<a href=#290 id=290 data-nosnippet>290</a><span class="kw">fn </span>to_stretch(stretch: font::Stretch) -&gt; cosmic_text::Stretch {
-<a href=#291 id=291 data-nosnippet>291</a>    <span class="kw">match </span>stretch {
-<a href=#292 id=292 data-nosnippet>292</a>        font::Stretch::UltraCondensed =&gt; cosmic_text::Stretch::UltraCondensed,
-<a href=#293 id=293 data-nosnippet>293</a>        font::Stretch::ExtraCondensed =&gt; cosmic_text::Stretch::ExtraCondensed,
-<a href=#294 id=294 data-nosnippet>294</a>        font::Stretch::Condensed =&gt; cosmic_text::Stretch::Condensed,
-<a href=#295 id=295 data-nosnippet>295</a>        font::Stretch::SemiCondensed =&gt; cosmic_text::Stretch::SemiCondensed,
-<a href=#296 id=296 data-nosnippet>296</a>        font::Stretch::Normal =&gt; cosmic_text::Stretch::Normal,
-<a href=#297 id=297 data-nosnippet>297</a>        font::Stretch::SemiExpanded =&gt; cosmic_text::Stretch::SemiExpanded,
-<a href=#298 id=298 data-nosnippet>298</a>        font::Stretch::Expanded =&gt; cosmic_text::Stretch::Expanded,
-<a href=#299 id=299 data-nosnippet>299</a>        font::Stretch::ExtraExpanded =&gt; cosmic_text::Stretch::ExtraExpanded,
-<a href=#300 id=300 data-nosnippet>300</a>        font::Stretch::UltraExpanded =&gt; cosmic_text::Stretch::UltraExpanded,
-<a href=#301 id=301 data-nosnippet>301</a>    }
-<a href=#302 id=302 data-nosnippet>302</a>}
-<a href=#303 id=303 data-nosnippet>303</a>
-<a href=#304 id=304 data-nosnippet>304</a><span class="kw">fn </span>to_style(style: font::Style) -&gt; cosmic_text::Style {
-<a href=#305 id=305 data-nosnippet>305</a>    <span class="kw">match </span>style {
-<a href=#306 id=306 data-nosnippet>306</a>        font::Style::Normal =&gt; cosmic_text::Style::Normal,
-<a href=#307 id=307 data-nosnippet>307</a>        font::Style::Italic =&gt; cosmic_text::Style::Italic,
-<a href=#308 id=308 data-nosnippet>308</a>        font::Style::Oblique =&gt; cosmic_text::Style::Oblique,
-<a href=#309 id=309 data-nosnippet>309</a>    }
-<a href=#310 id=310 data-nosnippet>310</a>}
-<a href=#311 id=311 data-nosnippet>311</a>
-<a href=#312 id=312 data-nosnippet>312</a><span class="doccomment">/// Converts some [`Shaping`] strategy to a [`cosmic_text::Shaping`] strategy.
-<a href=#313 id=313 data-nosnippet>313</a></span><span class="kw">pub fn </span>to_shaping(shaping: Shaping) -&gt; cosmic_text::Shaping {
-<a href=#314 id=314 data-nosnippet>314</a>    <span class="kw">match </span>shaping {
-<a href=#315 id=315 data-nosnippet>315</a>        Shaping::Basic =&gt; cosmic_text::Shaping::Basic,
-<a href=#316 id=316 data-nosnippet>316</a>        Shaping::Advanced =&gt; cosmic_text::Shaping::Advanced,
-<a href=#317 id=317 data-nosnippet>317</a>    }
-<a href=#318 id=318 data-nosnippet>318</a>}
-<a href=#319 id=319 data-nosnippet>319</a>
-<a href=#320 id=320 data-nosnippet>320</a><span class="doccomment">/// Converts some [`Wrapping`] strategy to a [`cosmic_text::Wrap`] strategy.
-<a href=#321 id=321 data-nosnippet>321</a></span><span class="kw">pub fn </span>to_wrap(wrapping: Wrapping) -&gt; cosmic_text::Wrap {
-<a href=#322 id=322 data-nosnippet>322</a>    <span class="kw">match </span>wrapping {
-<a href=#323 id=323 data-nosnippet>323</a>        Wrapping::None =&gt; cosmic_text::Wrap::None,
-<a href=#324 id=324 data-nosnippet>324</a>        Wrapping::Word =&gt; cosmic_text::Wrap::Word,
-<a href=#325 id=325 data-nosnippet>325</a>        Wrapping::Glyph =&gt; cosmic_text::Wrap::Glyph,
-<a href=#326 id=326 data-nosnippet>326</a>        Wrapping::WordOrGlyph =&gt; cosmic_text::Wrap::WordOrGlyph,
-<a href=#327 id=327 data-nosnippet>327</a>    }
-<a href=#328 id=328 data-nosnippet>328</a>}
-<a href=#329 id=329 data-nosnippet>329</a>
-<a href=#330 id=330 data-nosnippet>330</a><span class="doccomment">/// Converts some [`Color`] to a [`cosmic_text::Color`].
-<a href=#331 id=331 data-nosnippet>331</a></span><span class="kw">pub fn </span>to_color(color: Color) -&gt; cosmic_text::Color {
-<a href=#332 id=332 data-nosnippet>332</a>    <span class="kw">let </span>[r, g, b, a] = color.into_rgba8();
-<a href=#333 id=333 data-nosnippet>333</a>
-<a href=#334 id=334 data-nosnippet>334</a>    cosmic_text::Color::rgba(r, g, b, a)
-<a href=#335 id=335 data-nosnippet>335</a>}</code></pre></div></section></main></body></html>
+<a href=#245 id=245 data-nosnippet>245</a></span><span class="kw">pub fn </span>measure(buffer: <span class="kw-2">&amp;</span>cosmic_text::Buffer) -&gt; (Size, bool) {
+<a href=#246 id=246 data-nosnippet>246</a>    <span class="kw">let </span>(width, height, has_rtl) = buffer.layout_runs().fold(
+<a href=#247 id=247 data-nosnippet>247</a>        (<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="bool-val">false</span>),
+<a href=#248 id=248 data-nosnippet>248</a>        |(width, height, has_rtl), run| {
+<a href=#249 id=249 data-nosnippet>249</a>            (
+<a href=#250 id=250 data-nosnippet>250</a>                run.line_w.max(width),
+<a href=#251 id=251 data-nosnippet>251</a>                height + run.line_height,
+<a href=#252 id=252 data-nosnippet>252</a>                has_rtl || run.rtl,
+<a href=#253 id=253 data-nosnippet>253</a>            )
+<a href=#254 id=254 data-nosnippet>254</a>        },
+<a href=#255 id=255 data-nosnippet>255</a>    );
+<a href=#256 id=256 data-nosnippet>256</a>
+<a href=#257 id=257 data-nosnippet>257</a>    (Size::new(width, height), has_rtl)
+<a href=#258 id=258 data-nosnippet>258</a>}
+<a href=#259 id=259 data-nosnippet>259</a>
+<a href=#260 id=260 data-nosnippet>260</a><span class="doccomment">/// Returns the attributes of the given [`Font`].
+<a href=#261 id=261 data-nosnippet>261</a></span><span class="kw">pub fn </span>to_attributes(font: Font) -&gt; cosmic_text::Attrs&lt;<span class="lifetime">'static</span>&gt; {
+<a href=#262 id=262 data-nosnippet>262</a>    cosmic_text::Attrs::new()
+<a href=#263 id=263 data-nosnippet>263</a>        .family(to_family(font.family))
+<a href=#264 id=264 data-nosnippet>264</a>        .weight(to_weight(font.weight))
+<a href=#265 id=265 data-nosnippet>265</a>        .stretch(to_stretch(font.stretch))
+<a href=#266 id=266 data-nosnippet>266</a>        .style(to_style(font.style))
+<a href=#267 id=267 data-nosnippet>267</a>}
+<a href=#268 id=268 data-nosnippet>268</a>
+<a href=#269 id=269 data-nosnippet>269</a><span class="kw">fn </span>to_family(family: font::Family) -&gt; cosmic_text::Family&lt;<span class="lifetime">'static</span>&gt; {
+<a href=#270 id=270 data-nosnippet>270</a>    <span class="kw">match </span>family {
+<a href=#271 id=271 data-nosnippet>271</a>        font::Family::Name(name) =&gt; cosmic_text::Family::Name(name),
+<a href=#272 id=272 data-nosnippet>272</a>        font::Family::SansSerif =&gt; cosmic_text::Family::SansSerif,
+<a href=#273 id=273 data-nosnippet>273</a>        font::Family::Serif =&gt; cosmic_text::Family::Serif,
+<a href=#274 id=274 data-nosnippet>274</a>        font::Family::Cursive =&gt; cosmic_text::Family::Cursive,
+<a href=#275 id=275 data-nosnippet>275</a>        font::Family::Fantasy =&gt; cosmic_text::Family::Fantasy,
+<a href=#276 id=276 data-nosnippet>276</a>        font::Family::Monospace =&gt; cosmic_text::Family::Monospace,
+<a href=#277 id=277 data-nosnippet>277</a>    }
+<a href=#278 id=278 data-nosnippet>278</a>}
+<a href=#279 id=279 data-nosnippet>279</a>
+<a href=#280 id=280 data-nosnippet>280</a><span class="kw">fn </span>to_weight(weight: font::Weight) -&gt; cosmic_text::Weight {
+<a href=#281 id=281 data-nosnippet>281</a>    <span class="kw">match </span>weight {
+<a href=#282 id=282 data-nosnippet>282</a>        font::Weight::Thin =&gt; cosmic_text::Weight::THIN,
+<a href=#283 id=283 data-nosnippet>283</a>        font::Weight::ExtraLight =&gt; cosmic_text::Weight::EXTRA_LIGHT,
+<a href=#284 id=284 data-nosnippet>284</a>        font::Weight::Light =&gt; cosmic_text::Weight::LIGHT,
+<a href=#285 id=285 data-nosnippet>285</a>        font::Weight::Normal =&gt; cosmic_text::Weight::NORMAL,
+<a href=#286 id=286 data-nosnippet>286</a>        font::Weight::Medium =&gt; cosmic_text::Weight::MEDIUM,
+<a href=#287 id=287 data-nosnippet>287</a>        font::Weight::Semibold =&gt; cosmic_text::Weight::SEMIBOLD,
+<a href=#288 id=288 data-nosnippet>288</a>        font::Weight::Bold =&gt; cosmic_text::Weight::BOLD,
+<a href=#289 id=289 data-nosnippet>289</a>        font::Weight::ExtraBold =&gt; cosmic_text::Weight::EXTRA_BOLD,
+<a href=#290 id=290 data-nosnippet>290</a>        font::Weight::Black =&gt; cosmic_text::Weight::BLACK,
+<a href=#291 id=291 data-nosnippet>291</a>    }
+<a href=#292 id=292 data-nosnippet>292</a>}
+<a href=#293 id=293 data-nosnippet>293</a>
+<a href=#294 id=294 data-nosnippet>294</a><span class="kw">fn </span>to_stretch(stretch: font::Stretch) -&gt; cosmic_text::Stretch {
+<a href=#295 id=295 data-nosnippet>295</a>    <span class="kw">match </span>stretch {
+<a href=#296 id=296 data-nosnippet>296</a>        font::Stretch::UltraCondensed =&gt; cosmic_text::Stretch::UltraCondensed,
+<a href=#297 id=297 data-nosnippet>297</a>        font::Stretch::ExtraCondensed =&gt; cosmic_text::Stretch::ExtraCondensed,
+<a href=#298 id=298 data-nosnippet>298</a>        font::Stretch::Condensed =&gt; cosmic_text::Stretch::Condensed,
+<a href=#299 id=299 data-nosnippet>299</a>        font::Stretch::SemiCondensed =&gt; cosmic_text::Stretch::SemiCondensed,
+<a href=#300 id=300 data-nosnippet>300</a>        font::Stretch::Normal =&gt; cosmic_text::Stretch::Normal,
+<a href=#301 id=301 data-nosnippet>301</a>        font::Stretch::SemiExpanded =&gt; cosmic_text::Stretch::SemiExpanded,
+<a href=#302 id=302 data-nosnippet>302</a>        font::Stretch::Expanded =&gt; cosmic_text::Stretch::Expanded,
+<a href=#303 id=303 data-nosnippet>303</a>        font::Stretch::ExtraExpanded =&gt; cosmic_text::Stretch::ExtraExpanded,
+<a href=#304 id=304 data-nosnippet>304</a>        font::Stretch::UltraExpanded =&gt; cosmic_text::Stretch::UltraExpanded,
+<a href=#305 id=305 data-nosnippet>305</a>    }
+<a href=#306 id=306 data-nosnippet>306</a>}
+<a href=#307 id=307 data-nosnippet>307</a>
+<a href=#308 id=308 data-nosnippet>308</a><span class="kw">fn </span>to_style(style: font::Style) -&gt; cosmic_text::Style {
+<a href=#309 id=309 data-nosnippet>309</a>    <span class="kw">match </span>style {
+<a href=#310 id=310 data-nosnippet>310</a>        font::Style::Normal =&gt; cosmic_text::Style::Normal,
+<a href=#311 id=311 data-nosnippet>311</a>        font::Style::Italic =&gt; cosmic_text::Style::Italic,
+<a href=#312 id=312 data-nosnippet>312</a>        font::Style::Oblique =&gt; cosmic_text::Style::Oblique,
+<a href=#313 id=313 data-nosnippet>313</a>    }
+<a href=#314 id=314 data-nosnippet>314</a>}
+<a href=#315 id=315 data-nosnippet>315</a>
+<a href=#316 id=316 data-nosnippet>316</a><span class="kw">fn </span>to_align(alignment: alignment::Horizontal) -&gt; cosmic_text::Align {
+<a href=#317 id=317 data-nosnippet>317</a>    <span class="kw">match </span>alignment {
+<a href=#318 id=318 data-nosnippet>318</a>        alignment::Horizontal::Left =&gt; cosmic_text::Align::Left,
+<a href=#319 id=319 data-nosnippet>319</a>        alignment::Horizontal::Center =&gt; cosmic_text::Align::Center,
+<a href=#320 id=320 data-nosnippet>320</a>        alignment::Horizontal::Right =&gt; cosmic_text::Align::Right,
+<a href=#321 id=321 data-nosnippet>321</a>    }
+<a href=#322 id=322 data-nosnippet>322</a>}
+<a href=#323 id=323 data-nosnippet>323</a>
+<a href=#324 id=324 data-nosnippet>324</a><span class="doccomment">/// Converts some [`Shaping`] strategy to a [`cosmic_text::Shaping`] strategy.
+<a href=#325 id=325 data-nosnippet>325</a></span><span class="kw">pub fn </span>to_shaping(shaping: Shaping) -&gt; cosmic_text::Shaping {
+<a href=#326 id=326 data-nosnippet>326</a>    <span class="kw">match </span>shaping {
+<a href=#327 id=327 data-nosnippet>327</a>        Shaping::Basic =&gt; cosmic_text::Shaping::Basic,
+<a href=#328 id=328 data-nosnippet>328</a>        Shaping::Advanced =&gt; cosmic_text::Shaping::Advanced,
+<a href=#329 id=329 data-nosnippet>329</a>    }
+<a href=#330 id=330 data-nosnippet>330</a>}
+<a href=#331 id=331 data-nosnippet>331</a>
+<a href=#332 id=332 data-nosnippet>332</a><span class="doccomment">/// Converts some [`Wrapping`] strategy to a [`cosmic_text::Wrap`] strategy.
+<a href=#333 id=333 data-nosnippet>333</a></span><span class="kw">pub fn </span>to_wrap(wrapping: Wrapping) -&gt; cosmic_text::Wrap {
+<a href=#334 id=334 data-nosnippet>334</a>    <span class="kw">match </span>wrapping {
+<a href=#335 id=335 data-nosnippet>335</a>        Wrapping::None =&gt; cosmic_text::Wrap::None,
+<a href=#336 id=336 data-nosnippet>336</a>        Wrapping::Word =&gt; cosmic_text::Wrap::Word,
+<a href=#337 id=337 data-nosnippet>337</a>        Wrapping::Glyph =&gt; cosmic_text::Wrap::Glyph,
+<a href=#338 id=338 data-nosnippet>338</a>        Wrapping::WordOrGlyph =&gt; cosmic_text::Wrap::WordOrGlyph,
+<a href=#339 id=339 data-nosnippet>339</a>    }
+<a href=#340 id=340 data-nosnippet>340</a>}
+<a href=#341 id=341 data-nosnippet>341</a>
+<a href=#342 id=342 data-nosnippet>342</a><span class="doccomment">/// Converts some [`Color`] to a [`cosmic_text::Color`].
+<a href=#343 id=343 data-nosnippet>343</a></span><span class="kw">pub fn </span>to_color(color: Color) -&gt; cosmic_text::Color {
+<a href=#344 id=344 data-nosnippet>344</a>    <span class="kw">let </span>[r, g, b, a] = color.into_rgba8();
+<a href=#345 id=345 data-nosnippet>345</a>
+<a href=#346 id=346 data-nosnippet>346</a>    cosmic_text::Color::rgba(r, g, b, a)
+<a href=#347 id=347 data-nosnippet>347</a>}</code></pre></div></section></main></body></html>
