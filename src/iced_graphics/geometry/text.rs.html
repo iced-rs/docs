@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `graphics/src/geometry/text.rs`."><title>text.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-916cea96.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_graphics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.87.0-nightly (3ea711f17 2025-03-09)" data-channel="nightly" data-search-js="search-e7298875.js" data-settings-js="settings-d72f25bb.js" ><script src="../../../static.files/storage-d8ac8691.js"></script><script defer src="../../../static.files/src-script-b8d3f215.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a7bf3405.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_graphics/geometry/</div>text.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `graphics/src/geometry/text.rs`."><title>text.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-916cea96.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_graphics" data-themes="" data-resource-suffix="" data-rustdoc-version="1.87.0-nightly (9fb94b32d 2025-03-10)" data-channel="nightly" data-search-js="search-e7298875.js" data-settings-js="settings-d72f25bb.js" ><script src="../../../static.files/storage-d8ac8691.js"></script><script defer src="../../../static.files/src-script-b8d3f215.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-a7bf3405.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_graphics/geometry/</div>text.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span><span class="kw">crate</span>::core::text::{LineHeight, Shaping};
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span><span class="kw">crate</span>::core::{Color, Font, Pixels, Point, Size, Vector};
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::geometry::Path;
@@ -30,9 +30,9 @@
 <a href=#30 id=30 data-nosnippet>30</a>    <span class="doccomment">/// The font of the text
 <a href=#31 id=31 data-nosnippet>31</a>    </span><span class="kw">pub </span>font: Font,
 <a href=#32 id=32 data-nosnippet>32</a>    <span class="doccomment">/// The horizontal alignment of the text
-<a href=#33 id=33 data-nosnippet>33</a>    </span><span class="kw">pub </span>horizontal_alignment: alignment::Horizontal,
+<a href=#33 id=33 data-nosnippet>33</a>    </span><span class="kw">pub </span>align_x: alignment::Horizontal,
 <a href=#34 id=34 data-nosnippet>34</a>    <span class="doccomment">/// The vertical alignment of the text
-<a href=#35 id=35 data-nosnippet>35</a>    </span><span class="kw">pub </span>vertical_alignment: alignment::Vertical,
+<a href=#35 id=35 data-nosnippet>35</a>    </span><span class="kw">pub </span>align_y: alignment::Vertical,
 <a href=#36 id=36 data-nosnippet>36</a>    <span class="doccomment">/// The shaping strategy of the text.
 <a href=#37 id=37 data-nosnippet>37</a>    </span><span class="kw">pub </span>shaping: Shaping,
 <a href=#38 id=38 data-nosnippet>38</a>}
@@ -60,7 +60,7 @@
 <a href=#60 id=60 data-nosnippet>60</a>            <span class="number">4</span>,
 <a href=#61 id=61 data-nosnippet>61</a>        );
 <a href=#62 id=62 data-nosnippet>62</a>
-<a href=#63 id=63 data-nosnippet>63</a>        <span class="kw">let </span>translation_x = <span class="kw">match </span><span class="self">self</span>.horizontal_alignment {
+<a href=#63 id=63 data-nosnippet>63</a>        <span class="kw">let </span>translation_x = <span class="kw">match </span><span class="self">self</span>.align_x {
 <a href=#64 id=64 data-nosnippet>64</a>            alignment::Horizontal::Left =&gt; <span class="self">self</span>.position.x,
 <a href=#65 id=65 data-nosnippet>65</a>            alignment::Horizontal::Center | alignment::Horizontal::Right =&gt; {
 <a href=#66 id=66 data-nosnippet>66</a>                <span class="kw">let </span><span class="kw-2">mut </span>line_width = <span class="number">0.0f32</span>;
@@ -69,7 +69,7 @@
 <a href=#69 id=69 data-nosnippet>69</a>                    line_width = line_width.max(line.w);
 <a href=#70 id=70 data-nosnippet>70</a>                }
 <a href=#71 id=71 data-nosnippet>71</a>
-<a href=#72 id=72 data-nosnippet>72</a>                <span class="kw">if </span><span class="self">self</span>.horizontal_alignment == alignment::Horizontal::Center {
+<a href=#72 id=72 data-nosnippet>72</a>                <span class="kw">if </span><span class="self">self</span>.align_x == alignment::Horizontal::Center {
 <a href=#73 id=73 data-nosnippet>73</a>                    <span class="self">self</span>.position.x - line_width / <span class="number">2.0
 <a href=#74 id=74 data-nosnippet>74</a>                </span>} <span class="kw">else </span>{
 <a href=#75 id=75 data-nosnippet>75</a>                    <span class="self">self</span>.position.x - line_width
@@ -80,7 +80,7 @@
 <a href=#80 id=80 data-nosnippet>80</a>        <span class="kw">let </span>translation_y = {
 <a href=#81 id=81 data-nosnippet>81</a>            <span class="kw">let </span>line_height = <span class="self">self</span>.line_height.to_absolute(<span class="self">self</span>.size);
 <a href=#82 id=82 data-nosnippet>82</a>
-<a href=#83 id=83 data-nosnippet>83</a>            <span class="kw">match </span><span class="self">self</span>.vertical_alignment {
+<a href=#83 id=83 data-nosnippet>83</a>            <span class="kw">match </span><span class="self">self</span>.align_y {
 <a href=#84 id=84 data-nosnippet>84</a>                alignment::Vertical::Top =&gt; <span class="self">self</span>.position.y,
 <a href=#85 id=85 data-nosnippet>85</a>                alignment::Vertical::Center =&gt; {
 <a href=#86 id=86 data-nosnippet>86</a>                    <span class="self">self</span>.position.y - line_height.<span class="number">0 </span>/ <span class="number">2.0
@@ -180,8 +180,8 @@
 <a href=#180 id=180 data-nosnippet>180</a>            size: Pixels(<span class="number">16.0</span>),
 <a href=#181 id=181 data-nosnippet>181</a>            line_height: LineHeight::Relative(<span class="number">1.2</span>),
 <a href=#182 id=182 data-nosnippet>182</a>            font: Font::default(),
-<a href=#183 id=183 data-nosnippet>183</a>            horizontal_alignment: alignment::Horizontal::Left,
-<a href=#184 id=184 data-nosnippet>184</a>            vertical_alignment: alignment::Vertical::Top,
+<a href=#183 id=183 data-nosnippet>183</a>            align_x: alignment::Horizontal::Left,
+<a href=#184 id=184 data-nosnippet>184</a>            align_y: alignment::Vertical::Top,
 <a href=#185 id=185 data-nosnippet>185</a>            shaping: Shaping::Basic,
 <a href=#186 id=186 data-nosnippet>186</a>        }
 <a href=#187 id=187 data-nosnippet>187</a>    }
