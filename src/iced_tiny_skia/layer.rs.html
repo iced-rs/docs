@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tiny_skia/src/layer.rs`."><title>layer.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-916cea96.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_tiny_skia" data-themes="" data-resource-suffix="" data-rustdoc-version="1.87.0-nightly (3f5502370 2025-03-27)" data-channel="nightly" data-search-js="search-e7298875.js" data-settings-js="settings-d72f25bb.js" ><script src="../../static.files/storage-82c7156e.js"></script><script defer src="../../static.files/src-script-63605ae7.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-fb8c74a8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_tiny_skia/</div>layer.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::Primitive;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `tiny_skia/src/layer.rs`."><title>layer.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-916cea96.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_tiny_skia" data-themes="" data-resource-suffix="" data-rustdoc-version="1.87.0-nightly (920d95eaf 2025-03-28)" data-channel="nightly" data-search-js="search-e7298875.js" data-settings-js="settings-d72f25bb.js" ><script src="../../static.files/storage-82c7156e.js"></script><script defer src="../../static.files/src-script-63605ae7.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-fb8c74a8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_tiny_skia/</div>layer.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::Primitive;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span><span class="kw">crate</span>::core::renderer::Quad;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span><span class="kw">crate</span>::core::{
 <a href=#4 id=4 data-nosnippet>4</a>    <span class="self">self</span>, Background, Color, Point, Rectangle, Svg, Transformation,
@@ -8,7 +8,7 @@
 <a href=#8 id=8 data-nosnippet>8</a><span class="kw">use </span><span class="kw">crate</span>::graphics::text::{Editor, Paragraph, Text};
 <a href=#9 id=9 data-nosnippet>9</a><span class="kw">use </span><span class="kw">crate</span>::graphics::{<span class="self">self</span>, Image};
 <a href=#10 id=10 data-nosnippet>10</a>
-<a href=#11 id=11 data-nosnippet>11</a><span class="kw">use </span>std::rc::Rc;
+<a href=#11 id=11 data-nosnippet>11</a><span class="kw">use </span>std::sync::Arc;
 <a href=#12 id=12 data-nosnippet>12</a>
 <a href=#13 id=13 data-nosnippet>13</a><span class="kw">pub type </span>Stack = layer::Stack&lt;Layer&gt;;
 <a href=#14 id=14 data-nosnippet>14</a>
@@ -107,7 +107,7 @@
 <a href=#107 id=107 data-nosnippet>107</a>
 <a href=#108 id=108 data-nosnippet>108</a>    <span class="kw">pub fn </span>draw_text_cache(
 <a href=#109 id=109 data-nosnippet>109</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#110 id=110 data-nosnippet>110</a>        text: Rc&lt;[Text]&gt;,
+<a href=#110 id=110 data-nosnippet>110</a>        text: Arc&lt;[Text]&gt;,
 <a href=#111 id=111 data-nosnippet>111</a>        clip_bounds: Rectangle,
 <a href=#112 id=112 data-nosnippet>112</a>        transformation: Transformation,
 <a href=#113 id=113 data-nosnippet>113</a>    ) {
@@ -163,7 +163,7 @@
 <a href=#163 id=163 data-nosnippet>163</a>
 <a href=#164 id=164 data-nosnippet>164</a>    <span class="kw">pub fn </span>draw_primitive_cache(
 <a href=#165 id=165 data-nosnippet>165</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#166 id=166 data-nosnippet>166</a>        primitives: Rc&lt;[Primitive]&gt;,
+<a href=#166 id=166 data-nosnippet>166</a>        primitives: Arc&lt;[Primitive]&gt;,
 <a href=#167 id=167 data-nosnippet>167</a>        clip_bounds: Rectangle,
 <a href=#168 id=168 data-nosnippet>168</a>        transformation: Transformation,
 <a href=#169 id=169 data-nosnippet>169</a>    ) {
@@ -242,7 +242,7 @@
 <a href=#242 id=242 data-nosnippet>242</a>                    Item::Cached(cache_a, bounds_a, transformation_a),
 <a href=#243 id=243 data-nosnippet>243</a>                    Item::Cached(cache_b, bounds_b, transformation_b),
 <a href=#244 id=244 data-nosnippet>244</a>                ) =&gt; {
-<a href=#245 id=245 data-nosnippet>245</a>                    Rc::ptr_eq(cache_a, cache_b)
+<a href=#245 id=245 data-nosnippet>245</a>                    Arc::ptr_eq(cache_a, cache_b)
 <a href=#246 id=246 data-nosnippet>246</a>                        &amp;&amp; bounds_a == bounds_b
 <a href=#247 id=247 data-nosnippet>247</a>                        &amp;&amp; transformation_a == transformation_b
 <a href=#248 id=248 data-nosnippet>248</a>                }
@@ -304,7 +304,7 @@
 <a href=#304 id=304 data-nosnippet>304</a></span><span class="kw">pub enum </span>Item&lt;T&gt; {
 <a href=#305 id=305 data-nosnippet>305</a>    Live(T),
 <a href=#306 id=306 data-nosnippet>306</a>    Group(Vec&lt;T&gt;, Rectangle, Transformation),
-<a href=#307 id=307 data-nosnippet>307</a>    Cached(Rc&lt;[T]&gt;, Rectangle, Transformation),
+<a href=#307 id=307 data-nosnippet>307</a>    Cached(Arc&lt;[T]&gt;, Rectangle, Transformation),
 <a href=#308 id=308 data-nosnippet>308</a>}
 <a href=#309 id=309 data-nosnippet>309</a>
 <a href=#310 id=310 data-nosnippet>310</a><span class="kw">impl</span>&lt;T&gt; Item&lt;T&gt; {
