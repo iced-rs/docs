@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/src/input_method.rs`."><title>input_method.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-916cea96.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.87.0-nightly (920d95eaf 2025-03-28)" data-channel="nightly" data-search-js="search-e7298875.js" data-settings-js="settings-d72f25bb.js" ><script src="../../static.files/storage-82c7156e.js"></script><script defer src="../../static.files/src-script-63605ae7.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-fb8c74a8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_core/</div>input_method.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Listen to input method events.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `core/src/input_method.rs`."><title>input_method.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-916cea96.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (fedf10752 2025-03-30)" data-channel="nightly" data-search-js="search-e7298875.js" data-settings-js="settings-d72f25bb.js" ><script src="../../static.files/storage-82c7156e.js"></script><script defer src="../../static.files/src-script-63605ae7.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-fb8c74a8.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_core/</div>input_method.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Listen to input method events.
 <a href=#2 id=2 data-nosnippet>2</a></span><span class="kw">use crate</span>::{Pixels, Point};
 <a href=#3 id=3 data-nosnippet>3</a>
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>std::ops::Range;
@@ -151,71 +151,38 @@
 <a href=#151 id=151 data-nosnippet>151</a>/// However, one couldn't possibly have a key for every single
 <a href=#152 id=152 data-nosnippet>152</a>/// unicode character that the user might want to type. The solution operating systems employ is
 <a href=#153 id=153 data-nosnippet>153</a>/// to allow the user to type these using _a sequence of keypresses_ instead.
-<a href=#154 id=154 data-nosnippet>154</a>///
-<a href=#155 id=155 data-nosnippet>155</a>/// A prominent example of this is accents—many keyboard layouts allow you to first click the
-<a href=#156 id=156 data-nosnippet>156</a>/// "accent key", and then the character you want to apply the accent to. In this case, some
-<a href=#157 id=157 data-nosnippet>157</a>/// platforms will generate the following event sequence:
-<a href=#158 id=158 data-nosnippet>158</a>///
-<a href=#159 id=159 data-nosnippet>159</a>/// ```ignore
-<a href=#160 id=160 data-nosnippet>160</a>/// // Press "`" key
-<a href=#161 id=161 data-nosnippet>161</a>/// Ime::Preedit("`", Some((0, 0)))
-<a href=#162 id=162 data-nosnippet>162</a>/// // Press "E" key
-<a href=#163 id=163 data-nosnippet>163</a>/// Ime::Preedit("", None) // Synthetic event generated to clear preedit.
-<a href=#164 id=164 data-nosnippet>164</a>/// Ime::Commit("é")
-<a href=#165 id=165 data-nosnippet>165</a>/// ```
-<a href=#166 id=166 data-nosnippet>166</a>///
-<a href=#167 id=167 data-nosnippet>167</a>/// Additionally, certain input devices are configured to display a candidate box that allow the
-<a href=#168 id=168 data-nosnippet>168</a>/// user to select the desired character interactively. (To properly position this box, you must use
-<a href=#169 id=169 data-nosnippet>169</a>/// [`Shell::request_input_method`](crate::Shell::request_input_method).)
-<a href=#170 id=170 data-nosnippet>170</a>///
-<a href=#171 id=171 data-nosnippet>171</a>/// An example of a keyboard layout which uses candidate boxes is pinyin. On a latin keyboard the
-<a href=#172 id=172 data-nosnippet>172</a>/// following event sequence could be obtained:
-<a href=#173 id=173 data-nosnippet>173</a>///
-<a href=#174 id=174 data-nosnippet>174</a>/// ```ignore
-<a href=#175 id=175 data-nosnippet>175</a>/// // Press "A" key
-<a href=#176 id=176 data-nosnippet>176</a>/// Ime::Preedit("a", Some((1, 1)))
-<a href=#177 id=177 data-nosnippet>177</a>/// // Press "B" key
-<a href=#178 id=178 data-nosnippet>178</a>/// Ime::Preedit("a b", Some((3, 3)))
-<a href=#179 id=179 data-nosnippet>179</a>/// // Press left arrow key
-<a href=#180 id=180 data-nosnippet>180</a>/// Ime::Preedit("a b", Some((1, 1)))
-<a href=#181 id=181 data-nosnippet>181</a>/// // Press space key
-<a href=#182 id=182 data-nosnippet>182</a>/// Ime::Preedit("啊b", Some((3, 3)))
-<a href=#183 id=183 data-nosnippet>183</a>/// // Press space key
-<a href=#184 id=184 data-nosnippet>184</a>/// Ime::Preedit("", None) // Synthetic event generated to clear preedit.
-<a href=#185 id=185 data-nosnippet>185</a>/// Ime::Commit("啊不")
-<a href=#186 id=186 data-nosnippet>186</a>/// ```
-<a href=#187 id=187 data-nosnippet>187</a></span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-<a href=#188 id=188 data-nosnippet>188</a></span><span class="kw">pub enum </span>Event {
-<a href=#189 id=189 data-nosnippet>189</a>    <span class="doccomment">/// Notifies when the IME was opened.
-<a href=#190 id=190 data-nosnippet>190</a>    ///
-<a href=#191 id=191 data-nosnippet>191</a>    /// After getting this event you could receive [`Preedit`][Self::Preedit] and
-<a href=#192 id=192 data-nosnippet>192</a>    /// [`Commit`][Self::Commit] events. You should also start performing IME related requests
-<a href=#193 id=193 data-nosnippet>193</a>    /// like [`Shell::request_input_method`].
-<a href=#194 id=194 data-nosnippet>194</a>    ///
-<a href=#195 id=195 data-nosnippet>195</a>    /// [`Shell::request_input_method`]: crate::Shell::request_input_method
-<a href=#196 id=196 data-nosnippet>196</a>    </span>Opened,
-<a href=#197 id=197 data-nosnippet>197</a>
-<a href=#198 id=198 data-nosnippet>198</a>    <span class="doccomment">/// Notifies when a new composing text should be set at the cursor position.
-<a href=#199 id=199 data-nosnippet>199</a>    ///
-<a href=#200 id=200 data-nosnippet>200</a>    /// The value represents a pair of the preedit string and the cursor begin position and end
-<a href=#201 id=201 data-nosnippet>201</a>    /// position. When it's `None`, the cursor should be hidden. When `String` is an empty string
-<a href=#202 id=202 data-nosnippet>202</a>    /// this indicates that preedit was cleared.
-<a href=#203 id=203 data-nosnippet>203</a>    ///
-<a href=#204 id=204 data-nosnippet>204</a>    /// The cursor range is byte-wise indexed.
-<a href=#205 id=205 data-nosnippet>205</a>    </span>Preedit(String, <span class="prelude-ty">Option</span>&lt;Range&lt;usize&gt;&gt;),
-<a href=#206 id=206 data-nosnippet>206</a>
-<a href=#207 id=207 data-nosnippet>207</a>    <span class="doccomment">/// Notifies when text should be inserted into the editor widget.
-<a href=#208 id=208 data-nosnippet>208</a>    ///
-<a href=#209 id=209 data-nosnippet>209</a>    /// Right before this event, an empty [`Self::Preedit`] event will be issued.
-<a href=#210 id=210 data-nosnippet>210</a>    </span>Commit(String),
-<a href=#211 id=211 data-nosnippet>211</a>
-<a href=#212 id=212 data-nosnippet>212</a>    <span class="doccomment">/// Notifies when the IME was disabled.
-<a href=#213 id=213 data-nosnippet>213</a>    ///
-<a href=#214 id=214 data-nosnippet>214</a>    /// After receiving this event you won't get any more [`Preedit`][Self::Preedit] or
-<a href=#215 id=215 data-nosnippet>215</a>    /// [`Commit`][Self::Commit] events until the next [`Opened`][Self::Opened] event. You should
-<a href=#216 id=216 data-nosnippet>216</a>    /// also stop issuing IME related requests like [`Shell::request_input_method`] and clear
-<a href=#217 id=217 data-nosnippet>217</a>    /// pending preedit text.
-<a href=#218 id=218 data-nosnippet>218</a>    ///
-<a href=#219 id=219 data-nosnippet>219</a>    /// [`Shell::request_input_method`]: crate::Shell::request_input_method
-<a href=#220 id=220 data-nosnippet>220</a>    </span>Closed,
-<a href=#221 id=221 data-nosnippet>221</a>}</code></pre></div></section></main></body></html>
+<a href=#154 id=154 data-nosnippet>154</a></span><span class="attr">#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+<a href=#155 id=155 data-nosnippet>155</a></span><span class="kw">pub enum </span>Event {
+<a href=#156 id=156 data-nosnippet>156</a>    <span class="doccomment">/// Notifies when the IME was opened.
+<a href=#157 id=157 data-nosnippet>157</a>    ///
+<a href=#158 id=158 data-nosnippet>158</a>    /// After getting this event you could receive [`Preedit`][Self::Preedit] and
+<a href=#159 id=159 data-nosnippet>159</a>    /// [`Commit`][Self::Commit] events. You should also start performing IME related requests
+<a href=#160 id=160 data-nosnippet>160</a>    /// like [`Shell::request_input_method`].
+<a href=#161 id=161 data-nosnippet>161</a>    ///
+<a href=#162 id=162 data-nosnippet>162</a>    /// [`Shell::request_input_method`]: crate::Shell::request_input_method
+<a href=#163 id=163 data-nosnippet>163</a>    </span>Opened,
+<a href=#164 id=164 data-nosnippet>164</a>
+<a href=#165 id=165 data-nosnippet>165</a>    <span class="doccomment">/// Notifies when a new composing text should be set at the cursor position.
+<a href=#166 id=166 data-nosnippet>166</a>    ///
+<a href=#167 id=167 data-nosnippet>167</a>    /// The value represents a pair of the preedit string and the cursor begin position and end
+<a href=#168 id=168 data-nosnippet>168</a>    /// position. When it's `None`, the cursor should be hidden. When `String` is an empty string
+<a href=#169 id=169 data-nosnippet>169</a>    /// this indicates that preedit was cleared.
+<a href=#170 id=170 data-nosnippet>170</a>    ///
+<a href=#171 id=171 data-nosnippet>171</a>    /// The cursor range is byte-wise indexed.
+<a href=#172 id=172 data-nosnippet>172</a>    </span>Preedit(String, <span class="prelude-ty">Option</span>&lt;Range&lt;usize&gt;&gt;),
+<a href=#173 id=173 data-nosnippet>173</a>
+<a href=#174 id=174 data-nosnippet>174</a>    <span class="doccomment">/// Notifies when text should be inserted into the editor widget.
+<a href=#175 id=175 data-nosnippet>175</a>    ///
+<a href=#176 id=176 data-nosnippet>176</a>    /// Right before this event, an empty [`Self::Preedit`] event will be issued.
+<a href=#177 id=177 data-nosnippet>177</a>    </span>Commit(String),
+<a href=#178 id=178 data-nosnippet>178</a>
+<a href=#179 id=179 data-nosnippet>179</a>    <span class="doccomment">/// Notifies when the IME was disabled.
+<a href=#180 id=180 data-nosnippet>180</a>    ///
+<a href=#181 id=181 data-nosnippet>181</a>    /// After receiving this event you won't get any more [`Preedit`][Self::Preedit] or
+<a href=#182 id=182 data-nosnippet>182</a>    /// [`Commit`][Self::Commit] events until the next [`Opened`][Self::Opened] event. You should
+<a href=#183 id=183 data-nosnippet>183</a>    /// also stop issuing IME related requests like [`Shell::request_input_method`] and clear
+<a href=#184 id=184 data-nosnippet>184</a>    /// pending preedit text.
+<a href=#185 id=185 data-nosnippet>185</a>    ///
+<a href=#186 id=186 data-nosnippet>186</a>    /// [`Shell::request_input_method`]: crate::Shell::request_input_method
+<a href=#187 id=187 data-nosnippet>187</a>    </span>Closed,
+<a href=#188 id=188 data-nosnippet>188</a>}</code></pre></div></section></main></body></html>
