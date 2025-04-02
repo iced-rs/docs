@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["async_std","smol","thread_pool","tokio"]};
+window.SIDEBAR_ITEMS = {"mod":["smol","thread_pool","tokio"]};
