@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["days","every","hours","milliseconds","minutes","repeat","seconds"],"struct":["Duration","Instant"]};
+window.SIDEBAR_ITEMS = {"fn":["days","every","hours","milliseconds","minutes","repeat","seconds"],"struct":["Duration","Instant","SystemTime"]};
