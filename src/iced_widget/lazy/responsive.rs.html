@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/lazy/responsive.rs`."><title>responsive.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-c233d2bd.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (d7ea436a0 2025-04-24)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-4e99c027.js"></script><script defer src="../../../static.files/src-script-63605ae7.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_widget/lazy/</div>responsive.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::core::layout::{<span class="self">self</span>, Layout};
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/lazy/responsive.rs`."><title>responsive.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-20739d33.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (b4c8b0c3f 2025-04-25)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-4e99c027.js"></script><script defer src="../../../static.files/src-script-63605ae7.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_widget/lazy/</div>responsive.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::core::layout::{<span class="self">self</span>, Layout};
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span><span class="kw">crate</span>::core::mouse;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span><span class="kw">crate</span>::core::overlay;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::core::renderer;
@@ -283,181 +283,188 @@
 <a href=#283 id=283 data-nosnippet>283</a>        tree: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Tree,
 <a href=#284 id=284 data-nosnippet>284</a>        layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
 <a href=#285 id=285 data-nosnippet>285</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
-<a href=#286 id=286 data-nosnippet>286</a>        translation: Vector,
-<a href=#287 id=287 data-nosnippet>287</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
-<a href=#288 id=288 data-nosnippet>288</a>        <span class="kw">use </span>std::ops::DerefMut;
-<a href=#289 id=289 data-nosnippet>289</a>
-<a href=#290 id=290 data-nosnippet>290</a>        <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&gt;();
-<a href=#291 id=291 data-nosnippet>291</a>
-<a href=#292 id=292 data-nosnippet>292</a>        <span class="kw">let </span>overlay = OverlayBuilder {
-<a href=#293 id=293 data-nosnippet>293</a>            content: <span class="self">self</span>.content.borrow_mut(),
-<a href=#294 id=294 data-nosnippet>294</a>            tree: state.tree.borrow_mut(),
-<a href=#295 id=295 data-nosnippet>295</a>            types: PhantomData,
-<a href=#296 id=296 data-nosnippet>296</a>            overlay_builder: |content: <span class="kw-2">&amp;mut </span>RefMut&lt;
-<a href=#297 id=297 data-nosnippet>297</a>                <span class="lifetime">'_</span>,
-<a href=#298 id=298 data-nosnippet>298</a>                Content&lt;<span class="lifetime">'_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;,
-<a href=#299 id=299 data-nosnippet>299</a>            &gt;,
-<a href=#300 id=300 data-nosnippet>300</a>                              tree| {
-<a href=#301 id=301 data-nosnippet>301</a>                content.update(tree, layout.bounds().size(), <span class="kw-2">&amp;</span><span class="self">self</span>.view);
-<a href=#302 id=302 data-nosnippet>302</a>                content.layout(tree, renderer);
-<a href=#303 id=303 data-nosnippet>303</a>
-<a href=#304 id=304 data-nosnippet>304</a>                <span class="kw">let </span>Content {
-<a href=#305 id=305 data-nosnippet>305</a>                    element,
-<a href=#306 id=306 data-nosnippet>306</a>                    layout: content_layout_node,
-<a href=#307 id=307 data-nosnippet>307</a>                    ..
-<a href=#308 id=308 data-nosnippet>308</a>                } = content.deref_mut();
-<a href=#309 id=309 data-nosnippet>309</a>
-<a href=#310 id=310 data-nosnippet>310</a>                <span class="kw">let </span>content_layout = Layout::with_offset(
-<a href=#311 id=311 data-nosnippet>311</a>                    layout.bounds().position() - Point::ORIGIN,
-<a href=#312 id=312 data-nosnippet>312</a>                    content_layout_node.as_ref().unwrap(),
-<a href=#313 id=313 data-nosnippet>313</a>                );
-<a href=#314 id=314 data-nosnippet>314</a>
-<a href=#315 id=315 data-nosnippet>315</a>                (
-<a href=#316 id=316 data-nosnippet>316</a>                    element
-<a href=#317 id=317 data-nosnippet>317</a>                        .as_widget_mut()
-<a href=#318 id=318 data-nosnippet>318</a>                        .overlay(tree, content_layout, renderer, translation)
-<a href=#319 id=319 data-nosnippet>319</a>                        .map(|overlay| RefCell::new(Nested::new(overlay))),
-<a href=#320 id=320 data-nosnippet>320</a>                    content_layout_node,
-<a href=#321 id=321 data-nosnippet>321</a>                )
-<a href=#322 id=322 data-nosnippet>322</a>            },
-<a href=#323 id=323 data-nosnippet>323</a>        }
-<a href=#324 id=324 data-nosnippet>324</a>        .build();
-<a href=#325 id=325 data-nosnippet>325</a>
-<a href=#326 id=326 data-nosnippet>326</a>        <span class="kw">if </span>overlay.with_overlay(|(overlay, _layout)| overlay.is_some()) {
-<a href=#327 id=327 data-nosnippet>327</a>            <span class="prelude-val">Some</span>(overlay::Element::new(Box::new(overlay)))
-<a href=#328 id=328 data-nosnippet>328</a>        } <span class="kw">else </span>{
-<a href=#329 id=329 data-nosnippet>329</a>            <span class="prelude-val">None
-<a href=#330 id=330 data-nosnippet>330</a>        </span>}
-<a href=#331 id=331 data-nosnippet>331</a>    }
-<a href=#332 id=332 data-nosnippet>332</a>}
-<a href=#333 id=333 data-nosnippet>333</a>
-<a href=#334 id=334 data-nosnippet>334</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
-<a href=#335 id=335 data-nosnippet>335</a>    From&lt;Responsive&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;
-<a href=#336 id=336 data-nosnippet>336</a>    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
-<a href=#337 id=337 data-nosnippet>337</a><span class="kw">where
-<a href=#338 id=338 data-nosnippet>338</a>    </span>Message: <span class="lifetime">'a</span>,
-<a href=#339 id=339 data-nosnippet>339</a>    Theme: <span class="lifetime">'a</span>,
-<a href=#340 id=340 data-nosnippet>340</a>    Renderer: core::Renderer + <span class="lifetime">'a</span>,
-<a href=#341 id=341 data-nosnippet>341</a>{
-<a href=#342 id=342 data-nosnippet>342</a>    <span class="kw">fn </span>from(responsive: Responsive&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;) -&gt; <span class="self">Self </span>{
-<a href=#343 id=343 data-nosnippet>343</a>        <span class="self">Self</span>::new(responsive)
-<a href=#344 id=344 data-nosnippet>344</a>    }
-<a href=#345 id=345 data-nosnippet>345</a>}
-<a href=#346 id=346 data-nosnippet>346</a>
-<a href=#347 id=347 data-nosnippet>347</a><span class="attr">#[self_referencing]
-<a href=#348 id=348 data-nosnippet>348</a></span><span class="kw">struct </span>Overlay&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Message, Theme, Renderer&gt; {
-<a href=#349 id=349 data-nosnippet>349</a>    content: RefMut&lt;<span class="lifetime">'a</span>, Content&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt;,
-<a href=#350 id=350 data-nosnippet>350</a>    tree: RefMut&lt;<span class="lifetime">'a</span>, Tree&gt;,
-<a href=#351 id=351 data-nosnippet>351</a>    types: PhantomData&lt;Message&gt;,
-<a href=#352 id=352 data-nosnippet>352</a>
-<a href=#353 id=353 data-nosnippet>353</a>    <span class="attr">#[borrows(<span class="kw-2">mut </span>content, <span class="kw-2">mut </span>tree)]
-<a href=#354 id=354 data-nosnippet>354</a>    #[not_covariant]
-<a href=#355 id=355 data-nosnippet>355</a>    </span>overlay: (
-<a href=#356 id=356 data-nosnippet>356</a>        <span class="prelude-ty">Option</span>&lt;RefCell&lt;Nested&lt;<span class="lifetime">'this</span>, Message, Theme, Renderer&gt;&gt;&gt;,
-<a href=#357 id=357 data-nosnippet>357</a>        <span class="kw-2">&amp;</span><span class="lifetime">'this </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;layout::Node&gt;,
-<a href=#358 id=358 data-nosnippet>358</a>    ),
-<a href=#359 id=359 data-nosnippet>359</a>}
-<a href=#360 id=360 data-nosnippet>360</a>
-<a href=#361 id=361 data-nosnippet>361</a><span class="kw">impl</span>&lt;Message, Theme, Renderer&gt; Overlay&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, Message, Theme, Renderer&gt; {
-<a href=#362 id=362 data-nosnippet>362</a>    <span class="kw">fn </span>with_overlay_maybe&lt;T&gt;(
-<a href=#363 id=363 data-nosnippet>363</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
-<a href=#364 id=364 data-nosnippet>364</a>        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Nested&lt;<span class="lifetime">'_</span>, Message, Theme, Renderer&gt;) -&gt; T,
-<a href=#365 id=365 data-nosnippet>365</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-<a href=#366 id=366 data-nosnippet>366</a>        <span class="self">self</span>.with_overlay(|(overlay, _layout)| {
-<a href=#367 id=367 data-nosnippet>367</a>            overlay.as_ref().map(|nested| (f)(<span class="kw-2">&amp;mut </span>nested.borrow_mut()))
-<a href=#368 id=368 data-nosnippet>368</a>        })
-<a href=#369 id=369 data-nosnippet>369</a>    }
-<a href=#370 id=370 data-nosnippet>370</a>
-<a href=#371 id=371 data-nosnippet>371</a>    <span class="kw">fn </span>with_overlay_mut_maybe&lt;T&gt;(
-<a href=#372 id=372 data-nosnippet>372</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#373 id=373 data-nosnippet>373</a>        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Nested&lt;<span class="lifetime">'_</span>, Message, Theme, Renderer&gt;) -&gt; T,
-<a href=#374 id=374 data-nosnippet>374</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
-<a href=#375 id=375 data-nosnippet>375</a>        <span class="self">self</span>.with_overlay_mut(|(overlay, _layout)| {
-<a href=#376 id=376 data-nosnippet>376</a>            overlay.as_mut().map(|nested| (f)(nested.get_mut()))
-<a href=#377 id=377 data-nosnippet>377</a>        })
-<a href=#378 id=378 data-nosnippet>378</a>    }
-<a href=#379 id=379 data-nosnippet>379</a>}
-<a href=#380 id=380 data-nosnippet>380</a>
-<a href=#381 id=381 data-nosnippet>381</a><span class="kw">impl</span>&lt;Message, Theme, Renderer&gt; overlay::Overlay&lt;Message, Theme, Renderer&gt;
-<a href=#382 id=382 data-nosnippet>382</a>    <span class="kw">for </span>Overlay&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, Message, Theme, Renderer&gt;
-<a href=#383 id=383 data-nosnippet>383</a><span class="kw">where
-<a href=#384 id=384 data-nosnippet>384</a>    </span>Renderer: core::Renderer,
-<a href=#385 id=385 data-nosnippet>385</a>{
-<a href=#386 id=386 data-nosnippet>386</a>    <span class="kw">fn </span>layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, renderer: <span class="kw-2">&amp;</span>Renderer, bounds: Size) -&gt; layout::Node {
-<a href=#387 id=387 data-nosnippet>387</a>        <span class="self">self</span>.with_overlay_maybe(|overlay| overlay.layout(renderer, bounds))
-<a href=#388 id=388 data-nosnippet>388</a>            .unwrap_or_default()
-<a href=#389 id=389 data-nosnippet>389</a>    }
-<a href=#390 id=390 data-nosnippet>390</a>
-<a href=#391 id=391 data-nosnippet>391</a>    <span class="kw">fn </span>draw(
-<a href=#392 id=392 data-nosnippet>392</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
-<a href=#393 id=393 data-nosnippet>393</a>        renderer: <span class="kw-2">&amp;mut </span>Renderer,
-<a href=#394 id=394 data-nosnippet>394</a>        theme: <span class="kw-2">&amp;</span>Theme,
-<a href=#395 id=395 data-nosnippet>395</a>        style: <span class="kw-2">&amp;</span>renderer::Style,
-<a href=#396 id=396 data-nosnippet>396</a>        layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-<a href=#397 id=397 data-nosnippet>397</a>        cursor: mouse::Cursor,
-<a href=#398 id=398 data-nosnippet>398</a>    ) {
-<a href=#399 id=399 data-nosnippet>399</a>        <span class="kw">let _ </span>= <span class="self">self</span>.with_overlay_maybe(|overlay| {
-<a href=#400 id=400 data-nosnippet>400</a>            overlay.draw(renderer, theme, style, layout, cursor);
-<a href=#401 id=401 data-nosnippet>401</a>        });
-<a href=#402 id=402 data-nosnippet>402</a>    }
-<a href=#403 id=403 data-nosnippet>403</a>
-<a href=#404 id=404 data-nosnippet>404</a>    <span class="kw">fn </span>mouse_interaction(
-<a href=#405 id=405 data-nosnippet>405</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
-<a href=#406 id=406 data-nosnippet>406</a>        layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-<a href=#407 id=407 data-nosnippet>407</a>        cursor: mouse::Cursor,
-<a href=#408 id=408 data-nosnippet>408</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
-<a href=#409 id=409 data-nosnippet>409</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
-<a href=#410 id=410 data-nosnippet>410</a>    ) -&gt; mouse::Interaction {
-<a href=#411 id=411 data-nosnippet>411</a>        <span class="self">self</span>.with_overlay_maybe(|overlay| {
-<a href=#412 id=412 data-nosnippet>412</a>            overlay.mouse_interaction(layout, cursor, viewport, renderer)
-<a href=#413 id=413 data-nosnippet>413</a>        })
-<a href=#414 id=414 data-nosnippet>414</a>        .unwrap_or_default()
-<a href=#415 id=415 data-nosnippet>415</a>    }
-<a href=#416 id=416 data-nosnippet>416</a>
-<a href=#417 id=417 data-nosnippet>417</a>    <span class="kw">fn </span>update(
-<a href=#418 id=418 data-nosnippet>418</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#419 id=419 data-nosnippet>419</a>        event: <span class="kw-2">&amp;</span>Event,
-<a href=#420 id=420 data-nosnippet>420</a>        layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-<a href=#421 id=421 data-nosnippet>421</a>        cursor: mouse::Cursor,
-<a href=#422 id=422 data-nosnippet>422</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
-<a href=#423 id=423 data-nosnippet>423</a>        clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
-<a href=#424 id=424 data-nosnippet>424</a>        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
-<a href=#425 id=425 data-nosnippet>425</a>    ) {
-<a href=#426 id=426 data-nosnippet>426</a>        <span class="kw">let </span><span class="kw-2">mut </span>is_layout_invalid = <span class="bool-val">false</span>;
-<a href=#427 id=427 data-nosnippet>427</a>
-<a href=#428 id=428 data-nosnippet>428</a>        <span class="kw">let _ </span>= <span class="self">self</span>.with_overlay_mut_maybe(|overlay| {
-<a href=#429 id=429 data-nosnippet>429</a>            overlay.update(event, layout, cursor, renderer, clipboard, shell);
-<a href=#430 id=430 data-nosnippet>430</a>
-<a href=#431 id=431 data-nosnippet>431</a>            is_layout_invalid = shell.is_layout_invalid();
-<a href=#432 id=432 data-nosnippet>432</a>        });
-<a href=#433 id=433 data-nosnippet>433</a>
-<a href=#434 id=434 data-nosnippet>434</a>        <span class="kw">if </span>is_layout_invalid {
-<a href=#435 id=435 data-nosnippet>435</a>            <span class="self">self</span>.with_overlay_mut(|(_overlay, layout)| {
-<a href=#436 id=436 data-nosnippet>436</a>                <span class="kw-2">**</span>layout = <span class="prelude-val">None</span>;
-<a href=#437 id=437 data-nosnippet>437</a>            });
-<a href=#438 id=438 data-nosnippet>438</a>        }
-<a href=#439 id=439 data-nosnippet>439</a>    }
+<a href=#286 id=286 data-nosnippet>286</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
+<a href=#287 id=287 data-nosnippet>287</a>        translation: Vector,
+<a href=#288 id=288 data-nosnippet>288</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
+<a href=#289 id=289 data-nosnippet>289</a>        <span class="kw">use </span>std::ops::DerefMut;
+<a href=#290 id=290 data-nosnippet>290</a>
+<a href=#291 id=291 data-nosnippet>291</a>        <span class="kw">let </span>state = tree.state.downcast_ref::&lt;State&gt;();
+<a href=#292 id=292 data-nosnippet>292</a>
+<a href=#293 id=293 data-nosnippet>293</a>        <span class="kw">let </span>overlay = OverlayBuilder {
+<a href=#294 id=294 data-nosnippet>294</a>            content: <span class="self">self</span>.content.borrow_mut(),
+<a href=#295 id=295 data-nosnippet>295</a>            tree: state.tree.borrow_mut(),
+<a href=#296 id=296 data-nosnippet>296</a>            types: PhantomData,
+<a href=#297 id=297 data-nosnippet>297</a>            overlay_builder: |content: <span class="kw-2">&amp;mut </span>RefMut&lt;
+<a href=#298 id=298 data-nosnippet>298</a>                <span class="lifetime">'_</span>,
+<a href=#299 id=299 data-nosnippet>299</a>                Content&lt;<span class="lifetime">'_</span>, <span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span>&gt;,
+<a href=#300 id=300 data-nosnippet>300</a>            &gt;,
+<a href=#301 id=301 data-nosnippet>301</a>                              tree| {
+<a href=#302 id=302 data-nosnippet>302</a>                content.update(tree, layout.bounds().size(), <span class="kw-2">&amp;</span><span class="self">self</span>.view);
+<a href=#303 id=303 data-nosnippet>303</a>                content.layout(tree, renderer);
+<a href=#304 id=304 data-nosnippet>304</a>
+<a href=#305 id=305 data-nosnippet>305</a>                <span class="kw">let </span>Content {
+<a href=#306 id=306 data-nosnippet>306</a>                    element,
+<a href=#307 id=307 data-nosnippet>307</a>                    layout: content_layout_node,
+<a href=#308 id=308 data-nosnippet>308</a>                    ..
+<a href=#309 id=309 data-nosnippet>309</a>                } = content.deref_mut();
+<a href=#310 id=310 data-nosnippet>310</a>
+<a href=#311 id=311 data-nosnippet>311</a>                <span class="kw">let </span>content_layout = Layout::with_offset(
+<a href=#312 id=312 data-nosnippet>312</a>                    layout.bounds().position() - Point::ORIGIN,
+<a href=#313 id=313 data-nosnippet>313</a>                    content_layout_node.as_ref().unwrap(),
+<a href=#314 id=314 data-nosnippet>314</a>                );
+<a href=#315 id=315 data-nosnippet>315</a>
+<a href=#316 id=316 data-nosnippet>316</a>                (
+<a href=#317 id=317 data-nosnippet>317</a>                    element
+<a href=#318 id=318 data-nosnippet>318</a>                        .as_widget_mut()
+<a href=#319 id=319 data-nosnippet>319</a>                        .overlay(
+<a href=#320 id=320 data-nosnippet>320</a>                            tree,
+<a href=#321 id=321 data-nosnippet>321</a>                            content_layout,
+<a href=#322 id=322 data-nosnippet>322</a>                            renderer,
+<a href=#323 id=323 data-nosnippet>323</a>                            viewport,
+<a href=#324 id=324 data-nosnippet>324</a>                            translation,
+<a href=#325 id=325 data-nosnippet>325</a>                        )
+<a href=#326 id=326 data-nosnippet>326</a>                        .map(|overlay| RefCell::new(Nested::new(overlay))),
+<a href=#327 id=327 data-nosnippet>327</a>                    content_layout_node,
+<a href=#328 id=328 data-nosnippet>328</a>                )
+<a href=#329 id=329 data-nosnippet>329</a>            },
+<a href=#330 id=330 data-nosnippet>330</a>        }
+<a href=#331 id=331 data-nosnippet>331</a>        .build();
+<a href=#332 id=332 data-nosnippet>332</a>
+<a href=#333 id=333 data-nosnippet>333</a>        <span class="kw">if </span>overlay.with_overlay(|(overlay, _layout)| overlay.is_some()) {
+<a href=#334 id=334 data-nosnippet>334</a>            <span class="prelude-val">Some</span>(overlay::Element::new(Box::new(overlay)))
+<a href=#335 id=335 data-nosnippet>335</a>        } <span class="kw">else </span>{
+<a href=#336 id=336 data-nosnippet>336</a>            <span class="prelude-val">None
+<a href=#337 id=337 data-nosnippet>337</a>        </span>}
+<a href=#338 id=338 data-nosnippet>338</a>    }
+<a href=#339 id=339 data-nosnippet>339</a>}
+<a href=#340 id=340 data-nosnippet>340</a>
+<a href=#341 id=341 data-nosnippet>341</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
+<a href=#342 id=342 data-nosnippet>342</a>    From&lt;Responsive&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;&gt;
+<a href=#343 id=343 data-nosnippet>343</a>    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
+<a href=#344 id=344 data-nosnippet>344</a><span class="kw">where
+<a href=#345 id=345 data-nosnippet>345</a>    </span>Message: <span class="lifetime">'a</span>,
+<a href=#346 id=346 data-nosnippet>346</a>    Theme: <span class="lifetime">'a</span>,
+<a href=#347 id=347 data-nosnippet>347</a>    Renderer: core::Renderer + <span class="lifetime">'a</span>,
+<a href=#348 id=348 data-nosnippet>348</a>{
+<a href=#349 id=349 data-nosnippet>349</a>    <span class="kw">fn </span>from(responsive: Responsive&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;) -&gt; <span class="self">Self </span>{
+<a href=#350 id=350 data-nosnippet>350</a>        <span class="self">Self</span>::new(responsive)
+<a href=#351 id=351 data-nosnippet>351</a>    }
+<a href=#352 id=352 data-nosnippet>352</a>}
+<a href=#353 id=353 data-nosnippet>353</a>
+<a href=#354 id=354 data-nosnippet>354</a><span class="attr">#[self_referencing]
+<a href=#355 id=355 data-nosnippet>355</a></span><span class="kw">struct </span>Overlay&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>, Message, Theme, Renderer&gt; {
+<a href=#356 id=356 data-nosnippet>356</a>    content: RefMut&lt;<span class="lifetime">'a</span>, Content&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt;,
+<a href=#357 id=357 data-nosnippet>357</a>    tree: RefMut&lt;<span class="lifetime">'a</span>, Tree&gt;,
+<a href=#358 id=358 data-nosnippet>358</a>    types: PhantomData&lt;Message&gt;,
+<a href=#359 id=359 data-nosnippet>359</a>
+<a href=#360 id=360 data-nosnippet>360</a>    <span class="attr">#[borrows(<span class="kw-2">mut </span>content, <span class="kw-2">mut </span>tree)]
+<a href=#361 id=361 data-nosnippet>361</a>    #[not_covariant]
+<a href=#362 id=362 data-nosnippet>362</a>    </span>overlay: (
+<a href=#363 id=363 data-nosnippet>363</a>        <span class="prelude-ty">Option</span>&lt;RefCell&lt;Nested&lt;<span class="lifetime">'this</span>, Message, Theme, Renderer&gt;&gt;&gt;,
+<a href=#364 id=364 data-nosnippet>364</a>        <span class="kw-2">&amp;</span><span class="lifetime">'this </span><span class="kw-2">mut </span><span class="prelude-ty">Option</span>&lt;layout::Node&gt;,
+<a href=#365 id=365 data-nosnippet>365</a>    ),
+<a href=#366 id=366 data-nosnippet>366</a>}
+<a href=#367 id=367 data-nosnippet>367</a>
+<a href=#368 id=368 data-nosnippet>368</a><span class="kw">impl</span>&lt;Message, Theme, Renderer&gt; Overlay&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, Message, Theme, Renderer&gt; {
+<a href=#369 id=369 data-nosnippet>369</a>    <span class="kw">fn </span>with_overlay_maybe&lt;T&gt;(
+<a href=#370 id=370 data-nosnippet>370</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#371 id=371 data-nosnippet>371</a>        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Nested&lt;<span class="lifetime">'_</span>, Message, Theme, Renderer&gt;) -&gt; T,
+<a href=#372 id=372 data-nosnippet>372</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+<a href=#373 id=373 data-nosnippet>373</a>        <span class="self">self</span>.with_overlay(|(overlay, _layout)| {
+<a href=#374 id=374 data-nosnippet>374</a>            overlay.as_ref().map(|nested| (f)(<span class="kw-2">&amp;mut </span>nested.borrow_mut()))
+<a href=#375 id=375 data-nosnippet>375</a>        })
+<a href=#376 id=376 data-nosnippet>376</a>    }
+<a href=#377 id=377 data-nosnippet>377</a>
+<a href=#378 id=378 data-nosnippet>378</a>    <span class="kw">fn </span>with_overlay_mut_maybe&lt;T&gt;(
+<a href=#379 id=379 data-nosnippet>379</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#380 id=380 data-nosnippet>380</a>        f: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>Nested&lt;<span class="lifetime">'_</span>, Message, Theme, Renderer&gt;) -&gt; T,
+<a href=#381 id=381 data-nosnippet>381</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; {
+<a href=#382 id=382 data-nosnippet>382</a>        <span class="self">self</span>.with_overlay_mut(|(overlay, _layout)| {
+<a href=#383 id=383 data-nosnippet>383</a>            overlay.as_mut().map(|nested| (f)(nested.get_mut()))
+<a href=#384 id=384 data-nosnippet>384</a>        })
+<a href=#385 id=385 data-nosnippet>385</a>    }
+<a href=#386 id=386 data-nosnippet>386</a>}
+<a href=#387 id=387 data-nosnippet>387</a>
+<a href=#388 id=388 data-nosnippet>388</a><span class="kw">impl</span>&lt;Message, Theme, Renderer&gt; overlay::Overlay&lt;Message, Theme, Renderer&gt;
+<a href=#389 id=389 data-nosnippet>389</a>    <span class="kw">for </span>Overlay&lt;<span class="lifetime">'_</span>, <span class="lifetime">'_</span>, Message, Theme, Renderer&gt;
+<a href=#390 id=390 data-nosnippet>390</a><span class="kw">where
+<a href=#391 id=391 data-nosnippet>391</a>    </span>Renderer: core::Renderer,
+<a href=#392 id=392 data-nosnippet>392</a>{
+<a href=#393 id=393 data-nosnippet>393</a>    <span class="kw">fn </span>layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, renderer: <span class="kw-2">&amp;</span>Renderer, bounds: Size) -&gt; layout::Node {
+<a href=#394 id=394 data-nosnippet>394</a>        <span class="self">self</span>.with_overlay_maybe(|overlay| overlay.layout(renderer, bounds))
+<a href=#395 id=395 data-nosnippet>395</a>            .unwrap_or_default()
+<a href=#396 id=396 data-nosnippet>396</a>    }
+<a href=#397 id=397 data-nosnippet>397</a>
+<a href=#398 id=398 data-nosnippet>398</a>    <span class="kw">fn </span>draw(
+<a href=#399 id=399 data-nosnippet>399</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#400 id=400 data-nosnippet>400</a>        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+<a href=#401 id=401 data-nosnippet>401</a>        theme: <span class="kw-2">&amp;</span>Theme,
+<a href=#402 id=402 data-nosnippet>402</a>        style: <span class="kw-2">&amp;</span>renderer::Style,
+<a href=#403 id=403 data-nosnippet>403</a>        layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
+<a href=#404 id=404 data-nosnippet>404</a>        cursor: mouse::Cursor,
+<a href=#405 id=405 data-nosnippet>405</a>    ) {
+<a href=#406 id=406 data-nosnippet>406</a>        <span class="kw">let _ </span>= <span class="self">self</span>.with_overlay_maybe(|overlay| {
+<a href=#407 id=407 data-nosnippet>407</a>            overlay.draw(renderer, theme, style, layout, cursor);
+<a href=#408 id=408 data-nosnippet>408</a>        });
+<a href=#409 id=409 data-nosnippet>409</a>    }
+<a href=#410 id=410 data-nosnippet>410</a>
+<a href=#411 id=411 data-nosnippet>411</a>    <span class="kw">fn </span>mouse_interaction(
+<a href=#412 id=412 data-nosnippet>412</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#413 id=413 data-nosnippet>413</a>        layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
+<a href=#414 id=414 data-nosnippet>414</a>        cursor: mouse::Cursor,
+<a href=#415 id=415 data-nosnippet>415</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
+<a href=#416 id=416 data-nosnippet>416</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
+<a href=#417 id=417 data-nosnippet>417</a>    ) -&gt; mouse::Interaction {
+<a href=#418 id=418 data-nosnippet>418</a>        <span class="self">self</span>.with_overlay_maybe(|overlay| {
+<a href=#419 id=419 data-nosnippet>419</a>            overlay.mouse_interaction(layout, cursor, viewport, renderer)
+<a href=#420 id=420 data-nosnippet>420</a>        })
+<a href=#421 id=421 data-nosnippet>421</a>        .unwrap_or_default()
+<a href=#422 id=422 data-nosnippet>422</a>    }
+<a href=#423 id=423 data-nosnippet>423</a>
+<a href=#424 id=424 data-nosnippet>424</a>    <span class="kw">fn </span>update(
+<a href=#425 id=425 data-nosnippet>425</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#426 id=426 data-nosnippet>426</a>        event: <span class="kw-2">&amp;</span>Event,
+<a href=#427 id=427 data-nosnippet>427</a>        layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
+<a href=#428 id=428 data-nosnippet>428</a>        cursor: mouse::Cursor,
+<a href=#429 id=429 data-nosnippet>429</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
+<a href=#430 id=430 data-nosnippet>430</a>        clipboard: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Clipboard,
+<a href=#431 id=431 data-nosnippet>431</a>        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
+<a href=#432 id=432 data-nosnippet>432</a>    ) {
+<a href=#433 id=433 data-nosnippet>433</a>        <span class="kw">let </span><span class="kw-2">mut </span>is_layout_invalid = <span class="bool-val">false</span>;
+<a href=#434 id=434 data-nosnippet>434</a>
+<a href=#435 id=435 data-nosnippet>435</a>        <span class="kw">let _ </span>= <span class="self">self</span>.with_overlay_mut_maybe(|overlay| {
+<a href=#436 id=436 data-nosnippet>436</a>            overlay.update(event, layout, cursor, renderer, clipboard, shell);
+<a href=#437 id=437 data-nosnippet>437</a>
+<a href=#438 id=438 data-nosnippet>438</a>            is_layout_invalid = shell.is_layout_invalid();
+<a href=#439 id=439 data-nosnippet>439</a>        });
 <a href=#440 id=440 data-nosnippet>440</a>
-<a href=#441 id=441 data-nosnippet>441</a>    <span class="kw">fn </span>is_over(
-<a href=#442 id=442 data-nosnippet>442</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
-<a href=#443 id=443 data-nosnippet>443</a>        layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-<a href=#444 id=444 data-nosnippet>444</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
-<a href=#445 id=445 data-nosnippet>445</a>        cursor_position: Point,
-<a href=#446 id=446 data-nosnippet>446</a>    ) -&gt; bool {
-<a href=#447 id=447 data-nosnippet>447</a>        <span class="self">self</span>.with_overlay_maybe(|overlay| {
-<a href=#448 id=448 data-nosnippet>448</a>            overlay.is_over(layout, renderer, cursor_position)
-<a href=#449 id=449 data-nosnippet>449</a>        })
-<a href=#450 id=450 data-nosnippet>450</a>        .unwrap_or_default()
-<a href=#451 id=451 data-nosnippet>451</a>    }
-<a href=#452 id=452 data-nosnippet>452</a>
-<a href=#453 id=453 data-nosnippet>453</a>    <span class="kw">fn </span>operate(
-<a href=#454 id=454 data-nosnippet>454</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#455 id=455 data-nosnippet>455</a>        layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
-<a href=#456 id=456 data-nosnippet>456</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
-<a href=#457 id=457 data-nosnippet>457</a>        operation: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::Operation,
-<a href=#458 id=458 data-nosnippet>458</a>    ) {
-<a href=#459 id=459 data-nosnippet>459</a>        <span class="kw">let _ </span>= <span class="self">self</span>.with_overlay_mut_maybe(|overlay| {
-<a href=#460 id=460 data-nosnippet>460</a>            overlay.operate(layout, renderer, operation);
-<a href=#461 id=461 data-nosnippet>461</a>        });
-<a href=#462 id=462 data-nosnippet>462</a>    }
-<a href=#463 id=463 data-nosnippet>463</a>}</code></pre></div></section></main></body></html>
+<a href=#441 id=441 data-nosnippet>441</a>        <span class="kw">if </span>is_layout_invalid {
+<a href=#442 id=442 data-nosnippet>442</a>            <span class="self">self</span>.with_overlay_mut(|(_overlay, layout)| {
+<a href=#443 id=443 data-nosnippet>443</a>                <span class="kw-2">**</span>layout = <span class="prelude-val">None</span>;
+<a href=#444 id=444 data-nosnippet>444</a>            });
+<a href=#445 id=445 data-nosnippet>445</a>        }
+<a href=#446 id=446 data-nosnippet>446</a>    }
+<a href=#447 id=447 data-nosnippet>447</a>
+<a href=#448 id=448 data-nosnippet>448</a>    <span class="kw">fn </span>is_over(
+<a href=#449 id=449 data-nosnippet>449</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#450 id=450 data-nosnippet>450</a>        layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
+<a href=#451 id=451 data-nosnippet>451</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
+<a href=#452 id=452 data-nosnippet>452</a>        cursor_position: Point,
+<a href=#453 id=453 data-nosnippet>453</a>    ) -&gt; bool {
+<a href=#454 id=454 data-nosnippet>454</a>        <span class="self">self</span>.with_overlay_maybe(|overlay| {
+<a href=#455 id=455 data-nosnippet>455</a>            overlay.is_over(layout, renderer, cursor_position)
+<a href=#456 id=456 data-nosnippet>456</a>        })
+<a href=#457 id=457 data-nosnippet>457</a>        .unwrap_or_default()
+<a href=#458 id=458 data-nosnippet>458</a>    }
+<a href=#459 id=459 data-nosnippet>459</a>
+<a href=#460 id=460 data-nosnippet>460</a>    <span class="kw">fn </span>operate(
+<a href=#461 id=461 data-nosnippet>461</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#462 id=462 data-nosnippet>462</a>        layout: Layout&lt;<span class="lifetime">'_</span>&gt;,
+<a href=#463 id=463 data-nosnippet>463</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
+<a href=#464 id=464 data-nosnippet>464</a>        operation: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>widget::Operation,
+<a href=#465 id=465 data-nosnippet>465</a>    ) {
+<a href=#466 id=466 data-nosnippet>466</a>        <span class="kw">let _ </span>= <span class="self">self</span>.with_overlay_mut_maybe(|overlay| {
+<a href=#467 id=467 data-nosnippet>467</a>            overlay.operate(layout, renderer, operation);
+<a href=#468 id=468 data-nosnippet>468</a>        });
+<a href=#469 id=469 data-nosnippet>469</a>    }
+<a href=#470 id=470 data-nosnippet>470</a>}</code></pre></div></section></main></body></html>
