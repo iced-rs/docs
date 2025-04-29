@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["application"],"struct":["Application"],"trait":["Boot","IntoBoot","Title","Update","View"]};
+window.SIDEBAR_ITEMS = {"fn":["application"],"mod":["timed"],"struct":["Application"],"trait":["Boot","IntoBoot","Title","Update","View"]};

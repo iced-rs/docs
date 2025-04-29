@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["skip_next_timing","time","time_with"],"struct":["Span"]};
+window.SIDEBAR_ITEMS = {"fn":["time","time_with"],"struct":["Span"]};
