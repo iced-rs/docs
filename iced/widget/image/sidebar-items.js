@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["FilterMethod","Handle"],"fn":["draw","layout","viewer"],"mod":["viewer"],"struct":["Image","Style","Viewer"],"trait":["Catalog"],"type":["StyleFn"]};
+window.SIDEBAR_ITEMS = {"enum":["FilterMethod","Handle"],"fn":["draw","layout","viewer"],"mod":["viewer"],"struct":["Image","Viewer"]};
