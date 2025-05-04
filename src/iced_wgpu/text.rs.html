@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/text.rs`."><title>text.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-20739d33.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (4824c2bb7 2025-05-02)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-4e99c027.js"></script><script defer src="../../static.files/src-script-63605ae7.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_wgpu/</div>text.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/text.rs`."><title>text.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-20739d33.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (d6a325d93 2025-05-03)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-4e99c027.js"></script><script defer src="../../static.files/src-script-63605ae7.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_wgpu/</div>text.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::core::alignment;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span><span class="kw">crate</span>::core::text::Alignment;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span><span class="kw">crate</span>::core::{Rectangle, Size, Transformation};
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::graphics::cache;
@@ -506,160 +506,144 @@
 <a href=#506 id=506 data-nosnippet>506</a>
 <a href=#507 id=507 data-nosnippet>507</a>    <span class="kw">let </span>text_areas = sections.iter().zip(allocations.iter()).filter_map(
 <a href=#508 id=508 data-nosnippet>508</a>        |(section, allocation)| {
-<a href=#509 id=509 data-nosnippet>509</a>            <span class="kw">let </span>(
-<a href=#510 id=510 data-nosnippet>510</a>                buffer,
-<a href=#511 id=511 data-nosnippet>511</a>                bounds,
-<a href=#512 id=512 data-nosnippet>512</a>                align_x,
-<a href=#513 id=513 data-nosnippet>513</a>                align_y,
-<a href=#514 id=514 data-nosnippet>514</a>                color,
-<a href=#515 id=515 data-nosnippet>515</a>                clip_bounds,
-<a href=#516 id=516 data-nosnippet>516</a>                transformation,
-<a href=#517 id=517 data-nosnippet>517</a>            ) = <span class="kw">match </span>section {
-<a href=#518 id=518 data-nosnippet>518</a>                Text::Paragraph {
-<a href=#519 id=519 data-nosnippet>519</a>                    position,
-<a href=#520 id=520 data-nosnippet>520</a>                    color,
-<a href=#521 id=521 data-nosnippet>521</a>                    clip_bounds,
-<a href=#522 id=522 data-nosnippet>522</a>                    transformation,
-<a href=#523 id=523 data-nosnippet>523</a>                    ..
-<a href=#524 id=524 data-nosnippet>524</a>                } =&gt; {
-<a href=#525 id=525 data-nosnippet>525</a>                    <span class="kw">use </span><span class="kw">crate</span>::core::text::Paragraph <span class="kw">as _</span>;
-<a href=#526 id=526 data-nosnippet>526</a>
-<a href=#527 id=527 data-nosnippet>527</a>                    <span class="kw">let </span><span class="prelude-val">Some</span>(Allocation::Paragraph(paragraph)) = allocation
-<a href=#528 id=528 data-nosnippet>528</a>                    <span class="kw">else </span>{
-<a href=#529 id=529 data-nosnippet>529</a>                        <span class="kw">return </span><span class="prelude-val">None</span>;
-<a href=#530 id=530 data-nosnippet>530</a>                    };
-<a href=#531 id=531 data-nosnippet>531</a>
-<a href=#532 id=532 data-nosnippet>532</a>                    (
-<a href=#533 id=533 data-nosnippet>533</a>                        paragraph.buffer(),
-<a href=#534 id=534 data-nosnippet>534</a>                        Rectangle::new(<span class="kw-2">*</span>position, paragraph.min_bounds()),
-<a href=#535 id=535 data-nosnippet>535</a>                        paragraph.align_x(),
-<a href=#536 id=536 data-nosnippet>536</a>                        paragraph.align_y(),
-<a href=#537 id=537 data-nosnippet>537</a>                        <span class="kw-2">*</span>color,
-<a href=#538 id=538 data-nosnippet>538</a>                        <span class="kw-2">*</span>clip_bounds,
-<a href=#539 id=539 data-nosnippet>539</a>                        <span class="kw-2">*</span>transformation,
-<a href=#540 id=540 data-nosnippet>540</a>                    )
-<a href=#541 id=541 data-nosnippet>541</a>                }
-<a href=#542 id=542 data-nosnippet>542</a>                Text::Editor {
-<a href=#543 id=543 data-nosnippet>543</a>                    position,
-<a href=#544 id=544 data-nosnippet>544</a>                    color,
-<a href=#545 id=545 data-nosnippet>545</a>                    clip_bounds,
-<a href=#546 id=546 data-nosnippet>546</a>                    transformation,
-<a href=#547 id=547 data-nosnippet>547</a>                    ..
-<a href=#548 id=548 data-nosnippet>548</a>                } =&gt; {
-<a href=#549 id=549 data-nosnippet>549</a>                    <span class="kw">use </span><span class="kw">crate</span>::core::text::Editor <span class="kw">as _</span>;
-<a href=#550 id=550 data-nosnippet>550</a>
-<a href=#551 id=551 data-nosnippet>551</a>                    <span class="kw">let </span><span class="prelude-val">Some</span>(Allocation::Editor(editor)) = allocation <span class="kw">else </span>{
-<a href=#552 id=552 data-nosnippet>552</a>                        <span class="kw">return </span><span class="prelude-val">None</span>;
-<a href=#553 id=553 data-nosnippet>553</a>                    };
-<a href=#554 id=554 data-nosnippet>554</a>
-<a href=#555 id=555 data-nosnippet>555</a>                    (
-<a href=#556 id=556 data-nosnippet>556</a>                        editor.buffer(),
-<a href=#557 id=557 data-nosnippet>557</a>                        Rectangle::new(<span class="kw-2">*</span>position, editor.bounds()),
-<a href=#558 id=558 data-nosnippet>558</a>                        Alignment::Default,
-<a href=#559 id=559 data-nosnippet>559</a>                        alignment::Vertical::Top,
-<a href=#560 id=560 data-nosnippet>560</a>                        <span class="kw-2">*</span>color,
-<a href=#561 id=561 data-nosnippet>561</a>                        <span class="kw-2">*</span>clip_bounds,
-<a href=#562 id=562 data-nosnippet>562</a>                        <span class="kw-2">*</span>transformation,
-<a href=#563 id=563 data-nosnippet>563</a>                    )
-<a href=#564 id=564 data-nosnippet>564</a>                }
-<a href=#565 id=565 data-nosnippet>565</a>                Text::Cached {
-<a href=#566 id=566 data-nosnippet>566</a>                    bounds,
-<a href=#567 id=567 data-nosnippet>567</a>                    align_x,
-<a href=#568 id=568 data-nosnippet>568</a>                    align_y,
-<a href=#569 id=569 data-nosnippet>569</a>                    color,
-<a href=#570 id=570 data-nosnippet>570</a>                    clip_bounds,
-<a href=#571 id=571 data-nosnippet>571</a>                    ..
-<a href=#572 id=572 data-nosnippet>572</a>                } =&gt; {
-<a href=#573 id=573 data-nosnippet>573</a>                    <span class="kw">let </span><span class="prelude-val">Some</span>(Allocation::Cache(key)) = allocation <span class="kw">else </span>{
-<a href=#574 id=574 data-nosnippet>574</a>                        <span class="kw">return </span><span class="prelude-val">None</span>;
-<a href=#575 id=575 data-nosnippet>575</a>                    };
-<a href=#576 id=576 data-nosnippet>576</a>
-<a href=#577 id=577 data-nosnippet>577</a>                    <span class="kw">let </span>entry =
-<a href=#578 id=578 data-nosnippet>578</a>                        buffer_cache.get(key).expect(<span class="string">"Get cached buffer"</span>);
+<a href=#509 id=509 data-nosnippet>509</a>            <span class="kw">let </span>(buffer, position, color, clip_bounds, transformation) =
+<a href=#510 id=510 data-nosnippet>510</a>                <span class="kw">match </span>section {
+<a href=#511 id=511 data-nosnippet>511</a>                    Text::Paragraph {
+<a href=#512 id=512 data-nosnippet>512</a>                        position,
+<a href=#513 id=513 data-nosnippet>513</a>                        color,
+<a href=#514 id=514 data-nosnippet>514</a>                        clip_bounds,
+<a href=#515 id=515 data-nosnippet>515</a>                        transformation,
+<a href=#516 id=516 data-nosnippet>516</a>                        ..
+<a href=#517 id=517 data-nosnippet>517</a>                    } =&gt; {
+<a href=#518 id=518 data-nosnippet>518</a>                        <span class="kw">let </span><span class="prelude-val">Some</span>(Allocation::Paragraph(paragraph)) = allocation
+<a href=#519 id=519 data-nosnippet>519</a>                        <span class="kw">else </span>{
+<a href=#520 id=520 data-nosnippet>520</a>                            <span class="kw">return </span><span class="prelude-val">None</span>;
+<a href=#521 id=521 data-nosnippet>521</a>                        };
+<a href=#522 id=522 data-nosnippet>522</a>
+<a href=#523 id=523 data-nosnippet>523</a>                        (
+<a href=#524 id=524 data-nosnippet>524</a>                            paragraph.buffer(),
+<a href=#525 id=525 data-nosnippet>525</a>                            <span class="kw-2">*</span>position,
+<a href=#526 id=526 data-nosnippet>526</a>                            <span class="kw-2">*</span>color,
+<a href=#527 id=527 data-nosnippet>527</a>                            <span class="kw-2">*</span>clip_bounds,
+<a href=#528 id=528 data-nosnippet>528</a>                            <span class="kw-2">*</span>transformation,
+<a href=#529 id=529 data-nosnippet>529</a>                        )
+<a href=#530 id=530 data-nosnippet>530</a>                    }
+<a href=#531 id=531 data-nosnippet>531</a>                    Text::Editor {
+<a href=#532 id=532 data-nosnippet>532</a>                        position,
+<a href=#533 id=533 data-nosnippet>533</a>                        color,
+<a href=#534 id=534 data-nosnippet>534</a>                        clip_bounds,
+<a href=#535 id=535 data-nosnippet>535</a>                        transformation,
+<a href=#536 id=536 data-nosnippet>536</a>                        ..
+<a href=#537 id=537 data-nosnippet>537</a>                    } =&gt; {
+<a href=#538 id=538 data-nosnippet>538</a>                        <span class="kw">let </span><span class="prelude-val">Some</span>(Allocation::Editor(editor)) = allocation
+<a href=#539 id=539 data-nosnippet>539</a>                        <span class="kw">else </span>{
+<a href=#540 id=540 data-nosnippet>540</a>                            <span class="kw">return </span><span class="prelude-val">None</span>;
+<a href=#541 id=541 data-nosnippet>541</a>                        };
+<a href=#542 id=542 data-nosnippet>542</a>
+<a href=#543 id=543 data-nosnippet>543</a>                        (
+<a href=#544 id=544 data-nosnippet>544</a>                            editor.buffer(),
+<a href=#545 id=545 data-nosnippet>545</a>                            <span class="kw-2">*</span>position,
+<a href=#546 id=546 data-nosnippet>546</a>                            <span class="kw-2">*</span>color,
+<a href=#547 id=547 data-nosnippet>547</a>                            <span class="kw-2">*</span>clip_bounds,
+<a href=#548 id=548 data-nosnippet>548</a>                            <span class="kw-2">*</span>transformation,
+<a href=#549 id=549 data-nosnippet>549</a>                        )
+<a href=#550 id=550 data-nosnippet>550</a>                    }
+<a href=#551 id=551 data-nosnippet>551</a>                    Text::Cached {
+<a href=#552 id=552 data-nosnippet>552</a>                        bounds,
+<a href=#553 id=553 data-nosnippet>553</a>                        align_x,
+<a href=#554 id=554 data-nosnippet>554</a>                        align_y,
+<a href=#555 id=555 data-nosnippet>555</a>                        color,
+<a href=#556 id=556 data-nosnippet>556</a>                        clip_bounds,
+<a href=#557 id=557 data-nosnippet>557</a>                        ..
+<a href=#558 id=558 data-nosnippet>558</a>                    } =&gt; {
+<a href=#559 id=559 data-nosnippet>559</a>                        <span class="kw">let </span><span class="prelude-val">Some</span>(Allocation::Cache(key)) = allocation <span class="kw">else </span>{
+<a href=#560 id=560 data-nosnippet>560</a>                            <span class="kw">return </span><span class="prelude-val">None</span>;
+<a href=#561 id=561 data-nosnippet>561</a>                        };
+<a href=#562 id=562 data-nosnippet>562</a>
+<a href=#563 id=563 data-nosnippet>563</a>                        <span class="kw">let </span>entry =
+<a href=#564 id=564 data-nosnippet>564</a>                            buffer_cache.get(key).expect(<span class="string">"Get cached buffer"</span>);
+<a href=#565 id=565 data-nosnippet>565</a>
+<a href=#566 id=566 data-nosnippet>566</a>                        <span class="kw">let </span><span class="kw-2">mut </span>position = bounds.position();
+<a href=#567 id=567 data-nosnippet>567</a>
+<a href=#568 id=568 data-nosnippet>568</a>                        position.x = <span class="kw">match </span>align_x {
+<a href=#569 id=569 data-nosnippet>569</a>                            Alignment::Default
+<a href=#570 id=570 data-nosnippet>570</a>                            | Alignment::Left
+<a href=#571 id=571 data-nosnippet>571</a>                            | Alignment::Justified =&gt; position.x,
+<a href=#572 id=572 data-nosnippet>572</a>                            Alignment::Center =&gt; {
+<a href=#573 id=573 data-nosnippet>573</a>                                position.x - entry.min_bounds.width / <span class="number">2.0
+<a href=#574 id=574 data-nosnippet>574</a>                            </span>}
+<a href=#575 id=575 data-nosnippet>575</a>                            Alignment::Right =&gt; {
+<a href=#576 id=576 data-nosnippet>576</a>                                position.x - entry.min_bounds.width
+<a href=#577 id=577 data-nosnippet>577</a>                            }
+<a href=#578 id=578 data-nosnippet>578</a>                        };
 <a href=#579 id=579 data-nosnippet>579</a>
-<a href=#580 id=580 data-nosnippet>580</a>                    (
-<a href=#581 id=581 data-nosnippet>581</a>                        <span class="kw-2">&amp;</span>entry.buffer,
-<a href=#582 id=582 data-nosnippet>582</a>                        Rectangle::new(bounds.position(), entry.min_bounds),
-<a href=#583 id=583 data-nosnippet>583</a>                        <span class="kw-2">*</span>align_x,
-<a href=#584 id=584 data-nosnippet>584</a>                        <span class="kw-2">*</span>align_y,
-<a href=#585 id=585 data-nosnippet>585</a>                        <span class="kw-2">*</span>color,
-<a href=#586 id=586 data-nosnippet>586</a>                        <span class="kw-2">*</span>clip_bounds,
-<a href=#587 id=587 data-nosnippet>587</a>                        Transformation::IDENTITY,
-<a href=#588 id=588 data-nosnippet>588</a>                    )
-<a href=#589 id=589 data-nosnippet>589</a>                }
-<a href=#590 id=590 data-nosnippet>590</a>                Text::Raw {
-<a href=#591 id=591 data-nosnippet>591</a>                    raw,
-<a href=#592 id=592 data-nosnippet>592</a>                    transformation,
-<a href=#593 id=593 data-nosnippet>593</a>                } =&gt; {
-<a href=#594 id=594 data-nosnippet>594</a>                    <span class="kw">let </span><span class="prelude-val">Some</span>(Allocation::Raw(buffer)) = allocation <span class="kw">else </span>{
-<a href=#595 id=595 data-nosnippet>595</a>                        <span class="kw">return </span><span class="prelude-val">None</span>;
-<a href=#596 id=596 data-nosnippet>596</a>                    };
-<a href=#597 id=597 data-nosnippet>597</a>
-<a href=#598 id=598 data-nosnippet>598</a>                    <span class="kw">let </span>(width, height) = buffer.size();
-<a href=#599 id=599 data-nosnippet>599</a>
-<a href=#600 id=600 data-nosnippet>600</a>                    (
-<a href=#601 id=601 data-nosnippet>601</a>                        buffer.as_ref(),
-<a href=#602 id=602 data-nosnippet>602</a>                        Rectangle::new(
-<a href=#603 id=603 data-nosnippet>603</a>                            raw.position,
-<a href=#604 id=604 data-nosnippet>604</a>                            Size::new(
-<a href=#605 id=605 data-nosnippet>605</a>                                width.unwrap_or(layer_bounds.width),
-<a href=#606 id=606 data-nosnippet>606</a>                                height.unwrap_or(layer_bounds.height),
-<a href=#607 id=607 data-nosnippet>607</a>                            ),
-<a href=#608 id=608 data-nosnippet>608</a>                        ),
-<a href=#609 id=609 data-nosnippet>609</a>                        Alignment::Default,
-<a href=#610 id=610 data-nosnippet>610</a>                        alignment::Vertical::Top,
-<a href=#611 id=611 data-nosnippet>611</a>                        raw.color,
-<a href=#612 id=612 data-nosnippet>612</a>                        raw.clip_bounds,
-<a href=#613 id=613 data-nosnippet>613</a>                        <span class="kw-2">*</span>transformation,
-<a href=#614 id=614 data-nosnippet>614</a>                    )
-<a href=#615 id=615 data-nosnippet>615</a>                }
-<a href=#616 id=616 data-nosnippet>616</a>            };
+<a href=#580 id=580 data-nosnippet>580</a>                        position.y = <span class="kw">match </span>align_y {
+<a href=#581 id=581 data-nosnippet>581</a>                            alignment::Vertical::Top =&gt; position.y,
+<a href=#582 id=582 data-nosnippet>582</a>                            alignment::Vertical::Center =&gt; {
+<a href=#583 id=583 data-nosnippet>583</a>                                position.y - entry.min_bounds.height / <span class="number">2.0
+<a href=#584 id=584 data-nosnippet>584</a>                            </span>}
+<a href=#585 id=585 data-nosnippet>585</a>                            alignment::Vertical::Bottom =&gt; {
+<a href=#586 id=586 data-nosnippet>586</a>                                position.y - entry.min_bounds.height
+<a href=#587 id=587 data-nosnippet>587</a>                            }
+<a href=#588 id=588 data-nosnippet>588</a>                        };
+<a href=#589 id=589 data-nosnippet>589</a>
+<a href=#590 id=590 data-nosnippet>590</a>                        (
+<a href=#591 id=591 data-nosnippet>591</a>                            <span class="kw-2">&amp;</span>entry.buffer,
+<a href=#592 id=592 data-nosnippet>592</a>                            position,
+<a href=#593 id=593 data-nosnippet>593</a>                            <span class="kw-2">*</span>color,
+<a href=#594 id=594 data-nosnippet>594</a>                            <span class="kw-2">*</span>clip_bounds,
+<a href=#595 id=595 data-nosnippet>595</a>                            Transformation::IDENTITY,
+<a href=#596 id=596 data-nosnippet>596</a>                        )
+<a href=#597 id=597 data-nosnippet>597</a>                    }
+<a href=#598 id=598 data-nosnippet>598</a>                    Text::Raw {
+<a href=#599 id=599 data-nosnippet>599</a>                        raw,
+<a href=#600 id=600 data-nosnippet>600</a>                        transformation,
+<a href=#601 id=601 data-nosnippet>601</a>                    } =&gt; {
+<a href=#602 id=602 data-nosnippet>602</a>                        <span class="kw">let </span><span class="prelude-val">Some</span>(Allocation::Raw(buffer)) = allocation <span class="kw">else </span>{
+<a href=#603 id=603 data-nosnippet>603</a>                            <span class="kw">return </span><span class="prelude-val">None</span>;
+<a href=#604 id=604 data-nosnippet>604</a>                        };
+<a href=#605 id=605 data-nosnippet>605</a>
+<a href=#606 id=606 data-nosnippet>606</a>                        (
+<a href=#607 id=607 data-nosnippet>607</a>                            buffer.as_ref(),
+<a href=#608 id=608 data-nosnippet>608</a>                            raw.position,
+<a href=#609 id=609 data-nosnippet>609</a>                            raw.color,
+<a href=#610 id=610 data-nosnippet>610</a>                            raw.clip_bounds,
+<a href=#611 id=611 data-nosnippet>611</a>                            <span class="kw-2">*</span>transformation,
+<a href=#612 id=612 data-nosnippet>612</a>                        )
+<a href=#613 id=613 data-nosnippet>613</a>                    }
+<a href=#614 id=614 data-nosnippet>614</a>                };
+<a href=#615 id=615 data-nosnippet>615</a>
+<a href=#616 id=616 data-nosnippet>616</a>            <span class="kw">let </span>position = position * transformation * layer_transformation;
 <a href=#617 id=617 data-nosnippet>617</a>
-<a href=#618 id=618 data-nosnippet>618</a>            <span class="kw">let </span>bounds = bounds * transformation * layer_transformation;
-<a href=#619 id=619 data-nosnippet>619</a>
-<a href=#620 id=620 data-nosnippet>620</a>            <span class="kw">let </span>left = <span class="kw">match </span>align_x {
-<a href=#621 id=621 data-nosnippet>621</a>                Alignment::Default | Alignment::Left | Alignment::Justified =&gt; {
-<a href=#622 id=622 data-nosnippet>622</a>                    bounds.x
-<a href=#623 id=623 data-nosnippet>623</a>                }
-<a href=#624 id=624 data-nosnippet>624</a>                Alignment::Center =&gt; bounds.x - bounds.width / <span class="number">2.0</span>,
-<a href=#625 id=625 data-nosnippet>625</a>                Alignment::Right =&gt; bounds.x - bounds.width,
-<a href=#626 id=626 data-nosnippet>626</a>            };
-<a href=#627 id=627 data-nosnippet>627</a>
-<a href=#628 id=628 data-nosnippet>628</a>            <span class="kw">let </span>top = <span class="kw">match </span>align_y {
-<a href=#629 id=629 data-nosnippet>629</a>                alignment::Vertical::Top =&gt; bounds.y,
-<a href=#630 id=630 data-nosnippet>630</a>                alignment::Vertical::Center =&gt; bounds.y - bounds.height / <span class="number">2.0</span>,
-<a href=#631 id=631 data-nosnippet>631</a>                alignment::Vertical::Bottom =&gt; bounds.y - bounds.height,
-<a href=#632 id=632 data-nosnippet>632</a>            };
-<a href=#633 id=633 data-nosnippet>633</a>
-<a href=#634 id=634 data-nosnippet>634</a>            <span class="kw">let </span>clip_bounds = layer_bounds.intersection(
-<a href=#635 id=635 data-nosnippet>635</a>                <span class="kw-2">&amp;</span>(clip_bounds * transformation * layer_transformation),
-<a href=#636 id=636 data-nosnippet>636</a>            )<span class="question-mark">?</span>;
-<a href=#637 id=637 data-nosnippet>637</a>
-<a href=#638 id=638 data-nosnippet>638</a>            <span class="prelude-val">Some</span>(cryoglyph::TextArea {
-<a href=#639 id=639 data-nosnippet>639</a>                buffer,
-<a href=#640 id=640 data-nosnippet>640</a>                left,
-<a href=#641 id=641 data-nosnippet>641</a>                top,
-<a href=#642 id=642 data-nosnippet>642</a>                scale: transformation.scale_factor()
-<a href=#643 id=643 data-nosnippet>643</a>                    * layer_transformation.scale_factor(),
-<a href=#644 id=644 data-nosnippet>644</a>                bounds: cryoglyph::TextBounds {
-<a href=#645 id=645 data-nosnippet>645</a>                    left: clip_bounds.x <span class="kw">as </span>i32,
-<a href=#646 id=646 data-nosnippet>646</a>                    top: clip_bounds.y <span class="kw">as </span>i32,
-<a href=#647 id=647 data-nosnippet>647</a>                    right: (clip_bounds.x + clip_bounds.width) <span class="kw">as </span>i32,
-<a href=#648 id=648 data-nosnippet>648</a>                    bottom: (clip_bounds.y + clip_bounds.height) <span class="kw">as </span>i32,
-<a href=#649 id=649 data-nosnippet>649</a>                },
-<a href=#650 id=650 data-nosnippet>650</a>                default_color: to_color(color),
-<a href=#651 id=651 data-nosnippet>651</a>            })
-<a href=#652 id=652 data-nosnippet>652</a>        },
-<a href=#653 id=653 data-nosnippet>653</a>    );
-<a href=#654 id=654 data-nosnippet>654</a>
-<a href=#655 id=655 data-nosnippet>655</a>    renderer.prepare(
-<a href=#656 id=656 data-nosnippet>656</a>        device,
-<a href=#657 id=657 data-nosnippet>657</a>        queue,
-<a href=#658 id=658 data-nosnippet>658</a>        encoder,
-<a href=#659 id=659 data-nosnippet>659</a>        font_system,
-<a href=#660 id=660 data-nosnippet>660</a>        atlas,
-<a href=#661 id=661 data-nosnippet>661</a>        viewport,
-<a href=#662 id=662 data-nosnippet>662</a>        text_areas,
-<a href=#663 id=663 data-nosnippet>663</a>        <span class="kw-2">&amp;mut </span>cryoglyph::SwashCache::new(),
-<a href=#664 id=664 data-nosnippet>664</a>    )
-<a href=#665 id=665 data-nosnippet>665</a>}</code></pre></div></section></main></body></html>
+<a href=#618 id=618 data-nosnippet>618</a>            <span class="kw">let </span>clip_bounds = layer_bounds.intersection(
+<a href=#619 id=619 data-nosnippet>619</a>                <span class="kw-2">&amp;</span>(clip_bounds * transformation * layer_transformation),
+<a href=#620 id=620 data-nosnippet>620</a>            )<span class="question-mark">?</span>;
+<a href=#621 id=621 data-nosnippet>621</a>
+<a href=#622 id=622 data-nosnippet>622</a>            <span class="prelude-val">Some</span>(cryoglyph::TextArea {
+<a href=#623 id=623 data-nosnippet>623</a>                buffer,
+<a href=#624 id=624 data-nosnippet>624</a>                left: position.x,
+<a href=#625 id=625 data-nosnippet>625</a>                top: position.y,
+<a href=#626 id=626 data-nosnippet>626</a>                scale: transformation.scale_factor()
+<a href=#627 id=627 data-nosnippet>627</a>                    * layer_transformation.scale_factor(),
+<a href=#628 id=628 data-nosnippet>628</a>                bounds: cryoglyph::TextBounds {
+<a href=#629 id=629 data-nosnippet>629</a>                    left: clip_bounds.x <span class="kw">as </span>i32,
+<a href=#630 id=630 data-nosnippet>630</a>                    top: clip_bounds.y <span class="kw">as </span>i32,
+<a href=#631 id=631 data-nosnippet>631</a>                    right: (clip_bounds.x + clip_bounds.width) <span class="kw">as </span>i32,
+<a href=#632 id=632 data-nosnippet>632</a>                    bottom: (clip_bounds.y + clip_bounds.height) <span class="kw">as </span>i32,
+<a href=#633 id=633 data-nosnippet>633</a>                },
+<a href=#634 id=634 data-nosnippet>634</a>                default_color: to_color(color),
+<a href=#635 id=635 data-nosnippet>635</a>            })
+<a href=#636 id=636 data-nosnippet>636</a>        },
+<a href=#637 id=637 data-nosnippet>637</a>    );
+<a href=#638 id=638 data-nosnippet>638</a>
+<a href=#639 id=639 data-nosnippet>639</a>    renderer.prepare(
+<a href=#640 id=640 data-nosnippet>640</a>        device,
+<a href=#641 id=641 data-nosnippet>641</a>        queue,
+<a href=#642 id=642 data-nosnippet>642</a>        encoder,
+<a href=#643 id=643 data-nosnippet>643</a>        font_system,
+<a href=#644 id=644 data-nosnippet>644</a>        atlas,
+<a href=#645 id=645 data-nosnippet>645</a>        viewport,
+<a href=#646 id=646 data-nosnippet>646</a>        text_areas,
+<a href=#647 id=647 data-nosnippet>647</a>        <span class="kw-2">&amp;mut </span>cryoglyph::SwashCache::new(),
+<a href=#648 id=648 data-nosnippet>648</a>    )
+<a href=#649 id=649 data-nosnippet>649</a>}</code></pre></div></section></main></body></html>
