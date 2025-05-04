@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Command","Primitive"],"fn":["boot","commands","disable","draw","enable","init","interact","layers_rendered","layout","prepare","present","quit","render","subscriptions_tracked","tasks_spawned","theme_changed","time","time_with","update","view"],"struct":["Metadata","Span"]};

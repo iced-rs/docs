@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["SERVER_ADDRESS"],"enum":["Command","Event","Message"],"fn":["connect"],"struct":["Client","Metadata"]};
