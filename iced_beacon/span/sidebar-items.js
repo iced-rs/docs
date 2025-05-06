@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Primitive","Span","Stage"]};
+window.SIDEBAR_ITEMS = {"enum":["Span","Stage"],"mod":["present"]};
