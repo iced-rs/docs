@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/triangle.rs`."><title>triangle.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-20739d33.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.88.0-nightly (2e6882ac5 2025-05-05)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-4e99c027.js"></script><script defer src="../../static.files/src-script-63605ae7.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_wgpu/</div>triangle.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Draw meshes of triangles.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/triangle.rs`."><title>triangle.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-0ce1a80b.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.89.0-nightly (ce7e97f73 2025-05-11)" data-channel="nightly" data-search-js="search-f7877310.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-4e99c027.js"></script><script defer src="../../static.files/src-script-63605ae7.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-7ef8a74a.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_wgpu/</div>triangle.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Draw meshes of triangles.
 <a href=#2 id=2 data-nosnippet>2</a></span><span class="kw">mod </span>msaa;
 <a href=#3 id=3 data-nosnippet>3</a>
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::Buffer;
@@ -595,7 +595,7 @@
 <a href=#595 id=595 data-nosnippet>595</a>) -&gt; wgpu::ColorTargetState {
 <a href=#596 id=596 data-nosnippet>596</a>    wgpu::ColorTargetState {
 <a href=#597 id=597 data-nosnippet>597</a>        format: texture_format,
-<a href=#598 id=598 data-nosnippet>598</a>        blend: <span class="prelude-val">Some</span>(wgpu::BlendState::ALPHA_BLENDING),
+<a href=#598 id=598 data-nosnippet>598</a>        blend: <span class="prelude-val">Some</span>(wgpu::BlendState::PREMULTIPLIED_ALPHA_BLENDING),
 <a href=#599 id=599 data-nosnippet>599</a>        write_mask: wgpu::ColorWrites::ALL,
 <a href=#600 id=600 data-nosnippet>600</a>    }
 <a href=#601 id=601 data-nosnippet>601</a>}
@@ -754,236 +754,242 @@
 <a href=#754 id=754 data-nosnippet>754</a>                            <span class="macro">include_str!</span>(<span class="string">"shader/triangle.wgsl"</span>),
 <a href=#755 id=755 data-nosnippet>755</a>                            <span class="string">"\n"</span>,
 <a href=#756 id=756 data-nosnippet>756</a>                            <span class="macro">include_str!</span>(<span class="string">"shader/triangle/solid.wgsl"</span>),
-<a href=#757 id=757 data-nosnippet>757</a>                        )),
-<a href=#758 id=758 data-nosnippet>758</a>                    ),
-<a href=#759 id=759 data-nosnippet>759</a>                });
-<a href=#760 id=760 data-nosnippet>760</a>
-<a href=#761 id=761 data-nosnippet>761</a>            <span class="kw">let </span>pipeline =
-<a href=#762 id=762 data-nosnippet>762</a>                device.create_render_pipeline(
-<a href=#763 id=763 data-nosnippet>763</a>                    <span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
-<a href=#764 id=764 data-nosnippet>764</a>                        label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::triangle::solid pipeline"</span>),
-<a href=#765 id=765 data-nosnippet>765</a>                        layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
-<a href=#766 id=766 data-nosnippet>766</a>                        vertex: wgpu::VertexState {
-<a href=#767 id=767 data-nosnippet>767</a>                            module: <span class="kw-2">&amp;</span>shader,
-<a href=#768 id=768 data-nosnippet>768</a>                            entry_point: <span class="prelude-val">Some</span>(<span class="string">"solid_vs_main"</span>),
-<a href=#769 id=769 data-nosnippet>769</a>                            buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
-<a href=#770 id=770 data-nosnippet>770</a>                                array_stride: std::mem::size_of::&lt;
-<a href=#771 id=771 data-nosnippet>771</a>                                    mesh::SolidVertex2D,
-<a href=#772 id=772 data-nosnippet>772</a>                                &gt;(
-<a href=#773 id=773 data-nosnippet>773</a>                                )
-<a href=#774 id=774 data-nosnippet>774</a>                                    <span class="kw">as </span>u64,
-<a href=#775 id=775 data-nosnippet>775</a>                                step_mode: wgpu::VertexStepMode::Vertex,
-<a href=#776 id=776 data-nosnippet>776</a>                                attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
-<a href=#777 id=777 data-nosnippet>777</a>                                    <span class="comment">// Position
-<a href=#778 id=778 data-nosnippet>778</a>                                    </span><span class="number">0 </span>=&gt; Float32x2,
-<a href=#779 id=779 data-nosnippet>779</a>                                    <span class="comment">// Color
-<a href=#780 id=780 data-nosnippet>780</a>                                    </span><span class="number">1 </span>=&gt; Float32x4,
-<a href=#781 id=781 data-nosnippet>781</a>                                ),
-<a href=#782 id=782 data-nosnippet>782</a>                            }],
-<a href=#783 id=783 data-nosnippet>783</a>                            compilation_options:
-<a href=#784 id=784 data-nosnippet>784</a>                                wgpu::PipelineCompilationOptions::default(),
-<a href=#785 id=785 data-nosnippet>785</a>                        },
-<a href=#786 id=786 data-nosnippet>786</a>                        fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
-<a href=#787 id=787 data-nosnippet>787</a>                            module: <span class="kw-2">&amp;</span>shader,
-<a href=#788 id=788 data-nosnippet>788</a>                            entry_point: <span class="prelude-val">Some</span>(<span class="string">"solid_fs_main"</span>),
-<a href=#789 id=789 data-nosnippet>789</a>                            targets: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(triangle::fragment_target(format))],
-<a href=#790 id=790 data-nosnippet>790</a>                            compilation_options:
-<a href=#791 id=791 data-nosnippet>791</a>                                wgpu::PipelineCompilationOptions::default(),
-<a href=#792 id=792 data-nosnippet>792</a>                        }),
-<a href=#793 id=793 data-nosnippet>793</a>                        primitive: triangle::primitive_state(),
-<a href=#794 id=794 data-nosnippet>794</a>                        depth_stencil: <span class="prelude-val">None</span>,
-<a href=#795 id=795 data-nosnippet>795</a>                        multisample: triangle::multisample_state(antialiasing),
-<a href=#796 id=796 data-nosnippet>796</a>                        multiview: <span class="prelude-val">None</span>,
-<a href=#797 id=797 data-nosnippet>797</a>                        cache: <span class="prelude-val">None</span>,
-<a href=#798 id=798 data-nosnippet>798</a>                    },
-<a href=#799 id=799 data-nosnippet>799</a>                );
-<a href=#800 id=800 data-nosnippet>800</a>
-<a href=#801 id=801 data-nosnippet>801</a>            <span class="self">Self </span>{
-<a href=#802 id=802 data-nosnippet>802</a>                pipeline,
-<a href=#803 id=803 data-nosnippet>803</a>                constants_layout,
-<a href=#804 id=804 data-nosnippet>804</a>            }
-<a href=#805 id=805 data-nosnippet>805</a>        }
-<a href=#806 id=806 data-nosnippet>806</a>    }
-<a href=#807 id=807 data-nosnippet>807</a>}
-<a href=#808 id=808 data-nosnippet>808</a>
-<a href=#809 id=809 data-nosnippet>809</a><span class="kw">mod </span>gradient {
-<a href=#810 id=810 data-nosnippet>810</a>    <span class="kw">use </span><span class="kw">crate</span>::Buffer;
-<a href=#811 id=811 data-nosnippet>811</a>    <span class="kw">use </span><span class="kw">crate</span>::graphics::Antialiasing;
-<a href=#812 id=812 data-nosnippet>812</a>    <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
-<a href=#813 id=813 data-nosnippet>813</a>    <span class="kw">use </span><span class="kw">crate</span>::graphics::mesh;
-<a href=#814 id=814 data-nosnippet>814</a>    <span class="kw">use </span><span class="kw">crate</span>::triangle;
-<a href=#815 id=815 data-nosnippet>815</a>
-<a href=#816 id=816 data-nosnippet>816</a>    <span class="attr">#[derive(Debug, Clone)]
-<a href=#817 id=817 data-nosnippet>817</a>    </span><span class="kw">pub struct </span>Pipeline {
-<a href=#818 id=818 data-nosnippet>818</a>        <span class="kw">pub </span>pipeline: wgpu::RenderPipeline,
-<a href=#819 id=819 data-nosnippet>819</a>        <span class="kw">pub </span>constants_layout: wgpu::BindGroupLayout,
-<a href=#820 id=820 data-nosnippet>820</a>    }
-<a href=#821 id=821 data-nosnippet>821</a>
-<a href=#822 id=822 data-nosnippet>822</a>    <span class="attr">#[derive(Debug)]
-<a href=#823 id=823 data-nosnippet>823</a>    </span><span class="kw">pub struct </span>Layer {
-<a href=#824 id=824 data-nosnippet>824</a>        <span class="kw">pub </span>vertices: Buffer&lt;mesh::GradientVertex2D&gt;,
-<a href=#825 id=825 data-nosnippet>825</a>        <span class="kw">pub </span>uniforms: Buffer&lt;triangle::Uniforms&gt;,
-<a href=#826 id=826 data-nosnippet>826</a>        <span class="kw">pub </span>constants: wgpu::BindGroup,
-<a href=#827 id=827 data-nosnippet>827</a>    }
-<a href=#828 id=828 data-nosnippet>828</a>
-<a href=#829 id=829 data-nosnippet>829</a>    <span class="kw">impl </span>Layer {
-<a href=#830 id=830 data-nosnippet>830</a>        <span class="kw">pub fn </span>new(
-<a href=#831 id=831 data-nosnippet>831</a>            device: <span class="kw-2">&amp;</span>wgpu::Device,
-<a href=#832 id=832 data-nosnippet>832</a>            constants_layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
-<a href=#833 id=833 data-nosnippet>833</a>        ) -&gt; <span class="self">Self </span>{
-<a href=#834 id=834 data-nosnippet>834</a>            <span class="kw">let </span>vertices = Buffer::new(
-<a href=#835 id=835 data-nosnippet>835</a>                device,
-<a href=#836 id=836 data-nosnippet>836</a>                <span class="string">"iced_wgpu.triangle.gradient.vertex_buffer"</span>,
-<a href=#837 id=837 data-nosnippet>837</a>                triangle::INITIAL_VERTEX_COUNT,
-<a href=#838 id=838 data-nosnippet>838</a>                wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-<a href=#839 id=839 data-nosnippet>839</a>            );
-<a href=#840 id=840 data-nosnippet>840</a>
-<a href=#841 id=841 data-nosnippet>841</a>            <span class="kw">let </span>uniforms = Buffer::new(
-<a href=#842 id=842 data-nosnippet>842</a>                device,
-<a href=#843 id=843 data-nosnippet>843</a>                <span class="string">"iced_wgpu.triangle.gradient.uniforms"</span>,
-<a href=#844 id=844 data-nosnippet>844</a>                <span class="number">1</span>,
-<a href=#845 id=845 data-nosnippet>845</a>                wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-<a href=#846 id=846 data-nosnippet>846</a>            );
-<a href=#847 id=847 data-nosnippet>847</a>
-<a href=#848 id=848 data-nosnippet>848</a>            <span class="kw">let </span>constants =
-<a href=#849 id=849 data-nosnippet>849</a>                <span class="self">Self</span>::bind_group(device, <span class="kw-2">&amp;</span>uniforms.raw, constants_layout);
-<a href=#850 id=850 data-nosnippet>850</a>
-<a href=#851 id=851 data-nosnippet>851</a>            <span class="self">Self </span>{
-<a href=#852 id=852 data-nosnippet>852</a>                vertices,
-<a href=#853 id=853 data-nosnippet>853</a>                uniforms,
-<a href=#854 id=854 data-nosnippet>854</a>                constants,
-<a href=#855 id=855 data-nosnippet>855</a>            }
-<a href=#856 id=856 data-nosnippet>856</a>        }
-<a href=#857 id=857 data-nosnippet>857</a>
-<a href=#858 id=858 data-nosnippet>858</a>        <span class="kw">pub fn </span>bind_group(
-<a href=#859 id=859 data-nosnippet>859</a>            device: <span class="kw-2">&amp;</span>wgpu::Device,
-<a href=#860 id=860 data-nosnippet>860</a>            uniform_buffer: <span class="kw-2">&amp;</span>wgpu::Buffer,
-<a href=#861 id=861 data-nosnippet>861</a>            layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
-<a href=#862 id=862 data-nosnippet>862</a>        ) -&gt; wgpu::BindGroup {
-<a href=#863 id=863 data-nosnippet>863</a>            device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
-<a href=#864 id=864 data-nosnippet>864</a>                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.triangle.gradient.bind_group"</span>),
-<a href=#865 id=865 data-nosnippet>865</a>                layout,
-<a href=#866 id=866 data-nosnippet>866</a>                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
-<a href=#867 id=867 data-nosnippet>867</a>                    binding: <span class="number">0</span>,
-<a href=#868 id=868 data-nosnippet>868</a>                    resource: wgpu::BindingResource::Buffer(
-<a href=#869 id=869 data-nosnippet>869</a>                        wgpu::BufferBinding {
-<a href=#870 id=870 data-nosnippet>870</a>                            buffer: uniform_buffer,
-<a href=#871 id=871 data-nosnippet>871</a>                            offset: <span class="number">0</span>,
-<a href=#872 id=872 data-nosnippet>872</a>                            size: triangle::Uniforms::min_size(),
-<a href=#873 id=873 data-nosnippet>873</a>                        },
-<a href=#874 id=874 data-nosnippet>874</a>                    ),
-<a href=#875 id=875 data-nosnippet>875</a>                }],
-<a href=#876 id=876 data-nosnippet>876</a>            })
-<a href=#877 id=877 data-nosnippet>877</a>        }
-<a href=#878 id=878 data-nosnippet>878</a>    }
-<a href=#879 id=879 data-nosnippet>879</a>
-<a href=#880 id=880 data-nosnippet>880</a>    <span class="kw">impl </span>Pipeline {
-<a href=#881 id=881 data-nosnippet>881</a>        <span class="kw">pub fn </span>new(
-<a href=#882 id=882 data-nosnippet>882</a>            device: <span class="kw-2">&amp;</span>wgpu::Device,
-<a href=#883 id=883 data-nosnippet>883</a>            format: wgpu::TextureFormat,
-<a href=#884 id=884 data-nosnippet>884</a>            antialiasing: <span class="prelude-ty">Option</span>&lt;Antialiasing&gt;,
-<a href=#885 id=885 data-nosnippet>885</a>        ) -&gt; <span class="self">Self </span>{
-<a href=#886 id=886 data-nosnippet>886</a>            <span class="kw">let </span>constants_layout = device.create_bind_group_layout(
-<a href=#887 id=887 data-nosnippet>887</a>                <span class="kw-2">&amp;</span>wgpu::BindGroupLayoutDescriptor {
-<a href=#888 id=888 data-nosnippet>888</a>                    label: <span class="prelude-val">Some</span>(
-<a href=#889 id=889 data-nosnippet>889</a>                        <span class="string">"iced_wgpu.triangle.gradient.bind_group_layout"</span>,
-<a href=#890 id=890 data-nosnippet>890</a>                    ),
-<a href=#891 id=891 data-nosnippet>891</a>                    entries: <span class="kw-2">&amp;</span>[triangle::Uniforms::entry()],
-<a href=#892 id=892 data-nosnippet>892</a>                },
-<a href=#893 id=893 data-nosnippet>893</a>            );
-<a href=#894 id=894 data-nosnippet>894</a>
-<a href=#895 id=895 data-nosnippet>895</a>            <span class="kw">let </span>layout = device.create_pipeline_layout(
-<a href=#896 id=896 data-nosnippet>896</a>                <span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
-<a href=#897 id=897 data-nosnippet>897</a>                    label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.triangle.gradient.pipeline_layout"</span>),
-<a href=#898 id=898 data-nosnippet>898</a>                    bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>constants_layout],
-<a href=#899 id=899 data-nosnippet>899</a>                    push_constant_ranges: <span class="kw-2">&amp;</span>[],
-<a href=#900 id=900 data-nosnippet>900</a>                },
-<a href=#901 id=901 data-nosnippet>901</a>            );
-<a href=#902 id=902 data-nosnippet>902</a>
-<a href=#903 id=903 data-nosnippet>903</a>            <span class="kw">let </span>shader =
-<a href=#904 id=904 data-nosnippet>904</a>                device.create_shader_module(wgpu::ShaderModuleDescriptor {
-<a href=#905 id=905 data-nosnippet>905</a>                    label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.triangle.gradient.shader"</span>),
-<a href=#906 id=906 data-nosnippet>906</a>                    source: wgpu::ShaderSource::Wgsl(
-<a href=#907 id=907 data-nosnippet>907</a>                        std::borrow::Cow::Borrowed(
-<a href=#908 id=908 data-nosnippet>908</a>                            <span class="kw">if </span>color::GAMMA_CORRECTION {
-<a href=#909 id=909 data-nosnippet>909</a>                                <span class="macro">concat!</span>(
-<a href=#910 id=910 data-nosnippet>910</a>                                    <span class="macro">include_str!</span>(<span class="string">"shader/triangle.wgsl"</span>),
-<a href=#911 id=911 data-nosnippet>911</a>                                    <span class="string">"\n"</span>,
-<a href=#912 id=912 data-nosnippet>912</a>                                    <span class="macro">include_str!</span>(
-<a href=#913 id=913 data-nosnippet>913</a>                                        <span class="string">"shader/triangle/gradient.wgsl"
-<a href=#914 id=914 data-nosnippet>914</a>                                    </span>),
-<a href=#915 id=915 data-nosnippet>915</a>                                    <span class="string">"\n"</span>,
-<a href=#916 id=916 data-nosnippet>916</a>                                    <span class="macro">include_str!</span>(<span class="string">"shader/color/oklab.wgsl"</span>)
-<a href=#917 id=917 data-nosnippet>917</a>                                )
-<a href=#918 id=918 data-nosnippet>918</a>                            } <span class="kw">else </span>{
-<a href=#919 id=919 data-nosnippet>919</a>                                <span class="macro">concat!</span>(
-<a href=#920 id=920 data-nosnippet>920</a>                                    <span class="macro">include_str!</span>(<span class="string">"shader/triangle.wgsl"</span>),
-<a href=#921 id=921 data-nosnippet>921</a>                                    <span class="string">"\n"</span>,
-<a href=#922 id=922 data-nosnippet>922</a>                                    <span class="macro">include_str!</span>(
-<a href=#923 id=923 data-nosnippet>923</a>                                        <span class="string">"shader/triangle/gradient.wgsl"
-<a href=#924 id=924 data-nosnippet>924</a>                                    </span>),
+<a href=#757 id=757 data-nosnippet>757</a>                            <span class="string">"\n"</span>,
+<a href=#758 id=758 data-nosnippet>758</a>                            <span class="macro">include_str!</span>(<span class="string">"shader/color.wgsl"</span>),
+<a href=#759 id=759 data-nosnippet>759</a>                        )),
+<a href=#760 id=760 data-nosnippet>760</a>                    ),
+<a href=#761 id=761 data-nosnippet>761</a>                });
+<a href=#762 id=762 data-nosnippet>762</a>
+<a href=#763 id=763 data-nosnippet>763</a>            <span class="kw">let </span>pipeline =
+<a href=#764 id=764 data-nosnippet>764</a>                device.create_render_pipeline(
+<a href=#765 id=765 data-nosnippet>765</a>                    <span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
+<a href=#766 id=766 data-nosnippet>766</a>                        label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::triangle::solid pipeline"</span>),
+<a href=#767 id=767 data-nosnippet>767</a>                        layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
+<a href=#768 id=768 data-nosnippet>768</a>                        vertex: wgpu::VertexState {
+<a href=#769 id=769 data-nosnippet>769</a>                            module: <span class="kw-2">&amp;</span>shader,
+<a href=#770 id=770 data-nosnippet>770</a>                            entry_point: <span class="prelude-val">Some</span>(<span class="string">"solid_vs_main"</span>),
+<a href=#771 id=771 data-nosnippet>771</a>                            buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
+<a href=#772 id=772 data-nosnippet>772</a>                                array_stride: std::mem::size_of::&lt;
+<a href=#773 id=773 data-nosnippet>773</a>                                    mesh::SolidVertex2D,
+<a href=#774 id=774 data-nosnippet>774</a>                                &gt;(
+<a href=#775 id=775 data-nosnippet>775</a>                                )
+<a href=#776 id=776 data-nosnippet>776</a>                                    <span class="kw">as </span>u64,
+<a href=#777 id=777 data-nosnippet>777</a>                                step_mode: wgpu::VertexStepMode::Vertex,
+<a href=#778 id=778 data-nosnippet>778</a>                                attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
+<a href=#779 id=779 data-nosnippet>779</a>                                    <span class="comment">// Position
+<a href=#780 id=780 data-nosnippet>780</a>                                    </span><span class="number">0 </span>=&gt; Float32x2,
+<a href=#781 id=781 data-nosnippet>781</a>                                    <span class="comment">// Color
+<a href=#782 id=782 data-nosnippet>782</a>                                    </span><span class="number">1 </span>=&gt; Float32x4,
+<a href=#783 id=783 data-nosnippet>783</a>                                ),
+<a href=#784 id=784 data-nosnippet>784</a>                            }],
+<a href=#785 id=785 data-nosnippet>785</a>                            compilation_options:
+<a href=#786 id=786 data-nosnippet>786</a>                                wgpu::PipelineCompilationOptions::default(),
+<a href=#787 id=787 data-nosnippet>787</a>                        },
+<a href=#788 id=788 data-nosnippet>788</a>                        fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
+<a href=#789 id=789 data-nosnippet>789</a>                            module: <span class="kw-2">&amp;</span>shader,
+<a href=#790 id=790 data-nosnippet>790</a>                            entry_point: <span class="prelude-val">Some</span>(<span class="string">"solid_fs_main"</span>),
+<a href=#791 id=791 data-nosnippet>791</a>                            targets: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(triangle::fragment_target(format))],
+<a href=#792 id=792 data-nosnippet>792</a>                            compilation_options:
+<a href=#793 id=793 data-nosnippet>793</a>                                wgpu::PipelineCompilationOptions::default(),
+<a href=#794 id=794 data-nosnippet>794</a>                        }),
+<a href=#795 id=795 data-nosnippet>795</a>                        primitive: triangle::primitive_state(),
+<a href=#796 id=796 data-nosnippet>796</a>                        depth_stencil: <span class="prelude-val">None</span>,
+<a href=#797 id=797 data-nosnippet>797</a>                        multisample: triangle::multisample_state(antialiasing),
+<a href=#798 id=798 data-nosnippet>798</a>                        multiview: <span class="prelude-val">None</span>,
+<a href=#799 id=799 data-nosnippet>799</a>                        cache: <span class="prelude-val">None</span>,
+<a href=#800 id=800 data-nosnippet>800</a>                    },
+<a href=#801 id=801 data-nosnippet>801</a>                );
+<a href=#802 id=802 data-nosnippet>802</a>
+<a href=#803 id=803 data-nosnippet>803</a>            <span class="self">Self </span>{
+<a href=#804 id=804 data-nosnippet>804</a>                pipeline,
+<a href=#805 id=805 data-nosnippet>805</a>                constants_layout,
+<a href=#806 id=806 data-nosnippet>806</a>            }
+<a href=#807 id=807 data-nosnippet>807</a>        }
+<a href=#808 id=808 data-nosnippet>808</a>    }
+<a href=#809 id=809 data-nosnippet>809</a>}
+<a href=#810 id=810 data-nosnippet>810</a>
+<a href=#811 id=811 data-nosnippet>811</a><span class="kw">mod </span>gradient {
+<a href=#812 id=812 data-nosnippet>812</a>    <span class="kw">use </span><span class="kw">crate</span>::Buffer;
+<a href=#813 id=813 data-nosnippet>813</a>    <span class="kw">use </span><span class="kw">crate</span>::graphics::Antialiasing;
+<a href=#814 id=814 data-nosnippet>814</a>    <span class="kw">use </span><span class="kw">crate</span>::graphics::color;
+<a href=#815 id=815 data-nosnippet>815</a>    <span class="kw">use </span><span class="kw">crate</span>::graphics::mesh;
+<a href=#816 id=816 data-nosnippet>816</a>    <span class="kw">use </span><span class="kw">crate</span>::triangle;
+<a href=#817 id=817 data-nosnippet>817</a>
+<a href=#818 id=818 data-nosnippet>818</a>    <span class="attr">#[derive(Debug, Clone)]
+<a href=#819 id=819 data-nosnippet>819</a>    </span><span class="kw">pub struct </span>Pipeline {
+<a href=#820 id=820 data-nosnippet>820</a>        <span class="kw">pub </span>pipeline: wgpu::RenderPipeline,
+<a href=#821 id=821 data-nosnippet>821</a>        <span class="kw">pub </span>constants_layout: wgpu::BindGroupLayout,
+<a href=#822 id=822 data-nosnippet>822</a>    }
+<a href=#823 id=823 data-nosnippet>823</a>
+<a href=#824 id=824 data-nosnippet>824</a>    <span class="attr">#[derive(Debug)]
+<a href=#825 id=825 data-nosnippet>825</a>    </span><span class="kw">pub struct </span>Layer {
+<a href=#826 id=826 data-nosnippet>826</a>        <span class="kw">pub </span>vertices: Buffer&lt;mesh::GradientVertex2D&gt;,
+<a href=#827 id=827 data-nosnippet>827</a>        <span class="kw">pub </span>uniforms: Buffer&lt;triangle::Uniforms&gt;,
+<a href=#828 id=828 data-nosnippet>828</a>        <span class="kw">pub </span>constants: wgpu::BindGroup,
+<a href=#829 id=829 data-nosnippet>829</a>    }
+<a href=#830 id=830 data-nosnippet>830</a>
+<a href=#831 id=831 data-nosnippet>831</a>    <span class="kw">impl </span>Layer {
+<a href=#832 id=832 data-nosnippet>832</a>        <span class="kw">pub fn </span>new(
+<a href=#833 id=833 data-nosnippet>833</a>            device: <span class="kw-2">&amp;</span>wgpu::Device,
+<a href=#834 id=834 data-nosnippet>834</a>            constants_layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
+<a href=#835 id=835 data-nosnippet>835</a>        ) -&gt; <span class="self">Self </span>{
+<a href=#836 id=836 data-nosnippet>836</a>            <span class="kw">let </span>vertices = Buffer::new(
+<a href=#837 id=837 data-nosnippet>837</a>                device,
+<a href=#838 id=838 data-nosnippet>838</a>                <span class="string">"iced_wgpu.triangle.gradient.vertex_buffer"</span>,
+<a href=#839 id=839 data-nosnippet>839</a>                triangle::INITIAL_VERTEX_COUNT,
+<a href=#840 id=840 data-nosnippet>840</a>                wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+<a href=#841 id=841 data-nosnippet>841</a>            );
+<a href=#842 id=842 data-nosnippet>842</a>
+<a href=#843 id=843 data-nosnippet>843</a>            <span class="kw">let </span>uniforms = Buffer::new(
+<a href=#844 id=844 data-nosnippet>844</a>                device,
+<a href=#845 id=845 data-nosnippet>845</a>                <span class="string">"iced_wgpu.triangle.gradient.uniforms"</span>,
+<a href=#846 id=846 data-nosnippet>846</a>                <span class="number">1</span>,
+<a href=#847 id=847 data-nosnippet>847</a>                wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+<a href=#848 id=848 data-nosnippet>848</a>            );
+<a href=#849 id=849 data-nosnippet>849</a>
+<a href=#850 id=850 data-nosnippet>850</a>            <span class="kw">let </span>constants =
+<a href=#851 id=851 data-nosnippet>851</a>                <span class="self">Self</span>::bind_group(device, <span class="kw-2">&amp;</span>uniforms.raw, constants_layout);
+<a href=#852 id=852 data-nosnippet>852</a>
+<a href=#853 id=853 data-nosnippet>853</a>            <span class="self">Self </span>{
+<a href=#854 id=854 data-nosnippet>854</a>                vertices,
+<a href=#855 id=855 data-nosnippet>855</a>                uniforms,
+<a href=#856 id=856 data-nosnippet>856</a>                constants,
+<a href=#857 id=857 data-nosnippet>857</a>            }
+<a href=#858 id=858 data-nosnippet>858</a>        }
+<a href=#859 id=859 data-nosnippet>859</a>
+<a href=#860 id=860 data-nosnippet>860</a>        <span class="kw">pub fn </span>bind_group(
+<a href=#861 id=861 data-nosnippet>861</a>            device: <span class="kw-2">&amp;</span>wgpu::Device,
+<a href=#862 id=862 data-nosnippet>862</a>            uniform_buffer: <span class="kw-2">&amp;</span>wgpu::Buffer,
+<a href=#863 id=863 data-nosnippet>863</a>            layout: <span class="kw-2">&amp;</span>wgpu::BindGroupLayout,
+<a href=#864 id=864 data-nosnippet>864</a>        ) -&gt; wgpu::BindGroup {
+<a href=#865 id=865 data-nosnippet>865</a>            device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
+<a href=#866 id=866 data-nosnippet>866</a>                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.triangle.gradient.bind_group"</span>),
+<a href=#867 id=867 data-nosnippet>867</a>                layout,
+<a href=#868 id=868 data-nosnippet>868</a>                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
+<a href=#869 id=869 data-nosnippet>869</a>                    binding: <span class="number">0</span>,
+<a href=#870 id=870 data-nosnippet>870</a>                    resource: wgpu::BindingResource::Buffer(
+<a href=#871 id=871 data-nosnippet>871</a>                        wgpu::BufferBinding {
+<a href=#872 id=872 data-nosnippet>872</a>                            buffer: uniform_buffer,
+<a href=#873 id=873 data-nosnippet>873</a>                            offset: <span class="number">0</span>,
+<a href=#874 id=874 data-nosnippet>874</a>                            size: triangle::Uniforms::min_size(),
+<a href=#875 id=875 data-nosnippet>875</a>                        },
+<a href=#876 id=876 data-nosnippet>876</a>                    ),
+<a href=#877 id=877 data-nosnippet>877</a>                }],
+<a href=#878 id=878 data-nosnippet>878</a>            })
+<a href=#879 id=879 data-nosnippet>879</a>        }
+<a href=#880 id=880 data-nosnippet>880</a>    }
+<a href=#881 id=881 data-nosnippet>881</a>
+<a href=#882 id=882 data-nosnippet>882</a>    <span class="kw">impl </span>Pipeline {
+<a href=#883 id=883 data-nosnippet>883</a>        <span class="kw">pub fn </span>new(
+<a href=#884 id=884 data-nosnippet>884</a>            device: <span class="kw-2">&amp;</span>wgpu::Device,
+<a href=#885 id=885 data-nosnippet>885</a>            format: wgpu::TextureFormat,
+<a href=#886 id=886 data-nosnippet>886</a>            antialiasing: <span class="prelude-ty">Option</span>&lt;Antialiasing&gt;,
+<a href=#887 id=887 data-nosnippet>887</a>        ) -&gt; <span class="self">Self </span>{
+<a href=#888 id=888 data-nosnippet>888</a>            <span class="kw">let </span>constants_layout = device.create_bind_group_layout(
+<a href=#889 id=889 data-nosnippet>889</a>                <span class="kw-2">&amp;</span>wgpu::BindGroupLayoutDescriptor {
+<a href=#890 id=890 data-nosnippet>890</a>                    label: <span class="prelude-val">Some</span>(
+<a href=#891 id=891 data-nosnippet>891</a>                        <span class="string">"iced_wgpu.triangle.gradient.bind_group_layout"</span>,
+<a href=#892 id=892 data-nosnippet>892</a>                    ),
+<a href=#893 id=893 data-nosnippet>893</a>                    entries: <span class="kw-2">&amp;</span>[triangle::Uniforms::entry()],
+<a href=#894 id=894 data-nosnippet>894</a>                },
+<a href=#895 id=895 data-nosnippet>895</a>            );
+<a href=#896 id=896 data-nosnippet>896</a>
+<a href=#897 id=897 data-nosnippet>897</a>            <span class="kw">let </span>layout = device.create_pipeline_layout(
+<a href=#898 id=898 data-nosnippet>898</a>                <span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
+<a href=#899 id=899 data-nosnippet>899</a>                    label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.triangle.gradient.pipeline_layout"</span>),
+<a href=#900 id=900 data-nosnippet>900</a>                    bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>constants_layout],
+<a href=#901 id=901 data-nosnippet>901</a>                    push_constant_ranges: <span class="kw-2">&amp;</span>[],
+<a href=#902 id=902 data-nosnippet>902</a>                },
+<a href=#903 id=903 data-nosnippet>903</a>            );
+<a href=#904 id=904 data-nosnippet>904</a>
+<a href=#905 id=905 data-nosnippet>905</a>            <span class="kw">let </span>shader =
+<a href=#906 id=906 data-nosnippet>906</a>                device.create_shader_module(wgpu::ShaderModuleDescriptor {
+<a href=#907 id=907 data-nosnippet>907</a>                    label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.triangle.gradient.shader"</span>),
+<a href=#908 id=908 data-nosnippet>908</a>                    source: wgpu::ShaderSource::Wgsl(
+<a href=#909 id=909 data-nosnippet>909</a>                        std::borrow::Cow::Borrowed(
+<a href=#910 id=910 data-nosnippet>910</a>                            <span class="kw">if </span>color::GAMMA_CORRECTION {
+<a href=#911 id=911 data-nosnippet>911</a>                                <span class="macro">concat!</span>(
+<a href=#912 id=912 data-nosnippet>912</a>                                    <span class="macro">include_str!</span>(<span class="string">"shader/triangle.wgsl"</span>),
+<a href=#913 id=913 data-nosnippet>913</a>                                    <span class="string">"\n"</span>,
+<a href=#914 id=914 data-nosnippet>914</a>                                    <span class="macro">include_str!</span>(
+<a href=#915 id=915 data-nosnippet>915</a>                                        <span class="string">"shader/triangle/gradient.wgsl"
+<a href=#916 id=916 data-nosnippet>916</a>                                    </span>),
+<a href=#917 id=917 data-nosnippet>917</a>                                    <span class="string">"\n"</span>,
+<a href=#918 id=918 data-nosnippet>918</a>                                    <span class="macro">include_str!</span>(<span class="string">"shader/color.wgsl"</span>),
+<a href=#919 id=919 data-nosnippet>919</a>                                    <span class="string">"\n"</span>,
+<a href=#920 id=920 data-nosnippet>920</a>                                    <span class="macro">include_str!</span>(<span class="string">"shader/color/oklab.wgsl"</span>)
+<a href=#921 id=921 data-nosnippet>921</a>                                )
+<a href=#922 id=922 data-nosnippet>922</a>                            } <span class="kw">else </span>{
+<a href=#923 id=923 data-nosnippet>923</a>                                <span class="macro">concat!</span>(
+<a href=#924 id=924 data-nosnippet>924</a>                                    <span class="macro">include_str!</span>(<span class="string">"shader/triangle.wgsl"</span>),
 <a href=#925 id=925 data-nosnippet>925</a>                                    <span class="string">"\n"</span>,
 <a href=#926 id=926 data-nosnippet>926</a>                                    <span class="macro">include_str!</span>(
-<a href=#927 id=927 data-nosnippet>927</a>                                        <span class="string">"shader/color/linear_rgb.wgsl"
-<a href=#928 id=928 data-nosnippet>928</a>                                    </span>)
-<a href=#929 id=929 data-nosnippet>929</a>                                )
-<a href=#930 id=930 data-nosnippet>930</a>                            },
-<a href=#931 id=931 data-nosnippet>931</a>                        ),
-<a href=#932 id=932 data-nosnippet>932</a>                    ),
-<a href=#933 id=933 data-nosnippet>933</a>                });
-<a href=#934 id=934 data-nosnippet>934</a>
-<a href=#935 id=935 data-nosnippet>935</a>            <span class="kw">let </span>pipeline = device.create_render_pipeline(
-<a href=#936 id=936 data-nosnippet>936</a>                <span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
-<a href=#937 id=937 data-nosnippet>937</a>                    label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.triangle.gradient.pipeline"</span>),
-<a href=#938 id=938 data-nosnippet>938</a>                    layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
-<a href=#939 id=939 data-nosnippet>939</a>                    vertex: wgpu::VertexState {
-<a href=#940 id=940 data-nosnippet>940</a>                        module: <span class="kw-2">&amp;</span>shader,
-<a href=#941 id=941 data-nosnippet>941</a>                        entry_point: <span class="prelude-val">Some</span>(<span class="string">"gradient_vs_main"</span>),
-<a href=#942 id=942 data-nosnippet>942</a>                        buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
-<a href=#943 id=943 data-nosnippet>943</a>                            array_stride: std::mem::size_of::&lt;
-<a href=#944 id=944 data-nosnippet>944</a>                                mesh::GradientVertex2D,
-<a href=#945 id=945 data-nosnippet>945</a>                            &gt;()
-<a href=#946 id=946 data-nosnippet>946</a>                                <span class="kw">as </span>u64,
-<a href=#947 id=947 data-nosnippet>947</a>                            step_mode: wgpu::VertexStepMode::Vertex,
-<a href=#948 id=948 data-nosnippet>948</a>                            attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
-<a href=#949 id=949 data-nosnippet>949</a>                                <span class="comment">// Position
-<a href=#950 id=950 data-nosnippet>950</a>                                </span><span class="number">0 </span>=&gt; Float32x2,
-<a href=#951 id=951 data-nosnippet>951</a>                                <span class="comment">// Colors 1-2
-<a href=#952 id=952 data-nosnippet>952</a>                                </span><span class="number">1 </span>=&gt; Uint32x4,
-<a href=#953 id=953 data-nosnippet>953</a>                                <span class="comment">// Colors 3-4
-<a href=#954 id=954 data-nosnippet>954</a>                                </span><span class="number">2 </span>=&gt; Uint32x4,
-<a href=#955 id=955 data-nosnippet>955</a>                                <span class="comment">// Colors 5-6
-<a href=#956 id=956 data-nosnippet>956</a>                                </span><span class="number">3 </span>=&gt; Uint32x4,
-<a href=#957 id=957 data-nosnippet>957</a>                                <span class="comment">// Colors 7-8
-<a href=#958 id=958 data-nosnippet>958</a>                                </span><span class="number">4 </span>=&gt; Uint32x4,
-<a href=#959 id=959 data-nosnippet>959</a>                                <span class="comment">// Offsets
-<a href=#960 id=960 data-nosnippet>960</a>                                </span><span class="number">5 </span>=&gt; Uint32x4,
-<a href=#961 id=961 data-nosnippet>961</a>                                <span class="comment">// Direction
-<a href=#962 id=962 data-nosnippet>962</a>                                </span><span class="number">6 </span>=&gt; Float32x4
-<a href=#963 id=963 data-nosnippet>963</a>                            ),
-<a href=#964 id=964 data-nosnippet>964</a>                        }],
-<a href=#965 id=965 data-nosnippet>965</a>                        compilation_options:
-<a href=#966 id=966 data-nosnippet>966</a>                            wgpu::PipelineCompilationOptions::default(),
-<a href=#967 id=967 data-nosnippet>967</a>                    },
-<a href=#968 id=968 data-nosnippet>968</a>                    fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
-<a href=#969 id=969 data-nosnippet>969</a>                        module: <span class="kw-2">&amp;</span>shader,
-<a href=#970 id=970 data-nosnippet>970</a>                        entry_point: <span class="prelude-val">Some</span>(<span class="string">"gradient_fs_main"</span>),
-<a href=#971 id=971 data-nosnippet>971</a>                        targets: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(triangle::fragment_target(format))],
-<a href=#972 id=972 data-nosnippet>972</a>                        compilation_options:
-<a href=#973 id=973 data-nosnippet>973</a>                            wgpu::PipelineCompilationOptions::default(),
-<a href=#974 id=974 data-nosnippet>974</a>                    }),
-<a href=#975 id=975 data-nosnippet>975</a>                    primitive: triangle::primitive_state(),
-<a href=#976 id=976 data-nosnippet>976</a>                    depth_stencil: <span class="prelude-val">None</span>,
-<a href=#977 id=977 data-nosnippet>977</a>                    multisample: triangle::multisample_state(antialiasing),
-<a href=#978 id=978 data-nosnippet>978</a>                    multiview: <span class="prelude-val">None</span>,
-<a href=#979 id=979 data-nosnippet>979</a>                    cache: <span class="prelude-val">None</span>,
-<a href=#980 id=980 data-nosnippet>980</a>                },
-<a href=#981 id=981 data-nosnippet>981</a>            );
-<a href=#982 id=982 data-nosnippet>982</a>
-<a href=#983 id=983 data-nosnippet>983</a>            <span class="self">Self </span>{
-<a href=#984 id=984 data-nosnippet>984</a>                pipeline,
-<a href=#985 id=985 data-nosnippet>985</a>                constants_layout,
-<a href=#986 id=986 data-nosnippet>986</a>            }
-<a href=#987 id=987 data-nosnippet>987</a>        }
-<a href=#988 id=988 data-nosnippet>988</a>    }
-<a href=#989 id=989 data-nosnippet>989</a>}</code></pre></div></section></main></body></html>
+<a href=#927 id=927 data-nosnippet>927</a>                                        <span class="string">"shader/triangle/gradient.wgsl"
+<a href=#928 id=928 data-nosnippet>928</a>                                    </span>),
+<a href=#929 id=929 data-nosnippet>929</a>                                    <span class="string">"\n"</span>,
+<a href=#930 id=930 data-nosnippet>930</a>                                    <span class="macro">include_str!</span>(<span class="string">"shader/color.wgsl"</span>),
+<a href=#931 id=931 data-nosnippet>931</a>                                    <span class="string">"\n"</span>,
+<a href=#932 id=932 data-nosnippet>932</a>                                    <span class="macro">include_str!</span>(
+<a href=#933 id=933 data-nosnippet>933</a>                                        <span class="string">"shader/color/linear_rgb.wgsl"
+<a href=#934 id=934 data-nosnippet>934</a>                                    </span>)
+<a href=#935 id=935 data-nosnippet>935</a>                                )
+<a href=#936 id=936 data-nosnippet>936</a>                            },
+<a href=#937 id=937 data-nosnippet>937</a>                        ),
+<a href=#938 id=938 data-nosnippet>938</a>                    ),
+<a href=#939 id=939 data-nosnippet>939</a>                });
+<a href=#940 id=940 data-nosnippet>940</a>
+<a href=#941 id=941 data-nosnippet>941</a>            <span class="kw">let </span>pipeline = device.create_render_pipeline(
+<a href=#942 id=942 data-nosnippet>942</a>                <span class="kw-2">&amp;</span>wgpu::RenderPipelineDescriptor {
+<a href=#943 id=943 data-nosnippet>943</a>                    label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu.triangle.gradient.pipeline"</span>),
+<a href=#944 id=944 data-nosnippet>944</a>                    layout: <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>layout),
+<a href=#945 id=945 data-nosnippet>945</a>                    vertex: wgpu::VertexState {
+<a href=#946 id=946 data-nosnippet>946</a>                        module: <span class="kw-2">&amp;</span>shader,
+<a href=#947 id=947 data-nosnippet>947</a>                        entry_point: <span class="prelude-val">Some</span>(<span class="string">"gradient_vs_main"</span>),
+<a href=#948 id=948 data-nosnippet>948</a>                        buffers: <span class="kw-2">&amp;</span>[wgpu::VertexBufferLayout {
+<a href=#949 id=949 data-nosnippet>949</a>                            array_stride: std::mem::size_of::&lt;
+<a href=#950 id=950 data-nosnippet>950</a>                                mesh::GradientVertex2D,
+<a href=#951 id=951 data-nosnippet>951</a>                            &gt;()
+<a href=#952 id=952 data-nosnippet>952</a>                                <span class="kw">as </span>u64,
+<a href=#953 id=953 data-nosnippet>953</a>                            step_mode: wgpu::VertexStepMode::Vertex,
+<a href=#954 id=954 data-nosnippet>954</a>                            attributes: <span class="kw-2">&amp;</span><span class="macro">wgpu::vertex_attr_array!</span>(
+<a href=#955 id=955 data-nosnippet>955</a>                                <span class="comment">// Position
+<a href=#956 id=956 data-nosnippet>956</a>                                </span><span class="number">0 </span>=&gt; Float32x2,
+<a href=#957 id=957 data-nosnippet>957</a>                                <span class="comment">// Colors 1-2
+<a href=#958 id=958 data-nosnippet>958</a>                                </span><span class="number">1 </span>=&gt; Uint32x4,
+<a href=#959 id=959 data-nosnippet>959</a>                                <span class="comment">// Colors 3-4
+<a href=#960 id=960 data-nosnippet>960</a>                                </span><span class="number">2 </span>=&gt; Uint32x4,
+<a href=#961 id=961 data-nosnippet>961</a>                                <span class="comment">// Colors 5-6
+<a href=#962 id=962 data-nosnippet>962</a>                                </span><span class="number">3 </span>=&gt; Uint32x4,
+<a href=#963 id=963 data-nosnippet>963</a>                                <span class="comment">// Colors 7-8
+<a href=#964 id=964 data-nosnippet>964</a>                                </span><span class="number">4 </span>=&gt; Uint32x4,
+<a href=#965 id=965 data-nosnippet>965</a>                                <span class="comment">// Offsets
+<a href=#966 id=966 data-nosnippet>966</a>                                </span><span class="number">5 </span>=&gt; Uint32x4,
+<a href=#967 id=967 data-nosnippet>967</a>                                <span class="comment">// Direction
+<a href=#968 id=968 data-nosnippet>968</a>                                </span><span class="number">6 </span>=&gt; Float32x4
+<a href=#969 id=969 data-nosnippet>969</a>                            ),
+<a href=#970 id=970 data-nosnippet>970</a>                        }],
+<a href=#971 id=971 data-nosnippet>971</a>                        compilation_options:
+<a href=#972 id=972 data-nosnippet>972</a>                            wgpu::PipelineCompilationOptions::default(),
+<a href=#973 id=973 data-nosnippet>973</a>                    },
+<a href=#974 id=974 data-nosnippet>974</a>                    fragment: <span class="prelude-val">Some</span>(wgpu::FragmentState {
+<a href=#975 id=975 data-nosnippet>975</a>                        module: <span class="kw-2">&amp;</span>shader,
+<a href=#976 id=976 data-nosnippet>976</a>                        entry_point: <span class="prelude-val">Some</span>(<span class="string">"gradient_fs_main"</span>),
+<a href=#977 id=977 data-nosnippet>977</a>                        targets: <span class="kw-2">&amp;</span>[<span class="prelude-val">Some</span>(triangle::fragment_target(format))],
+<a href=#978 id=978 data-nosnippet>978</a>                        compilation_options:
+<a href=#979 id=979 data-nosnippet>979</a>                            wgpu::PipelineCompilationOptions::default(),
+<a href=#980 id=980 data-nosnippet>980</a>                    }),
+<a href=#981 id=981 data-nosnippet>981</a>                    primitive: triangle::primitive_state(),
+<a href=#982 id=982 data-nosnippet>982</a>                    depth_stencil: <span class="prelude-val">None</span>,
+<a href=#983 id=983 data-nosnippet>983</a>                    multisample: triangle::multisample_state(antialiasing),
+<a href=#984 id=984 data-nosnippet>984</a>                    multiview: <span class="prelude-val">None</span>,
+<a href=#985 id=985 data-nosnippet>985</a>                    cache: <span class="prelude-val">None</span>,
+<a href=#986 id=986 data-nosnippet>986</a>                },
+<a href=#987 id=987 data-nosnippet>987</a>            );
+<a href=#988 id=988 data-nosnippet>988</a>
+<a href=#989 id=989 data-nosnippet>989</a>            <span class="self">Self </span>{
+<a href=#990 id=990 data-nosnippet>990</a>                pipeline,
+<a href=#991 id=991 data-nosnippet>991</a>                constants_layout,
+<a href=#992 id=992 data-nosnippet>992</a>            }
+<a href=#993 id=993 data-nosnippet>993</a>        }
+<a href=#994 id=994 data-nosnippet>994</a>    }
+<a href=#995 id=995 data-nosnippet>995</a>}</code></pre></div></section></main></body></html>
