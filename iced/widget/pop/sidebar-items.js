@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Pop"]};
+window.SIDEBAR_ITEMS = {"struct":["Pop"],"trait":["Key"]};
