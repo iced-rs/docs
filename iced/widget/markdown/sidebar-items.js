@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["HeadingLevel","Item"],"fn":["code_block","heading","item","ordered_list","paragraph","parse","quote","rule","unordered_list","view","view_with"],"struct":["Content","Highlight","Settings","Style","Text","Url"],"trait":["Catalog","Viewer"]};
+window.SIDEBAR_ITEMS = {"enum":["HeadingLevel","Item"],"fn":["code_block","heading","item","items","ordered_list","paragraph","parse","quote","rule","table","unordered_list","view","view_with"],"struct":["Column","Content","Highlight","Row","Settings","Style","Text","Url"],"trait":["Catalog","Viewer"]};
