@@ -716,68 +716,62 @@
 <a href=#716 id=716 data-nosnippet>716</a>
 <a href=#717 id=717 data-nosnippet>717</a><span class="comment">// https://www.w3.org/TR/WCAG21/#dfn-contrast-ratio
 <a href=#718 id=718 data-nosnippet>718</a></span><span class="kw">fn </span>relative_contrast(a: Color, b: Color) -&gt; f32 {
-<a href=#719 id=719 data-nosnippet>719</a>    <span class="kw">let </span>lum_a = relative_luminance(a);
-<a href=#720 id=720 data-nosnippet>720</a>    <span class="kw">let </span>lum_b = relative_luminance(b);
+<a href=#719 id=719 data-nosnippet>719</a>    <span class="kw">let </span>lum_a = a.relative_luminance();
+<a href=#720 id=720 data-nosnippet>720</a>    <span class="kw">let </span>lum_b = b.relative_luminance();
 <a href=#721 id=721 data-nosnippet>721</a>    (lum_a.max(lum_b) + <span class="number">0.05</span>) / (lum_a.min(lum_b) + <span class="number">0.05</span>)
 <a href=#722 id=722 data-nosnippet>722</a>}
 <a href=#723 id=723 data-nosnippet>723</a>
-<a href=#724 id=724 data-nosnippet>724</a><span class="comment">// https://www.w3.org/TR/WCAG21/#dfn-relative-luminance
-<a href=#725 id=725 data-nosnippet>725</a></span><span class="kw">fn </span>relative_luminance(color: Color) -&gt; f32 {
-<a href=#726 id=726 data-nosnippet>726</a>    <span class="kw">let </span>linear = color.into_linear();
-<a href=#727 id=727 data-nosnippet>727</a>    <span class="number">0.2126 </span>* linear[<span class="number">0</span>] + <span class="number">0.7152 </span>* linear[<span class="number">1</span>] + <span class="number">0.0722 </span>* linear[<span class="number">2</span>]
-<a href=#728 id=728 data-nosnippet>728</a>}
-<a href=#729 id=729 data-nosnippet>729</a>
-<a href=#730 id=730 data-nosnippet>730</a><span class="comment">// https://en.wikipedia.org/wiki/Oklab_color_space#Conversions_between_color_spaces
-<a href=#731 id=731 data-nosnippet>731</a></span><span class="kw">fn </span>to_oklch(color: Color) -&gt; Oklch {
-<a href=#732 id=732 data-nosnippet>732</a>    <span class="kw">let </span>[r, g, b, alpha] = color.into_linear();
-<a href=#733 id=733 data-nosnippet>733</a>
-<a href=#734 id=734 data-nosnippet>734</a>    <span class="comment">// linear RGB → LMS
-<a href=#735 id=735 data-nosnippet>735</a>    </span><span class="kw">let </span>l = <span class="number">0.41222146 </span>* r + <span class="number">0.53633255 </span>* g + <span class="number">0.051445995 </span>* b;
-<a href=#736 id=736 data-nosnippet>736</a>    <span class="kw">let </span>m = <span class="number">0.2119035 </span>* r + <span class="number">0.6806995 </span>* g + <span class="number">0.10739696 </span>* b;
-<a href=#737 id=737 data-nosnippet>737</a>    <span class="kw">let </span>s = <span class="number">0.08830246 </span>* r + <span class="number">0.28171885 </span>* g + <span class="number">0.6299787 </span>* b;
-<a href=#738 id=738 data-nosnippet>738</a>
-<a href=#739 id=739 data-nosnippet>739</a>    <span class="comment">// Nonlinear transform (cube root)
-<a href=#740 id=740 data-nosnippet>740</a>    </span><span class="kw">let </span>l_ = l.cbrt();
-<a href=#741 id=741 data-nosnippet>741</a>    <span class="kw">let </span>m_ = m.cbrt();
-<a href=#742 id=742 data-nosnippet>742</a>    <span class="kw">let </span>s_ = s.cbrt();
-<a href=#743 id=743 data-nosnippet>743</a>
-<a href=#744 id=744 data-nosnippet>744</a>    <span class="comment">// LMS → Oklab
-<a href=#745 id=745 data-nosnippet>745</a>    </span><span class="kw">let </span>l = <span class="number">0.21045426 </span>* l_ + <span class="number">0.7936178 </span>* m_ - <span class="number">0.004072047 </span>* s_;
-<a href=#746 id=746 data-nosnippet>746</a>    <span class="kw">let </span>a = <span class="number">1.9779985 </span>* l_ - <span class="number">2.4285922 </span>* m_ + <span class="number">0.4505937 </span>* s_;
-<a href=#747 id=747 data-nosnippet>747</a>    <span class="kw">let </span>b = <span class="number">0.025904037 </span>* l_ + <span class="number">0.78277177 </span>* m_ - <span class="number">0.80867577 </span>* s_;
-<a href=#748 id=748 data-nosnippet>748</a>
-<a href=#749 id=749 data-nosnippet>749</a>    <span class="comment">// Oklab → Oklch
-<a href=#750 id=750 data-nosnippet>750</a>    </span><span class="kw">let </span>c = (a * a + b * b).sqrt();
-<a href=#751 id=751 data-nosnippet>751</a>    <span class="kw">let </span>h = b.atan2(a); <span class="comment">// radians
-<a href=#752 id=752 data-nosnippet>752</a>
-<a href=#753 id=753 data-nosnippet>753</a>    </span>Oklch { l, c, h, a: alpha }
-<a href=#754 id=754 data-nosnippet>754</a>}
-<a href=#755 id=755 data-nosnippet>755</a>
-<a href=#756 id=756 data-nosnippet>756</a><span class="comment">// https://en.wikipedia.org/wiki/Oklab_color_space#Conversions_between_color_spaces
-<a href=#757 id=757 data-nosnippet>757</a></span><span class="kw">fn </span>from_oklch(oklch: Oklch) -&gt; Color {
-<a href=#758 id=758 data-nosnippet>758</a>    <span class="kw">let </span>Oklch { l, c, h, a: alpha } = oklch;
-<a href=#759 id=759 data-nosnippet>759</a>
-<a href=#760 id=760 data-nosnippet>760</a>    <span class="kw">let </span>a = c * h.cos();
-<a href=#761 id=761 data-nosnippet>761</a>    <span class="kw">let </span>b = c * h.sin();
-<a href=#762 id=762 data-nosnippet>762</a>
-<a href=#763 id=763 data-nosnippet>763</a>    <span class="comment">// Oklab → LMS (nonlinear)
-<a href=#764 id=764 data-nosnippet>764</a>    </span><span class="kw">let </span>l_ = l + <span class="number">0.39633778 </span>* a + <span class="number">0.21580376 </span>* b;
-<a href=#765 id=765 data-nosnippet>765</a>    <span class="kw">let </span>m_ = l - <span class="number">0.105561346 </span>* a - <span class="number">0.06385417 </span>* b;
-<a href=#766 id=766 data-nosnippet>766</a>    <span class="kw">let </span>s_ = l - <span class="number">0.08948418 </span>* a - <span class="number">1.2914855 </span>* b;
-<a href=#767 id=767 data-nosnippet>767</a>
-<a href=#768 id=768 data-nosnippet>768</a>    <span class="comment">// Cubing back
-<a href=#769 id=769 data-nosnippet>769</a>    </span><span class="kw">let </span>l = l_ * l_ * l_;
-<a href=#770 id=770 data-nosnippet>770</a>    <span class="kw">let </span>m = m_ * m_ * m_;
-<a href=#771 id=771 data-nosnippet>771</a>    <span class="kw">let </span>s = s_ * s_ * s_;
-<a href=#772 id=772 data-nosnippet>772</a>
-<a href=#773 id=773 data-nosnippet>773</a>    <span class="kw">let </span>r = <span class="number">4.0767417 </span>* l - <span class="number">3.3077116 </span>* m + <span class="number">0.23096994 </span>* s;
-<a href=#774 id=774 data-nosnippet>774</a>    <span class="kw">let </span>g = -<span class="number">1.268438 </span>* l + <span class="number">2.6097574 </span>* m - <span class="number">0.34131938 </span>* s;
-<a href=#775 id=775 data-nosnippet>775</a>    <span class="kw">let </span>b = -<span class="number">0.0041960863 </span>* l - <span class="number">0.7034186 </span>* m + <span class="number">1.7076147 </span>* s;
-<a href=#776 id=776 data-nosnippet>776</a>
-<a href=#777 id=777 data-nosnippet>777</a>    Color::from_linear_rgba(
-<a href=#778 id=778 data-nosnippet>778</a>        r.clamp(<span class="number">0.0</span>, <span class="number">1.0</span>),
-<a href=#779 id=779 data-nosnippet>779</a>        g.clamp(<span class="number">0.0</span>, <span class="number">1.0</span>),
-<a href=#780 id=780 data-nosnippet>780</a>        b.clamp(<span class="number">0.0</span>, <span class="number">1.0</span>),
-<a href=#781 id=781 data-nosnippet>781</a>        alpha,
-<a href=#782 id=782 data-nosnippet>782</a>    )
-<a href=#783 id=783 data-nosnippet>783</a>}</code></pre></div></section></main></body></html>
+<a href=#724 id=724 data-nosnippet>724</a><span class="comment">// https://en.wikipedia.org/wiki/Oklab_color_space#Conversions_between_color_spaces
+<a href=#725 id=725 data-nosnippet>725</a></span><span class="kw">fn </span>to_oklch(color: Color) -&gt; Oklch {
+<a href=#726 id=726 data-nosnippet>726</a>    <span class="kw">let </span>[r, g, b, alpha] = color.into_linear();
+<a href=#727 id=727 data-nosnippet>727</a>
+<a href=#728 id=728 data-nosnippet>728</a>    <span class="comment">// linear RGB → LMS
+<a href=#729 id=729 data-nosnippet>729</a>    </span><span class="kw">let </span>l = <span class="number">0.41222146 </span>* r + <span class="number">0.53633255 </span>* g + <span class="number">0.051445995 </span>* b;
+<a href=#730 id=730 data-nosnippet>730</a>    <span class="kw">let </span>m = <span class="number">0.2119035 </span>* r + <span class="number">0.6806995 </span>* g + <span class="number">0.10739696 </span>* b;
+<a href=#731 id=731 data-nosnippet>731</a>    <span class="kw">let </span>s = <span class="number">0.08830246 </span>* r + <span class="number">0.28171885 </span>* g + <span class="number">0.6299787 </span>* b;
+<a href=#732 id=732 data-nosnippet>732</a>
+<a href=#733 id=733 data-nosnippet>733</a>    <span class="comment">// Nonlinear transform (cube root)
+<a href=#734 id=734 data-nosnippet>734</a>    </span><span class="kw">let </span>l_ = l.cbrt();
+<a href=#735 id=735 data-nosnippet>735</a>    <span class="kw">let </span>m_ = m.cbrt();
+<a href=#736 id=736 data-nosnippet>736</a>    <span class="kw">let </span>s_ = s.cbrt();
+<a href=#737 id=737 data-nosnippet>737</a>
+<a href=#738 id=738 data-nosnippet>738</a>    <span class="comment">// LMS → Oklab
+<a href=#739 id=739 data-nosnippet>739</a>    </span><span class="kw">let </span>l = <span class="number">0.21045426 </span>* l_ + <span class="number">0.7936178 </span>* m_ - <span class="number">0.004072047 </span>* s_;
+<a href=#740 id=740 data-nosnippet>740</a>    <span class="kw">let </span>a = <span class="number">1.9779985 </span>* l_ - <span class="number">2.4285922 </span>* m_ + <span class="number">0.4505937 </span>* s_;
+<a href=#741 id=741 data-nosnippet>741</a>    <span class="kw">let </span>b = <span class="number">0.025904037 </span>* l_ + <span class="number">0.78277177 </span>* m_ - <span class="number">0.80867577 </span>* s_;
+<a href=#742 id=742 data-nosnippet>742</a>
+<a href=#743 id=743 data-nosnippet>743</a>    <span class="comment">// Oklab → Oklch
+<a href=#744 id=744 data-nosnippet>744</a>    </span><span class="kw">let </span>c = (a * a + b * b).sqrt();
+<a href=#745 id=745 data-nosnippet>745</a>    <span class="kw">let </span>h = b.atan2(a); <span class="comment">// radians
+<a href=#746 id=746 data-nosnippet>746</a>
+<a href=#747 id=747 data-nosnippet>747</a>    </span>Oklch { l, c, h, a: alpha }
+<a href=#748 id=748 data-nosnippet>748</a>}
+<a href=#749 id=749 data-nosnippet>749</a>
+<a href=#750 id=750 data-nosnippet>750</a><span class="comment">// https://en.wikipedia.org/wiki/Oklab_color_space#Conversions_between_color_spaces
+<a href=#751 id=751 data-nosnippet>751</a></span><span class="kw">fn </span>from_oklch(oklch: Oklch) -&gt; Color {
+<a href=#752 id=752 data-nosnippet>752</a>    <span class="kw">let </span>Oklch { l, c, h, a: alpha } = oklch;
+<a href=#753 id=753 data-nosnippet>753</a>
+<a href=#754 id=754 data-nosnippet>754</a>    <span class="kw">let </span>a = c * h.cos();
+<a href=#755 id=755 data-nosnippet>755</a>    <span class="kw">let </span>b = c * h.sin();
+<a href=#756 id=756 data-nosnippet>756</a>
+<a href=#757 id=757 data-nosnippet>757</a>    <span class="comment">// Oklab → LMS (nonlinear)
+<a href=#758 id=758 data-nosnippet>758</a>    </span><span class="kw">let </span>l_ = l + <span class="number">0.39633778 </span>* a + <span class="number">0.21580376 </span>* b;
+<a href=#759 id=759 data-nosnippet>759</a>    <span class="kw">let </span>m_ = l - <span class="number">0.105561346 </span>* a - <span class="number">0.06385417 </span>* b;
+<a href=#760 id=760 data-nosnippet>760</a>    <span class="kw">let </span>s_ = l - <span class="number">0.08948418 </span>* a - <span class="number">1.2914855 </span>* b;
+<a href=#761 id=761 data-nosnippet>761</a>
+<a href=#762 id=762 data-nosnippet>762</a>    <span class="comment">// Cubing back
+<a href=#763 id=763 data-nosnippet>763</a>    </span><span class="kw">let </span>l = l_ * l_ * l_;
+<a href=#764 id=764 data-nosnippet>764</a>    <span class="kw">let </span>m = m_ * m_ * m_;
+<a href=#765 id=765 data-nosnippet>765</a>    <span class="kw">let </span>s = s_ * s_ * s_;
+<a href=#766 id=766 data-nosnippet>766</a>
+<a href=#767 id=767 data-nosnippet>767</a>    <span class="kw">let </span>r = <span class="number">4.0767417 </span>* l - <span class="number">3.3077116 </span>* m + <span class="number">0.23096994 </span>* s;
+<a href=#768 id=768 data-nosnippet>768</a>    <span class="kw">let </span>g = -<span class="number">1.268438 </span>* l + <span class="number">2.6097574 </span>* m - <span class="number">0.34131938 </span>* s;
+<a href=#769 id=769 data-nosnippet>769</a>    <span class="kw">let </span>b = -<span class="number">0.0041960863 </span>* l - <span class="number">0.7034186 </span>* m + <span class="number">1.7076147 </span>* s;
+<a href=#770 id=770 data-nosnippet>770</a>
+<a href=#771 id=771 data-nosnippet>771</a>    Color::from_linear_rgba(
+<a href=#772 id=772 data-nosnippet>772</a>        r.clamp(<span class="number">0.0</span>, <span class="number">1.0</span>),
+<a href=#773 id=773 data-nosnippet>773</a>        g.clamp(<span class="number">0.0</span>, <span class="number">1.0</span>),
+<a href=#774 id=774 data-nosnippet>774</a>        b.clamp(<span class="number">0.0</span>, <span class="number">1.0</span>),
+<a href=#775 id=775 data-nosnippet>775</a>        alpha,
+<a href=#776 id=776 data-nosnippet>776</a>    )
+<a href=#777 id=777 data-nosnippet>777</a>}</code></pre></div></section></main></body></html>
