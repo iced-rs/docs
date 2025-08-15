@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/src/task.rs`."><title>task.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (7d82b83ed 2025-08-06)" data-channel="nightly" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_runtime/</div>task.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Create runtime tasks.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/src/task.rs`."><title>task.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-069232aa.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_runtime" data-themes="" data-resource-suffix="" data-rustdoc-version="1.91.0-nightly (898aff704 2025-08-14)" data-channel="nightly" data-search-js="search-281b7574.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_runtime/</div>task.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Create runtime tasks.
 <a href=#2 id=2 data-nosnippet>2</a></span><span class="kw">use </span><span class="kw">crate</span>::Action;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span><span class="kw">crate</span>::core::widget;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::futures::futures::channel::mpsc;
@@ -383,80 +383,86 @@
 <a href=#383 id=383 data-nosnippet>383</a>    }
 <a href=#384 id=384 data-nosnippet>384</a>}
 <a href=#385 id=385 data-nosnippet>385</a>
-<a href=#386 id=386 data-nosnippet>386</a><span class="kw">impl</span>&lt;T&gt; From&lt;()&gt; <span class="kw">for </span>Task&lt;T&gt; {
-<a href=#387 id=387 data-nosnippet>387</a>    <span class="kw">fn </span>from(_value: ()) -&gt; <span class="self">Self </span>{
-<a href=#388 id=388 data-nosnippet>388</a>        <span class="self">Self</span>::none()
+<a href=#386 id=386 data-nosnippet>386</a><span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>Task&lt;T&gt; {
+<a href=#387 id=387 data-nosnippet>387</a>    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+<a href=#388 id=388 data-nosnippet>388</a>        Task::none()
 <a href=#389 id=389 data-nosnippet>389</a>    }
 <a href=#390 id=390 data-nosnippet>390</a>}
 <a href=#391 id=391 data-nosnippet>391</a>
-<a href=#392 id=392 data-nosnippet>392</a><span class="doccomment">/// Creates a new [`Task`] that runs the given [`widget::Operation`] and produces
-<a href=#393 id=393 data-nosnippet>393</a>/// its output.
-<a href=#394 id=394 data-nosnippet>394</a></span><span class="kw">pub fn </span>widget&lt;T&gt;(operation: <span class="kw">impl </span>widget::Operation&lt;T&gt; + <span class="lifetime">'static</span>) -&gt; Task&lt;T&gt;
-<a href=#395 id=395 data-nosnippet>395</a><span class="kw">where
-<a href=#396 id=396 data-nosnippet>396</a>    </span>T: Send + <span class="lifetime">'static</span>,
-<a href=#397 id=397 data-nosnippet>397</a>{
-<a href=#398 id=398 data-nosnippet>398</a>    channel(<span class="kw">move </span>|sender| {
-<a href=#399 id=399 data-nosnippet>399</a>        <span class="kw">let </span>operation =
-<a href=#400 id=400 data-nosnippet>400</a>            widget::operation::map(Box::new(operation), <span class="kw">move </span>|value| {
-<a href=#401 id=401 data-nosnippet>401</a>                <span class="kw">let _ </span>= sender.clone().try_send(value);
-<a href=#402 id=402 data-nosnippet>402</a>            });
-<a href=#403 id=403 data-nosnippet>403</a>
-<a href=#404 id=404 data-nosnippet>404</a>        Action::Widget(Box::new(operation))
-<a href=#405 id=405 data-nosnippet>405</a>    })
-<a href=#406 id=406 data-nosnippet>406</a>}
-<a href=#407 id=407 data-nosnippet>407</a>
-<a href=#408 id=408 data-nosnippet>408</a><span class="doccomment">/// Creates a new [`Task`] that executes the [`Action`] returned by the closure and
-<a href=#409 id=409 data-nosnippet>409</a>/// produces the value fed to the [`oneshot::Sender`].
-<a href=#410 id=410 data-nosnippet>410</a></span><span class="kw">pub fn </span>oneshot&lt;T&gt;(f: <span class="kw">impl </span>FnOnce(oneshot::Sender&lt;T&gt;) -&gt; Action&lt;T&gt;) -&gt; Task&lt;T&gt;
-<a href=#411 id=411 data-nosnippet>411</a><span class="kw">where
-<a href=#412 id=412 data-nosnippet>412</a>    </span>T: MaybeSend + <span class="lifetime">'static</span>,
-<a href=#413 id=413 data-nosnippet>413</a>{
-<a href=#414 id=414 data-nosnippet>414</a>    <span class="kw">let </span>(sender, receiver) = oneshot::channel();
-<a href=#415 id=415 data-nosnippet>415</a>
-<a href=#416 id=416 data-nosnippet>416</a>    <span class="kw">let </span>action = f(sender);
-<a href=#417 id=417 data-nosnippet>417</a>
-<a href=#418 id=418 data-nosnippet>418</a>    Task {
-<a href=#419 id=419 data-nosnippet>419</a>        stream: <span class="prelude-val">Some</span>(boxed_stream(stream::once(<span class="kw">async move </span>{ action }).chain(
-<a href=#420 id=420 data-nosnippet>420</a>            receiver.into_stream().filter_map(|result| <span class="kw">async move </span>{
-<a href=#421 id=421 data-nosnippet>421</a>                <span class="prelude-val">Some</span>(Action::Output(result.ok()<span class="question-mark">?</span>))
-<a href=#422 id=422 data-nosnippet>422</a>            }),
-<a href=#423 id=423 data-nosnippet>423</a>        ))),
-<a href=#424 id=424 data-nosnippet>424</a>        units: <span class="number">1</span>,
-<a href=#425 id=425 data-nosnippet>425</a>    }
-<a href=#426 id=426 data-nosnippet>426</a>}
-<a href=#427 id=427 data-nosnippet>427</a>
-<a href=#428 id=428 data-nosnippet>428</a><span class="doccomment">/// Creates a new [`Task`] that executes the [`Action`] returned by the closure and
-<a href=#429 id=429 data-nosnippet>429</a>/// produces the values fed to the [`mpsc::Sender`].
-<a href=#430 id=430 data-nosnippet>430</a></span><span class="kw">pub fn </span>channel&lt;T&gt;(f: <span class="kw">impl </span>FnOnce(mpsc::Sender&lt;T&gt;) -&gt; Action&lt;T&gt;) -&gt; Task&lt;T&gt;
-<a href=#431 id=431 data-nosnippet>431</a><span class="kw">where
-<a href=#432 id=432 data-nosnippet>432</a>    </span>T: MaybeSend + <span class="lifetime">'static</span>,
-<a href=#433 id=433 data-nosnippet>433</a>{
-<a href=#434 id=434 data-nosnippet>434</a>    <span class="kw">let </span>(sender, receiver) = mpsc::channel(<span class="number">1</span>);
-<a href=#435 id=435 data-nosnippet>435</a>
-<a href=#436 id=436 data-nosnippet>436</a>    <span class="kw">let </span>action = f(sender);
-<a href=#437 id=437 data-nosnippet>437</a>
-<a href=#438 id=438 data-nosnippet>438</a>    Task {
-<a href=#439 id=439 data-nosnippet>439</a>        stream: <span class="prelude-val">Some</span>(boxed_stream(
-<a href=#440 id=440 data-nosnippet>440</a>            stream::once(<span class="kw">async move </span>{ action })
-<a href=#441 id=441 data-nosnippet>441</a>                .chain(receiver.map(|result| Action::Output(result))),
-<a href=#442 id=442 data-nosnippet>442</a>        )),
-<a href=#443 id=443 data-nosnippet>443</a>        units: <span class="number">1</span>,
-<a href=#444 id=444 data-nosnippet>444</a>    }
-<a href=#445 id=445 data-nosnippet>445</a>}
-<a href=#446 id=446 data-nosnippet>446</a>
-<a href=#447 id=447 data-nosnippet>447</a><span class="doccomment">/// Creates a new [`Task`] that executes the given [`Action`] and produces no output.
-<a href=#448 id=448 data-nosnippet>448</a></span><span class="kw">pub fn </span>effect&lt;T&gt;(action: <span class="kw">impl </span>Into&lt;Action&lt;Infallible&gt;&gt;) -&gt; Task&lt;T&gt; {
-<a href=#449 id=449 data-nosnippet>449</a>    <span class="kw">let </span>action = action.into();
-<a href=#450 id=450 data-nosnippet>450</a>
-<a href=#451 id=451 data-nosnippet>451</a>    Task {
-<a href=#452 id=452 data-nosnippet>452</a>        stream: <span class="prelude-val">Some</span>(boxed_stream(stream::once(<span class="kw">async move </span>{
-<a href=#453 id=453 data-nosnippet>453</a>            action.output().expect_err(<span class="string">"no output"</span>)
-<a href=#454 id=454 data-nosnippet>454</a>        }))),
-<a href=#455 id=455 data-nosnippet>455</a>        units: <span class="number">1</span>,
-<a href=#456 id=456 data-nosnippet>456</a>    }
-<a href=#457 id=457 data-nosnippet>457</a>}
-<a href=#458 id=458 data-nosnippet>458</a>
-<a href=#459 id=459 data-nosnippet>459</a><span class="doccomment">/// Returns the underlying [`Stream`] of the [`Task`].
-<a href=#460 id=460 data-nosnippet>460</a></span><span class="kw">pub fn </span>into_stream&lt;T&gt;(task: Task&lt;T&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;BoxStream&lt;Action&lt;T&gt;&gt;&gt; {
-<a href=#461 id=461 data-nosnippet>461</a>    task.stream
-<a href=#462 id=462 data-nosnippet>462</a>}</code></pre></div></section></main></body></html>
+<a href=#392 id=392 data-nosnippet>392</a><span class="kw">impl</span>&lt;T&gt; From&lt;()&gt; <span class="kw">for </span>Task&lt;T&gt; {
+<a href=#393 id=393 data-nosnippet>393</a>    <span class="kw">fn </span>from(_value: ()) -&gt; <span class="self">Self </span>{
+<a href=#394 id=394 data-nosnippet>394</a>        <span class="self">Self</span>::none()
+<a href=#395 id=395 data-nosnippet>395</a>    }
+<a href=#396 id=396 data-nosnippet>396</a>}
+<a href=#397 id=397 data-nosnippet>397</a>
+<a href=#398 id=398 data-nosnippet>398</a><span class="doccomment">/// Creates a new [`Task`] that runs the given [`widget::Operation`] and produces
+<a href=#399 id=399 data-nosnippet>399</a>/// its output.
+<a href=#400 id=400 data-nosnippet>400</a></span><span class="kw">pub fn </span>widget&lt;T&gt;(operation: <span class="kw">impl </span>widget::Operation&lt;T&gt; + <span class="lifetime">'static</span>) -&gt; Task&lt;T&gt;
+<a href=#401 id=401 data-nosnippet>401</a><span class="kw">where
+<a href=#402 id=402 data-nosnippet>402</a>    </span>T: Send + <span class="lifetime">'static</span>,
+<a href=#403 id=403 data-nosnippet>403</a>{
+<a href=#404 id=404 data-nosnippet>404</a>    channel(<span class="kw">move </span>|sender| {
+<a href=#405 id=405 data-nosnippet>405</a>        <span class="kw">let </span>operation =
+<a href=#406 id=406 data-nosnippet>406</a>            widget::operation::map(Box::new(operation), <span class="kw">move </span>|value| {
+<a href=#407 id=407 data-nosnippet>407</a>                <span class="kw">let _ </span>= sender.clone().try_send(value);
+<a href=#408 id=408 data-nosnippet>408</a>            });
+<a href=#409 id=409 data-nosnippet>409</a>
+<a href=#410 id=410 data-nosnippet>410</a>        Action::Widget(Box::new(operation))
+<a href=#411 id=411 data-nosnippet>411</a>    })
+<a href=#412 id=412 data-nosnippet>412</a>}
+<a href=#413 id=413 data-nosnippet>413</a>
+<a href=#414 id=414 data-nosnippet>414</a><span class="doccomment">/// Creates a new [`Task`] that executes the [`Action`] returned by the closure and
+<a href=#415 id=415 data-nosnippet>415</a>/// produces the value fed to the [`oneshot::Sender`].
+<a href=#416 id=416 data-nosnippet>416</a></span><span class="kw">pub fn </span>oneshot&lt;T&gt;(f: <span class="kw">impl </span>FnOnce(oneshot::Sender&lt;T&gt;) -&gt; Action&lt;T&gt;) -&gt; Task&lt;T&gt;
+<a href=#417 id=417 data-nosnippet>417</a><span class="kw">where
+<a href=#418 id=418 data-nosnippet>418</a>    </span>T: MaybeSend + <span class="lifetime">'static</span>,
+<a href=#419 id=419 data-nosnippet>419</a>{
+<a href=#420 id=420 data-nosnippet>420</a>    <span class="kw">let </span>(sender, receiver) = oneshot::channel();
+<a href=#421 id=421 data-nosnippet>421</a>
+<a href=#422 id=422 data-nosnippet>422</a>    <span class="kw">let </span>action = f(sender);
+<a href=#423 id=423 data-nosnippet>423</a>
+<a href=#424 id=424 data-nosnippet>424</a>    Task {
+<a href=#425 id=425 data-nosnippet>425</a>        stream: <span class="prelude-val">Some</span>(boxed_stream(stream::once(<span class="kw">async move </span>{ action }).chain(
+<a href=#426 id=426 data-nosnippet>426</a>            receiver.into_stream().filter_map(|result| <span class="kw">async move </span>{
+<a href=#427 id=427 data-nosnippet>427</a>                <span class="prelude-val">Some</span>(Action::Output(result.ok()<span class="question-mark">?</span>))
+<a href=#428 id=428 data-nosnippet>428</a>            }),
+<a href=#429 id=429 data-nosnippet>429</a>        ))),
+<a href=#430 id=430 data-nosnippet>430</a>        units: <span class="number">1</span>,
+<a href=#431 id=431 data-nosnippet>431</a>    }
+<a href=#432 id=432 data-nosnippet>432</a>}
+<a href=#433 id=433 data-nosnippet>433</a>
+<a href=#434 id=434 data-nosnippet>434</a><span class="doccomment">/// Creates a new [`Task`] that executes the [`Action`] returned by the closure and
+<a href=#435 id=435 data-nosnippet>435</a>/// produces the values fed to the [`mpsc::Sender`].
+<a href=#436 id=436 data-nosnippet>436</a></span><span class="kw">pub fn </span>channel&lt;T&gt;(f: <span class="kw">impl </span>FnOnce(mpsc::Sender&lt;T&gt;) -&gt; Action&lt;T&gt;) -&gt; Task&lt;T&gt;
+<a href=#437 id=437 data-nosnippet>437</a><span class="kw">where
+<a href=#438 id=438 data-nosnippet>438</a>    </span>T: MaybeSend + <span class="lifetime">'static</span>,
+<a href=#439 id=439 data-nosnippet>439</a>{
+<a href=#440 id=440 data-nosnippet>440</a>    <span class="kw">let </span>(sender, receiver) = mpsc::channel(<span class="number">1</span>);
+<a href=#441 id=441 data-nosnippet>441</a>
+<a href=#442 id=442 data-nosnippet>442</a>    <span class="kw">let </span>action = f(sender);
+<a href=#443 id=443 data-nosnippet>443</a>
+<a href=#444 id=444 data-nosnippet>444</a>    Task {
+<a href=#445 id=445 data-nosnippet>445</a>        stream: <span class="prelude-val">Some</span>(boxed_stream(
+<a href=#446 id=446 data-nosnippet>446</a>            stream::once(<span class="kw">async move </span>{ action })
+<a href=#447 id=447 data-nosnippet>447</a>                .chain(receiver.map(|result| Action::Output(result))),
+<a href=#448 id=448 data-nosnippet>448</a>        )),
+<a href=#449 id=449 data-nosnippet>449</a>        units: <span class="number">1</span>,
+<a href=#450 id=450 data-nosnippet>450</a>    }
+<a href=#451 id=451 data-nosnippet>451</a>}
+<a href=#452 id=452 data-nosnippet>452</a>
+<a href=#453 id=453 data-nosnippet>453</a><span class="doccomment">/// Creates a new [`Task`] that executes the given [`Action`] and produces no output.
+<a href=#454 id=454 data-nosnippet>454</a></span><span class="kw">pub fn </span>effect&lt;T&gt;(action: <span class="kw">impl </span>Into&lt;Action&lt;Infallible&gt;&gt;) -&gt; Task&lt;T&gt; {
+<a href=#455 id=455 data-nosnippet>455</a>    <span class="kw">let </span>action = action.into();
+<a href=#456 id=456 data-nosnippet>456</a>
+<a href=#457 id=457 data-nosnippet>457</a>    Task {
+<a href=#458 id=458 data-nosnippet>458</a>        stream: <span class="prelude-val">Some</span>(boxed_stream(stream::once(<span class="kw">async move </span>{
+<a href=#459 id=459 data-nosnippet>459</a>            action.output().expect_err(<span class="string">"no output"</span>)
+<a href=#460 id=460 data-nosnippet>460</a>        }))),
+<a href=#461 id=461 data-nosnippet>461</a>        units: <span class="number">1</span>,
+<a href=#462 id=462 data-nosnippet>462</a>    }
+<a href=#463 id=463 data-nosnippet>463</a>}
+<a href=#464 id=464 data-nosnippet>464</a>
+<a href=#465 id=465 data-nosnippet>465</a><span class="doccomment">/// Returns the underlying [`Stream`] of the [`Task`].
+<a href=#466 id=466 data-nosnippet>466</a></span><span class="kw">pub fn </span>into_stream&lt;T&gt;(task: Task&lt;T&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;BoxStream&lt;Action&lt;T&gt;&gt;&gt; {
+<a href=#467 id=467 data-nosnippet>467</a>    task.stream
+<a href=#468 id=468 data-nosnippet>468</a>}</code></pre></div></section></main></body></html>
