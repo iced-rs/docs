@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Candidate","Target","Text"],"fn":["delineate","find_by_id","find_by_text"],"trait":["Bounded","Selector"]};

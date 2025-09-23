@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["DEFAULT_PADDING"],"enum":["Side","Status"],"fn":["default","focus","is_focused","move_cursor_to","move_cursor_to_end","move_cursor_to_front","select_all"],"mod":["cursor"],"struct":["Icon","Id","State","Style","TextInput","Value"],"trait":["Catalog"],"type":["StyleFn"]};
+window.SIDEBAR_ITEMS = {"constant":["DEFAULT_PADDING"],"enum":["Side","Status"],"fn":["default"],"mod":["cursor"],"struct":["Icon","State","Style","TextInput","Value"],"trait":["Catalog"],"type":["StyleFn"]};

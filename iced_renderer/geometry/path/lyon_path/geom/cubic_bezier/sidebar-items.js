@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["CubicBezierSegment","Flattened"]};
+window.SIDEBAR_ITEMS = {"struct":["CubicBezierPolynomial","CubicBezierSegment","Flattened"]};
