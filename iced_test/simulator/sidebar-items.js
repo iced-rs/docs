@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["click","press_key","release_key","simulator","tap_key","typewrite"],"struct":["Simulator","Snapshot"]};

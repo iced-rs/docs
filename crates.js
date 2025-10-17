@@ -1,2 +1,2 @@
-window.ALL_CRATES = ["futures_core","iced","iced_beacon","iced_core","iced_debug","iced_devtools","iced_futures","iced_graphics","iced_highlighter","iced_renderer","iced_runtime","iced_tiny_skia","iced_wgpu","iced_widget","iced_winit"];
-//{"start":21,"fragment_lengths":[14,7,14,12,13,16,15,16,19,16,15,17,12,14,13]}
+window.ALL_CRATES = ["futures_core","iced","iced_beacon","iced_core","iced_debug","iced_devtools","iced_futures","iced_graphics","iced_highlighter","iced_renderer","iced_runtime","iced_test","iced_tiny_skia","iced_wgpu","iced_widget","iced_winit"];
+//{"start":21,"fragment_lengths":[14,7,14,12,13,16,15,16,19,16,15,12,17,12,14,13]}
