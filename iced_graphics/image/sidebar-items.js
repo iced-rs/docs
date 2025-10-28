@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Image"],"fn":["load"]};
+window.SIDEBAR_ITEMS = {"enum":["Image"],"fn":["load"],"type":["Buffer"]};
