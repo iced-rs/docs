@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.0-nightly (292be5c7c 2025-10-29)" data-channel="nightly" data-search-js="search-d69d8955.js" data-stringdex-js="stringdex-c3e638e9.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ce535bd0.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_wgpu/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! A [`wgpu`] renderer for [Iced].
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `wgpu/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-ca0dd0c4.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_wgpu" data-themes="" data-resource-suffix="" data-rustdoc-version="1.93.0-nightly (d5419f1e9 2025-10-30)" data-channel="nightly" data-search-js="search-6acd48a0.js" data-stringdex-js="stringdex-c3e638e9.js" data-settings-js="settings-c38705f0.js" ><script src="../../static.files/storage-e2aeef58.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-ce535bd0.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-263c88ec.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">iced_wgpu/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! A [`wgpu`] renderer for [Iced].
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! ![The native path of the Iced ecosystem](https://github.com/iced-rs/iced/blob/0525d76ff94e828b7b21634fa94a747022001c83/docs/graphs/native.png?raw=true)
 <a href=#4 id=4 data-nosnippet>4</a>//!
@@ -278,10 +278,10 @@
 <a href=#278 id=278 data-nosnippet>278</a>        <span class="kw">let </span>slice = output_buffer.slice(..);
 <a href=#279 id=279 data-nosnippet>279</a>        slice.map_async(wgpu::MapMode::Read, |<span class="kw">_</span>| {});
 <a href=#280 id=280 data-nosnippet>280</a>
-<a href=#281 id=281 data-nosnippet>281</a>        <span class="kw">let _ </span>= <span class="self">self
-<a href=#282 id=282 data-nosnippet>282</a>            </span>.engine
-<a href=#283 id=283 data-nosnippet>283</a>            .device
-<a href=#284 id=284 data-nosnippet>284</a>            .poll(wgpu::PollType::WaitForSubmissionIndex(index));
+<a href=#281 id=281 data-nosnippet>281</a>        <span class="kw">let _ </span>= <span class="self">self</span>.engine.device.poll(wgpu::PollType::Wait {
+<a href=#282 id=282 data-nosnippet>282</a>            submission_index: <span class="prelude-val">Some</span>(index),
+<a href=#283 id=283 data-nosnippet>283</a>            timeout: <span class="prelude-val">None</span>,
+<a href=#284 id=284 data-nosnippet>284</a>        });
 <a href=#285 id=285 data-nosnippet>285</a>
 <a href=#286 id=286 data-nosnippet>286</a>        <span class="kw">let </span>mapped_buffer = slice.get_mapped_range();
 <a href=#287 id=287 data-nosnippet>287</a>
@@ -927,40 +927,41 @@
 <a href=#927 id=927 data-nosnippet>927</a>                },
 <a href=#928 id=928 data-nosnippet>928</a>                memory_hints: wgpu::MemoryHints::MemoryUsage,
 <a href=#929 id=929 data-nosnippet>929</a>                trace: wgpu::Trace::Off,
-<a href=#930 id=930 data-nosnippet>930</a>            })
-<a href=#931 id=931 data-nosnippet>931</a>            .<span class="kw">await
-<a href=#932 id=932 data-nosnippet>932</a>            </span>.ok()<span class="question-mark">?</span>;
-<a href=#933 id=933 data-nosnippet>933</a>
-<a href=#934 id=934 data-nosnippet>934</a>        <span class="kw">let </span>engine = Engine::new(
-<a href=#935 id=935 data-nosnippet>935</a>            <span class="kw-2">&amp;</span>adapter,
-<a href=#936 id=936 data-nosnippet>936</a>            device,
-<a href=#937 id=937 data-nosnippet>937</a>            queue,
-<a href=#938 id=938 data-nosnippet>938</a>            <span class="kw">if </span>graphics::color::GAMMA_CORRECTION {
-<a href=#939 id=939 data-nosnippet>939</a>                wgpu::TextureFormat::Rgba8UnormSrgb
-<a href=#940 id=940 data-nosnippet>940</a>            } <span class="kw">else </span>{
-<a href=#941 id=941 data-nosnippet>941</a>                wgpu::TextureFormat::Rgba8Unorm
-<a href=#942 id=942 data-nosnippet>942</a>            },
-<a href=#943 id=943 data-nosnippet>943</a>            <span class="prelude-val">Some</span>(graphics::Antialiasing::MSAAx4),
-<a href=#944 id=944 data-nosnippet>944</a>            Shell::headless(),
-<a href=#945 id=945 data-nosnippet>945</a>        );
-<a href=#946 id=946 data-nosnippet>946</a>
-<a href=#947 id=947 data-nosnippet>947</a>        <span class="prelude-val">Some</span>(<span class="self">Self</span>::new(engine, default_font, default_text_size))
-<a href=#948 id=948 data-nosnippet>948</a>    }
-<a href=#949 id=949 data-nosnippet>949</a>
-<a href=#950 id=950 data-nosnippet>950</a>    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-<a href=#951 id=951 data-nosnippet>951</a>        <span class="string">"wgpu"</span>.to_owned()
-<a href=#952 id=952 data-nosnippet>952</a>    }
-<a href=#953 id=953 data-nosnippet>953</a>
-<a href=#954 id=954 data-nosnippet>954</a>    <span class="kw">fn </span>screenshot(
-<a href=#955 id=955 data-nosnippet>955</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#956 id=956 data-nosnippet>956</a>        size: Size&lt;u32&gt;,
-<a href=#957 id=957 data-nosnippet>957</a>        scale_factor: f32,
-<a href=#958 id=958 data-nosnippet>958</a>        background_color: Color,
-<a href=#959 id=959 data-nosnippet>959</a>    ) -&gt; Vec&lt;u8&gt; {
-<a href=#960 id=960 data-nosnippet>960</a>        <span class="self">self</span>.screenshot(
-<a href=#961 id=961 data-nosnippet>961</a>            <span class="kw-2">&amp;</span>Viewport::with_physical_size(size, scale_factor),
-<a href=#962 id=962 data-nosnippet>962</a>            background_color,
-<a href=#963 id=963 data-nosnippet>963</a>        )
-<a href=#964 id=964 data-nosnippet>964</a>    }
-<a href=#965 id=965 data-nosnippet>965</a>}
+<a href=#930 id=930 data-nosnippet>930</a>                experimental_features: wgpu::ExperimentalFeatures::disabled(),
+<a href=#931 id=931 data-nosnippet>931</a>            })
+<a href=#932 id=932 data-nosnippet>932</a>            .<span class="kw">await
+<a href=#933 id=933 data-nosnippet>933</a>            </span>.ok()<span class="question-mark">?</span>;
+<a href=#934 id=934 data-nosnippet>934</a>
+<a href=#935 id=935 data-nosnippet>935</a>        <span class="kw">let </span>engine = Engine::new(
+<a href=#936 id=936 data-nosnippet>936</a>            <span class="kw-2">&amp;</span>adapter,
+<a href=#937 id=937 data-nosnippet>937</a>            device,
+<a href=#938 id=938 data-nosnippet>938</a>            queue,
+<a href=#939 id=939 data-nosnippet>939</a>            <span class="kw">if </span>graphics::color::GAMMA_CORRECTION {
+<a href=#940 id=940 data-nosnippet>940</a>                wgpu::TextureFormat::Rgba8UnormSrgb
+<a href=#941 id=941 data-nosnippet>941</a>            } <span class="kw">else </span>{
+<a href=#942 id=942 data-nosnippet>942</a>                wgpu::TextureFormat::Rgba8Unorm
+<a href=#943 id=943 data-nosnippet>943</a>            },
+<a href=#944 id=944 data-nosnippet>944</a>            <span class="prelude-val">Some</span>(graphics::Antialiasing::MSAAx4),
+<a href=#945 id=945 data-nosnippet>945</a>            Shell::headless(),
+<a href=#946 id=946 data-nosnippet>946</a>        );
+<a href=#947 id=947 data-nosnippet>947</a>
+<a href=#948 id=948 data-nosnippet>948</a>        <span class="prelude-val">Some</span>(<span class="self">Self</span>::new(engine, default_font, default_text_size))
+<a href=#949 id=949 data-nosnippet>949</a>    }
+<a href=#950 id=950 data-nosnippet>950</a>
+<a href=#951 id=951 data-nosnippet>951</a>    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+<a href=#952 id=952 data-nosnippet>952</a>        <span class="string">"wgpu"</span>.to_owned()
+<a href=#953 id=953 data-nosnippet>953</a>    }
+<a href=#954 id=954 data-nosnippet>954</a>
+<a href=#955 id=955 data-nosnippet>955</a>    <span class="kw">fn </span>screenshot(
+<a href=#956 id=956 data-nosnippet>956</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#957 id=957 data-nosnippet>957</a>        size: Size&lt;u32&gt;,
+<a href=#958 id=958 data-nosnippet>958</a>        scale_factor: f32,
+<a href=#959 id=959 data-nosnippet>959</a>        background_color: Color,
+<a href=#960 id=960 data-nosnippet>960</a>    ) -&gt; Vec&lt;u8&gt; {
+<a href=#961 id=961 data-nosnippet>961</a>        <span class="self">self</span>.screenshot(
+<a href=#962 id=962 data-nosnippet>962</a>            <span class="kw-2">&amp;</span>Viewport::with_physical_size(size, scale_factor),
+<a href=#963 id=963 data-nosnippet>963</a>            background_color,
+<a href=#964 id=964 data-nosnippet>964</a>        )
+<a href=#965 id=965 data-nosnippet>965</a>    }
+<a href=#966 id=966 data-nosnippet>966</a>}
 </code></pre></div></section></main></body></html>

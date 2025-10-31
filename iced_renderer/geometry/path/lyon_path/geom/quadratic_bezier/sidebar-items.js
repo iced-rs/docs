@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Flattened","FlattenedT","FlatteningParameters","QuadraticBezierSegment"]};
+window.SIDEBAR_ITEMS = {"struct":["Flattened","FlattenedT","FlatteningParameters","QuadraticBezierPolynomial","QuadraticBezierSegment"]};
