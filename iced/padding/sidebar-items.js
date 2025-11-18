@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["all","bottom","left","right","top"],"struct":["Padding"]};
+window.SIDEBAR_ITEMS = {"fn":["all","bottom","horizontal","left","right","top","vertical"],"struct":["Padding"]};
