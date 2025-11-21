@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Status"],"fn":["background","danger","primary","secondary","subtle","success","text","warning"],"struct":["Button","Style"],"trait":["Catalog"],"type":["StyleFn"]};
+window.SIDEBAR_ITEMS = {"constant":["DEFAULT_PADDING"],"enum":["Status"],"fn":["background","danger","primary","secondary","subtle","success","text","warning"],"struct":["Button","Style"],"trait":["Catalog"],"type":["StyleFn"]};
