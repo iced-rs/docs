@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Instance","Storage"],"trait":["Primitive","Renderer"],"type":["Batch"]};
+window.SIDEBAR_ITEMS = {"struct":["Instance","Storage"],"trait":["Pipeline","Primitive","Renderer"],"type":["Batch"]};
