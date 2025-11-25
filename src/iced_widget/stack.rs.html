@@ -224,7 +224,7 @@
 <a href=#224 id=224 data-nosnippet>224</a>        <span class="kw">let </span>is_over = cursor.is_over(layout.bounds());
 <a href=#225 id=225 data-nosnippet>225</a>        <span class="kw">let </span>end = <span class="self">self</span>.children.len() - <span class="number">1</span>;
 <a href=#226 id=226 data-nosnippet>226</a>
-<a href=#227 id=227 data-nosnippet>227</a>        <span class="kw">for </span>(i, ((child, state), layout)) <span class="kw">in </span><span class="self">self
+<a href=#227 id=227 data-nosnippet>227</a>        <span class="kw">for </span>(i, ((child, tree), layout)) <span class="kw">in </span><span class="self">self
 <a href=#228 id=228 data-nosnippet>228</a>            </span>.children
 <a href=#229 id=229 data-nosnippet>229</a>            .iter_mut()
 <a href=#230 id=230 data-nosnippet>230</a>            .rev()
@@ -233,7 +233,7 @@
 <a href=#233 id=233 data-nosnippet>233</a>            .enumerate()
 <a href=#234 id=234 data-nosnippet>234</a>        {
 <a href=#235 id=235 data-nosnippet>235</a>            child.as_widget_mut().update(
-<a href=#236 id=236 data-nosnippet>236</a>                state, event, layout, cursor, renderer, clipboard, shell,
+<a href=#236 id=236 data-nosnippet>236</a>                tree, event, layout, cursor, renderer, clipboard, shell,
 <a href=#237 id=237 data-nosnippet>237</a>                viewport,
 <a href=#238 id=238 data-nosnippet>238</a>            );
 <a href=#239 id=239 data-nosnippet>239</a>
@@ -243,7 +243,7 @@
 <a href=#243 id=243 data-nosnippet>243</a>
 <a href=#244 id=244 data-nosnippet>244</a>            <span class="kw">if </span>i &lt; end &amp;&amp; is_over &amp;&amp; !cursor.is_levitating() {
 <a href=#245 id=245 data-nosnippet>245</a>                <span class="kw">let </span>interaction = child.as_widget().mouse_interaction(
-<a href=#246 id=246 data-nosnippet>246</a>                    state, layout, cursor, viewport, renderer,
+<a href=#246 id=246 data-nosnippet>246</a>                    tree, layout, cursor, viewport, renderer,
 <a href=#247 id=247 data-nosnippet>247</a>                );
 <a href=#248 id=248 data-nosnippet>248</a>
 <a href=#249 id=249 data-nosnippet>249</a>                <span class="kw">if </span><span class="macro">interaction !</span>= mouse::Interaction::None {
@@ -266,10 +266,10 @@
 <a href=#266 id=266 data-nosnippet>266</a>            .rev()
 <a href=#267 id=267 data-nosnippet>267</a>            .zip(tree.children.iter().rev())
 <a href=#268 id=268 data-nosnippet>268</a>            .zip(layout.children().rev())
-<a href=#269 id=269 data-nosnippet>269</a>            .map(|((child, state), layout)| {
-<a href=#270 id=270 data-nosnippet>270</a>                child.as_widget().mouse_interaction(
-<a href=#271 id=271 data-nosnippet>271</a>                    state, layout, cursor, viewport, renderer,
-<a href=#272 id=272 data-nosnippet>272</a>                )
+<a href=#269 id=269 data-nosnippet>269</a>            .map(|((child, tree), layout)| {
+<a href=#270 id=270 data-nosnippet>270</a>                child
+<a href=#271 id=271 data-nosnippet>271</a>                    .as_widget()
+<a href=#272 id=272 data-nosnippet>272</a>                    .mouse_interaction(tree, layout, cursor, viewport, renderer)
 <a href=#273 id=273 data-nosnippet>273</a>            })
 <a href=#274 id=274 data-nosnippet>274</a>            .find(|<span class="kw-2">&amp;</span>interaction| <span class="macro">interaction !</span>= mouse::Interaction::None)
 <a href=#275 id=275 data-nosnippet>275</a>            .unwrap_or_default()
@@ -298,9 +298,9 @@
 <a href=#298 id=298 data-nosnippet>298</a>                    .rev()
 <a href=#299 id=299 data-nosnippet>299</a>                    .zip(tree.children.iter().rev())
 <a href=#300 id=300 data-nosnippet>300</a>                    .zip(layout.children().rev())
-<a href=#301 id=301 data-nosnippet>301</a>                    .position(|((layer, state), layout)| {
+<a href=#301 id=301 data-nosnippet>301</a>                    .position(|((layer, tree), layout)| {
 <a href=#302 id=302 data-nosnippet>302</a>                        <span class="kw">let </span>interaction = layer.as_widget().mouse_interaction(
-<a href=#303 id=303 data-nosnippet>303</a>                            state, layout, cursor, viewport, renderer,
+<a href=#303 id=303 data-nosnippet>303</a>                            tree, layout, cursor, viewport, renderer,
 <a href=#304 id=304 data-nosnippet>304</a>                        );
 <a href=#305 id=305 data-nosnippet>305</a>
 <a href=#306 id=306 data-nosnippet>306</a>                        <span class="macro">interaction !</span>= mouse::Interaction::None
@@ -323,30 +323,30 @@
 <a href=#323 id=323 data-nosnippet>323</a>            <span class="kw">let </span><span class="kw-2">mut </span>draw_layer =
 <a href=#324 id=324 data-nosnippet>324</a>                |i,
 <a href=#325 id=325 data-nosnippet>325</a>                 layer: <span class="kw-2">&amp;</span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;,
-<a href=#326 id=326 data-nosnippet>326</a>                 state,
+<a href=#326 id=326 data-nosnippet>326</a>                 tree,
 <a href=#327 id=327 data-nosnippet>327</a>                 layout,
 <a href=#328 id=328 data-nosnippet>328</a>                 cursor| {
 <a href=#329 id=329 data-nosnippet>329</a>                    <span class="kw">if </span>i &gt; <span class="number">0 </span>{
 <a href=#330 id=330 data-nosnippet>330</a>                        renderer.with_layer(<span class="kw-2">*</span>viewport, |renderer| {
 <a href=#331 id=331 data-nosnippet>331</a>                            layer.as_widget().draw(
-<a href=#332 id=332 data-nosnippet>332</a>                                state, renderer, theme, style, layout, cursor,
+<a href=#332 id=332 data-nosnippet>332</a>                                tree, renderer, theme, style, layout, cursor,
 <a href=#333 id=333 data-nosnippet>333</a>                                viewport,
 <a href=#334 id=334 data-nosnippet>334</a>                            );
 <a href=#335 id=335 data-nosnippet>335</a>                        });
 <a href=#336 id=336 data-nosnippet>336</a>                    } <span class="kw">else </span>{
 <a href=#337 id=337 data-nosnippet>337</a>                        layer.as_widget().draw(
-<a href=#338 id=338 data-nosnippet>338</a>                            state, renderer, theme, style, layout, cursor,
+<a href=#338 id=338 data-nosnippet>338</a>                            tree, renderer, theme, style, layout, cursor,
 <a href=#339 id=339 data-nosnippet>339</a>                            viewport,
 <a href=#340 id=340 data-nosnippet>340</a>                        );
 <a href=#341 id=341 data-nosnippet>341</a>                    }
 <a href=#342 id=342 data-nosnippet>342</a>                };
 <a href=#343 id=343 data-nosnippet>343</a>
-<a href=#344 id=344 data-nosnippet>344</a>            <span class="kw">for </span>(i, ((layer, state), layout)) <span class="kw">in </span>layers.take(layers_below) {
-<a href=#345 id=345 data-nosnippet>345</a>                draw_layer(i, layer, state, layout, mouse::Cursor::Unavailable);
+<a href=#344 id=344 data-nosnippet>344</a>            <span class="kw">for </span>(i, ((layer, tree), layout)) <span class="kw">in </span>layers.take(layers_below) {
+<a href=#345 id=345 data-nosnippet>345</a>                draw_layer(i, layer, tree, layout, mouse::Cursor::Unavailable);
 <a href=#346 id=346 data-nosnippet>346</a>            }
 <a href=#347 id=347 data-nosnippet>347</a>
-<a href=#348 id=348 data-nosnippet>348</a>            <span class="kw">for </span>(i, ((layer, state), layout)) <span class="kw">in </span>layers {
-<a href=#349 id=349 data-nosnippet>349</a>                draw_layer(i, layer, state, layout, cursor);
+<a href=#348 id=348 data-nosnippet>348</a>            <span class="kw">for </span>(i, ((layer, tree), layout)) <span class="kw">in </span>layers {
+<a href=#349 id=349 data-nosnippet>349</a>                draw_layer(i, layer, tree, layout, cursor);
 <a href=#350 id=350 data-nosnippet>350</a>            }
 <a href=#351 id=351 data-nosnippet>351</a>        }
 <a href=#352 id=352 data-nosnippet>352</a>    }
