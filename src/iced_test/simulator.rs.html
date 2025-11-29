@@ -381,48 +381,49 @@
 <a href=#381 id=381 data-nosnippet>381</a>        ),
 <a href=#382 id=382 data-nosnippet>382</a>        location: keyboard::Location::Standard,
 <a href=#383 id=383 data-nosnippet>383</a>        modifiers: keyboard::Modifiers::default(),
-<a href=#384 id=384 data-nosnippet>384</a>        text,
-<a href=#385 id=385 data-nosnippet>385</a>    })
-<a href=#386 id=386 data-nosnippet>386</a>}
-<a href=#387 id=387 data-nosnippet>387</a>
-<a href=#388 id=388 data-nosnippet>388</a><span class="doccomment">/// Returns the sequence of events of a key release.
-<a href=#389 id=389 data-nosnippet>389</a></span><span class="kw">pub fn </span>release_key(key: <span class="kw">impl </span>Into&lt;keyboard::Key&gt;) -&gt; Event {
-<a href=#390 id=390 data-nosnippet>390</a>    <span class="kw">let </span>key = key.into();
-<a href=#391 id=391 data-nosnippet>391</a>
-<a href=#392 id=392 data-nosnippet>392</a>    Event::Keyboard(keyboard::Event::KeyReleased {
-<a href=#393 id=393 data-nosnippet>393</a>        key: key.clone(),
-<a href=#394 id=394 data-nosnippet>394</a>        modified_key: key,
-<a href=#395 id=395 data-nosnippet>395</a>        physical_key: keyboard::key::Physical::Unidentified(
-<a href=#396 id=396 data-nosnippet>396</a>            keyboard::key::NativeCode::Unidentified,
-<a href=#397 id=397 data-nosnippet>397</a>        ),
-<a href=#398 id=398 data-nosnippet>398</a>        location: keyboard::Location::Standard,
-<a href=#399 id=399 data-nosnippet>399</a>        modifiers: keyboard::Modifiers::default(),
-<a href=#400 id=400 data-nosnippet>400</a>    })
-<a href=#401 id=401 data-nosnippet>401</a>}
-<a href=#402 id=402 data-nosnippet>402</a>
-<a href=#403 id=403 data-nosnippet>403</a><span class="doccomment">/// Returns the sequence of events of a "key tap" (i.e. pressing and releasing a key).
-<a href=#404 id=404 data-nosnippet>404</a></span><span class="kw">pub fn </span>tap_key(
-<a href=#405 id=405 data-nosnippet>405</a>    key: <span class="kw">impl </span>Into&lt;keyboard::Key&gt;,
-<a href=#406 id=406 data-nosnippet>406</a>    text: <span class="prelude-ty">Option</span>&lt;SmolStr&gt;,
-<a href=#407 id=407 data-nosnippet>407</a>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Event&gt; {
-<a href=#408 id=408 data-nosnippet>408</a>    <span class="kw">let </span>key = key.into();
-<a href=#409 id=409 data-nosnippet>409</a>
-<a href=#410 id=410 data-nosnippet>410</a>    [press_key(key.clone(), text), release_key(key)].into_iter()
-<a href=#411 id=411 data-nosnippet>411</a>}
-<a href=#412 id=412 data-nosnippet>412</a>
-<a href=#413 id=413 data-nosnippet>413</a><span class="doccomment">/// Returns the sequence of events of typewriting the given text in a keyboard.
-<a href=#414 id=414 data-nosnippet>414</a></span><span class="kw">pub fn </span>typewrite(text: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Event&gt; + <span class="lifetime">'_ </span>{
-<a href=#415 id=415 data-nosnippet>415</a>    text.chars()
-<a href=#416 id=416 data-nosnippet>416</a>        .map(|c| SmolStr::new_inline(<span class="kw-2">&amp;</span>c.to_string()))
-<a href=#417 id=417 data-nosnippet>417</a>        .flat_map(|c| tap_key(keyboard::Key::Character(c.clone()), <span class="prelude-val">Some</span>(c)))
-<a href=#418 id=418 data-nosnippet>418</a>}
-<a href=#419 id=419 data-nosnippet>419</a>
-<a href=#420 id=420 data-nosnippet>420</a><span class="kw">fn </span>load_font(font: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'static</span>, [u8]&gt;&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
-<a href=#421 id=421 data-nosnippet>421</a>    renderer::graphics::text::font_system()
-<a href=#422 id=422 data-nosnippet>422</a>        .write()
-<a href=#423 id=423 data-nosnippet>423</a>        .expect(<span class="string">"Write to font system"</span>)
-<a href=#424 id=424 data-nosnippet>424</a>        .load_font(font.into());
-<a href=#425 id=425 data-nosnippet>425</a>
-<a href=#426 id=426 data-nosnippet>426</a>    <span class="prelude-val">Ok</span>(())
-<a href=#427 id=427 data-nosnippet>427</a>}
+<a href=#384 id=384 data-nosnippet>384</a>        repeat: <span class="bool-val">false</span>,
+<a href=#385 id=385 data-nosnippet>385</a>        text,
+<a href=#386 id=386 data-nosnippet>386</a>    })
+<a href=#387 id=387 data-nosnippet>387</a>}
+<a href=#388 id=388 data-nosnippet>388</a>
+<a href=#389 id=389 data-nosnippet>389</a><span class="doccomment">/// Returns the sequence of events of a key release.
+<a href=#390 id=390 data-nosnippet>390</a></span><span class="kw">pub fn </span>release_key(key: <span class="kw">impl </span>Into&lt;keyboard::Key&gt;) -&gt; Event {
+<a href=#391 id=391 data-nosnippet>391</a>    <span class="kw">let </span>key = key.into();
+<a href=#392 id=392 data-nosnippet>392</a>
+<a href=#393 id=393 data-nosnippet>393</a>    Event::Keyboard(keyboard::Event::KeyReleased {
+<a href=#394 id=394 data-nosnippet>394</a>        key: key.clone(),
+<a href=#395 id=395 data-nosnippet>395</a>        modified_key: key,
+<a href=#396 id=396 data-nosnippet>396</a>        physical_key: keyboard::key::Physical::Unidentified(
+<a href=#397 id=397 data-nosnippet>397</a>            keyboard::key::NativeCode::Unidentified,
+<a href=#398 id=398 data-nosnippet>398</a>        ),
+<a href=#399 id=399 data-nosnippet>399</a>        location: keyboard::Location::Standard,
+<a href=#400 id=400 data-nosnippet>400</a>        modifiers: keyboard::Modifiers::default(),
+<a href=#401 id=401 data-nosnippet>401</a>    })
+<a href=#402 id=402 data-nosnippet>402</a>}
+<a href=#403 id=403 data-nosnippet>403</a>
+<a href=#404 id=404 data-nosnippet>404</a><span class="doccomment">/// Returns the sequence of events of a "key tap" (i.e. pressing and releasing a key).
+<a href=#405 id=405 data-nosnippet>405</a></span><span class="kw">pub fn </span>tap_key(
+<a href=#406 id=406 data-nosnippet>406</a>    key: <span class="kw">impl </span>Into&lt;keyboard::Key&gt;,
+<a href=#407 id=407 data-nosnippet>407</a>    text: <span class="prelude-ty">Option</span>&lt;SmolStr&gt;,
+<a href=#408 id=408 data-nosnippet>408</a>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Event&gt; {
+<a href=#409 id=409 data-nosnippet>409</a>    <span class="kw">let </span>key = key.into();
+<a href=#410 id=410 data-nosnippet>410</a>
+<a href=#411 id=411 data-nosnippet>411</a>    [press_key(key.clone(), text), release_key(key)].into_iter()
+<a href=#412 id=412 data-nosnippet>412</a>}
+<a href=#413 id=413 data-nosnippet>413</a>
+<a href=#414 id=414 data-nosnippet>414</a><span class="doccomment">/// Returns the sequence of events of typewriting the given text in a keyboard.
+<a href=#415 id=415 data-nosnippet>415</a></span><span class="kw">pub fn </span>typewrite(text: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw">impl </span>Iterator&lt;Item = Event&gt; + <span class="lifetime">'_ </span>{
+<a href=#416 id=416 data-nosnippet>416</a>    text.chars()
+<a href=#417 id=417 data-nosnippet>417</a>        .map(|c| SmolStr::new_inline(<span class="kw-2">&amp;</span>c.to_string()))
+<a href=#418 id=418 data-nosnippet>418</a>        .flat_map(|c| tap_key(keyboard::Key::Character(c.clone()), <span class="prelude-val">Some</span>(c)))
+<a href=#419 id=419 data-nosnippet>419</a>}
+<a href=#420 id=420 data-nosnippet>420</a>
+<a href=#421 id=421 data-nosnippet>421</a><span class="kw">fn </span>load_font(font: <span class="kw">impl </span>Into&lt;Cow&lt;<span class="lifetime">'static</span>, [u8]&gt;&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
+<a href=#422 id=422 data-nosnippet>422</a>    renderer::graphics::text::font_system()
+<a href=#423 id=423 data-nosnippet>423</a>        .write()
+<a href=#424 id=424 data-nosnippet>424</a>        .expect(<span class="string">"Write to font system"</span>)
+<a href=#425 id=425 data-nosnippet>425</a>        .load_font(font.into());
+<a href=#426 id=426 data-nosnippet>426</a>
+<a href=#427 id=427 data-nosnippet>427</a>    <span class="prelude-val">Ok</span>(())
+<a href=#428 id=428 data-nosnippet>428</a>}
 </code></pre></div></section></main></body></html>
