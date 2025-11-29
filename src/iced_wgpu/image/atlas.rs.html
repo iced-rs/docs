@@ -449,93 +449,95 @@
 <a href=#449 id=449 data-nosnippet>449</a>            <span class="kw">return</span>;
 <a href=#450 id=450 data-nosnippet>450</a>        }
 <a href=#451 id=451 data-nosnippet>451</a>
-<a href=#452 id=452 data-nosnippet>452</a>        <span class="comment">// On the GL backend if layers.len() == 6 we need to help wgpu figure out that this texture
-<a href=#453 id=453 data-nosnippet>453</a>        // is still a `GL_TEXTURE_2D_ARRAY` rather than `GL_TEXTURE_CUBE_MAP`. This will over-allocate
-<a href=#454 id=454 data-nosnippet>454</a>        // some unused memory on GL, but it's better than not being able to grow the atlas past a depth
-<a href=#455 id=455 data-nosnippet>455</a>        // of 6!
+<a href=#452 id=452 data-nosnippet>452</a>        <span class="comment">// On the GL backend if layers.len() is a multiple of 6 we need to help wgpu figure out that this texture
+<a href=#453 id=453 data-nosnippet>453</a>        // is still a `GL_TEXTURE_2D_ARRAY` rather than `GL_TEXTURE_CUBE_MAP` or `GL_TEXTURE_CUBE_ARRAY`.
+<a href=#454 id=454 data-nosnippet>454</a>        // This will over-allocate some unused memory on GL, but it's better than not being able to
+<a href=#455 id=455 data-nosnippet>455</a>        // grow the atlas past multiples of 6!
 <a href=#456 id=456 data-nosnippet>456</a>        // https://github.com/gfx-rs/wgpu/blob/004e3efe84a320d9331371ed31fa50baa2414911/wgpu-hal/src/gles/mod.rs#L371
 <a href=#457 id=457 data-nosnippet>457</a>        </span><span class="kw">let </span>depth_or_array_layers = <span class="kw">match </span>backend {
-<a href=#458 id=458 data-nosnippet>458</a>            wgpu::Backend::Gl <span class="kw">if </span><span class="self">self</span>.layers.len() == <span class="number">6 </span>=&gt; <span class="number">7</span>,
-<a href=#459 id=459 data-nosnippet>459</a>            <span class="kw">_ </span>=&gt; <span class="self">self</span>.layers.len() <span class="kw">as </span>u32,
-<a href=#460 id=460 data-nosnippet>460</a>        };
-<a href=#461 id=461 data-nosnippet>461</a>
-<a href=#462 id=462 data-nosnippet>462</a>        <span class="kw">let </span>new_texture = device.create_texture(<span class="kw-2">&amp;</span>wgpu::TextureDescriptor {
-<a href=#463 id=463 data-nosnippet>463</a>            label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image texture atlas"</span>),
-<a href=#464 id=464 data-nosnippet>464</a>            size: wgpu::Extent3d {
-<a href=#465 id=465 data-nosnippet>465</a>                width: <span class="self">self</span>.size,
-<a href=#466 id=466 data-nosnippet>466</a>                height: <span class="self">self</span>.size,
-<a href=#467 id=467 data-nosnippet>467</a>                depth_or_array_layers,
-<a href=#468 id=468 data-nosnippet>468</a>            },
-<a href=#469 id=469 data-nosnippet>469</a>            mip_level_count: <span class="number">1</span>,
-<a href=#470 id=470 data-nosnippet>470</a>            sample_count: <span class="number">1</span>,
-<a href=#471 id=471 data-nosnippet>471</a>            dimension: wgpu::TextureDimension::D2,
-<a href=#472 id=472 data-nosnippet>472</a>            format: <span class="kw">if </span>color::GAMMA_CORRECTION {
-<a href=#473 id=473 data-nosnippet>473</a>                wgpu::TextureFormat::Rgba8UnormSrgb
-<a href=#474 id=474 data-nosnippet>474</a>            } <span class="kw">else </span>{
-<a href=#475 id=475 data-nosnippet>475</a>                wgpu::TextureFormat::Rgba8Unorm
-<a href=#476 id=476 data-nosnippet>476</a>            },
-<a href=#477 id=477 data-nosnippet>477</a>            usage: wgpu::TextureUsages::COPY_DST
-<a href=#478 id=478 data-nosnippet>478</a>                | wgpu::TextureUsages::COPY_SRC
-<a href=#479 id=479 data-nosnippet>479</a>                | wgpu::TextureUsages::TEXTURE_BINDING,
-<a href=#480 id=480 data-nosnippet>480</a>            view_formats: <span class="kw-2">&amp;</span>[],
-<a href=#481 id=481 data-nosnippet>481</a>        });
-<a href=#482 id=482 data-nosnippet>482</a>
-<a href=#483 id=483 data-nosnippet>483</a>        <span class="kw">let </span>amount_to_copy = <span class="self">self</span>.layers.len() - amount;
+<a href=#458 id=458 data-nosnippet>458</a>            wgpu::Backend::Gl <span class="kw">if </span><span class="self">self</span>.layers.len().is_multiple_of(<span class="number">6</span>) =&gt; {
+<a href=#459 id=459 data-nosnippet>459</a>                <span class="self">self</span>.layers.len() <span class="kw">as </span>u32 + <span class="number">1
+<a href=#460 id=460 data-nosnippet>460</a>            </span>}
+<a href=#461 id=461 data-nosnippet>461</a>            <span class="kw">_ </span>=&gt; <span class="self">self</span>.layers.len() <span class="kw">as </span>u32,
+<a href=#462 id=462 data-nosnippet>462</a>        };
+<a href=#463 id=463 data-nosnippet>463</a>
+<a href=#464 id=464 data-nosnippet>464</a>        <span class="kw">let </span>new_texture = device.create_texture(<span class="kw-2">&amp;</span>wgpu::TextureDescriptor {
+<a href=#465 id=465 data-nosnippet>465</a>            label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image texture atlas"</span>),
+<a href=#466 id=466 data-nosnippet>466</a>            size: wgpu::Extent3d {
+<a href=#467 id=467 data-nosnippet>467</a>                width: <span class="self">self</span>.size,
+<a href=#468 id=468 data-nosnippet>468</a>                height: <span class="self">self</span>.size,
+<a href=#469 id=469 data-nosnippet>469</a>                depth_or_array_layers,
+<a href=#470 id=470 data-nosnippet>470</a>            },
+<a href=#471 id=471 data-nosnippet>471</a>            mip_level_count: <span class="number">1</span>,
+<a href=#472 id=472 data-nosnippet>472</a>            sample_count: <span class="number">1</span>,
+<a href=#473 id=473 data-nosnippet>473</a>            dimension: wgpu::TextureDimension::D2,
+<a href=#474 id=474 data-nosnippet>474</a>            format: <span class="kw">if </span>color::GAMMA_CORRECTION {
+<a href=#475 id=475 data-nosnippet>475</a>                wgpu::TextureFormat::Rgba8UnormSrgb
+<a href=#476 id=476 data-nosnippet>476</a>            } <span class="kw">else </span>{
+<a href=#477 id=477 data-nosnippet>477</a>                wgpu::TextureFormat::Rgba8Unorm
+<a href=#478 id=478 data-nosnippet>478</a>            },
+<a href=#479 id=479 data-nosnippet>479</a>            usage: wgpu::TextureUsages::COPY_DST
+<a href=#480 id=480 data-nosnippet>480</a>                | wgpu::TextureUsages::COPY_SRC
+<a href=#481 id=481 data-nosnippet>481</a>                | wgpu::TextureUsages::TEXTURE_BINDING,
+<a href=#482 id=482 data-nosnippet>482</a>            view_formats: <span class="kw-2">&amp;</span>[],
+<a href=#483 id=483 data-nosnippet>483</a>        });
 <a href=#484 id=484 data-nosnippet>484</a>
-<a href=#485 id=485 data-nosnippet>485</a>        <span class="kw">for </span>(i, layer) <span class="kw">in
-<a href=#486 id=486 data-nosnippet>486</a>            </span><span class="self">self</span>.layers.iter_mut().take(amount_to_copy).enumerate()
-<a href=#487 id=487 data-nosnippet>487</a>        {
-<a href=#488 id=488 data-nosnippet>488</a>            <span class="kw">if </span>layer.is_empty() {
-<a href=#489 id=489 data-nosnippet>489</a>                <span class="kw">continue</span>;
-<a href=#490 id=490 data-nosnippet>490</a>            }
-<a href=#491 id=491 data-nosnippet>491</a>
-<a href=#492 id=492 data-nosnippet>492</a>            encoder.copy_texture_to_texture(
-<a href=#493 id=493 data-nosnippet>493</a>                wgpu::TexelCopyTextureInfo {
-<a href=#494 id=494 data-nosnippet>494</a>                    texture: <span class="kw-2">&amp;</span><span class="self">self</span>.texture,
-<a href=#495 id=495 data-nosnippet>495</a>                    mip_level: <span class="number">0</span>,
-<a href=#496 id=496 data-nosnippet>496</a>                    origin: wgpu::Origin3d {
-<a href=#497 id=497 data-nosnippet>497</a>                        x: <span class="number">0</span>,
-<a href=#498 id=498 data-nosnippet>498</a>                        y: <span class="number">0</span>,
-<a href=#499 id=499 data-nosnippet>499</a>                        z: i <span class="kw">as </span>u32,
-<a href=#500 id=500 data-nosnippet>500</a>                    },
-<a href=#501 id=501 data-nosnippet>501</a>                    aspect: wgpu::TextureAspect::default(),
-<a href=#502 id=502 data-nosnippet>502</a>                },
-<a href=#503 id=503 data-nosnippet>503</a>                wgpu::TexelCopyTextureInfo {
-<a href=#504 id=504 data-nosnippet>504</a>                    texture: <span class="kw-2">&amp;</span>new_texture,
-<a href=#505 id=505 data-nosnippet>505</a>                    mip_level: <span class="number">0</span>,
-<a href=#506 id=506 data-nosnippet>506</a>                    origin: wgpu::Origin3d {
-<a href=#507 id=507 data-nosnippet>507</a>                        x: <span class="number">0</span>,
-<a href=#508 id=508 data-nosnippet>508</a>                        y: <span class="number">0</span>,
-<a href=#509 id=509 data-nosnippet>509</a>                        z: i <span class="kw">as </span>u32,
-<a href=#510 id=510 data-nosnippet>510</a>                    },
-<a href=#511 id=511 data-nosnippet>511</a>                    aspect: wgpu::TextureAspect::default(),
-<a href=#512 id=512 data-nosnippet>512</a>                },
-<a href=#513 id=513 data-nosnippet>513</a>                wgpu::Extent3d {
-<a href=#514 id=514 data-nosnippet>514</a>                    width: <span class="self">self</span>.size,
-<a href=#515 id=515 data-nosnippet>515</a>                    height: <span class="self">self</span>.size,
-<a href=#516 id=516 data-nosnippet>516</a>                    depth_or_array_layers: <span class="number">1</span>,
-<a href=#517 id=517 data-nosnippet>517</a>                },
-<a href=#518 id=518 data-nosnippet>518</a>            );
-<a href=#519 id=519 data-nosnippet>519</a>        }
-<a href=#520 id=520 data-nosnippet>520</a>
-<a href=#521 id=521 data-nosnippet>521</a>        <span class="self">self</span>.texture = new_texture;
-<a href=#522 id=522 data-nosnippet>522</a>        <span class="self">self</span>.texture_view =
-<a href=#523 id=523 data-nosnippet>523</a>            <span class="self">self</span>.texture.create_view(<span class="kw-2">&amp;</span>wgpu::TextureViewDescriptor {
-<a href=#524 id=524 data-nosnippet>524</a>                dimension: <span class="prelude-val">Some</span>(wgpu::TextureViewDimension::D2Array),
-<a href=#525 id=525 data-nosnippet>525</a>                ..Default::default()
-<a href=#526 id=526 data-nosnippet>526</a>            });
-<a href=#527 id=527 data-nosnippet>527</a>
-<a href=#528 id=528 data-nosnippet>528</a>        <span class="self">self</span>.texture_bind_group =
-<a href=#529 id=529 data-nosnippet>529</a>            Arc::new(device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
-<a href=#530 id=530 data-nosnippet>530</a>                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image texture atlas bind group"</span>),
-<a href=#531 id=531 data-nosnippet>531</a>                layout: <span class="kw-2">&amp;</span><span class="self">self</span>.texture_layout,
-<a href=#532 id=532 data-nosnippet>532</a>                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
-<a href=#533 id=533 data-nosnippet>533</a>                    binding: <span class="number">0</span>,
-<a href=#534 id=534 data-nosnippet>534</a>                    resource: wgpu::BindingResource::TextureView(
-<a href=#535 id=535 data-nosnippet>535</a>                        <span class="kw-2">&amp;</span><span class="self">self</span>.texture_view,
-<a href=#536 id=536 data-nosnippet>536</a>                    ),
-<a href=#537 id=537 data-nosnippet>537</a>                }],
-<a href=#538 id=538 data-nosnippet>538</a>            }));
-<a href=#539 id=539 data-nosnippet>539</a>    }
-<a href=#540 id=540 data-nosnippet>540</a>}
+<a href=#485 id=485 data-nosnippet>485</a>        <span class="kw">let </span>amount_to_copy = <span class="self">self</span>.layers.len() - amount;
+<a href=#486 id=486 data-nosnippet>486</a>
+<a href=#487 id=487 data-nosnippet>487</a>        <span class="kw">for </span>(i, layer) <span class="kw">in
+<a href=#488 id=488 data-nosnippet>488</a>            </span><span class="self">self</span>.layers.iter_mut().take(amount_to_copy).enumerate()
+<a href=#489 id=489 data-nosnippet>489</a>        {
+<a href=#490 id=490 data-nosnippet>490</a>            <span class="kw">if </span>layer.is_empty() {
+<a href=#491 id=491 data-nosnippet>491</a>                <span class="kw">continue</span>;
+<a href=#492 id=492 data-nosnippet>492</a>            }
+<a href=#493 id=493 data-nosnippet>493</a>
+<a href=#494 id=494 data-nosnippet>494</a>            encoder.copy_texture_to_texture(
+<a href=#495 id=495 data-nosnippet>495</a>                wgpu::TexelCopyTextureInfo {
+<a href=#496 id=496 data-nosnippet>496</a>                    texture: <span class="kw-2">&amp;</span><span class="self">self</span>.texture,
+<a href=#497 id=497 data-nosnippet>497</a>                    mip_level: <span class="number">0</span>,
+<a href=#498 id=498 data-nosnippet>498</a>                    origin: wgpu::Origin3d {
+<a href=#499 id=499 data-nosnippet>499</a>                        x: <span class="number">0</span>,
+<a href=#500 id=500 data-nosnippet>500</a>                        y: <span class="number">0</span>,
+<a href=#501 id=501 data-nosnippet>501</a>                        z: i <span class="kw">as </span>u32,
+<a href=#502 id=502 data-nosnippet>502</a>                    },
+<a href=#503 id=503 data-nosnippet>503</a>                    aspect: wgpu::TextureAspect::default(),
+<a href=#504 id=504 data-nosnippet>504</a>                },
+<a href=#505 id=505 data-nosnippet>505</a>                wgpu::TexelCopyTextureInfo {
+<a href=#506 id=506 data-nosnippet>506</a>                    texture: <span class="kw-2">&amp;</span>new_texture,
+<a href=#507 id=507 data-nosnippet>507</a>                    mip_level: <span class="number">0</span>,
+<a href=#508 id=508 data-nosnippet>508</a>                    origin: wgpu::Origin3d {
+<a href=#509 id=509 data-nosnippet>509</a>                        x: <span class="number">0</span>,
+<a href=#510 id=510 data-nosnippet>510</a>                        y: <span class="number">0</span>,
+<a href=#511 id=511 data-nosnippet>511</a>                        z: i <span class="kw">as </span>u32,
+<a href=#512 id=512 data-nosnippet>512</a>                    },
+<a href=#513 id=513 data-nosnippet>513</a>                    aspect: wgpu::TextureAspect::default(),
+<a href=#514 id=514 data-nosnippet>514</a>                },
+<a href=#515 id=515 data-nosnippet>515</a>                wgpu::Extent3d {
+<a href=#516 id=516 data-nosnippet>516</a>                    width: <span class="self">self</span>.size,
+<a href=#517 id=517 data-nosnippet>517</a>                    height: <span class="self">self</span>.size,
+<a href=#518 id=518 data-nosnippet>518</a>                    depth_or_array_layers: <span class="number">1</span>,
+<a href=#519 id=519 data-nosnippet>519</a>                },
+<a href=#520 id=520 data-nosnippet>520</a>            );
+<a href=#521 id=521 data-nosnippet>521</a>        }
+<a href=#522 id=522 data-nosnippet>522</a>
+<a href=#523 id=523 data-nosnippet>523</a>        <span class="self">self</span>.texture = new_texture;
+<a href=#524 id=524 data-nosnippet>524</a>        <span class="self">self</span>.texture_view =
+<a href=#525 id=525 data-nosnippet>525</a>            <span class="self">self</span>.texture.create_view(<span class="kw-2">&amp;</span>wgpu::TextureViewDescriptor {
+<a href=#526 id=526 data-nosnippet>526</a>                dimension: <span class="prelude-val">Some</span>(wgpu::TextureViewDimension::D2Array),
+<a href=#527 id=527 data-nosnippet>527</a>                ..Default::default()
+<a href=#528 id=528 data-nosnippet>528</a>            });
+<a href=#529 id=529 data-nosnippet>529</a>
+<a href=#530 id=530 data-nosnippet>530</a>        <span class="self">self</span>.texture_bind_group =
+<a href=#531 id=531 data-nosnippet>531</a>            Arc::new(device.create_bind_group(<span class="kw-2">&amp;</span>wgpu::BindGroupDescriptor {
+<a href=#532 id=532 data-nosnippet>532</a>                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image texture atlas bind group"</span>),
+<a href=#533 id=533 data-nosnippet>533</a>                layout: <span class="kw-2">&amp;</span><span class="self">self</span>.texture_layout,
+<a href=#534 id=534 data-nosnippet>534</a>                entries: <span class="kw-2">&amp;</span>[wgpu::BindGroupEntry {
+<a href=#535 id=535 data-nosnippet>535</a>                    binding: <span class="number">0</span>,
+<a href=#536 id=536 data-nosnippet>536</a>                    resource: wgpu::BindingResource::TextureView(
+<a href=#537 id=537 data-nosnippet>537</a>                        <span class="kw-2">&amp;</span><span class="self">self</span>.texture_view,
+<a href=#538 id=538 data-nosnippet>538</a>                    ),
+<a href=#539 id=539 data-nosnippet>539</a>                }],
+<a href=#540 id=540 data-nosnippet>540</a>            }));
+<a href=#541 id=541 data-nosnippet>541</a>    }
+<a href=#542 id=542 data-nosnippet>542</a>}
 </code></pre></div></section></main></body></html>
