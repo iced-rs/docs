@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["SERVER_ADDRESS"],"enum":["Command","Event","Message"],"fn":["connect"],"struct":["Client","Metadata"]};
+window.SIDEBAR_ITEMS = {"enum":["Command","Event","Message"],"fn":["connect","server_address_from_env"],"struct":["Client","Metadata"]};
