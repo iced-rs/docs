@@ -186,79 +186,83 @@
 <a href=#186 id=186 data-nosnippet>186</a>        .unwrap_or_else(|| <span class="macro">vec!</span>[Rectangle::with_size(viewport.logical_size())]);
 <a href=#187 id=187 data-nosnippet>187</a>
 <a href=#188 id=188 data-nosnippet>188</a>    <span class="kw">if </span>damage.is_empty() {
-<a href=#189 id=189 data-nosnippet>189</a>        <span class="kw">return </span><span class="prelude-val">Ok</span>(());
-<a href=#190 id=190 data-nosnippet>190</a>    }
-<a href=#191 id=191 data-nosnippet>191</a>
-<a href=#192 id=192 data-nosnippet>192</a>    surface.layer_stack.push_front(renderer.layers().to_vec());
-<a href=#193 id=193 data-nosnippet>193</a>    surface.background_color = background_color;
-<a href=#194 id=194 data-nosnippet>194</a>
-<a href=#195 id=195 data-nosnippet>195</a>    <span class="kw">let </span>damage =
-<a href=#196 id=196 data-nosnippet>196</a>        damage::group(damage, Rectangle::with_size(viewport.logical_size()));
-<a href=#197 id=197 data-nosnippet>197</a>
-<a href=#198 id=198 data-nosnippet>198</a>    <span class="kw">let </span><span class="kw-2">mut </span>pixels = tiny_skia::PixmapMut::from_bytes(
-<a href=#199 id=199 data-nosnippet>199</a>        bytemuck::cast_slice_mut(<span class="kw-2">&amp;mut </span>buffer),
-<a href=#200 id=200 data-nosnippet>200</a>        physical_size.width,
-<a href=#201 id=201 data-nosnippet>201</a>        physical_size.height,
-<a href=#202 id=202 data-nosnippet>202</a>    )
-<a href=#203 id=203 data-nosnippet>203</a>    .expect(<span class="string">"Create pixel map"</span>);
-<a href=#204 id=204 data-nosnippet>204</a>
-<a href=#205 id=205 data-nosnippet>205</a>    renderer.draw(
-<a href=#206 id=206 data-nosnippet>206</a>        <span class="kw-2">&amp;mut </span>pixels,
-<a href=#207 id=207 data-nosnippet>207</a>        <span class="kw-2">&amp;mut </span>surface.clip_mask,
-<a href=#208 id=208 data-nosnippet>208</a>        viewport,
-<a href=#209 id=209 data-nosnippet>209</a>        <span class="kw-2">&amp;</span>damage,
-<a href=#210 id=210 data-nosnippet>210</a>        background_color,
-<a href=#211 id=211 data-nosnippet>211</a>    );
-<a href=#212 id=212 data-nosnippet>212</a>
-<a href=#213 id=213 data-nosnippet>213</a>    on_pre_present();
-<a href=#214 id=214 data-nosnippet>214</a>    buffer.present().map_err(|<span class="kw">_</span>| compositor::SurfaceError::Lost)
-<a href=#215 id=215 data-nosnippet>215</a>}
+<a href=#189 id=189 data-nosnippet>189</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(last_layers) = last_layers {
+<a href=#190 id=190 data-nosnippet>190</a>            surface.layer_stack.push_front(last_layers.clone());
+<a href=#191 id=191 data-nosnippet>191</a>        }
+<a href=#192 id=192 data-nosnippet>192</a>    } <span class="kw">else </span>{
+<a href=#193 id=193 data-nosnippet>193</a>        surface.layer_stack.push_front(renderer.layers().to_vec());
+<a href=#194 id=194 data-nosnippet>194</a>        surface.background_color = background_color;
+<a href=#195 id=195 data-nosnippet>195</a>
+<a href=#196 id=196 data-nosnippet>196</a>        <span class="kw">let </span>damage = damage::group(
+<a href=#197 id=197 data-nosnippet>197</a>            damage,
+<a href=#198 id=198 data-nosnippet>198</a>            Rectangle::with_size(viewport.logical_size()),
+<a href=#199 id=199 data-nosnippet>199</a>        );
+<a href=#200 id=200 data-nosnippet>200</a>
+<a href=#201 id=201 data-nosnippet>201</a>        <span class="kw">let </span><span class="kw-2">mut </span>pixels = tiny_skia::PixmapMut::from_bytes(
+<a href=#202 id=202 data-nosnippet>202</a>            bytemuck::cast_slice_mut(<span class="kw-2">&amp;mut </span>buffer),
+<a href=#203 id=203 data-nosnippet>203</a>            physical_size.width,
+<a href=#204 id=204 data-nosnippet>204</a>            physical_size.height,
+<a href=#205 id=205 data-nosnippet>205</a>        )
+<a href=#206 id=206 data-nosnippet>206</a>        .expect(<span class="string">"Create pixel map"</span>);
+<a href=#207 id=207 data-nosnippet>207</a>
+<a href=#208 id=208 data-nosnippet>208</a>        renderer.draw(
+<a href=#209 id=209 data-nosnippet>209</a>            <span class="kw-2">&amp;mut </span>pixels,
+<a href=#210 id=210 data-nosnippet>210</a>            <span class="kw-2">&amp;mut </span>surface.clip_mask,
+<a href=#211 id=211 data-nosnippet>211</a>            viewport,
+<a href=#212 id=212 data-nosnippet>212</a>            <span class="kw-2">&amp;</span>damage,
+<a href=#213 id=213 data-nosnippet>213</a>            background_color,
+<a href=#214 id=214 data-nosnippet>214</a>        );
+<a href=#215 id=215 data-nosnippet>215</a>    }
 <a href=#216 id=216 data-nosnippet>216</a>
-<a href=#217 id=217 data-nosnippet>217</a><span class="kw">pub fn </span>screenshot(
-<a href=#218 id=218 data-nosnippet>218</a>    renderer: <span class="kw-2">&amp;mut </span>Renderer,
-<a href=#219 id=219 data-nosnippet>219</a>    viewport: <span class="kw-2">&amp;</span>Viewport,
-<a href=#220 id=220 data-nosnippet>220</a>    background_color: Color,
-<a href=#221 id=221 data-nosnippet>221</a>) -&gt; Vec&lt;u8&gt; {
-<a href=#222 id=222 data-nosnippet>222</a>    <span class="kw">let </span>size = viewport.physical_size();
-<a href=#223 id=223 data-nosnippet>223</a>
-<a href=#224 id=224 data-nosnippet>224</a>    <span class="kw">let </span><span class="kw-2">mut </span>offscreen_buffer: Vec&lt;u32&gt; =
-<a href=#225 id=225 data-nosnippet>225</a>        <span class="macro">vec!</span>[<span class="number">0</span>; size.width <span class="kw">as </span>usize * size.height <span class="kw">as </span>usize];
-<a href=#226 id=226 data-nosnippet>226</a>
-<a href=#227 id=227 data-nosnippet>227</a>    <span class="kw">let </span><span class="kw-2">mut </span>clip_mask = tiny_skia::Mask::new(size.width, size.height)
-<a href=#228 id=228 data-nosnippet>228</a>        .expect(<span class="string">"Create clip mask"</span>);
-<a href=#229 id=229 data-nosnippet>229</a>
-<a href=#230 id=230 data-nosnippet>230</a>    renderer.draw(
-<a href=#231 id=231 data-nosnippet>231</a>        <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut::from_bytes(
-<a href=#232 id=232 data-nosnippet>232</a>            bytemuck::cast_slice_mut(<span class="kw-2">&amp;mut </span>offscreen_buffer),
-<a href=#233 id=233 data-nosnippet>233</a>            size.width,
-<a href=#234 id=234 data-nosnippet>234</a>            size.height,
-<a href=#235 id=235 data-nosnippet>235</a>        )
-<a href=#236 id=236 data-nosnippet>236</a>        .expect(<span class="string">"Create offscreen pixel map"</span>),
-<a href=#237 id=237 data-nosnippet>237</a>        <span class="kw-2">&amp;mut </span>clip_mask,
-<a href=#238 id=238 data-nosnippet>238</a>        viewport,
-<a href=#239 id=239 data-nosnippet>239</a>        <span class="kw-2">&amp;</span>[Rectangle::with_size(Size::new(
-<a href=#240 id=240 data-nosnippet>240</a>            size.width <span class="kw">as </span>f32,
-<a href=#241 id=241 data-nosnippet>241</a>            size.height <span class="kw">as </span>f32,
-<a href=#242 id=242 data-nosnippet>242</a>        ))],
-<a href=#243 id=243 data-nosnippet>243</a>        background_color,
-<a href=#244 id=244 data-nosnippet>244</a>    );
-<a href=#245 id=245 data-nosnippet>245</a>
-<a href=#246 id=246 data-nosnippet>246</a>    offscreen_buffer.iter().fold(
-<a href=#247 id=247 data-nosnippet>247</a>        Vec::with_capacity(offscreen_buffer.len() * <span class="number">4</span>),
-<a href=#248 id=248 data-nosnippet>248</a>        |<span class="kw-2">mut </span>acc, pixel| {
-<a href=#249 id=249 data-nosnippet>249</a>            <span class="kw">const </span>A_MASK: u32 = <span class="number">0xFF_00_00_00</span>;
-<a href=#250 id=250 data-nosnippet>250</a>            <span class="kw">const </span>R_MASK: u32 = <span class="number">0x00_FF_00_00</span>;
-<a href=#251 id=251 data-nosnippet>251</a>            <span class="kw">const </span>G_MASK: u32 = <span class="number">0x00_00_FF_00</span>;
-<a href=#252 id=252 data-nosnippet>252</a>            <span class="kw">const </span>B_MASK: u32 = <span class="number">0x00_00_00_FF</span>;
-<a href=#253 id=253 data-nosnippet>253</a>
-<a href=#254 id=254 data-nosnippet>254</a>            <span class="kw">let </span>a = ((A_MASK &amp; pixel) &gt;&gt; <span class="number">24</span>) <span class="kw">as </span>u8;
-<a href=#255 id=255 data-nosnippet>255</a>            <span class="kw">let </span>r = ((R_MASK &amp; pixel) &gt;&gt; <span class="number">16</span>) <span class="kw">as </span>u8;
-<a href=#256 id=256 data-nosnippet>256</a>            <span class="kw">let </span>g = ((G_MASK &amp; pixel) &gt;&gt; <span class="number">8</span>) <span class="kw">as </span>u8;
-<a href=#257 id=257 data-nosnippet>257</a>            <span class="kw">let </span>b = (B_MASK &amp; pixel) <span class="kw">as </span>u8;
-<a href=#258 id=258 data-nosnippet>258</a>
-<a href=#259 id=259 data-nosnippet>259</a>            acc.extend([r, g, b, a]);
-<a href=#260 id=260 data-nosnippet>260</a>            acc
-<a href=#261 id=261 data-nosnippet>261</a>        },
-<a href=#262 id=262 data-nosnippet>262</a>    )
-<a href=#263 id=263 data-nosnippet>263</a>}
+<a href=#217 id=217 data-nosnippet>217</a>    on_pre_present();
+<a href=#218 id=218 data-nosnippet>218</a>    buffer.present().map_err(|<span class="kw">_</span>| compositor::SurfaceError::Lost)
+<a href=#219 id=219 data-nosnippet>219</a>}
+<a href=#220 id=220 data-nosnippet>220</a>
+<a href=#221 id=221 data-nosnippet>221</a><span class="kw">pub fn </span>screenshot(
+<a href=#222 id=222 data-nosnippet>222</a>    renderer: <span class="kw-2">&amp;mut </span>Renderer,
+<a href=#223 id=223 data-nosnippet>223</a>    viewport: <span class="kw-2">&amp;</span>Viewport,
+<a href=#224 id=224 data-nosnippet>224</a>    background_color: Color,
+<a href=#225 id=225 data-nosnippet>225</a>) -&gt; Vec&lt;u8&gt; {
+<a href=#226 id=226 data-nosnippet>226</a>    <span class="kw">let </span>size = viewport.physical_size();
+<a href=#227 id=227 data-nosnippet>227</a>
+<a href=#228 id=228 data-nosnippet>228</a>    <span class="kw">let </span><span class="kw-2">mut </span>offscreen_buffer: Vec&lt;u32&gt; =
+<a href=#229 id=229 data-nosnippet>229</a>        <span class="macro">vec!</span>[<span class="number">0</span>; size.width <span class="kw">as </span>usize * size.height <span class="kw">as </span>usize];
+<a href=#230 id=230 data-nosnippet>230</a>
+<a href=#231 id=231 data-nosnippet>231</a>    <span class="kw">let </span><span class="kw-2">mut </span>clip_mask = tiny_skia::Mask::new(size.width, size.height)
+<a href=#232 id=232 data-nosnippet>232</a>        .expect(<span class="string">"Create clip mask"</span>);
+<a href=#233 id=233 data-nosnippet>233</a>
+<a href=#234 id=234 data-nosnippet>234</a>    renderer.draw(
+<a href=#235 id=235 data-nosnippet>235</a>        <span class="kw-2">&amp;mut </span>tiny_skia::PixmapMut::from_bytes(
+<a href=#236 id=236 data-nosnippet>236</a>            bytemuck::cast_slice_mut(<span class="kw-2">&amp;mut </span>offscreen_buffer),
+<a href=#237 id=237 data-nosnippet>237</a>            size.width,
+<a href=#238 id=238 data-nosnippet>238</a>            size.height,
+<a href=#239 id=239 data-nosnippet>239</a>        )
+<a href=#240 id=240 data-nosnippet>240</a>        .expect(<span class="string">"Create offscreen pixel map"</span>),
+<a href=#241 id=241 data-nosnippet>241</a>        <span class="kw-2">&amp;mut </span>clip_mask,
+<a href=#242 id=242 data-nosnippet>242</a>        viewport,
+<a href=#243 id=243 data-nosnippet>243</a>        <span class="kw-2">&amp;</span>[Rectangle::with_size(Size::new(
+<a href=#244 id=244 data-nosnippet>244</a>            size.width <span class="kw">as </span>f32,
+<a href=#245 id=245 data-nosnippet>245</a>            size.height <span class="kw">as </span>f32,
+<a href=#246 id=246 data-nosnippet>246</a>        ))],
+<a href=#247 id=247 data-nosnippet>247</a>        background_color,
+<a href=#248 id=248 data-nosnippet>248</a>    );
+<a href=#249 id=249 data-nosnippet>249</a>
+<a href=#250 id=250 data-nosnippet>250</a>    offscreen_buffer.iter().fold(
+<a href=#251 id=251 data-nosnippet>251</a>        Vec::with_capacity(offscreen_buffer.len() * <span class="number">4</span>),
+<a href=#252 id=252 data-nosnippet>252</a>        |<span class="kw-2">mut </span>acc, pixel| {
+<a href=#253 id=253 data-nosnippet>253</a>            <span class="kw">const </span>A_MASK: u32 = <span class="number">0xFF_00_00_00</span>;
+<a href=#254 id=254 data-nosnippet>254</a>            <span class="kw">const </span>R_MASK: u32 = <span class="number">0x00_FF_00_00</span>;
+<a href=#255 id=255 data-nosnippet>255</a>            <span class="kw">const </span>G_MASK: u32 = <span class="number">0x00_00_FF_00</span>;
+<a href=#256 id=256 data-nosnippet>256</a>            <span class="kw">const </span>B_MASK: u32 = <span class="number">0x00_00_00_FF</span>;
+<a href=#257 id=257 data-nosnippet>257</a>
+<a href=#258 id=258 data-nosnippet>258</a>            <span class="kw">let </span>a = ((A_MASK &amp; pixel) &gt;&gt; <span class="number">24</span>) <span class="kw">as </span>u8;
+<a href=#259 id=259 data-nosnippet>259</a>            <span class="kw">let </span>r = ((R_MASK &amp; pixel) &gt;&gt; <span class="number">16</span>) <span class="kw">as </span>u8;
+<a href=#260 id=260 data-nosnippet>260</a>            <span class="kw">let </span>g = ((G_MASK &amp; pixel) &gt;&gt; <span class="number">8</span>) <span class="kw">as </span>u8;
+<a href=#261 id=261 data-nosnippet>261</a>            <span class="kw">let </span>b = (B_MASK &amp; pixel) <span class="kw">as </span>u8;
+<a href=#262 id=262 data-nosnippet>262</a>
+<a href=#263 id=263 data-nosnippet>263</a>            acc.extend([r, g, b, a]);
+<a href=#264 id=264 data-nosnippet>264</a>            acc
+<a href=#265 id=265 data-nosnippet>265</a>        },
+<a href=#266 id=266 data-nosnippet>266</a>    )
+<a href=#267 id=267 data-nosnippet>267</a>}
 </code></pre></div></section></main></body></html>
