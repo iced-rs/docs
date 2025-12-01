@@ -261,115 +261,116 @@
 <a href=#261 id=261 data-nosnippet>261</a>    <span class="kw">type </span>Renderer = Renderer;
 <a href=#262 id=262 data-nosnippet>262</a>    <span class="kw">type </span>Surface = wgpu::Surface&lt;<span class="lifetime">'static</span>&gt;;
 <a href=#263 id=263 data-nosnippet>263</a>
-<a href=#264 id=264 data-nosnippet>264</a>    <span class="kw">async fn </span>with_backend&lt;W: compositor::Window&gt;(
+<a href=#264 id=264 data-nosnippet>264</a>    <span class="kw">async fn </span>with_backend(
 <a href=#265 id=265 data-nosnippet>265</a>        settings: graphics::Settings,
-<a href=#266 id=266 data-nosnippet>266</a>        compatible_window: W,
-<a href=#267 id=267 data-nosnippet>267</a>        shell: Shell,
-<a href=#268 id=268 data-nosnippet>268</a>        backend: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-<a href=#269 id=269 data-nosnippet>269</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, graphics::Error&gt; {
-<a href=#270 id=270 data-nosnippet>270</a>        <span class="kw">match </span>backend {
-<a href=#271 id=271 data-nosnippet>271</a>            <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(<span class="string">"wgpu"</span>) =&gt; {
-<a href=#272 id=272 data-nosnippet>272</a>                <span class="kw">let </span><span class="kw-2">mut </span>settings = Settings::from(settings);
-<a href=#273 id=273 data-nosnippet>273</a>
-<a href=#274 id=274 data-nosnippet>274</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(backends) = wgpu::Backends::from_env() {
-<a href=#275 id=275 data-nosnippet>275</a>                    settings.backends = backends;
-<a href=#276 id=276 data-nosnippet>276</a>                }
-<a href=#277 id=277 data-nosnippet>277</a>
-<a href=#278 id=278 data-nosnippet>278</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(present_mode) = settings::present_mode_from_env() {
-<a href=#279 id=279 data-nosnippet>279</a>                    settings.present_mode = present_mode;
-<a href=#280 id=280 data-nosnippet>280</a>                }
-<a href=#281 id=281 data-nosnippet>281</a>
-<a href=#282 id=282 data-nosnippet>282</a>                <span class="prelude-val">Ok</span>(new(settings, compatible_window, shell).<span class="kw">await</span><span class="question-mark">?</span>)
-<a href=#283 id=283 data-nosnippet>283</a>            }
-<a href=#284 id=284 data-nosnippet>284</a>            <span class="prelude-val">Some</span>(backend) =&gt; <span class="prelude-val">Err</span>(graphics::Error::GraphicsAdapterNotFound {
-<a href=#285 id=285 data-nosnippet>285</a>                backend: <span class="string">"wgpu"</span>,
-<a href=#286 id=286 data-nosnippet>286</a>                reason: error::Reason::DidNotMatch {
-<a href=#287 id=287 data-nosnippet>287</a>                    preferred_backend: backend.to_owned(),
-<a href=#288 id=288 data-nosnippet>288</a>                },
-<a href=#289 id=289 data-nosnippet>289</a>            }),
-<a href=#290 id=290 data-nosnippet>290</a>        }
-<a href=#291 id=291 data-nosnippet>291</a>    }
-<a href=#292 id=292 data-nosnippet>292</a>
-<a href=#293 id=293 data-nosnippet>293</a>    <span class="kw">fn </span>create_renderer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Renderer {
-<a href=#294 id=294 data-nosnippet>294</a>        Renderer::new(
-<a href=#295 id=295 data-nosnippet>295</a>            <span class="self">self</span>.engine.clone(),
-<a href=#296 id=296 data-nosnippet>296</a>            <span class="self">self</span>.settings.default_font,
-<a href=#297 id=297 data-nosnippet>297</a>            <span class="self">self</span>.settings.default_text_size,
-<a href=#298 id=298 data-nosnippet>298</a>        )
-<a href=#299 id=299 data-nosnippet>299</a>    }
-<a href=#300 id=300 data-nosnippet>300</a>
-<a href=#301 id=301 data-nosnippet>301</a>    <span class="kw">fn </span>create_surface&lt;W: compositor::Window&gt;(
-<a href=#302 id=302 data-nosnippet>302</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#303 id=303 data-nosnippet>303</a>        window: W,
-<a href=#304 id=304 data-nosnippet>304</a>        width: u32,
-<a href=#305 id=305 data-nosnippet>305</a>        height: u32,
-<a href=#306 id=306 data-nosnippet>306</a>    ) -&gt; <span class="self">Self</span>::Surface {
-<a href=#307 id=307 data-nosnippet>307</a>        <span class="kw">let </span><span class="kw-2">mut </span>surface = <span class="self">self
-<a href=#308 id=308 data-nosnippet>308</a>            </span>.instance
-<a href=#309 id=309 data-nosnippet>309</a>            .create_surface(window)
-<a href=#310 id=310 data-nosnippet>310</a>            .expect(<span class="string">"Create surface"</span>);
-<a href=#311 id=311 data-nosnippet>311</a>
-<a href=#312 id=312 data-nosnippet>312</a>        <span class="kw">if </span>width &gt; <span class="number">0 </span>&amp;&amp; height &gt; <span class="number">0 </span>{
-<a href=#313 id=313 data-nosnippet>313</a>            <span class="self">self</span>.configure_surface(<span class="kw-2">&amp;mut </span>surface, width, height);
-<a href=#314 id=314 data-nosnippet>314</a>        }
-<a href=#315 id=315 data-nosnippet>315</a>
-<a href=#316 id=316 data-nosnippet>316</a>        surface
-<a href=#317 id=317 data-nosnippet>317</a>    }
-<a href=#318 id=318 data-nosnippet>318</a>
-<a href=#319 id=319 data-nosnippet>319</a>    <span class="kw">fn </span>configure_surface(
-<a href=#320 id=320 data-nosnippet>320</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#321 id=321 data-nosnippet>321</a>        surface: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Surface,
-<a href=#322 id=322 data-nosnippet>322</a>        width: u32,
-<a href=#323 id=323 data-nosnippet>323</a>        height: u32,
-<a href=#324 id=324 data-nosnippet>324</a>    ) {
-<a href=#325 id=325 data-nosnippet>325</a>        surface.configure(
-<a href=#326 id=326 data-nosnippet>326</a>            <span class="kw-2">&amp;</span><span class="self">self</span>.engine.device,
-<a href=#327 id=327 data-nosnippet>327</a>            <span class="kw-2">&amp;</span>wgpu::SurfaceConfiguration {
-<a href=#328 id=328 data-nosnippet>328</a>                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-<a href=#329 id=329 data-nosnippet>329</a>                format: <span class="self">self</span>.format,
-<a href=#330 id=330 data-nosnippet>330</a>                present_mode: <span class="self">self</span>.settings.present_mode,
-<a href=#331 id=331 data-nosnippet>331</a>                width,
-<a href=#332 id=332 data-nosnippet>332</a>                height,
-<a href=#333 id=333 data-nosnippet>333</a>                alpha_mode: <span class="self">self</span>.alpha_mode,
-<a href=#334 id=334 data-nosnippet>334</a>                view_formats: <span class="macro">vec!</span>[],
-<a href=#335 id=335 data-nosnippet>335</a>                desired_maximum_frame_latency: <span class="number">1</span>,
-<a href=#336 id=336 data-nosnippet>336</a>            },
-<a href=#337 id=337 data-nosnippet>337</a>        );
-<a href=#338 id=338 data-nosnippet>338</a>    }
-<a href=#339 id=339 data-nosnippet>339</a>
-<a href=#340 id=340 data-nosnippet>340</a>    <span class="kw">fn </span>information(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; compositor::Information {
-<a href=#341 id=341 data-nosnippet>341</a>        <span class="kw">let </span>information = <span class="self">self</span>.adapter.get_info();
-<a href=#342 id=342 data-nosnippet>342</a>
-<a href=#343 id=343 data-nosnippet>343</a>        compositor::Information {
-<a href=#344 id=344 data-nosnippet>344</a>            adapter: information.name,
-<a href=#345 id=345 data-nosnippet>345</a>            backend: <span class="macro">format!</span>(<span class="string">"{:?}"</span>, information.backend),
-<a href=#346 id=346 data-nosnippet>346</a>        }
-<a href=#347 id=347 data-nosnippet>347</a>    }
-<a href=#348 id=348 data-nosnippet>348</a>
-<a href=#349 id=349 data-nosnippet>349</a>    <span class="kw">fn </span>present(
-<a href=#350 id=350 data-nosnippet>350</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#351 id=351 data-nosnippet>351</a>        renderer: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Renderer,
-<a href=#352 id=352 data-nosnippet>352</a>        surface: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Surface,
-<a href=#353 id=353 data-nosnippet>353</a>        viewport: <span class="kw-2">&amp;</span>Viewport,
-<a href=#354 id=354 data-nosnippet>354</a>        background_color: Color,
-<a href=#355 id=355 data-nosnippet>355</a>        on_pre_present: <span class="kw">impl </span>FnOnce(),
-<a href=#356 id=356 data-nosnippet>356</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), compositor::SurfaceError&gt; {
-<a href=#357 id=357 data-nosnippet>357</a>        present(
-<a href=#358 id=358 data-nosnippet>358</a>            renderer,
-<a href=#359 id=359 data-nosnippet>359</a>            surface,
-<a href=#360 id=360 data-nosnippet>360</a>            viewport,
-<a href=#361 id=361 data-nosnippet>361</a>            background_color,
-<a href=#362 id=362 data-nosnippet>362</a>            on_pre_present,
-<a href=#363 id=363 data-nosnippet>363</a>        )
-<a href=#364 id=364 data-nosnippet>364</a>    }
-<a href=#365 id=365 data-nosnippet>365</a>
-<a href=#366 id=366 data-nosnippet>366</a>    <span class="kw">fn </span>screenshot(
-<a href=#367 id=367 data-nosnippet>367</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#368 id=368 data-nosnippet>368</a>        renderer: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Renderer,
-<a href=#369 id=369 data-nosnippet>369</a>        viewport: <span class="kw-2">&amp;</span>Viewport,
-<a href=#370 id=370 data-nosnippet>370</a>        background_color: Color,
-<a href=#371 id=371 data-nosnippet>371</a>    ) -&gt; Vec&lt;u8&gt; {
-<a href=#372 id=372 data-nosnippet>372</a>        renderer.screenshot(viewport, background_color)
-<a href=#373 id=373 data-nosnippet>373</a>    }
-<a href=#374 id=374 data-nosnippet>374</a>}
+<a href=#266 id=266 data-nosnippet>266</a>        _display: <span class="kw">impl </span>compositor::Display,
+<a href=#267 id=267 data-nosnippet>267</a>        compatible_window: <span class="kw">impl </span>compositor::Window,
+<a href=#268 id=268 data-nosnippet>268</a>        shell: Shell,
+<a href=#269 id=269 data-nosnippet>269</a>        backend: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+<a href=#270 id=270 data-nosnippet>270</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, graphics::Error&gt; {
+<a href=#271 id=271 data-nosnippet>271</a>        <span class="kw">match </span>backend {
+<a href=#272 id=272 data-nosnippet>272</a>            <span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(<span class="string">"wgpu"</span>) =&gt; {
+<a href=#273 id=273 data-nosnippet>273</a>                <span class="kw">let </span><span class="kw-2">mut </span>settings = Settings::from(settings);
+<a href=#274 id=274 data-nosnippet>274</a>
+<a href=#275 id=275 data-nosnippet>275</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(backends) = wgpu::Backends::from_env() {
+<a href=#276 id=276 data-nosnippet>276</a>                    settings.backends = backends;
+<a href=#277 id=277 data-nosnippet>277</a>                }
+<a href=#278 id=278 data-nosnippet>278</a>
+<a href=#279 id=279 data-nosnippet>279</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(present_mode) = settings::present_mode_from_env() {
+<a href=#280 id=280 data-nosnippet>280</a>                    settings.present_mode = present_mode;
+<a href=#281 id=281 data-nosnippet>281</a>                }
+<a href=#282 id=282 data-nosnippet>282</a>
+<a href=#283 id=283 data-nosnippet>283</a>                <span class="prelude-val">Ok</span>(new(settings, compatible_window, shell).<span class="kw">await</span><span class="question-mark">?</span>)
+<a href=#284 id=284 data-nosnippet>284</a>            }
+<a href=#285 id=285 data-nosnippet>285</a>            <span class="prelude-val">Some</span>(backend) =&gt; <span class="prelude-val">Err</span>(graphics::Error::GraphicsAdapterNotFound {
+<a href=#286 id=286 data-nosnippet>286</a>                backend: <span class="string">"wgpu"</span>,
+<a href=#287 id=287 data-nosnippet>287</a>                reason: error::Reason::DidNotMatch {
+<a href=#288 id=288 data-nosnippet>288</a>                    preferred_backend: backend.to_owned(),
+<a href=#289 id=289 data-nosnippet>289</a>                },
+<a href=#290 id=290 data-nosnippet>290</a>            }),
+<a href=#291 id=291 data-nosnippet>291</a>        }
+<a href=#292 id=292 data-nosnippet>292</a>    }
+<a href=#293 id=293 data-nosnippet>293</a>
+<a href=#294 id=294 data-nosnippet>294</a>    <span class="kw">fn </span>create_renderer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Renderer {
+<a href=#295 id=295 data-nosnippet>295</a>        Renderer::new(
+<a href=#296 id=296 data-nosnippet>296</a>            <span class="self">self</span>.engine.clone(),
+<a href=#297 id=297 data-nosnippet>297</a>            <span class="self">self</span>.settings.default_font,
+<a href=#298 id=298 data-nosnippet>298</a>            <span class="self">self</span>.settings.default_text_size,
+<a href=#299 id=299 data-nosnippet>299</a>        )
+<a href=#300 id=300 data-nosnippet>300</a>    }
+<a href=#301 id=301 data-nosnippet>301</a>
+<a href=#302 id=302 data-nosnippet>302</a>    <span class="kw">fn </span>create_surface&lt;W: compositor::Window&gt;(
+<a href=#303 id=303 data-nosnippet>303</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#304 id=304 data-nosnippet>304</a>        window: W,
+<a href=#305 id=305 data-nosnippet>305</a>        width: u32,
+<a href=#306 id=306 data-nosnippet>306</a>        height: u32,
+<a href=#307 id=307 data-nosnippet>307</a>    ) -&gt; <span class="self">Self</span>::Surface {
+<a href=#308 id=308 data-nosnippet>308</a>        <span class="kw">let </span><span class="kw-2">mut </span>surface = <span class="self">self
+<a href=#309 id=309 data-nosnippet>309</a>            </span>.instance
+<a href=#310 id=310 data-nosnippet>310</a>            .create_surface(window)
+<a href=#311 id=311 data-nosnippet>311</a>            .expect(<span class="string">"Create surface"</span>);
+<a href=#312 id=312 data-nosnippet>312</a>
+<a href=#313 id=313 data-nosnippet>313</a>        <span class="kw">if </span>width &gt; <span class="number">0 </span>&amp;&amp; height &gt; <span class="number">0 </span>{
+<a href=#314 id=314 data-nosnippet>314</a>            <span class="self">self</span>.configure_surface(<span class="kw-2">&amp;mut </span>surface, width, height);
+<a href=#315 id=315 data-nosnippet>315</a>        }
+<a href=#316 id=316 data-nosnippet>316</a>
+<a href=#317 id=317 data-nosnippet>317</a>        surface
+<a href=#318 id=318 data-nosnippet>318</a>    }
+<a href=#319 id=319 data-nosnippet>319</a>
+<a href=#320 id=320 data-nosnippet>320</a>    <span class="kw">fn </span>configure_surface(
+<a href=#321 id=321 data-nosnippet>321</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#322 id=322 data-nosnippet>322</a>        surface: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Surface,
+<a href=#323 id=323 data-nosnippet>323</a>        width: u32,
+<a href=#324 id=324 data-nosnippet>324</a>        height: u32,
+<a href=#325 id=325 data-nosnippet>325</a>    ) {
+<a href=#326 id=326 data-nosnippet>326</a>        surface.configure(
+<a href=#327 id=327 data-nosnippet>327</a>            <span class="kw-2">&amp;</span><span class="self">self</span>.engine.device,
+<a href=#328 id=328 data-nosnippet>328</a>            <span class="kw-2">&amp;</span>wgpu::SurfaceConfiguration {
+<a href=#329 id=329 data-nosnippet>329</a>                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+<a href=#330 id=330 data-nosnippet>330</a>                format: <span class="self">self</span>.format,
+<a href=#331 id=331 data-nosnippet>331</a>                present_mode: <span class="self">self</span>.settings.present_mode,
+<a href=#332 id=332 data-nosnippet>332</a>                width,
+<a href=#333 id=333 data-nosnippet>333</a>                height,
+<a href=#334 id=334 data-nosnippet>334</a>                alpha_mode: <span class="self">self</span>.alpha_mode,
+<a href=#335 id=335 data-nosnippet>335</a>                view_formats: <span class="macro">vec!</span>[],
+<a href=#336 id=336 data-nosnippet>336</a>                desired_maximum_frame_latency: <span class="number">1</span>,
+<a href=#337 id=337 data-nosnippet>337</a>            },
+<a href=#338 id=338 data-nosnippet>338</a>        );
+<a href=#339 id=339 data-nosnippet>339</a>    }
+<a href=#340 id=340 data-nosnippet>340</a>
+<a href=#341 id=341 data-nosnippet>341</a>    <span class="kw">fn </span>information(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; compositor::Information {
+<a href=#342 id=342 data-nosnippet>342</a>        <span class="kw">let </span>information = <span class="self">self</span>.adapter.get_info();
+<a href=#343 id=343 data-nosnippet>343</a>
+<a href=#344 id=344 data-nosnippet>344</a>        compositor::Information {
+<a href=#345 id=345 data-nosnippet>345</a>            adapter: information.name,
+<a href=#346 id=346 data-nosnippet>346</a>            backend: <span class="macro">format!</span>(<span class="string">"{:?}"</span>, information.backend),
+<a href=#347 id=347 data-nosnippet>347</a>        }
+<a href=#348 id=348 data-nosnippet>348</a>    }
+<a href=#349 id=349 data-nosnippet>349</a>
+<a href=#350 id=350 data-nosnippet>350</a>    <span class="kw">fn </span>present(
+<a href=#351 id=351 data-nosnippet>351</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#352 id=352 data-nosnippet>352</a>        renderer: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Renderer,
+<a href=#353 id=353 data-nosnippet>353</a>        surface: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Surface,
+<a href=#354 id=354 data-nosnippet>354</a>        viewport: <span class="kw-2">&amp;</span>Viewport,
+<a href=#355 id=355 data-nosnippet>355</a>        background_color: Color,
+<a href=#356 id=356 data-nosnippet>356</a>        on_pre_present: <span class="kw">impl </span>FnOnce(),
+<a href=#357 id=357 data-nosnippet>357</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), compositor::SurfaceError&gt; {
+<a href=#358 id=358 data-nosnippet>358</a>        present(
+<a href=#359 id=359 data-nosnippet>359</a>            renderer,
+<a href=#360 id=360 data-nosnippet>360</a>            surface,
+<a href=#361 id=361 data-nosnippet>361</a>            viewport,
+<a href=#362 id=362 data-nosnippet>362</a>            background_color,
+<a href=#363 id=363 data-nosnippet>363</a>            on_pre_present,
+<a href=#364 id=364 data-nosnippet>364</a>        )
+<a href=#365 id=365 data-nosnippet>365</a>    }
+<a href=#366 id=366 data-nosnippet>366</a>
+<a href=#367 id=367 data-nosnippet>367</a>    <span class="kw">fn </span>screenshot(
+<a href=#368 id=368 data-nosnippet>368</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#369 id=369 data-nosnippet>369</a>        renderer: <span class="kw-2">&amp;mut </span><span class="self">Self</span>::Renderer,
+<a href=#370 id=370 data-nosnippet>370</a>        viewport: <span class="kw-2">&amp;</span>Viewport,
+<a href=#371 id=371 data-nosnippet>371</a>        background_color: Color,
+<a href=#372 id=372 data-nosnippet>372</a>    ) -&gt; Vec&lt;u8&gt; {
+<a href=#373 id=373 data-nosnippet>373</a>        renderer.screenshot(viewport, background_color)
+<a href=#374 id=374 data-nosnippet>374</a>    }
+<a href=#375 id=375 data-nosnippet>375</a>}
 </code></pre></div></section></main></body></html>
