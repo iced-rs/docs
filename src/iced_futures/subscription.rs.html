@@ -199,7 +199,7 @@
 <a href=#199 id=199 data-nosnippet>199</a>    /// Check out the [`websocket`] example, which showcases this pattern to maintain a `WebSocket`
 <a href=#200 id=200 data-nosnippet>200</a>    /// connection open.
 <a href=#201 id=201 data-nosnippet>201</a>    ///
-<a href=#202 id=202 data-nosnippet>202</a>    /// [`websocket`]: https://github.com/iced-rs/iced/tree/0.13/examples/websocket
+<a href=#202 id=202 data-nosnippet>202</a>    /// [`websocket`]: https://github.com/iced-rs/iced/tree/master/examples/websocket
 <a href=#203 id=203 data-nosnippet>203</a>    </span><span class="kw">pub fn </span>run&lt;S&gt;(builder: <span class="kw">fn</span>() -&gt; S) -&gt; <span class="self">Self
 <a href=#204 id=204 data-nosnippet>204</a>    </span><span class="kw">where
 <a href=#205 id=205 data-nosnippet>205</a>        </span>S: Stream&lt;Item = T&gt; + MaybeSend + <span class="lifetime">'static</span>,
@@ -454,86 +454,74 @@
 <a href=#454 id=454 data-nosnippet>454</a>/// A [`Recipe`] is the internal definition of a [`Subscription`]. It is used
 <a href=#455 id=455 data-nosnippet>455</a>/// by runtimes to run and identify subscriptions. You can use it to create your
 <a href=#456 id=456 data-nosnippet>456</a>/// own!
-<a href=#457 id=457 data-nosnippet>457</a>///
-<a href=#458 id=458 data-nosnippet>458</a>/// # Examples
-<a href=#459 id=459 data-nosnippet>459</a>/// The repository has a couple of [examples] that use a custom [`Recipe`]:
-<a href=#460 id=460 data-nosnippet>460</a>///
-<a href=#461 id=461 data-nosnippet>461</a>/// - [`download_progress`], a basic application that asynchronously downloads
-<a href=#462 id=462 data-nosnippet>462</a>///   a dummy file of 100 MB and tracks the download progress.
-<a href=#463 id=463 data-nosnippet>463</a>/// - [`stopwatch`], a watch with start/stop and reset buttons showcasing how
-<a href=#464 id=464 data-nosnippet>464</a>///   to listen to time.
-<a href=#465 id=465 data-nosnippet>465</a>///
-<a href=#466 id=466 data-nosnippet>466</a>/// [examples]: https://github.com/iced-rs/iced/tree/0.13/examples
-<a href=#467 id=467 data-nosnippet>467</a>/// [`download_progress`]: https://github.com/iced-rs/iced/tree/0.13/examples/download_progress
-<a href=#468 id=468 data-nosnippet>468</a>/// [`stopwatch`]: https://github.com/iced-rs/iced/tree/0.13/examples/stopwatch
-<a href=#469 id=469 data-nosnippet>469</a></span><span class="kw">pub trait </span>Recipe {
-<a href=#470 id=470 data-nosnippet>470</a>    <span class="doccomment">/// The events that will be produced by a [`Subscription`] with this
-<a href=#471 id=471 data-nosnippet>471</a>    /// [`Recipe`].
-<a href=#472 id=472 data-nosnippet>472</a>    </span><span class="kw">type </span>Output;
-<a href=#473 id=473 data-nosnippet>473</a>
-<a href=#474 id=474 data-nosnippet>474</a>    <span class="doccomment">/// Hashes the [`Recipe`].
-<a href=#475 id=475 data-nosnippet>475</a>    ///
-<a href=#476 id=476 data-nosnippet>476</a>    /// This is used by runtimes to uniquely identify a [`Subscription`].
-<a href=#477 id=477 data-nosnippet>477</a>    </span><span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>Hasher);
-<a href=#478 id=478 data-nosnippet>478</a>
-<a href=#479 id=479 data-nosnippet>479</a>    <span class="doccomment">/// Executes the [`Recipe`] and produces the stream of events of its
-<a href=#480 id=480 data-nosnippet>480</a>    /// [`Subscription`].
-<a href=#481 id=481 data-nosnippet>481</a>    </span><span class="kw">fn </span>stream(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, input: EventStream) -&gt; BoxStream&lt;<span class="self">Self</span>::Output&gt;;
-<a href=#482 id=482 data-nosnippet>482</a>}
-<a href=#483 id=483 data-nosnippet>483</a>
-<a href=#484 id=484 data-nosnippet>484</a><span class="doccomment">/// Creates a [`Subscription`] from a hashable id and a filter function.
-<a href=#485 id=485 data-nosnippet>485</a></span><span class="kw">pub fn </span>filter_map&lt;I, F, T&gt;(id: I, f: F) -&gt; Subscription&lt;T&gt;
-<a href=#486 id=486 data-nosnippet>486</a><span class="kw">where
-<a href=#487 id=487 data-nosnippet>487</a>    </span>I: Hash + <span class="lifetime">'static</span>,
-<a href=#488 id=488 data-nosnippet>488</a>    F: Fn(Event) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; + MaybeSend + <span class="lifetime">'static</span>,
-<a href=#489 id=489 data-nosnippet>489</a>    T: <span class="lifetime">'static </span>+ MaybeSend,
-<a href=#490 id=490 data-nosnippet>490</a>{
-<a href=#491 id=491 data-nosnippet>491</a>    from_recipe(Runner {
-<a href=#492 id=492 data-nosnippet>492</a>        data: id,
-<a href=#493 id=493 data-nosnippet>493</a>        spawn: |<span class="kw">_</span>, events| {
-<a href=#494 id=494 data-nosnippet>494</a>            <span class="kw">use </span>futures::future;
-<a href=#495 id=495 data-nosnippet>495</a>            <span class="kw">use </span>futures::stream::StreamExt;
-<a href=#496 id=496 data-nosnippet>496</a>
-<a href=#497 id=497 data-nosnippet>497</a>            events.filter_map(<span class="kw">move </span>|event| future::ready(f(event)))
-<a href=#498 id=498 data-nosnippet>498</a>        },
-<a href=#499 id=499 data-nosnippet>499</a>    })
-<a href=#500 id=500 data-nosnippet>500</a>}
-<a href=#501 id=501 data-nosnippet>501</a>
-<a href=#502 id=502 data-nosnippet>502</a><span class="kw">struct </span>Runner&lt;I, F, S, T&gt;
-<a href=#503 id=503 data-nosnippet>503</a><span class="kw">where
-<a href=#504 id=504 data-nosnippet>504</a>    </span>F: FnOnce(<span class="kw-2">&amp;</span>I, EventStream) -&gt; S,
-<a href=#505 id=505 data-nosnippet>505</a>    S: Stream&lt;Item = T&gt;,
-<a href=#506 id=506 data-nosnippet>506</a>{
-<a href=#507 id=507 data-nosnippet>507</a>    data: I,
-<a href=#508 id=508 data-nosnippet>508</a>    spawn: F,
-<a href=#509 id=509 data-nosnippet>509</a>}
-<a href=#510 id=510 data-nosnippet>510</a>
-<a href=#511 id=511 data-nosnippet>511</a><span class="kw">impl</span>&lt;I, F, S, T&gt; Recipe <span class="kw">for </span>Runner&lt;I, F, S, T&gt;
-<a href=#512 id=512 data-nosnippet>512</a><span class="kw">where
-<a href=#513 id=513 data-nosnippet>513</a>    </span>I: Hash + <span class="lifetime">'static</span>,
-<a href=#514 id=514 data-nosnippet>514</a>    F: FnOnce(<span class="kw-2">&amp;</span>I, EventStream) -&gt; S,
-<a href=#515 id=515 data-nosnippet>515</a>    S: Stream&lt;Item = T&gt; + MaybeSend + <span class="lifetime">'static</span>,
-<a href=#516 id=516 data-nosnippet>516</a>{
-<a href=#517 id=517 data-nosnippet>517</a>    <span class="kw">type </span>Output = T;
-<a href=#518 id=518 data-nosnippet>518</a>
-<a href=#519 id=519 data-nosnippet>519</a>    <span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>Hasher) {
-<a href=#520 id=520 data-nosnippet>520</a>        std::any::TypeId::of::&lt;I&gt;().hash(state);
-<a href=#521 id=521 data-nosnippet>521</a>        <span class="self">self</span>.data.hash(state);
-<a href=#522 id=522 data-nosnippet>522</a>    }
-<a href=#523 id=523 data-nosnippet>523</a>
-<a href=#524 id=524 data-nosnippet>524</a>    <span class="kw">fn </span>stream(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, input: EventStream) -&gt; BoxStream&lt;<span class="self">Self</span>::Output&gt; {
-<a href=#525 id=525 data-nosnippet>525</a>        <span class="kw">crate</span>::boxed_stream((<span class="self">self</span>.spawn)(<span class="kw-2">&amp;</span><span class="self">self</span>.data, input))
-<a href=#526 id=526 data-nosnippet>526</a>    }
-<a href=#527 id=527 data-nosnippet>527</a>}
-<a href=#528 id=528 data-nosnippet>528</a>
-<a href=#529 id=529 data-nosnippet>529</a><span class="kw">const fn </span>check_zero_sized&lt;T&gt;() {
-<a href=#530 id=530 data-nosnippet>530</a>    <span class="kw">if </span>std::mem::size_of::&lt;T&gt;() != <span class="number">0 </span>{
-<a href=#531 id=531 data-nosnippet>531</a>        <span class="macro">panic!</span>(
-<a href=#532 id=532 data-nosnippet>532</a>            <span class="string">"The Subscription closure provided is not non-capturing. \
-<a href=#533 id=533 data-nosnippet>533</a>            Closures given to Subscription::map or filter_map cannot \
-<a href=#534 id=534 data-nosnippet>534</a>            capture external variables. If you need to capture state, \
-<a href=#535 id=535 data-nosnippet>535</a>            consider using Subscription::with."
-<a href=#536 id=536 data-nosnippet>536</a>        </span>);
-<a href=#537 id=537 data-nosnippet>537</a>    }
-<a href=#538 id=538 data-nosnippet>538</a>}
+<a href=#457 id=457 data-nosnippet>457</a></span><span class="kw">pub trait </span>Recipe {
+<a href=#458 id=458 data-nosnippet>458</a>    <span class="doccomment">/// The events that will be produced by a [`Subscription`] with this
+<a href=#459 id=459 data-nosnippet>459</a>    /// [`Recipe`].
+<a href=#460 id=460 data-nosnippet>460</a>    </span><span class="kw">type </span>Output;
+<a href=#461 id=461 data-nosnippet>461</a>
+<a href=#462 id=462 data-nosnippet>462</a>    <span class="doccomment">/// Hashes the [`Recipe`].
+<a href=#463 id=463 data-nosnippet>463</a>    ///
+<a href=#464 id=464 data-nosnippet>464</a>    /// This is used by runtimes to uniquely identify a [`Subscription`].
+<a href=#465 id=465 data-nosnippet>465</a>    </span><span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>Hasher);
+<a href=#466 id=466 data-nosnippet>466</a>
+<a href=#467 id=467 data-nosnippet>467</a>    <span class="doccomment">/// Executes the [`Recipe`] and produces the stream of events of its
+<a href=#468 id=468 data-nosnippet>468</a>    /// [`Subscription`].
+<a href=#469 id=469 data-nosnippet>469</a>    </span><span class="kw">fn </span>stream(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, input: EventStream) -&gt; BoxStream&lt;<span class="self">Self</span>::Output&gt;;
+<a href=#470 id=470 data-nosnippet>470</a>}
+<a href=#471 id=471 data-nosnippet>471</a>
+<a href=#472 id=472 data-nosnippet>472</a><span class="doccomment">/// Creates a [`Subscription`] from a hashable id and a filter function.
+<a href=#473 id=473 data-nosnippet>473</a></span><span class="kw">pub fn </span>filter_map&lt;I, F, T&gt;(id: I, f: F) -&gt; Subscription&lt;T&gt;
+<a href=#474 id=474 data-nosnippet>474</a><span class="kw">where
+<a href=#475 id=475 data-nosnippet>475</a>    </span>I: Hash + <span class="lifetime">'static</span>,
+<a href=#476 id=476 data-nosnippet>476</a>    F: Fn(Event) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt; + MaybeSend + <span class="lifetime">'static</span>,
+<a href=#477 id=477 data-nosnippet>477</a>    T: <span class="lifetime">'static </span>+ MaybeSend,
+<a href=#478 id=478 data-nosnippet>478</a>{
+<a href=#479 id=479 data-nosnippet>479</a>    from_recipe(Runner {
+<a href=#480 id=480 data-nosnippet>480</a>        data: id,
+<a href=#481 id=481 data-nosnippet>481</a>        spawn: |<span class="kw">_</span>, events| {
+<a href=#482 id=482 data-nosnippet>482</a>            <span class="kw">use </span>futures::future;
+<a href=#483 id=483 data-nosnippet>483</a>            <span class="kw">use </span>futures::stream::StreamExt;
+<a href=#484 id=484 data-nosnippet>484</a>
+<a href=#485 id=485 data-nosnippet>485</a>            events.filter_map(<span class="kw">move </span>|event| future::ready(f(event)))
+<a href=#486 id=486 data-nosnippet>486</a>        },
+<a href=#487 id=487 data-nosnippet>487</a>    })
+<a href=#488 id=488 data-nosnippet>488</a>}
+<a href=#489 id=489 data-nosnippet>489</a>
+<a href=#490 id=490 data-nosnippet>490</a><span class="kw">struct </span>Runner&lt;I, F, S, T&gt;
+<a href=#491 id=491 data-nosnippet>491</a><span class="kw">where
+<a href=#492 id=492 data-nosnippet>492</a>    </span>F: FnOnce(<span class="kw-2">&amp;</span>I, EventStream) -&gt; S,
+<a href=#493 id=493 data-nosnippet>493</a>    S: Stream&lt;Item = T&gt;,
+<a href=#494 id=494 data-nosnippet>494</a>{
+<a href=#495 id=495 data-nosnippet>495</a>    data: I,
+<a href=#496 id=496 data-nosnippet>496</a>    spawn: F,
+<a href=#497 id=497 data-nosnippet>497</a>}
+<a href=#498 id=498 data-nosnippet>498</a>
+<a href=#499 id=499 data-nosnippet>499</a><span class="kw">impl</span>&lt;I, F, S, T&gt; Recipe <span class="kw">for </span>Runner&lt;I, F, S, T&gt;
+<a href=#500 id=500 data-nosnippet>500</a><span class="kw">where
+<a href=#501 id=501 data-nosnippet>501</a>    </span>I: Hash + <span class="lifetime">'static</span>,
+<a href=#502 id=502 data-nosnippet>502</a>    F: FnOnce(<span class="kw-2">&amp;</span>I, EventStream) -&gt; S,
+<a href=#503 id=503 data-nosnippet>503</a>    S: Stream&lt;Item = T&gt; + MaybeSend + <span class="lifetime">'static</span>,
+<a href=#504 id=504 data-nosnippet>504</a>{
+<a href=#505 id=505 data-nosnippet>505</a>    <span class="kw">type </span>Output = T;
+<a href=#506 id=506 data-nosnippet>506</a>
+<a href=#507 id=507 data-nosnippet>507</a>    <span class="kw">fn </span>hash(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>Hasher) {
+<a href=#508 id=508 data-nosnippet>508</a>        std::any::TypeId::of::&lt;I&gt;().hash(state);
+<a href=#509 id=509 data-nosnippet>509</a>        <span class="self">self</span>.data.hash(state);
+<a href=#510 id=510 data-nosnippet>510</a>    }
+<a href=#511 id=511 data-nosnippet>511</a>
+<a href=#512 id=512 data-nosnippet>512</a>    <span class="kw">fn </span>stream(<span class="self">self</span>: Box&lt;<span class="self">Self</span>&gt;, input: EventStream) -&gt; BoxStream&lt;<span class="self">Self</span>::Output&gt; {
+<a href=#513 id=513 data-nosnippet>513</a>        <span class="kw">crate</span>::boxed_stream((<span class="self">self</span>.spawn)(<span class="kw-2">&amp;</span><span class="self">self</span>.data, input))
+<a href=#514 id=514 data-nosnippet>514</a>    }
+<a href=#515 id=515 data-nosnippet>515</a>}
+<a href=#516 id=516 data-nosnippet>516</a>
+<a href=#517 id=517 data-nosnippet>517</a><span class="kw">const fn </span>check_zero_sized&lt;T&gt;() {
+<a href=#518 id=518 data-nosnippet>518</a>    <span class="kw">if </span>std::mem::size_of::&lt;T&gt;() != <span class="number">0 </span>{
+<a href=#519 id=519 data-nosnippet>519</a>        <span class="macro">panic!</span>(
+<a href=#520 id=520 data-nosnippet>520</a>            <span class="string">"The Subscription closure provided is not non-capturing. \
+<a href=#521 id=521 data-nosnippet>521</a>            Closures given to Subscription::map or filter_map cannot \
+<a href=#522 id=522 data-nosnippet>522</a>            capture external variables. If you need to capture state, \
+<a href=#523 id=523 data-nosnippet>523</a>            consider using Subscription::with."
+<a href=#524 id=524 data-nosnippet>524</a>        </span>);
+<a href=#525 id=525 data-nosnippet>525</a>    }
+<a href=#526 id=526 data-nosnippet>526</a>}
 </code></pre></div></section></main></body></html>
