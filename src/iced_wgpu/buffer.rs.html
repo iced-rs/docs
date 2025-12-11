@@ -4,8 +4,8 @@
 <a href=#4 id=4 data-nosnippet>4</a>
 <a href=#5 id=5 data-nosnippet>5</a><span class="kw">pub const </span>MAX_WRITE_SIZE: usize = <span class="number">100 </span>* <span class="number">1024</span>;
 <a href=#6 id=6 data-nosnippet>6</a>
-<a href=#7 id=7 data-nosnippet>7</a><span class="kw">const </span>MAX_WRITE_SIZE_U64: NonZeroU64 = NonZeroU64::new(MAX_WRITE_SIZE <span class="kw">as </span>u64)
-<a href=#8 id=8 data-nosnippet>8</a>    .expect(<span class="string">"MAX_WRITE_SIZE must be non-zero"</span>);
+<a href=#7 id=7 data-nosnippet>7</a><span class="kw">const </span>MAX_WRITE_SIZE_U64: NonZeroU64 =
+<a href=#8 id=8 data-nosnippet>8</a>    NonZeroU64::new(MAX_WRITE_SIZE <span class="kw">as </span>u64).expect(<span class="string">"MAX_WRITE_SIZE must be non-zero"</span>);
 <a href=#9 id=9 data-nosnippet>9</a>
 <a href=#10 id=10 data-nosnippet>10</a><span class="attr">#[derive(Debug)]
 <a href=#11 id=11 data-nosnippet>11</a></span><span class="kw">pub struct </span>Buffer&lt;T&gt; {
@@ -81,53 +81,46 @@
 <a href=#81 id=81 data-nosnippet>81</a>                MAX_WRITE_SIZE_U64,
 <a href=#82 id=82 data-nosnippet>82</a>                device,
 <a href=#83 id=83 data-nosnippet>83</a>            )
-<a href=#84 id=84 data-nosnippet>84</a>            .copy_from_slice(
-<a href=#85 id=85 data-nosnippet>85</a>                <span class="kw-2">&amp;</span>bytes[bytes_written..bytes_written + MAX_WRITE_SIZE],
-<a href=#86 id=86 data-nosnippet>86</a>            );
-<a href=#87 id=87 data-nosnippet>87</a>
-<a href=#88 id=88 data-nosnippet>88</a>            bytes_written += MAX_WRITE_SIZE;
-<a href=#89 id=89 data-nosnippet>89</a>        }
-<a href=#90 id=90 data-nosnippet>90</a>
-<a href=#91 id=91 data-nosnippet>91</a>        <span class="comment">// There will always be some bytes left, since the previous
-<a href=#92 id=92 data-nosnippet>92</a>        // loop guarantees `bytes_written &lt; bytes.len()`
-<a href=#93 id=93 data-nosnippet>93</a>        </span><span class="kw">let </span>bytes_left = ((bytes.len() - bytes_written) <span class="kw">as </span>u64)
-<a href=#94 id=94 data-nosnippet>94</a>            .try_into()
-<a href=#95 id=95 data-nosnippet>95</a>            .expect(<span class="string">"non-empty write"</span>);
-<a href=#96 id=96 data-nosnippet>96</a>
-<a href=#97 id=97 data-nosnippet>97</a>        <span class="comment">// Write them
-<a href=#98 id=98 data-nosnippet>98</a>        </span>belt.write_buffer(
-<a href=#99 id=99 data-nosnippet>99</a>            encoder,
-<a href=#100 id=100 data-nosnippet>100</a>            <span class="kw-2">&amp;</span><span class="self">self</span>.raw,
-<a href=#101 id=101 data-nosnippet>101</a>            (offset + bytes_written) <span class="kw">as </span>u64,
-<a href=#102 id=102 data-nosnippet>102</a>            bytes_left,
-<a href=#103 id=103 data-nosnippet>103</a>            device,
-<a href=#104 id=104 data-nosnippet>104</a>        )
-<a href=#105 id=105 data-nosnippet>105</a>        .copy_from_slice(<span class="kw-2">&amp;</span>bytes[bytes_written..]);
-<a href=#106 id=106 data-nosnippet>106</a>
-<a href=#107 id=107 data-nosnippet>107</a>        bytes.len()
-<a href=#108 id=108 data-nosnippet>108</a>    }
-<a href=#109 id=109 data-nosnippet>109</a>
-<a href=#110 id=110 data-nosnippet>110</a>    <span class="kw">pub fn </span>slice(
-<a href=#111 id=111 data-nosnippet>111</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
-<a href=#112 id=112 data-nosnippet>112</a>        bounds: <span class="kw">impl </span>RangeBounds&lt;wgpu::BufferAddress&gt;,
-<a href=#113 id=113 data-nosnippet>113</a>    ) -&gt; wgpu::BufferSlice&lt;<span class="lifetime">'_</span>&gt; {
-<a href=#114 id=114 data-nosnippet>114</a>        <span class="self">self</span>.raw.slice(bounds)
-<a href=#115 id=115 data-nosnippet>115</a>    }
-<a href=#116 id=116 data-nosnippet>116</a>
-<a href=#117 id=117 data-nosnippet>117</a>    <span class="kw">pub fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>, start: usize, end: usize) -&gt; wgpu::BufferSlice&lt;<span class="lifetime">'_</span>&gt; {
-<a href=#118 id=118 data-nosnippet>118</a>        <span class="self">self</span>.slice(
-<a href=#119 id=119 data-nosnippet>119</a>            start <span class="kw">as </span>u64 * std::mem::size_of::&lt;T&gt;() <span class="kw">as </span>u64
-<a href=#120 id=120 data-nosnippet>120</a>                ..end <span class="kw">as </span>u64 * std::mem::size_of::&lt;T&gt;() <span class="kw">as </span>u64,
-<a href=#121 id=121 data-nosnippet>121</a>        )
-<a href=#122 id=122 data-nosnippet>122</a>    }
-<a href=#123 id=123 data-nosnippet>123</a>}
-<a href=#124 id=124 data-nosnippet>124</a>
-<a href=#125 id=125 data-nosnippet>125</a><span class="kw">fn </span>next_copy_size&lt;T&gt;(amount: usize) -&gt; u64 {
-<a href=#126 id=126 data-nosnippet>126</a>    <span class="kw">let </span>align_mask = wgpu::COPY_BUFFER_ALIGNMENT - <span class="number">1</span>;
-<a href=#127 id=127 data-nosnippet>127</a>
-<a href=#128 id=128 data-nosnippet>128</a>    (((std::mem::size_of::&lt;T&gt;() * amount).next_power_of_two() <span class="kw">as </span>u64
-<a href=#129 id=129 data-nosnippet>129</a>        + align_mask)
-<a href=#130 id=130 data-nosnippet>130</a>        &amp; !align_mask)
-<a href=#131 id=131 data-nosnippet>131</a>        .max(wgpu::COPY_BUFFER_ALIGNMENT)
-<a href=#132 id=132 data-nosnippet>132</a>}
+<a href=#84 id=84 data-nosnippet>84</a>            .copy_from_slice(<span class="kw-2">&amp;</span>bytes[bytes_written..bytes_written + MAX_WRITE_SIZE]);
+<a href=#85 id=85 data-nosnippet>85</a>
+<a href=#86 id=86 data-nosnippet>86</a>            bytes_written += MAX_WRITE_SIZE;
+<a href=#87 id=87 data-nosnippet>87</a>        }
+<a href=#88 id=88 data-nosnippet>88</a>
+<a href=#89 id=89 data-nosnippet>89</a>        <span class="comment">// There will always be some bytes left, since the previous
+<a href=#90 id=90 data-nosnippet>90</a>        // loop guarantees `bytes_written &lt; bytes.len()`
+<a href=#91 id=91 data-nosnippet>91</a>        </span><span class="kw">let </span>bytes_left = ((bytes.len() - bytes_written) <span class="kw">as </span>u64)
+<a href=#92 id=92 data-nosnippet>92</a>            .try_into()
+<a href=#93 id=93 data-nosnippet>93</a>            .expect(<span class="string">"non-empty write"</span>);
+<a href=#94 id=94 data-nosnippet>94</a>
+<a href=#95 id=95 data-nosnippet>95</a>        <span class="comment">// Write them
+<a href=#96 id=96 data-nosnippet>96</a>        </span>belt.write_buffer(
+<a href=#97 id=97 data-nosnippet>97</a>            encoder,
+<a href=#98 id=98 data-nosnippet>98</a>            <span class="kw-2">&amp;</span><span class="self">self</span>.raw,
+<a href=#99 id=99 data-nosnippet>99</a>            (offset + bytes_written) <span class="kw">as </span>u64,
+<a href=#100 id=100 data-nosnippet>100</a>            bytes_left,
+<a href=#101 id=101 data-nosnippet>101</a>            device,
+<a href=#102 id=102 data-nosnippet>102</a>        )
+<a href=#103 id=103 data-nosnippet>103</a>        .copy_from_slice(<span class="kw-2">&amp;</span>bytes[bytes_written..]);
+<a href=#104 id=104 data-nosnippet>104</a>
+<a href=#105 id=105 data-nosnippet>105</a>        bytes.len()
+<a href=#106 id=106 data-nosnippet>106</a>    }
+<a href=#107 id=107 data-nosnippet>107</a>
+<a href=#108 id=108 data-nosnippet>108</a>    <span class="kw">pub fn </span>slice(<span class="kw-2">&amp;</span><span class="self">self</span>, bounds: <span class="kw">impl </span>RangeBounds&lt;wgpu::BufferAddress&gt;) -&gt; wgpu::BufferSlice&lt;<span class="lifetime">'_</span>&gt; {
+<a href=#109 id=109 data-nosnippet>109</a>        <span class="self">self</span>.raw.slice(bounds)
+<a href=#110 id=110 data-nosnippet>110</a>    }
+<a href=#111 id=111 data-nosnippet>111</a>
+<a href=#112 id=112 data-nosnippet>112</a>    <span class="kw">pub fn </span>range(<span class="kw-2">&amp;</span><span class="self">self</span>, start: usize, end: usize) -&gt; wgpu::BufferSlice&lt;<span class="lifetime">'_</span>&gt; {
+<a href=#113 id=113 data-nosnippet>113</a>        <span class="self">self</span>.slice(
+<a href=#114 id=114 data-nosnippet>114</a>            start <span class="kw">as </span>u64 * std::mem::size_of::&lt;T&gt;() <span class="kw">as </span>u64
+<a href=#115 id=115 data-nosnippet>115</a>                ..end <span class="kw">as </span>u64 * std::mem::size_of::&lt;T&gt;() <span class="kw">as </span>u64,
+<a href=#116 id=116 data-nosnippet>116</a>        )
+<a href=#117 id=117 data-nosnippet>117</a>    }
+<a href=#118 id=118 data-nosnippet>118</a>}
+<a href=#119 id=119 data-nosnippet>119</a>
+<a href=#120 id=120 data-nosnippet>120</a><span class="kw">fn </span>next_copy_size&lt;T&gt;(amount: usize) -&gt; u64 {
+<a href=#121 id=121 data-nosnippet>121</a>    <span class="kw">let </span>align_mask = wgpu::COPY_BUFFER_ALIGNMENT - <span class="number">1</span>;
+<a href=#122 id=122 data-nosnippet>122</a>
+<a href=#123 id=123 data-nosnippet>123</a>    (((std::mem::size_of::&lt;T&gt;() * amount).next_power_of_two() <span class="kw">as </span>u64 + align_mask) &amp; !align_mask)
+<a href=#124 id=124 data-nosnippet>124</a>        .max(wgpu::COPY_BUFFER_ALIGNMENT)
+<a href=#125 id=125 data-nosnippet>125</a>}
 </code></pre></div></section></main></body></html>
