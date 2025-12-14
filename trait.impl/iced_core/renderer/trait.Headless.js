@@ -1,9 +1,9 @@
 (function() {
-    var implementors = Object.fromEntries([["iced",[]],["iced_core",[]],["iced_renderer",[["impl&lt;A, B&gt; Headless for <a class=\"enum\" href=\"iced_renderer/fallback/enum.Renderer.html\" title=\"enum iced_renderer::fallback::Renderer\">Renderer</a>&lt;A, B&gt;<div class=\"where\">where\n    A: Headless,\n    B: Headless,</div>"]]],["iced_tiny_skia",[["impl Headless for <a class=\"struct\" href=\"iced_tiny_skia/struct.Renderer.html\" title=\"struct iced_tiny_skia::Renderer\">Renderer</a>"]]],["iced_wgpu",[["impl Headless for <a class=\"struct\" href=\"iced_wgpu/struct.Renderer.html\" title=\"struct iced_wgpu::Renderer\">Renderer</a>"]]]]);
+    const implementors = Object.fromEntries([["iced",[]],["iced_core",[]],["iced_renderer",[["impl&lt;A, B&gt; Headless for <a class=\"enum\" href=\"iced_renderer/fallback/enum.Renderer.html\" title=\"enum iced_renderer::fallback::Renderer\">Renderer</a>&lt;A, B&gt;<div class=\"where\">where\n    A: Headless,\n    B: Headless,</div>",0]]],["iced_tiny_skia",[["impl Headless for <a class=\"struct\" href=\"iced_tiny_skia/struct.Renderer.html\" title=\"struct iced_tiny_skia::Renderer\">Renderer</a>",0]]],["iced_wgpu",[["impl Headless for <a class=\"struct\" href=\"iced_wgpu/struct.Renderer.html\" title=\"struct iced_wgpu::Renderer\">Renderer</a>",0]]]]);
     if (window.register_implementors) {
         window.register_implementors(implementors);
     } else {
         window.pending_implementors = implementors;
     }
 })()
-//{"start":57,"fragment_lengths":[11,17,265,163,148]}
+//{"start":59,"fragment_lengths":[11,17,267,165,150]}
