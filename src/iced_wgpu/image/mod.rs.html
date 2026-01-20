@@ -41,7 +41,7 @@
 <a href=#41 id=41 data-nosnippet>41</a>            address_mode_w: wgpu::AddressMode::ClampToEdge,
 <a href=#42 id=42 data-nosnippet>42</a>            min_filter: wgpu::FilterMode::Nearest,
 <a href=#43 id=43 data-nosnippet>43</a>            mag_filter: wgpu::FilterMode::Nearest,
-<a href=#44 id=44 data-nosnippet>44</a>            mipmap_filter: wgpu::FilterMode::Nearest,
+<a href=#44 id=44 data-nosnippet>44</a>            mipmap_filter: wgpu::MipmapFilterMode::Nearest,
 <a href=#45 id=45 data-nosnippet>45</a>            ..Default::default()
 <a href=#46 id=46 data-nosnippet>46</a>        });
 <a href=#47 id=47 data-nosnippet>47</a>
@@ -51,7 +51,7 @@
 <a href=#51 id=51 data-nosnippet>51</a>            address_mode_w: wgpu::AddressMode::ClampToEdge,
 <a href=#52 id=52 data-nosnippet>52</a>            min_filter: wgpu::FilterMode::Linear,
 <a href=#53 id=53 data-nosnippet>53</a>            mag_filter: wgpu::FilterMode::Linear,
-<a href=#54 id=54 data-nosnippet>54</a>            mipmap_filter: wgpu::FilterMode::Linear,
+<a href=#54 id=54 data-nosnippet>54</a>            mipmap_filter: wgpu::MipmapFilterMode::Linear,
 <a href=#55 id=55 data-nosnippet>55</a>            ..Default::default()
 <a href=#56 id=56 data-nosnippet>56</a>        });
 <a href=#57 id=57 data-nosnippet>57</a>
@@ -93,8 +93,8 @@
 <a href=#93 id=93 data-nosnippet>93</a>
 <a href=#94 id=94 data-nosnippet>94</a>        <span class="kw">let </span>layout = device.create_pipeline_layout(<span class="kw-2">&amp;</span>wgpu::PipelineLayoutDescriptor {
 <a href=#95 id=95 data-nosnippet>95</a>            label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu::image pipeline layout"</span>),
-<a href=#96 id=96 data-nosnippet>96</a>            push_constant_ranges: <span class="kw-2">&amp;</span>[],
-<a href=#97 id=97 data-nosnippet>97</a>            bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>constant_layout, <span class="kw-2">&amp;</span>texture_layout],
+<a href=#96 id=96 data-nosnippet>96</a>            bind_group_layouts: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>constant_layout, <span class="kw-2">&amp;</span>texture_layout],
+<a href=#97 id=97 data-nosnippet>97</a>            immediate_size: <span class="number">0</span>,
 <a href=#98 id=98 data-nosnippet>98</a>        });
 <a href=#99 id=99 data-nosnippet>99</a>
 <a href=#100 id=100 data-nosnippet>100</a>        <span class="kw">let </span>shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -172,7 +172,7 @@
 <a href=#172 id=172 data-nosnippet>172</a>                mask: !<span class="number">0</span>,
 <a href=#173 id=173 data-nosnippet>173</a>                alpha_to_coverage_enabled: <span class="bool-val">false</span>,
 <a href=#174 id=174 data-nosnippet>174</a>            },
-<a href=#175 id=175 data-nosnippet>175</a>            multiview: <span class="prelude-val">None</span>,
+<a href=#175 id=175 data-nosnippet>175</a>            multiview_mask: <span class="prelude-val">None</span>,
 <a href=#176 id=176 data-nosnippet>176</a>            cache: <span class="prelude-val">None</span>,
 <a href=#177 id=177 data-nosnippet>177</a>        });
 <a href=#178 id=178 data-nosnippet>178</a>
@@ -479,222 +479,221 @@
 <a href=#479 id=479 data-nosnippet>479</a>            <span class="kw-2">&amp;</span><span class="self">self</span>.uniforms,
 <a href=#480 id=480 data-nosnippet>480</a>            <span class="number">0</span>,
 <a href=#481 id=481 data-nosnippet>481</a>            (bytes.len() <span class="kw">as </span>u64).try_into().expect(<span class="string">"Sized uniforms"</span>),
-<a href=#482 id=482 data-nosnippet>482</a>            device,
-<a href=#483 id=483 data-nosnippet>483</a>        )
-<a href=#484 id=484 data-nosnippet>484</a>        .copy_from_slice(bytes);
-<a href=#485 id=485 data-nosnippet>485</a>
-<a href=#486 id=486 data-nosnippet>486</a>        <span class="kw">let _ </span>= <span class="self">self
-<a href=#487 id=487 data-nosnippet>487</a>            </span>.instances
-<a href=#488 id=488 data-nosnippet>488</a>            .resize(device, <span class="self">self</span>.nearest_total + <span class="self">self</span>.linear_total);
-<a href=#489 id=489 data-nosnippet>489</a>
-<a href=#490 id=490 data-nosnippet>490</a>        <span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0</span>;
-<a href=#491 id=491 data-nosnippet>491</a>
-<a href=#492 id=492 data-nosnippet>492</a>        <span class="kw">if </span>!nearest.is_empty() {
-<a href=#493 id=493 data-nosnippet>493</a>            offset += <span class="self">self</span>.instances.write(device, encoder, belt, <span class="number">0</span>, nearest);
-<a href=#494 id=494 data-nosnippet>494</a>        }
-<a href=#495 id=495 data-nosnippet>495</a>
-<a href=#496 id=496 data-nosnippet>496</a>        <span class="kw">if </span>!linear.is_empty() {
-<a href=#497 id=497 data-nosnippet>497</a>            <span class="kw">let _ </span>= <span class="self">self</span>.instances.write(device, encoder, belt, offset, linear);
-<a href=#498 id=498 data-nosnippet>498</a>        }
-<a href=#499 id=499 data-nosnippet>499</a>    }
-<a href=#500 id=500 data-nosnippet>500</a>
-<a href=#501 id=501 data-nosnippet>501</a>    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, atlas: <span class="kw-2">&amp;</span>Arc&lt;wgpu::BindGroup&gt;, nearest: <span class="kw-2">&amp;</span>[Instance], linear: <span class="kw-2">&amp;</span>[Instance]) {
-<a href=#502 id=502 data-nosnippet>502</a>        <span class="kw">let </span>new_nearest = nearest.len() - <span class="self">self</span>.nearest_total;
-<a href=#503 id=503 data-nosnippet>503</a>
-<a href=#504 id=504 data-nosnippet>504</a>        <span class="kw">if </span>new_nearest &gt; <span class="number">0 </span>{
-<a href=#505 id=505 data-nosnippet>505</a>            <span class="self">self</span>.nearest.push(Group {
-<a href=#506 id=506 data-nosnippet>506</a>                atlas: atlas.clone(),
-<a href=#507 id=507 data-nosnippet>507</a>                instance_count: new_nearest,
-<a href=#508 id=508 data-nosnippet>508</a>            });
-<a href=#509 id=509 data-nosnippet>509</a>
-<a href=#510 id=510 data-nosnippet>510</a>            <span class="self">self</span>.nearest_total = nearest.len();
-<a href=#511 id=511 data-nosnippet>511</a>        }
-<a href=#512 id=512 data-nosnippet>512</a>
-<a href=#513 id=513 data-nosnippet>513</a>        <span class="kw">let </span>new_linear = linear.len() - <span class="self">self</span>.linear_total;
-<a href=#514 id=514 data-nosnippet>514</a>
-<a href=#515 id=515 data-nosnippet>515</a>        <span class="kw">if </span>new_linear &gt; <span class="number">0 </span>{
-<a href=#516 id=516 data-nosnippet>516</a>            <span class="self">self</span>.linear.push(Group {
-<a href=#517 id=517 data-nosnippet>517</a>                atlas: atlas.clone(),
-<a href=#518 id=518 data-nosnippet>518</a>                instance_count: new_linear,
-<a href=#519 id=519 data-nosnippet>519</a>            });
-<a href=#520 id=520 data-nosnippet>520</a>
-<a href=#521 id=521 data-nosnippet>521</a>            <span class="self">self</span>.linear_total = linear.len();
-<a href=#522 id=522 data-nosnippet>522</a>        }
-<a href=#523 id=523 data-nosnippet>523</a>    }
-<a href=#524 id=524 data-nosnippet>524</a>
-<a href=#525 id=525 data-nosnippet>525</a>    <span class="kw">fn </span>render&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">'a</span>&gt;) {
-<a href=#526 id=526 data-nosnippet>526</a>        render_pass.set_vertex_buffer(<span class="number">0</span>, <span class="self">self</span>.instances.slice(..));
-<a href=#527 id=527 data-nosnippet>527</a>
-<a href=#528 id=528 data-nosnippet>528</a>        <span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0</span>;
-<a href=#529 id=529 data-nosnippet>529</a>
-<a href=#530 id=530 data-nosnippet>530</a>        <span class="kw">if </span>!<span class="self">self</span>.nearest.is_empty() {
-<a href=#531 id=531 data-nosnippet>531</a>            render_pass.set_bind_group(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.nearest_layout, <span class="kw-2">&amp;</span>[]);
-<a href=#532 id=532 data-nosnippet>532</a>
-<a href=#533 id=533 data-nosnippet>533</a>            <span class="kw">for </span>group <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.nearest {
-<a href=#534 id=534 data-nosnippet>534</a>                render_pass.set_bind_group(<span class="number">1</span>, group.atlas.as_ref(), <span class="kw-2">&amp;</span>[]);
-<a href=#535 id=535 data-nosnippet>535</a>                render_pass.draw(<span class="number">0</span>..<span class="number">6</span>, offset..offset + group.instance_count <span class="kw">as </span>u32);
-<a href=#536 id=536 data-nosnippet>536</a>
-<a href=#537 id=537 data-nosnippet>537</a>                offset += group.instance_count <span class="kw">as </span>u32;
-<a href=#538 id=538 data-nosnippet>538</a>            }
-<a href=#539 id=539 data-nosnippet>539</a>        }
-<a href=#540 id=540 data-nosnippet>540</a>
-<a href=#541 id=541 data-nosnippet>541</a>        <span class="kw">if </span>!<span class="self">self</span>.linear.is_empty() {
-<a href=#542 id=542 data-nosnippet>542</a>            render_pass.set_bind_group(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.linear_layout, <span class="kw-2">&amp;</span>[]);
-<a href=#543 id=543 data-nosnippet>543</a>
-<a href=#544 id=544 data-nosnippet>544</a>            <span class="kw">for </span>group <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.linear {
-<a href=#545 id=545 data-nosnippet>545</a>                render_pass.set_bind_group(<span class="number">1</span>, group.atlas.as_ref(), <span class="kw-2">&amp;</span>[]);
-<a href=#546 id=546 data-nosnippet>546</a>                render_pass.draw(<span class="number">0</span>..<span class="number">6</span>, offset..offset + group.instance_count <span class="kw">as </span>u32);
-<a href=#547 id=547 data-nosnippet>547</a>
-<a href=#548 id=548 data-nosnippet>548</a>                offset += group.instance_count <span class="kw">as </span>u32;
-<a href=#549 id=549 data-nosnippet>549</a>            }
-<a href=#550 id=550 data-nosnippet>550</a>        }
-<a href=#551 id=551 data-nosnippet>551</a>    }
-<a href=#552 id=552 data-nosnippet>552</a>
-<a href=#553 id=553 data-nosnippet>553</a>    <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#554 id=554 data-nosnippet>554</a>        <span class="self">self</span>.nearest.clear();
-<a href=#555 id=555 data-nosnippet>555</a>        <span class="self">self</span>.nearest_total = <span class="number">0</span>;
-<a href=#556 id=556 data-nosnippet>556</a>
-<a href=#557 id=557 data-nosnippet>557</a>        <span class="self">self</span>.linear.clear();
-<a href=#558 id=558 data-nosnippet>558</a>        <span class="self">self</span>.linear_total = <span class="number">0</span>;
-<a href=#559 id=559 data-nosnippet>559</a>    }
-<a href=#560 id=560 data-nosnippet>560</a>}
-<a href=#561 id=561 data-nosnippet>561</a>
-<a href=#562 id=562 data-nosnippet>562</a><span class="attr">#[repr(C)]
-<a href=#563 id=563 data-nosnippet>563</a>#[derive(Debug, Clone, Copy, Zeroable, Pod)]
-<a href=#564 id=564 data-nosnippet>564</a></span><span class="kw">struct </span>Instance {
-<a href=#565 id=565 data-nosnippet>565</a>    _center: [f32; <span class="number">2</span>],
-<a href=#566 id=566 data-nosnippet>566</a>    _clip_bounds: [f32; <span class="number">4</span>],
-<a href=#567 id=567 data-nosnippet>567</a>    _border_radius: [f32; <span class="number">4</span>],
-<a href=#568 id=568 data-nosnippet>568</a>    _tile: [f32; <span class="number">4</span>],
-<a href=#569 id=569 data-nosnippet>569</a>    _rotation: f32,
-<a href=#570 id=570 data-nosnippet>570</a>    _opacity: f32,
-<a href=#571 id=571 data-nosnippet>571</a>    _position_in_atlas: [f32; <span class="number">2</span>],
-<a href=#572 id=572 data-nosnippet>572</a>    _size_in_atlas: [f32; <span class="number">2</span>],
-<a href=#573 id=573 data-nosnippet>573</a>    _layer: u32,
-<a href=#574 id=574 data-nosnippet>574</a>    _snap: u32,
-<a href=#575 id=575 data-nosnippet>575</a>}
-<a href=#576 id=576 data-nosnippet>576</a>
-<a href=#577 id=577 data-nosnippet>577</a><span class="kw">impl </span>Instance {
-<a href=#578 id=578 data-nosnippet>578</a>    <span class="kw">pub const </span>INITIAL: usize = <span class="number">20</span>;
-<a href=#579 id=579 data-nosnippet>579</a>}
-<a href=#580 id=580 data-nosnippet>580</a>
-<a href=#581 id=581 data-nosnippet>581</a><span class="attr">#[repr(C)]
-<a href=#582 id=582 data-nosnippet>582</a>#[derive(Debug, Clone, Copy, Zeroable, Pod)]
-<a href=#583 id=583 data-nosnippet>583</a></span><span class="kw">struct </span>Uniforms {
-<a href=#584 id=584 data-nosnippet>584</a>    transform: [f32; <span class="number">16</span>],
-<a href=#585 id=585 data-nosnippet>585</a>    scale_factor: f32,
-<a href=#586 id=586 data-nosnippet>586</a>    <span class="comment">// Uniforms must be aligned to their largest member,
-<a href=#587 id=587 data-nosnippet>587</a>    // this uses a mat4x4&lt;f32&gt; which aligns to 16, so align to that
-<a href=#588 id=588 data-nosnippet>588</a>    </span>_padding: [f32; <span class="number">3</span>],
-<a href=#589 id=589 data-nosnippet>589</a>}
-<a href=#590 id=590 data-nosnippet>590</a>
-<a href=#591 id=591 data-nosnippet>591</a><span class="kw">fn </span>add_instances(
-<a href=#592 id=592 data-nosnippet>592</a>    bounds: Rectangle,
-<a href=#593 id=593 data-nosnippet>593</a>    clip_bounds: Rectangle,
-<a href=#594 id=594 data-nosnippet>594</a>    border_radius: border::Radius,
-<a href=#595 id=595 data-nosnippet>595</a>    rotation: f32,
-<a href=#596 id=596 data-nosnippet>596</a>    opacity: f32,
-<a href=#597 id=597 data-nosnippet>597</a>    snap: bool,
-<a href=#598 id=598 data-nosnippet>598</a>    entry: <span class="kw-2">&amp;</span>atlas::Entry,
-<a href=#599 id=599 data-nosnippet>599</a>    instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt;,
-<a href=#600 id=600 data-nosnippet>600</a>) {
-<a href=#601 id=601 data-nosnippet>601</a>    <span class="kw">let </span>center = [
-<a href=#602 id=602 data-nosnippet>602</a>        bounds.x + bounds.width / <span class="number">2.0</span>,
-<a href=#603 id=603 data-nosnippet>603</a>        bounds.y + bounds.height / <span class="number">2.0</span>,
-<a href=#604 id=604 data-nosnippet>604</a>    ];
-<a href=#605 id=605 data-nosnippet>605</a>
-<a href=#606 id=606 data-nosnippet>606</a>    <span class="kw">let </span>clip_bounds = [
-<a href=#607 id=607 data-nosnippet>607</a>        clip_bounds.x,
-<a href=#608 id=608 data-nosnippet>608</a>        clip_bounds.y,
-<a href=#609 id=609 data-nosnippet>609</a>        clip_bounds.width,
-<a href=#610 id=610 data-nosnippet>610</a>        clip_bounds.height,
-<a href=#611 id=611 data-nosnippet>611</a>    ];
-<a href=#612 id=612 data-nosnippet>612</a>
-<a href=#613 id=613 data-nosnippet>613</a>    <span class="kw">let </span>border_radius = border_radius.into();
-<a href=#614 id=614 data-nosnippet>614</a>
-<a href=#615 id=615 data-nosnippet>615</a>    <span class="kw">match </span>entry {
-<a href=#616 id=616 data-nosnippet>616</a>        atlas::Entry::Contiguous(allocation) =&gt; {
-<a href=#617 id=617 data-nosnippet>617</a>            add_instance(
-<a href=#618 id=618 data-nosnippet>618</a>                center,
-<a href=#619 id=619 data-nosnippet>619</a>                clip_bounds,
-<a href=#620 id=620 data-nosnippet>620</a>                border_radius,
-<a href=#621 id=621 data-nosnippet>621</a>                [bounds.x, bounds.y, bounds.width, bounds.height],
-<a href=#622 id=622 data-nosnippet>622</a>                rotation,
-<a href=#623 id=623 data-nosnippet>623</a>                opacity,
-<a href=#624 id=624 data-nosnippet>624</a>                snap,
-<a href=#625 id=625 data-nosnippet>625</a>                allocation,
-<a href=#626 id=626 data-nosnippet>626</a>                instances,
-<a href=#627 id=627 data-nosnippet>627</a>            );
-<a href=#628 id=628 data-nosnippet>628</a>        }
-<a href=#629 id=629 data-nosnippet>629</a>        atlas::Entry::Fragmented { fragments, size } =&gt; {
-<a href=#630 id=630 data-nosnippet>630</a>            <span class="kw">let </span>scaling_x = bounds.width / size.width <span class="kw">as </span>f32;
-<a href=#631 id=631 data-nosnippet>631</a>            <span class="kw">let </span>scaling_y = bounds.height / size.height <span class="kw">as </span>f32;
-<a href=#632 id=632 data-nosnippet>632</a>
-<a href=#633 id=633 data-nosnippet>633</a>            <span class="kw">for </span>fragment <span class="kw">in </span>fragments {
-<a href=#634 id=634 data-nosnippet>634</a>                <span class="kw">let </span>allocation = <span class="kw-2">&amp;</span>fragment.allocation;
-<a href=#635 id=635 data-nosnippet>635</a>                <span class="kw">let </span>(fragment_x, fragment_y) = fragment.position;
-<a href=#636 id=636 data-nosnippet>636</a>
-<a href=#637 id=637 data-nosnippet>637</a>                <span class="kw">let </span>Size {
-<a href=#638 id=638 data-nosnippet>638</a>                    width: fragment_width,
-<a href=#639 id=639 data-nosnippet>639</a>                    height: fragment_height,
-<a href=#640 id=640 data-nosnippet>640</a>                } = allocation.size();
-<a href=#641 id=641 data-nosnippet>641</a>
-<a href=#642 id=642 data-nosnippet>642</a>                <span class="kw">let </span>tile = [
-<a href=#643 id=643 data-nosnippet>643</a>                    bounds.x + fragment_x <span class="kw">as </span>f32 * scaling_x,
-<a href=#644 id=644 data-nosnippet>644</a>                    bounds.y + fragment_y <span class="kw">as </span>f32 * scaling_y,
-<a href=#645 id=645 data-nosnippet>645</a>                    fragment_width <span class="kw">as </span>f32 * scaling_x,
-<a href=#646 id=646 data-nosnippet>646</a>                    fragment_height <span class="kw">as </span>f32 * scaling_y,
-<a href=#647 id=647 data-nosnippet>647</a>                ];
-<a href=#648 id=648 data-nosnippet>648</a>
-<a href=#649 id=649 data-nosnippet>649</a>                add_instance(
-<a href=#650 id=650 data-nosnippet>650</a>                    center,
-<a href=#651 id=651 data-nosnippet>651</a>                    clip_bounds,
-<a href=#652 id=652 data-nosnippet>652</a>                    border_radius,
-<a href=#653 id=653 data-nosnippet>653</a>                    tile,
-<a href=#654 id=654 data-nosnippet>654</a>                    rotation,
-<a href=#655 id=655 data-nosnippet>655</a>                    opacity,
-<a href=#656 id=656 data-nosnippet>656</a>                    snap,
-<a href=#657 id=657 data-nosnippet>657</a>                    allocation,
-<a href=#658 id=658 data-nosnippet>658</a>                    instances,
-<a href=#659 id=659 data-nosnippet>659</a>                );
-<a href=#660 id=660 data-nosnippet>660</a>            }
-<a href=#661 id=661 data-nosnippet>661</a>        }
-<a href=#662 id=662 data-nosnippet>662</a>    }
-<a href=#663 id=663 data-nosnippet>663</a>}
-<a href=#664 id=664 data-nosnippet>664</a>
-<a href=#665 id=665 data-nosnippet>665</a><span class="attr">#[inline]
-<a href=#666 id=666 data-nosnippet>666</a></span><span class="kw">fn </span>add_instance(
-<a href=#667 id=667 data-nosnippet>667</a>    center: [f32; <span class="number">2</span>],
-<a href=#668 id=668 data-nosnippet>668</a>    clip_bounds: [f32; <span class="number">4</span>],
-<a href=#669 id=669 data-nosnippet>669</a>    border_radius: [f32; <span class="number">4</span>],
-<a href=#670 id=670 data-nosnippet>670</a>    tile: [f32; <span class="number">4</span>],
-<a href=#671 id=671 data-nosnippet>671</a>    rotation: f32,
-<a href=#672 id=672 data-nosnippet>672</a>    opacity: f32,
-<a href=#673 id=673 data-nosnippet>673</a>    snap: bool,
-<a href=#674 id=674 data-nosnippet>674</a>    allocation: <span class="kw-2">&amp;</span>atlas::Allocation,
-<a href=#675 id=675 data-nosnippet>675</a>    instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt;,
-<a href=#676 id=676 data-nosnippet>676</a>) {
-<a href=#677 id=677 data-nosnippet>677</a>    <span class="kw">let </span>(x, y) = allocation.position();
-<a href=#678 id=678 data-nosnippet>678</a>    <span class="kw">let </span>Size { width, height } = allocation.size();
-<a href=#679 id=679 data-nosnippet>679</a>    <span class="kw">let </span>layer = allocation.layer();
-<a href=#680 id=680 data-nosnippet>680</a>    <span class="kw">let </span>atlas_size = allocation.atlas_size();
-<a href=#681 id=681 data-nosnippet>681</a>
-<a href=#682 id=682 data-nosnippet>682</a>    <span class="kw">let </span>instance = Instance {
-<a href=#683 id=683 data-nosnippet>683</a>        _center: center,
-<a href=#684 id=684 data-nosnippet>684</a>        _clip_bounds: clip_bounds,
-<a href=#685 id=685 data-nosnippet>685</a>        _border_radius: border_radius,
-<a href=#686 id=686 data-nosnippet>686</a>        _tile: tile,
-<a href=#687 id=687 data-nosnippet>687</a>        _rotation: rotation,
-<a href=#688 id=688 data-nosnippet>688</a>        _opacity: opacity,
-<a href=#689 id=689 data-nosnippet>689</a>        _position_in_atlas: [x <span class="kw">as </span>f32 / atlas_size <span class="kw">as </span>f32, y <span class="kw">as </span>f32 / atlas_size <span class="kw">as </span>f32],
-<a href=#690 id=690 data-nosnippet>690</a>        _size_in_atlas: [
-<a href=#691 id=691 data-nosnippet>691</a>            width <span class="kw">as </span>f32 / atlas_size <span class="kw">as </span>f32,
-<a href=#692 id=692 data-nosnippet>692</a>            height <span class="kw">as </span>f32 / atlas_size <span class="kw">as </span>f32,
-<a href=#693 id=693 data-nosnippet>693</a>        ],
-<a href=#694 id=694 data-nosnippet>694</a>        _layer: layer <span class="kw">as </span>u32,
-<a href=#695 id=695 data-nosnippet>695</a>        _snap: snap <span class="kw">as </span>u32,
-<a href=#696 id=696 data-nosnippet>696</a>    };
-<a href=#697 id=697 data-nosnippet>697</a>
-<a href=#698 id=698 data-nosnippet>698</a>    instances.push(instance);
-<a href=#699 id=699 data-nosnippet>699</a>}
+<a href=#482 id=482 data-nosnippet>482</a>        )
+<a href=#483 id=483 data-nosnippet>483</a>        .copy_from_slice(bytes);
+<a href=#484 id=484 data-nosnippet>484</a>
+<a href=#485 id=485 data-nosnippet>485</a>        <span class="kw">let _ </span>= <span class="self">self
+<a href=#486 id=486 data-nosnippet>486</a>            </span>.instances
+<a href=#487 id=487 data-nosnippet>487</a>            .resize(device, <span class="self">self</span>.nearest_total + <span class="self">self</span>.linear_total);
+<a href=#488 id=488 data-nosnippet>488</a>
+<a href=#489 id=489 data-nosnippet>489</a>        <span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0</span>;
+<a href=#490 id=490 data-nosnippet>490</a>
+<a href=#491 id=491 data-nosnippet>491</a>        <span class="kw">if </span>!nearest.is_empty() {
+<a href=#492 id=492 data-nosnippet>492</a>            offset += <span class="self">self</span>.instances.write(encoder, belt, <span class="number">0</span>, nearest);
+<a href=#493 id=493 data-nosnippet>493</a>        }
+<a href=#494 id=494 data-nosnippet>494</a>
+<a href=#495 id=495 data-nosnippet>495</a>        <span class="kw">if </span>!linear.is_empty() {
+<a href=#496 id=496 data-nosnippet>496</a>            <span class="kw">let _ </span>= <span class="self">self</span>.instances.write(encoder, belt, offset, linear);
+<a href=#497 id=497 data-nosnippet>497</a>        }
+<a href=#498 id=498 data-nosnippet>498</a>    }
+<a href=#499 id=499 data-nosnippet>499</a>
+<a href=#500 id=500 data-nosnippet>500</a>    <span class="kw">fn </span>push(<span class="kw-2">&amp;mut </span><span class="self">self</span>, atlas: <span class="kw-2">&amp;</span>Arc&lt;wgpu::BindGroup&gt;, nearest: <span class="kw-2">&amp;</span>[Instance], linear: <span class="kw-2">&amp;</span>[Instance]) {
+<a href=#501 id=501 data-nosnippet>501</a>        <span class="kw">let </span>new_nearest = nearest.len() - <span class="self">self</span>.nearest_total;
+<a href=#502 id=502 data-nosnippet>502</a>
+<a href=#503 id=503 data-nosnippet>503</a>        <span class="kw">if </span>new_nearest &gt; <span class="number">0 </span>{
+<a href=#504 id=504 data-nosnippet>504</a>            <span class="self">self</span>.nearest.push(Group {
+<a href=#505 id=505 data-nosnippet>505</a>                atlas: atlas.clone(),
+<a href=#506 id=506 data-nosnippet>506</a>                instance_count: new_nearest,
+<a href=#507 id=507 data-nosnippet>507</a>            });
+<a href=#508 id=508 data-nosnippet>508</a>
+<a href=#509 id=509 data-nosnippet>509</a>            <span class="self">self</span>.nearest_total = nearest.len();
+<a href=#510 id=510 data-nosnippet>510</a>        }
+<a href=#511 id=511 data-nosnippet>511</a>
+<a href=#512 id=512 data-nosnippet>512</a>        <span class="kw">let </span>new_linear = linear.len() - <span class="self">self</span>.linear_total;
+<a href=#513 id=513 data-nosnippet>513</a>
+<a href=#514 id=514 data-nosnippet>514</a>        <span class="kw">if </span>new_linear &gt; <span class="number">0 </span>{
+<a href=#515 id=515 data-nosnippet>515</a>            <span class="self">self</span>.linear.push(Group {
+<a href=#516 id=516 data-nosnippet>516</a>                atlas: atlas.clone(),
+<a href=#517 id=517 data-nosnippet>517</a>                instance_count: new_linear,
+<a href=#518 id=518 data-nosnippet>518</a>            });
+<a href=#519 id=519 data-nosnippet>519</a>
+<a href=#520 id=520 data-nosnippet>520</a>            <span class="self">self</span>.linear_total = linear.len();
+<a href=#521 id=521 data-nosnippet>521</a>        }
+<a href=#522 id=522 data-nosnippet>522</a>    }
+<a href=#523 id=523 data-nosnippet>523</a>
+<a href=#524 id=524 data-nosnippet>524</a>    <span class="kw">fn </span>render&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, render_pass: <span class="kw-2">&amp;mut </span>wgpu::RenderPass&lt;<span class="lifetime">'a</span>&gt;) {
+<a href=#525 id=525 data-nosnippet>525</a>        render_pass.set_vertex_buffer(<span class="number">0</span>, <span class="self">self</span>.instances.slice(..));
+<a href=#526 id=526 data-nosnippet>526</a>
+<a href=#527 id=527 data-nosnippet>527</a>        <span class="kw">let </span><span class="kw-2">mut </span>offset = <span class="number">0</span>;
+<a href=#528 id=528 data-nosnippet>528</a>
+<a href=#529 id=529 data-nosnippet>529</a>        <span class="kw">if </span>!<span class="self">self</span>.nearest.is_empty() {
+<a href=#530 id=530 data-nosnippet>530</a>            render_pass.set_bind_group(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.nearest_layout, <span class="kw-2">&amp;</span>[]);
+<a href=#531 id=531 data-nosnippet>531</a>
+<a href=#532 id=532 data-nosnippet>532</a>            <span class="kw">for </span>group <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.nearest {
+<a href=#533 id=533 data-nosnippet>533</a>                render_pass.set_bind_group(<span class="number">1</span>, group.atlas.as_ref(), <span class="kw-2">&amp;</span>[]);
+<a href=#534 id=534 data-nosnippet>534</a>                render_pass.draw(<span class="number">0</span>..<span class="number">6</span>, offset..offset + group.instance_count <span class="kw">as </span>u32);
+<a href=#535 id=535 data-nosnippet>535</a>
+<a href=#536 id=536 data-nosnippet>536</a>                offset += group.instance_count <span class="kw">as </span>u32;
+<a href=#537 id=537 data-nosnippet>537</a>            }
+<a href=#538 id=538 data-nosnippet>538</a>        }
+<a href=#539 id=539 data-nosnippet>539</a>
+<a href=#540 id=540 data-nosnippet>540</a>        <span class="kw">if </span>!<span class="self">self</span>.linear.is_empty() {
+<a href=#541 id=541 data-nosnippet>541</a>            render_pass.set_bind_group(<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.linear_layout, <span class="kw-2">&amp;</span>[]);
+<a href=#542 id=542 data-nosnippet>542</a>
+<a href=#543 id=543 data-nosnippet>543</a>            <span class="kw">for </span>group <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.linear {
+<a href=#544 id=544 data-nosnippet>544</a>                render_pass.set_bind_group(<span class="number">1</span>, group.atlas.as_ref(), <span class="kw-2">&amp;</span>[]);
+<a href=#545 id=545 data-nosnippet>545</a>                render_pass.draw(<span class="number">0</span>..<span class="number">6</span>, offset..offset + group.instance_count <span class="kw">as </span>u32);
+<a href=#546 id=546 data-nosnippet>546</a>
+<a href=#547 id=547 data-nosnippet>547</a>                offset += group.instance_count <span class="kw">as </span>u32;
+<a href=#548 id=548 data-nosnippet>548</a>            }
+<a href=#549 id=549 data-nosnippet>549</a>        }
+<a href=#550 id=550 data-nosnippet>550</a>    }
+<a href=#551 id=551 data-nosnippet>551</a>
+<a href=#552 id=552 data-nosnippet>552</a>    <span class="kw">fn </span>clear(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#553 id=553 data-nosnippet>553</a>        <span class="self">self</span>.nearest.clear();
+<a href=#554 id=554 data-nosnippet>554</a>        <span class="self">self</span>.nearest_total = <span class="number">0</span>;
+<a href=#555 id=555 data-nosnippet>555</a>
+<a href=#556 id=556 data-nosnippet>556</a>        <span class="self">self</span>.linear.clear();
+<a href=#557 id=557 data-nosnippet>557</a>        <span class="self">self</span>.linear_total = <span class="number">0</span>;
+<a href=#558 id=558 data-nosnippet>558</a>    }
+<a href=#559 id=559 data-nosnippet>559</a>}
+<a href=#560 id=560 data-nosnippet>560</a>
+<a href=#561 id=561 data-nosnippet>561</a><span class="attr">#[repr(C)]
+<a href=#562 id=562 data-nosnippet>562</a>#[derive(Debug, Clone, Copy, Zeroable, Pod)]
+<a href=#563 id=563 data-nosnippet>563</a></span><span class="kw">struct </span>Instance {
+<a href=#564 id=564 data-nosnippet>564</a>    _center: [f32; <span class="number">2</span>],
+<a href=#565 id=565 data-nosnippet>565</a>    _clip_bounds: [f32; <span class="number">4</span>],
+<a href=#566 id=566 data-nosnippet>566</a>    _border_radius: [f32; <span class="number">4</span>],
+<a href=#567 id=567 data-nosnippet>567</a>    _tile: [f32; <span class="number">4</span>],
+<a href=#568 id=568 data-nosnippet>568</a>    _rotation: f32,
+<a href=#569 id=569 data-nosnippet>569</a>    _opacity: f32,
+<a href=#570 id=570 data-nosnippet>570</a>    _position_in_atlas: [f32; <span class="number">2</span>],
+<a href=#571 id=571 data-nosnippet>571</a>    _size_in_atlas: [f32; <span class="number">2</span>],
+<a href=#572 id=572 data-nosnippet>572</a>    _layer: u32,
+<a href=#573 id=573 data-nosnippet>573</a>    _snap: u32,
+<a href=#574 id=574 data-nosnippet>574</a>}
+<a href=#575 id=575 data-nosnippet>575</a>
+<a href=#576 id=576 data-nosnippet>576</a><span class="kw">impl </span>Instance {
+<a href=#577 id=577 data-nosnippet>577</a>    <span class="kw">pub const </span>INITIAL: usize = <span class="number">20</span>;
+<a href=#578 id=578 data-nosnippet>578</a>}
+<a href=#579 id=579 data-nosnippet>579</a>
+<a href=#580 id=580 data-nosnippet>580</a><span class="attr">#[repr(C)]
+<a href=#581 id=581 data-nosnippet>581</a>#[derive(Debug, Clone, Copy, Zeroable, Pod)]
+<a href=#582 id=582 data-nosnippet>582</a></span><span class="kw">struct </span>Uniforms {
+<a href=#583 id=583 data-nosnippet>583</a>    transform: [f32; <span class="number">16</span>],
+<a href=#584 id=584 data-nosnippet>584</a>    scale_factor: f32,
+<a href=#585 id=585 data-nosnippet>585</a>    <span class="comment">// Uniforms must be aligned to their largest member,
+<a href=#586 id=586 data-nosnippet>586</a>    // this uses a mat4x4&lt;f32&gt; which aligns to 16, so align to that
+<a href=#587 id=587 data-nosnippet>587</a>    </span>_padding: [f32; <span class="number">3</span>],
+<a href=#588 id=588 data-nosnippet>588</a>}
+<a href=#589 id=589 data-nosnippet>589</a>
+<a href=#590 id=590 data-nosnippet>590</a><span class="kw">fn </span>add_instances(
+<a href=#591 id=591 data-nosnippet>591</a>    bounds: Rectangle,
+<a href=#592 id=592 data-nosnippet>592</a>    clip_bounds: Rectangle,
+<a href=#593 id=593 data-nosnippet>593</a>    border_radius: border::Radius,
+<a href=#594 id=594 data-nosnippet>594</a>    rotation: f32,
+<a href=#595 id=595 data-nosnippet>595</a>    opacity: f32,
+<a href=#596 id=596 data-nosnippet>596</a>    snap: bool,
+<a href=#597 id=597 data-nosnippet>597</a>    entry: <span class="kw-2">&amp;</span>atlas::Entry,
+<a href=#598 id=598 data-nosnippet>598</a>    instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt;,
+<a href=#599 id=599 data-nosnippet>599</a>) {
+<a href=#600 id=600 data-nosnippet>600</a>    <span class="kw">let </span>center = [
+<a href=#601 id=601 data-nosnippet>601</a>        bounds.x + bounds.width / <span class="number">2.0</span>,
+<a href=#602 id=602 data-nosnippet>602</a>        bounds.y + bounds.height / <span class="number">2.0</span>,
+<a href=#603 id=603 data-nosnippet>603</a>    ];
+<a href=#604 id=604 data-nosnippet>604</a>
+<a href=#605 id=605 data-nosnippet>605</a>    <span class="kw">let </span>clip_bounds = [
+<a href=#606 id=606 data-nosnippet>606</a>        clip_bounds.x,
+<a href=#607 id=607 data-nosnippet>607</a>        clip_bounds.y,
+<a href=#608 id=608 data-nosnippet>608</a>        clip_bounds.width,
+<a href=#609 id=609 data-nosnippet>609</a>        clip_bounds.height,
+<a href=#610 id=610 data-nosnippet>610</a>    ];
+<a href=#611 id=611 data-nosnippet>611</a>
+<a href=#612 id=612 data-nosnippet>612</a>    <span class="kw">let </span>border_radius = border_radius.into();
+<a href=#613 id=613 data-nosnippet>613</a>
+<a href=#614 id=614 data-nosnippet>614</a>    <span class="kw">match </span>entry {
+<a href=#615 id=615 data-nosnippet>615</a>        atlas::Entry::Contiguous(allocation) =&gt; {
+<a href=#616 id=616 data-nosnippet>616</a>            add_instance(
+<a href=#617 id=617 data-nosnippet>617</a>                center,
+<a href=#618 id=618 data-nosnippet>618</a>                clip_bounds,
+<a href=#619 id=619 data-nosnippet>619</a>                border_radius,
+<a href=#620 id=620 data-nosnippet>620</a>                [bounds.x, bounds.y, bounds.width, bounds.height],
+<a href=#621 id=621 data-nosnippet>621</a>                rotation,
+<a href=#622 id=622 data-nosnippet>622</a>                opacity,
+<a href=#623 id=623 data-nosnippet>623</a>                snap,
+<a href=#624 id=624 data-nosnippet>624</a>                allocation,
+<a href=#625 id=625 data-nosnippet>625</a>                instances,
+<a href=#626 id=626 data-nosnippet>626</a>            );
+<a href=#627 id=627 data-nosnippet>627</a>        }
+<a href=#628 id=628 data-nosnippet>628</a>        atlas::Entry::Fragmented { fragments, size } =&gt; {
+<a href=#629 id=629 data-nosnippet>629</a>            <span class="kw">let </span>scaling_x = bounds.width / size.width <span class="kw">as </span>f32;
+<a href=#630 id=630 data-nosnippet>630</a>            <span class="kw">let </span>scaling_y = bounds.height / size.height <span class="kw">as </span>f32;
+<a href=#631 id=631 data-nosnippet>631</a>
+<a href=#632 id=632 data-nosnippet>632</a>            <span class="kw">for </span>fragment <span class="kw">in </span>fragments {
+<a href=#633 id=633 data-nosnippet>633</a>                <span class="kw">let </span>allocation = <span class="kw-2">&amp;</span>fragment.allocation;
+<a href=#634 id=634 data-nosnippet>634</a>                <span class="kw">let </span>(fragment_x, fragment_y) = fragment.position;
+<a href=#635 id=635 data-nosnippet>635</a>
+<a href=#636 id=636 data-nosnippet>636</a>                <span class="kw">let </span>Size {
+<a href=#637 id=637 data-nosnippet>637</a>                    width: fragment_width,
+<a href=#638 id=638 data-nosnippet>638</a>                    height: fragment_height,
+<a href=#639 id=639 data-nosnippet>639</a>                } = allocation.size();
+<a href=#640 id=640 data-nosnippet>640</a>
+<a href=#641 id=641 data-nosnippet>641</a>                <span class="kw">let </span>tile = [
+<a href=#642 id=642 data-nosnippet>642</a>                    bounds.x + fragment_x <span class="kw">as </span>f32 * scaling_x,
+<a href=#643 id=643 data-nosnippet>643</a>                    bounds.y + fragment_y <span class="kw">as </span>f32 * scaling_y,
+<a href=#644 id=644 data-nosnippet>644</a>                    fragment_width <span class="kw">as </span>f32 * scaling_x,
+<a href=#645 id=645 data-nosnippet>645</a>                    fragment_height <span class="kw">as </span>f32 * scaling_y,
+<a href=#646 id=646 data-nosnippet>646</a>                ];
+<a href=#647 id=647 data-nosnippet>647</a>
+<a href=#648 id=648 data-nosnippet>648</a>                add_instance(
+<a href=#649 id=649 data-nosnippet>649</a>                    center,
+<a href=#650 id=650 data-nosnippet>650</a>                    clip_bounds,
+<a href=#651 id=651 data-nosnippet>651</a>                    border_radius,
+<a href=#652 id=652 data-nosnippet>652</a>                    tile,
+<a href=#653 id=653 data-nosnippet>653</a>                    rotation,
+<a href=#654 id=654 data-nosnippet>654</a>                    opacity,
+<a href=#655 id=655 data-nosnippet>655</a>                    snap,
+<a href=#656 id=656 data-nosnippet>656</a>                    allocation,
+<a href=#657 id=657 data-nosnippet>657</a>                    instances,
+<a href=#658 id=658 data-nosnippet>658</a>                );
+<a href=#659 id=659 data-nosnippet>659</a>            }
+<a href=#660 id=660 data-nosnippet>660</a>        }
+<a href=#661 id=661 data-nosnippet>661</a>    }
+<a href=#662 id=662 data-nosnippet>662</a>}
+<a href=#663 id=663 data-nosnippet>663</a>
+<a href=#664 id=664 data-nosnippet>664</a><span class="attr">#[inline]
+<a href=#665 id=665 data-nosnippet>665</a></span><span class="kw">fn </span>add_instance(
+<a href=#666 id=666 data-nosnippet>666</a>    center: [f32; <span class="number">2</span>],
+<a href=#667 id=667 data-nosnippet>667</a>    clip_bounds: [f32; <span class="number">4</span>],
+<a href=#668 id=668 data-nosnippet>668</a>    border_radius: [f32; <span class="number">4</span>],
+<a href=#669 id=669 data-nosnippet>669</a>    tile: [f32; <span class="number">4</span>],
+<a href=#670 id=670 data-nosnippet>670</a>    rotation: f32,
+<a href=#671 id=671 data-nosnippet>671</a>    opacity: f32,
+<a href=#672 id=672 data-nosnippet>672</a>    snap: bool,
+<a href=#673 id=673 data-nosnippet>673</a>    allocation: <span class="kw-2">&amp;</span>atlas::Allocation,
+<a href=#674 id=674 data-nosnippet>674</a>    instances: <span class="kw-2">&amp;mut </span>Vec&lt;Instance&gt;,
+<a href=#675 id=675 data-nosnippet>675</a>) {
+<a href=#676 id=676 data-nosnippet>676</a>    <span class="kw">let </span>(x, y) = allocation.position();
+<a href=#677 id=677 data-nosnippet>677</a>    <span class="kw">let </span>Size { width, height } = allocation.size();
+<a href=#678 id=678 data-nosnippet>678</a>    <span class="kw">let </span>layer = allocation.layer();
+<a href=#679 id=679 data-nosnippet>679</a>    <span class="kw">let </span>atlas_size = allocation.atlas_size();
+<a href=#680 id=680 data-nosnippet>680</a>
+<a href=#681 id=681 data-nosnippet>681</a>    <span class="kw">let </span>instance = Instance {
+<a href=#682 id=682 data-nosnippet>682</a>        _center: center,
+<a href=#683 id=683 data-nosnippet>683</a>        _clip_bounds: clip_bounds,
+<a href=#684 id=684 data-nosnippet>684</a>        _border_radius: border_radius,
+<a href=#685 id=685 data-nosnippet>685</a>        _tile: tile,
+<a href=#686 id=686 data-nosnippet>686</a>        _rotation: rotation,
+<a href=#687 id=687 data-nosnippet>687</a>        _opacity: opacity,
+<a href=#688 id=688 data-nosnippet>688</a>        _position_in_atlas: [x <span class="kw">as </span>f32 / atlas_size <span class="kw">as </span>f32, y <span class="kw">as </span>f32 / atlas_size <span class="kw">as </span>f32],
+<a href=#689 id=689 data-nosnippet>689</a>        _size_in_atlas: [
+<a href=#690 id=690 data-nosnippet>690</a>            width <span class="kw">as </span>f32 / atlas_size <span class="kw">as </span>f32,
+<a href=#691 id=691 data-nosnippet>691</a>            height <span class="kw">as </span>f32 / atlas_size <span class="kw">as </span>f32,
+<a href=#692 id=692 data-nosnippet>692</a>        ],
+<a href=#693 id=693 data-nosnippet>693</a>        _layer: layer <span class="kw">as </span>u32,
+<a href=#694 id=694 data-nosnippet>694</a>        _snap: snap <span class="kw">as </span>u32,
+<a href=#695 id=695 data-nosnippet>695</a>    };
+<a href=#696 id=696 data-nosnippet>696</a>
+<a href=#697 id=697 data-nosnippet>697</a>    instances.push(instance);
+<a href=#698 id=698 data-nosnippet>698</a>}
 </code></pre></div></section></main></body></html>
