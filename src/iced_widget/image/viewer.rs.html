@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/image/viewer.rs`."><title>viewer.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0-nightly (a293cc4af 2026-01-30)" data-channel="nightly" data-search-js="search-fb33671b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-f9617a14.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-12f88f4f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">iced_widget/image/</div>viewer.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Zoom and pan on an image.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `widget/src/image/viewer.rs`."><title>viewer.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0-nightly (905b92696 2026-01-31)" data-channel="nightly" data-search-js="search-fb33671b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../../static.files/storage-f9617a14.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-12f88f4f.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1><div class="sub-heading">iced_widget/image/</div>viewer.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Zoom and pan on an image.
 <a href=#2 id=2 data-nosnippet>2</a></span><span class="kw">use </span><span class="kw">crate</span>::core::border;
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span><span class="kw">crate</span>::core::image::{<span class="self">self</span>, FilterMethod};
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::core::layout;
@@ -335,97 +335,96 @@
 <a href=#335 id=335 data-nosnippet>335</a>                        filter_method: <span class="self">self</span>.filter_method,
 <a href=#336 id=336 data-nosnippet>336</a>                        rotation: Radians(<span class="number">0.0</span>),
 <a href=#337 id=337 data-nosnippet>337</a>                        opacity: <span class="number">1.0</span>,
-<a href=#338 id=338 data-nosnippet>338</a>                        snap: <span class="bool-val">true</span>,
-<a href=#339 id=339 data-nosnippet>339</a>                    },
-<a href=#340 id=340 data-nosnippet>340</a>                    drawing_bounds,
-<a href=#341 id=341 data-nosnippet>341</a>                    <span class="kw-2">*</span>viewport - translation,
-<a href=#342 id=342 data-nosnippet>342</a>                );
-<a href=#343 id=343 data-nosnippet>343</a>            });
-<a href=#344 id=344 data-nosnippet>344</a>        };
-<a href=#345 id=345 data-nosnippet>345</a>
-<a href=#346 id=346 data-nosnippet>346</a>        renderer.with_layer(bounds, render);
-<a href=#347 id=347 data-nosnippet>347</a>    }
-<a href=#348 id=348 data-nosnippet>348</a>}
-<a href=#349 id=349 data-nosnippet>349</a>
-<a href=#350 id=350 data-nosnippet>350</a><span class="doccomment">/// The local state of a [`Viewer`].
-<a href=#351 id=351 data-nosnippet>351</a></span><span class="attr">#[derive(Debug, Clone, Copy)]
-<a href=#352 id=352 data-nosnippet>352</a></span><span class="kw">pub struct </span>State {
-<a href=#353 id=353 data-nosnippet>353</a>    scale: f32,
-<a href=#354 id=354 data-nosnippet>354</a>    starting_offset: Vector,
-<a href=#355 id=355 data-nosnippet>355</a>    current_offset: Vector,
-<a href=#356 id=356 data-nosnippet>356</a>    cursor_grabbed_at: <span class="prelude-ty">Option</span>&lt;Point&gt;,
-<a href=#357 id=357 data-nosnippet>357</a>}
-<a href=#358 id=358 data-nosnippet>358</a>
-<a href=#359 id=359 data-nosnippet>359</a><span class="kw">impl </span>Default <span class="kw">for </span>State {
-<a href=#360 id=360 data-nosnippet>360</a>    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-<a href=#361 id=361 data-nosnippet>361</a>        <span class="self">Self </span>{
-<a href=#362 id=362 data-nosnippet>362</a>            scale: <span class="number">1.0</span>,
-<a href=#363 id=363 data-nosnippet>363</a>            starting_offset: Vector::default(),
-<a href=#364 id=364 data-nosnippet>364</a>            current_offset: Vector::default(),
-<a href=#365 id=365 data-nosnippet>365</a>            cursor_grabbed_at: <span class="prelude-val">None</span>,
-<a href=#366 id=366 data-nosnippet>366</a>        }
-<a href=#367 id=367 data-nosnippet>367</a>    }
-<a href=#368 id=368 data-nosnippet>368</a>}
-<a href=#369 id=369 data-nosnippet>369</a>
-<a href=#370 id=370 data-nosnippet>370</a><span class="kw">impl </span>State {
-<a href=#371 id=371 data-nosnippet>371</a>    <span class="doccomment">/// Creates a new [`State`].
-<a href=#372 id=372 data-nosnippet>372</a>    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-<a href=#373 id=373 data-nosnippet>373</a>        State::default()
-<a href=#374 id=374 data-nosnippet>374</a>    }
-<a href=#375 id=375 data-nosnippet>375</a>
-<a href=#376 id=376 data-nosnippet>376</a>    <span class="doccomment">/// Returns the current offset of the [`State`], given the bounds
-<a href=#377 id=377 data-nosnippet>377</a>    /// of the [`Viewer`] and its image.
-<a href=#378 id=378 data-nosnippet>378</a>    </span><span class="kw">fn </span>offset(<span class="kw-2">&amp;</span><span class="self">self</span>, bounds: Rectangle, image_size: Size) -&gt; Vector {
-<a href=#379 id=379 data-nosnippet>379</a>        <span class="kw">let </span>hidden_width = (image_size.width - bounds.width / <span class="number">2.0</span>).max(<span class="number">0.0</span>).round();
-<a href=#380 id=380 data-nosnippet>380</a>
-<a href=#381 id=381 data-nosnippet>381</a>        <span class="kw">let </span>hidden_height = (image_size.height - bounds.height / <span class="number">2.0</span>).max(<span class="number">0.0</span>).round();
-<a href=#382 id=382 data-nosnippet>382</a>
-<a href=#383 id=383 data-nosnippet>383</a>        Vector::new(
-<a href=#384 id=384 data-nosnippet>384</a>            <span class="self">self</span>.current_offset.x.clamp(-hidden_width, hidden_width),
-<a href=#385 id=385 data-nosnippet>385</a>            <span class="self">self</span>.current_offset.y.clamp(-hidden_height, hidden_height),
-<a href=#386 id=386 data-nosnippet>386</a>        )
-<a href=#387 id=387 data-nosnippet>387</a>    }
-<a href=#388 id=388 data-nosnippet>388</a>
-<a href=#389 id=389 data-nosnippet>389</a>    <span class="doccomment">/// Returns if the cursor is currently grabbed by the [`Viewer`].
-<a href=#390 id=390 data-nosnippet>390</a>    </span><span class="kw">pub fn </span>is_cursor_grabbed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-<a href=#391 id=391 data-nosnippet>391</a>        <span class="self">self</span>.cursor_grabbed_at.is_some()
-<a href=#392 id=392 data-nosnippet>392</a>    }
-<a href=#393 id=393 data-nosnippet>393</a>}
-<a href=#394 id=394 data-nosnippet>394</a>
-<a href=#395 id=395 data-nosnippet>395</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer, Handle&gt; From&lt;Viewer&lt;Handle&gt;&gt;
-<a href=#396 id=396 data-nosnippet>396</a>    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
-<a href=#397 id=397 data-nosnippet>397</a><span class="kw">where
-<a href=#398 id=398 data-nosnippet>398</a>    </span>Renderer: <span class="lifetime">'a </span>+ image::Renderer&lt;Handle = Handle&gt;,
-<a href=#399 id=399 data-nosnippet>399</a>    Message: <span class="lifetime">'a</span>,
-<a href=#400 id=400 data-nosnippet>400</a>    Handle: Clone + <span class="lifetime">'a</span>,
-<a href=#401 id=401 data-nosnippet>401</a>{
-<a href=#402 id=402 data-nosnippet>402</a>    <span class="kw">fn </span>from(viewer: Viewer&lt;Handle&gt;) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
-<a href=#403 id=403 data-nosnippet>403</a>        Element::new(viewer)
-<a href=#404 id=404 data-nosnippet>404</a>    }
-<a href=#405 id=405 data-nosnippet>405</a>}
-<a href=#406 id=406 data-nosnippet>406</a>
-<a href=#407 id=407 data-nosnippet>407</a><span class="doccomment">/// Returns the bounds of the underlying image, given the bounds of
-<a href=#408 id=408 data-nosnippet>408</a>/// the [`Viewer`]. Scaling will be applied and original aspect ratio
-<a href=#409 id=409 data-nosnippet>409</a>/// will be respected.
-<a href=#410 id=410 data-nosnippet>410</a></span><span class="kw">pub fn </span>scaled_image_size&lt;Renderer&gt;(
-<a href=#411 id=411 data-nosnippet>411</a>    renderer: <span class="kw-2">&amp;</span>Renderer,
-<a href=#412 id=412 data-nosnippet>412</a>    handle: <span class="kw-2">&amp;</span>&lt;Renderer <span class="kw">as </span>image::Renderer&gt;::Handle,
-<a href=#413 id=413 data-nosnippet>413</a>    state: <span class="kw-2">&amp;</span>State,
-<a href=#414 id=414 data-nosnippet>414</a>    bounds: Size,
-<a href=#415 id=415 data-nosnippet>415</a>    content_fit: ContentFit,
-<a href=#416 id=416 data-nosnippet>416</a>) -&gt; Size
-<a href=#417 id=417 data-nosnippet>417</a><span class="kw">where
-<a href=#418 id=418 data-nosnippet>418</a>    </span>Renderer: image::Renderer,
-<a href=#419 id=419 data-nosnippet>419</a>{
-<a href=#420 id=420 data-nosnippet>420</a>    <span class="kw">let </span>Size { width, height } = renderer.measure_image(handle).unwrap_or_default();
-<a href=#421 id=421 data-nosnippet>421</a>
-<a href=#422 id=422 data-nosnippet>422</a>    <span class="kw">let </span>image_size = Size::new(width <span class="kw">as </span>f32, height <span class="kw">as </span>f32);
-<a href=#423 id=423 data-nosnippet>423</a>
-<a href=#424 id=424 data-nosnippet>424</a>    <span class="kw">let </span>adjusted_fit = content_fit.fit(image_size, bounds);
-<a href=#425 id=425 data-nosnippet>425</a>
-<a href=#426 id=426 data-nosnippet>426</a>    Size::new(
-<a href=#427 id=427 data-nosnippet>427</a>        adjusted_fit.width * state.scale,
-<a href=#428 id=428 data-nosnippet>428</a>        adjusted_fit.height * state.scale,
-<a href=#429 id=429 data-nosnippet>429</a>    )
-<a href=#430 id=430 data-nosnippet>430</a>}
+<a href=#338 id=338 data-nosnippet>338</a>                    },
+<a href=#339 id=339 data-nosnippet>339</a>                    drawing_bounds,
+<a href=#340 id=340 data-nosnippet>340</a>                    <span class="kw-2">*</span>viewport - translation,
+<a href=#341 id=341 data-nosnippet>341</a>                );
+<a href=#342 id=342 data-nosnippet>342</a>            });
+<a href=#343 id=343 data-nosnippet>343</a>        };
+<a href=#344 id=344 data-nosnippet>344</a>
+<a href=#345 id=345 data-nosnippet>345</a>        renderer.with_layer(bounds, render);
+<a href=#346 id=346 data-nosnippet>346</a>    }
+<a href=#347 id=347 data-nosnippet>347</a>}
+<a href=#348 id=348 data-nosnippet>348</a>
+<a href=#349 id=349 data-nosnippet>349</a><span class="doccomment">/// The local state of a [`Viewer`].
+<a href=#350 id=350 data-nosnippet>350</a></span><span class="attr">#[derive(Debug, Clone, Copy)]
+<a href=#351 id=351 data-nosnippet>351</a></span><span class="kw">pub struct </span>State {
+<a href=#352 id=352 data-nosnippet>352</a>    scale: f32,
+<a href=#353 id=353 data-nosnippet>353</a>    starting_offset: Vector,
+<a href=#354 id=354 data-nosnippet>354</a>    current_offset: Vector,
+<a href=#355 id=355 data-nosnippet>355</a>    cursor_grabbed_at: <span class="prelude-ty">Option</span>&lt;Point&gt;,
+<a href=#356 id=356 data-nosnippet>356</a>}
+<a href=#357 id=357 data-nosnippet>357</a>
+<a href=#358 id=358 data-nosnippet>358</a><span class="kw">impl </span>Default <span class="kw">for </span>State {
+<a href=#359 id=359 data-nosnippet>359</a>    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+<a href=#360 id=360 data-nosnippet>360</a>        <span class="self">Self </span>{
+<a href=#361 id=361 data-nosnippet>361</a>            scale: <span class="number">1.0</span>,
+<a href=#362 id=362 data-nosnippet>362</a>            starting_offset: Vector::default(),
+<a href=#363 id=363 data-nosnippet>363</a>            current_offset: Vector::default(),
+<a href=#364 id=364 data-nosnippet>364</a>            cursor_grabbed_at: <span class="prelude-val">None</span>,
+<a href=#365 id=365 data-nosnippet>365</a>        }
+<a href=#366 id=366 data-nosnippet>366</a>    }
+<a href=#367 id=367 data-nosnippet>367</a>}
+<a href=#368 id=368 data-nosnippet>368</a>
+<a href=#369 id=369 data-nosnippet>369</a><span class="kw">impl </span>State {
+<a href=#370 id=370 data-nosnippet>370</a>    <span class="doccomment">/// Creates a new [`State`].
+<a href=#371 id=371 data-nosnippet>371</a>    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+<a href=#372 id=372 data-nosnippet>372</a>        State::default()
+<a href=#373 id=373 data-nosnippet>373</a>    }
+<a href=#374 id=374 data-nosnippet>374</a>
+<a href=#375 id=375 data-nosnippet>375</a>    <span class="doccomment">/// Returns the current offset of the [`State`], given the bounds
+<a href=#376 id=376 data-nosnippet>376</a>    /// of the [`Viewer`] and its image.
+<a href=#377 id=377 data-nosnippet>377</a>    </span><span class="kw">fn </span>offset(<span class="kw-2">&amp;</span><span class="self">self</span>, bounds: Rectangle, image_size: Size) -&gt; Vector {
+<a href=#378 id=378 data-nosnippet>378</a>        <span class="kw">let </span>hidden_width = (image_size.width - bounds.width / <span class="number">2.0</span>).max(<span class="number">0.0</span>).round();
+<a href=#379 id=379 data-nosnippet>379</a>
+<a href=#380 id=380 data-nosnippet>380</a>        <span class="kw">let </span>hidden_height = (image_size.height - bounds.height / <span class="number">2.0</span>).max(<span class="number">0.0</span>).round();
+<a href=#381 id=381 data-nosnippet>381</a>
+<a href=#382 id=382 data-nosnippet>382</a>        Vector::new(
+<a href=#383 id=383 data-nosnippet>383</a>            <span class="self">self</span>.current_offset.x.clamp(-hidden_width, hidden_width),
+<a href=#384 id=384 data-nosnippet>384</a>            <span class="self">self</span>.current_offset.y.clamp(-hidden_height, hidden_height),
+<a href=#385 id=385 data-nosnippet>385</a>        )
+<a href=#386 id=386 data-nosnippet>386</a>    }
+<a href=#387 id=387 data-nosnippet>387</a>
+<a href=#388 id=388 data-nosnippet>388</a>    <span class="doccomment">/// Returns if the cursor is currently grabbed by the [`Viewer`].
+<a href=#389 id=389 data-nosnippet>389</a>    </span><span class="kw">pub fn </span>is_cursor_grabbed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+<a href=#390 id=390 data-nosnippet>390</a>        <span class="self">self</span>.cursor_grabbed_at.is_some()
+<a href=#391 id=391 data-nosnippet>391</a>    }
+<a href=#392 id=392 data-nosnippet>392</a>}
+<a href=#393 id=393 data-nosnippet>393</a>
+<a href=#394 id=394 data-nosnippet>394</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer, Handle&gt; From&lt;Viewer&lt;Handle&gt;&gt;
+<a href=#395 id=395 data-nosnippet>395</a>    <span class="kw">for </span>Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt;
+<a href=#396 id=396 data-nosnippet>396</a><span class="kw">where
+<a href=#397 id=397 data-nosnippet>397</a>    </span>Renderer: <span class="lifetime">'a </span>+ image::Renderer&lt;Handle = Handle&gt;,
+<a href=#398 id=398 data-nosnippet>398</a>    Message: <span class="lifetime">'a</span>,
+<a href=#399 id=399 data-nosnippet>399</a>    Handle: Clone + <span class="lifetime">'a</span>,
+<a href=#400 id=400 data-nosnippet>400</a>{
+<a href=#401 id=401 data-nosnippet>401</a>    <span class="kw">fn </span>from(viewer: Viewer&lt;Handle&gt;) -&gt; Element&lt;<span class="lifetime">'a</span>, Message, Theme, Renderer&gt; {
+<a href=#402 id=402 data-nosnippet>402</a>        Element::new(viewer)
+<a href=#403 id=403 data-nosnippet>403</a>    }
+<a href=#404 id=404 data-nosnippet>404</a>}
+<a href=#405 id=405 data-nosnippet>405</a>
+<a href=#406 id=406 data-nosnippet>406</a><span class="doccomment">/// Returns the bounds of the underlying image, given the bounds of
+<a href=#407 id=407 data-nosnippet>407</a>/// the [`Viewer`]. Scaling will be applied and original aspect ratio
+<a href=#408 id=408 data-nosnippet>408</a>/// will be respected.
+<a href=#409 id=409 data-nosnippet>409</a></span><span class="kw">pub fn </span>scaled_image_size&lt;Renderer&gt;(
+<a href=#410 id=410 data-nosnippet>410</a>    renderer: <span class="kw-2">&amp;</span>Renderer,
+<a href=#411 id=411 data-nosnippet>411</a>    handle: <span class="kw-2">&amp;</span>&lt;Renderer <span class="kw">as </span>image::Renderer&gt;::Handle,
+<a href=#412 id=412 data-nosnippet>412</a>    state: <span class="kw-2">&amp;</span>State,
+<a href=#413 id=413 data-nosnippet>413</a>    bounds: Size,
+<a href=#414 id=414 data-nosnippet>414</a>    content_fit: ContentFit,
+<a href=#415 id=415 data-nosnippet>415</a>) -&gt; Size
+<a href=#416 id=416 data-nosnippet>416</a><span class="kw">where
+<a href=#417 id=417 data-nosnippet>417</a>    </span>Renderer: image::Renderer,
+<a href=#418 id=418 data-nosnippet>418</a>{
+<a href=#419 id=419 data-nosnippet>419</a>    <span class="kw">let </span>Size { width, height } = renderer.measure_image(handle).unwrap_or_default();
+<a href=#420 id=420 data-nosnippet>420</a>
+<a href=#421 id=421 data-nosnippet>421</a>    <span class="kw">let </span>image_size = Size::new(width <span class="kw">as </span>f32, height <span class="kw">as </span>f32);
+<a href=#422 id=422 data-nosnippet>422</a>
+<a href=#423 id=423 data-nosnippet>423</a>    <span class="kw">let </span>adjusted_fit = content_fit.fit(image_size, bounds);
+<a href=#424 id=424 data-nosnippet>424</a>
+<a href=#425 id=425 data-nosnippet>425</a>    Size::new(
+<a href=#426 id=426 data-nosnippet>426</a>        adjusted_fit.width * state.scale,
+<a href=#427 id=427 data-nosnippet>427</a>        adjusted_fit.height * state.scale,
+<a href=#428 id=428 data-nosnippet>428</a>    )
+<a href=#429 id=429 data-nosnippet>429</a>}
 </code></pre></div></section></main></body></html>
