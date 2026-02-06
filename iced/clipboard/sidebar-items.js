@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["read","read_primary","write","write_primary"]};
+window.SIDEBAR_ITEMS = {"enum":["Content","Kind"],"fn":["read","read_files","read_html","read_image","read_text","write"],"struct":["Image"]};
