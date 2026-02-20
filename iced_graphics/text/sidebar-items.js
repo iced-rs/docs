@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["FIRA_SANS_REGULAR"],"enum":["Text"],"fn":["align","font_system","hint_factor","measure","to_attributes","to_color","to_shaping","to_wrap"],"mod":["cache","editor","paragraph"],"struct":["FontSystem","Raw","Version"],"trait":["Renderer"]};
+window.SIDEBAR_ITEMS = {"constant":["FIRA_SANS_REGULAR"],"enum":["Text"],"fn":["align","font_system","hint_factor","measure","to_attributes","to_color","to_ellipsize","to_shaping","to_wrap"],"mod":["cache","editor","paragraph"],"struct":["FontSystem","Raw","Version"],"trait":["Renderer"]};
