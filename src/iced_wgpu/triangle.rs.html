@@ -8,7 +8,7 @@
 <a href=#8 id=8 data-nosnippet>8</a>
 <a href=#9 id=9 data-nosnippet>9</a><span class="kw">use </span>rustc_hash::FxHashMap;
 <a href=#10 id=10 data-nosnippet>10</a><span class="kw">use </span>std::collections::hash_map;
-<a href=#11 id=11 data-nosnippet>11</a><span class="kw">use </span>std::sync::Weak;
+<a href=#11 id=11 data-nosnippet>11</a><span class="kw">use </span>std::sync::Arc;
 <a href=#12 id=12 data-nosnippet>12</a>
 <a href=#13 id=13 data-nosnippet>13</a><span class="kw">const </span>INITIAL_INDEX_COUNT: usize = <span class="number">1_000</span>;
 <a href=#14 id=14 data-nosnippet>14</a><span class="kw">const </span>INITIAL_VERTEX_COUNT: usize = <span class="number">1_000</span>;
@@ -32,7 +32,7 @@
 <a href=#32 id=32 data-nosnippet>32</a>    layer: Layer,
 <a href=#33 id=33 data-nosnippet>33</a>    transformation: Transformation,
 <a href=#34 id=34 data-nosnippet>34</a>    version: usize,
-<a href=#35 id=35 data-nosnippet>35</a>    batch: Weak&lt;[Mesh]&gt;,
+<a href=#35 id=35 data-nosnippet>35</a>    batch: Arc&lt;[Mesh]&gt;,
 <a href=#36 id=36 data-nosnippet>36</a>}
 <a href=#37 id=37 data-nosnippet>37</a>
 <a href=#38 id=38 data-nosnippet>38</a><span class="attr">#[derive(Debug, Default)]
@@ -67,21 +67,21 @@
 <a href=#67 id=67 data-nosnippet>67</a>            hash_map::Entry::Occupied(entry) =&gt; {
 <a href=#68 id=68 data-nosnippet>68</a>                <span class="kw">let </span>upload = entry.into_mut();
 <a href=#69 id=69 data-nosnippet>69</a>
-<a href=#70 id=70 data-nosnippet>70</a>                <span class="kw">if </span>!cache.is_empty()
-<a href=#71 id=71 data-nosnippet>71</a>                    &amp;&amp; (upload.version != cache.version()
-<a href=#72 id=72 data-nosnippet>72</a>                        || upload.transformation != new_transformation)
-<a href=#73 id=73 data-nosnippet>73</a>                {
-<a href=#74 id=74 data-nosnippet>74</a>                    upload.layer.prepare(
-<a href=#75 id=75 data-nosnippet>75</a>                        device,
-<a href=#76 id=76 data-nosnippet>76</a>                        encoder,
-<a href=#77 id=77 data-nosnippet>77</a>                        belt,
-<a href=#78 id=78 data-nosnippet>78</a>                        solid,
-<a href=#79 id=79 data-nosnippet>79</a>                        gradient,
-<a href=#80 id=80 data-nosnippet>80</a>                        cache.batch(),
-<a href=#81 id=81 data-nosnippet>81</a>                        new_transformation,
-<a href=#82 id=82 data-nosnippet>82</a>                    );
+<a href=#70 id=70 data-nosnippet>70</a>                <span class="kw">if </span>upload.version != cache.version() || upload.transformation != new_transformation
+<a href=#71 id=71 data-nosnippet>71</a>                {
+<a href=#72 id=72 data-nosnippet>72</a>                    <span class="kw">if </span>!cache.is_empty() {
+<a href=#73 id=73 data-nosnippet>73</a>                        upload.layer.prepare(
+<a href=#74 id=74 data-nosnippet>74</a>                            device,
+<a href=#75 id=75 data-nosnippet>75</a>                            encoder,
+<a href=#76 id=76 data-nosnippet>76</a>                            belt,
+<a href=#77 id=77 data-nosnippet>77</a>                            solid,
+<a href=#78 id=78 data-nosnippet>78</a>                            gradient,
+<a href=#79 id=79 data-nosnippet>79</a>                            cache.batch(),
+<a href=#80 id=80 data-nosnippet>80</a>                            new_transformation,
+<a href=#81 id=81 data-nosnippet>81</a>                        );
+<a href=#82 id=82 data-nosnippet>82</a>                    }
 <a href=#83 id=83 data-nosnippet>83</a>
-<a href=#84 id=84 data-nosnippet>84</a>                    upload.batch = cache.downgrade();
+<a href=#84 id=84 data-nosnippet>84</a>                    upload.batch = cache.batch().clone();
 <a href=#85 id=85 data-nosnippet>85</a>                    upload.version = cache.version();
 <a href=#86 id=86 data-nosnippet>86</a>                    upload.transformation = new_transformation;
 <a href=#87 id=87 data-nosnippet>87</a>                }
@@ -103,7 +103,7 @@
 <a href=#103 id=103 data-nosnippet>103</a>                    layer,
 <a href=#104 id=104 data-nosnippet>104</a>                    transformation: new_transformation,
 <a href=#105 id=105 data-nosnippet>105</a>                    version: <span class="number">0</span>,
-<a href=#106 id=106 data-nosnippet>106</a>                    batch: cache.downgrade(),
+<a href=#106 id=106 data-nosnippet>106</a>                    batch: cache.batch().clone(),
 <a href=#107 id=107 data-nosnippet>107</a>                });
 <a href=#108 id=108 data-nosnippet>108</a>
 <a href=#109 id=109 data-nosnippet>109</a>                <span class="macro">log::debug!</span>(
@@ -117,7 +117,7 @@
 <a href=#117 id=117 data-nosnippet>117</a>
 <a href=#118 id=118 data-nosnippet>118</a>    <span class="kw">pub fn </span>trim(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
 <a href=#119 id=119 data-nosnippet>119</a>        <span class="self">self</span>.uploads
-<a href=#120 id=120 data-nosnippet>120</a>            .retain(|_id, upload| upload.batch.strong_count() &gt; <span class="number">0</span>);
+<a href=#120 id=120 data-nosnippet>120</a>            .retain(|_id, upload| Arc::strong_count(<span class="kw-2">&amp;</span>upload.batch) &gt; <span class="number">1</span>);
 <a href=#121 id=121 data-nosnippet>121</a>    }
 <a href=#122 id=122 data-nosnippet>122</a>}
 <a href=#123 id=123 data-nosnippet>123</a>
@@ -241,7 +241,7 @@
 <a href=#241 id=241 data-nosnippet>241</a>
 <a href=#242 id=242 data-nosnippet>242</a>                <span class="prelude-val">Some</span>((
 <a href=#243 id=243 data-nosnippet>243</a>                    <span class="kw-2">&amp;</span>upload.layer,
-<a href=#244 id=244 data-nosnippet>244</a>                    cache.batch(),
+<a href=#244 id=244 data-nosnippet>244</a>                    <span class="kw-2">&amp;</span>upload.batch,
 <a href=#245 id=245 data-nosnippet>245</a>                    screen_transformation * <span class="kw-2">*</span>transformation,
 <a href=#246 id=246 data-nosnippet>246</a>                ))
 <a href=#247 id=247 data-nosnippet>247</a>            }
