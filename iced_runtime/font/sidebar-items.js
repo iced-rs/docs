@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Error"],"fn":["load"]};
+window.SIDEBAR_ITEMS = {"fn":["list","load"]};
