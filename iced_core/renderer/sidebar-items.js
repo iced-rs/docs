@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["CRISP"],"struct":["Quad","Style"],"trait":["Headless","Renderer"]};
+window.SIDEBAR_ITEMS = {"constant":["CRISP"],"struct":["Quad","Settings","Style"],"trait":["Headless","Renderer"]};

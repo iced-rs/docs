@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Error","Family","Stretch","Style","Weight"],"fn":["list","load"],"struct":["Font"]};
+window.SIDEBAR_ITEMS = {"enum":["Action","Error","Family","Stretch","Style","Weight"],"fn":["list","load","set_defaults"],"struct":["Font"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["list","load"]};
+window.SIDEBAR_ITEMS = {"enum":["Action"],"fn":["list","load","set_defaults"]};

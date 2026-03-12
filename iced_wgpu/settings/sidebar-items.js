@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["present_mode_from_env"],"struct":["Settings"]};
