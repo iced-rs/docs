@@ -93,12 +93,12 @@
 <a href=#93 id=93 data-nosnippet>93</a>        <span class="kw">let </span><span class="kw-2">mut </span>font_system = text::font_system().write().expect(<span class="string">"Write font system"</span>);
 <a href=#94 id=94 data-nosnippet>94</a>
 <a href=#95 id=95 data-nosnippet>95</a>        buffer.set_text(
-<a href=#96 id=96 data-nosnippet>96</a>            font_system.raw(),
-<a href=#97 id=97 data-nosnippet>97</a>            text,
-<a href=#98 id=98 data-nosnippet>98</a>            <span class="kw-2">&amp;</span>cosmic_text::Attrs::new(),
-<a href=#99 id=99 data-nosnippet>99</a>            cosmic_text::Shaping::Advanced,
-<a href=#100 id=100 data-nosnippet>100</a>            <span class="prelude-val">None</span>,
-<a href=#101 id=101 data-nosnippet>101</a>        );
+<a href=#96 id=96 data-nosnippet>96</a>            text,
+<a href=#97 id=97 data-nosnippet>97</a>            <span class="kw-2">&amp;</span>cosmic_text::Attrs::new(),
+<a href=#98 id=98 data-nosnippet>98</a>            cosmic_text::Shaping::Advanced,
+<a href=#99 id=99 data-nosnippet>99</a>            <span class="prelude-val">None</span>,
+<a href=#100 id=100 data-nosnippet>100</a>        );
+<a href=#101 id=101 data-nosnippet>101</a>        buffer.shape_until_scroll(font_system.raw(), <span class="bool-val">false</span>);
 <a href=#102 id=102 data-nosnippet>102</a>
 <a href=#103 id=103 data-nosnippet>103</a>        Editor(<span class="prelude-val">Some</span>(Arc::new(Internal {
 <a href=#104 id=104 data-nosnippet>104</a>            editor: cosmic_text::Editor::new(buffer),
@@ -547,313 +547,308 @@
 <a href=#547 id=547 data-nosnippet>547</a>                internal.hint = new_hint_factor.is_some();
 <a href=#548 id=548 data-nosnippet>548</a>                internal.hint_factor = new_hint_factor.unwrap_or(<span class="number">1.0</span>);
 <a href=#549 id=549 data-nosnippet>549</a>
-<a href=#550 id=550 data-nosnippet>550</a>                buffer.set_hinting(
-<a href=#551 id=551 data-nosnippet>551</a>                    font_system.raw(),
-<a href=#552 id=552 data-nosnippet>552</a>                    <span class="kw">if </span>internal.hint {
-<a href=#553 id=553 data-nosnippet>553</a>                        cosmic_text::Hinting::Enabled
-<a href=#554 id=554 data-nosnippet>554</a>                    } <span class="kw">else </span>{
-<a href=#555 id=555 data-nosnippet>555</a>                        cosmic_text::Hinting::Disabled
-<a href=#556 id=556 data-nosnippet>556</a>                    },
-<a href=#557 id=557 data-nosnippet>557</a>                );
+<a href=#550 id=550 data-nosnippet>550</a>                buffer.set_hinting(<span class="kw">if </span>internal.hint {
+<a href=#551 id=551 data-nosnippet>551</a>                    cosmic_text::Hinting::Enabled
+<a href=#552 id=552 data-nosnippet>552</a>                } <span class="kw">else </span>{
+<a href=#553 id=553 data-nosnippet>553</a>                    cosmic_text::Hinting::Disabled
+<a href=#554 id=554 data-nosnippet>554</a>                });
+<a href=#555 id=555 data-nosnippet>555</a>
+<a href=#556 id=556 data-nosnippet>556</a>                hinting_changed = <span class="bool-val">true</span>;
+<a href=#557 id=557 data-nosnippet>557</a>            }
 <a href=#558 id=558 data-nosnippet>558</a>
-<a href=#559 id=559 data-nosnippet>559</a>                hinting_changed = <span class="bool-val">true</span>;
-<a href=#560 id=560 data-nosnippet>560</a>            }
-<a href=#561 id=561 data-nosnippet>561</a>
-<a href=#562 id=562 data-nosnippet>562</a>            <span class="kw">if </span>new_size.<span class="number">0 </span>!= metrics.font_size
-<a href=#563 id=563 data-nosnippet>563</a>                || new_line_height.<span class="number">0 </span>!= metrics.line_height
-<a href=#564 id=564 data-nosnippet>564</a>                || hinting_changed
-<a href=#565 id=565 data-nosnippet>565</a>            {
-<a href=#566 id=566 data-nosnippet>566</a>                <span class="macro">log::trace!</span>(<span class="string">"Updating `Metrics` of `Editor`..."</span>);
-<a href=#567 id=567 data-nosnippet>567</a>
-<a href=#568 id=568 data-nosnippet>568</a>                buffer.set_metrics(
-<a href=#569 id=569 data-nosnippet>569</a>                    font_system.raw(),
-<a href=#570 id=570 data-nosnippet>570</a>                    cosmic_text::Metrics::new(
-<a href=#571 id=571 data-nosnippet>571</a>                        new_size.<span class="number">0 </span>* internal.hint_factor,
-<a href=#572 id=572 data-nosnippet>572</a>                        new_line_height.<span class="number">0 </span>* internal.hint_factor,
-<a href=#573 id=573 data-nosnippet>573</a>                    ),
-<a href=#574 id=574 data-nosnippet>574</a>                );
-<a href=#575 id=575 data-nosnippet>575</a>            }
-<a href=#576 id=576 data-nosnippet>576</a>
-<a href=#577 id=577 data-nosnippet>577</a>            <span class="kw">let </span>new_wrap = text::to_wrap(new_wrapping);
+<a href=#559 id=559 data-nosnippet>559</a>            <span class="kw">if </span>new_size.<span class="number">0 </span>!= metrics.font_size
+<a href=#560 id=560 data-nosnippet>560</a>                || new_line_height.<span class="number">0 </span>!= metrics.line_height
+<a href=#561 id=561 data-nosnippet>561</a>                || hinting_changed
+<a href=#562 id=562 data-nosnippet>562</a>            {
+<a href=#563 id=563 data-nosnippet>563</a>                <span class="macro">log::trace!</span>(<span class="string">"Updating `Metrics` of `Editor`..."</span>);
+<a href=#564 id=564 data-nosnippet>564</a>
+<a href=#565 id=565 data-nosnippet>565</a>                buffer.set_metrics(cosmic_text::Metrics::new(
+<a href=#566 id=566 data-nosnippet>566</a>                    new_size.<span class="number">0 </span>* internal.hint_factor,
+<a href=#567 id=567 data-nosnippet>567</a>                    new_line_height.<span class="number">0 </span>* internal.hint_factor,
+<a href=#568 id=568 data-nosnippet>568</a>                ));
+<a href=#569 id=569 data-nosnippet>569</a>            }
+<a href=#570 id=570 data-nosnippet>570</a>
+<a href=#571 id=571 data-nosnippet>571</a>            <span class="kw">let </span>new_wrap = text::to_wrap(new_wrapping);
+<a href=#572 id=572 data-nosnippet>572</a>
+<a href=#573 id=573 data-nosnippet>573</a>            <span class="kw">if </span>new_wrap != buffer.wrap() {
+<a href=#574 id=574 data-nosnippet>574</a>                <span class="macro">log::trace!</span>(<span class="string">"Updating `Wrap` strategy of `Editor`..."</span>);
+<a href=#575 id=575 data-nosnippet>575</a>
+<a href=#576 id=576 data-nosnippet>576</a>                buffer.set_wrap(new_wrap);
+<a href=#577 id=577 data-nosnippet>577</a>            }
 <a href=#578 id=578 data-nosnippet>578</a>
-<a href=#579 id=579 data-nosnippet>579</a>            <span class="kw">if </span>new_wrap != buffer.wrap() {
-<a href=#580 id=580 data-nosnippet>580</a>                <span class="macro">log::trace!</span>(<span class="string">"Updating `Wrap` strategy of `Editor`..."</span>);
+<a href=#579 id=579 data-nosnippet>579</a>            <span class="kw">if </span>new_bounds != internal.bounds || hinting_changed {
+<a href=#580 id=580 data-nosnippet>580</a>                <span class="macro">log::trace!</span>(<span class="string">"Updating size of `Editor`..."</span>);
 <a href=#581 id=581 data-nosnippet>581</a>
-<a href=#582 id=582 data-nosnippet>582</a>                buffer.set_wrap(font_system.raw(), new_wrap);
-<a href=#583 id=583 data-nosnippet>583</a>            }
-<a href=#584 id=584 data-nosnippet>584</a>
-<a href=#585 id=585 data-nosnippet>585</a>            <span class="kw">if </span>new_bounds != internal.bounds || hinting_changed {
-<a href=#586 id=586 data-nosnippet>586</a>                <span class="macro">log::trace!</span>(<span class="string">"Updating size of `Editor`..."</span>);
-<a href=#587 id=587 data-nosnippet>587</a>
-<a href=#588 id=588 data-nosnippet>588</a>                buffer.set_size(
-<a href=#589 id=589 data-nosnippet>589</a>                    font_system.raw(),
-<a href=#590 id=590 data-nosnippet>590</a>                    <span class="prelude-val">Some</span>(new_bounds.width * internal.hint_factor),
-<a href=#591 id=591 data-nosnippet>591</a>                    <span class="prelude-val">Some</span>(new_bounds.height * internal.hint_factor),
-<a href=#592 id=592 data-nosnippet>592</a>                );
-<a href=#593 id=593 data-nosnippet>593</a>
-<a href=#594 id=594 data-nosnippet>594</a>                internal.bounds = new_bounds;
-<a href=#595 id=595 data-nosnippet>595</a>            }
-<a href=#596 id=596 data-nosnippet>596</a>
-<a href=#597 id=597 data-nosnippet>597</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(topmost_line_changed) = internal.topmost_line_changed.take() {
-<a href=#598 id=598 data-nosnippet>598</a>                <span class="macro">log::trace!</span>(
-<a href=#599 id=599 data-nosnippet>599</a>                    <span class="string">"Notifying highlighter of line \
-<a href=#600 id=600 data-nosnippet>600</a>                    change: {topmost_line_changed}"
-<a href=#601 id=601 data-nosnippet>601</a>                </span>);
-<a href=#602 id=602 data-nosnippet>602</a>
-<a href=#603 id=603 data-nosnippet>603</a>                new_highlighter.change_line(topmost_line_changed);
-<a href=#604 id=604 data-nosnippet>604</a>            }
-<a href=#605 id=605 data-nosnippet>605</a>
-<a href=#606 id=606 data-nosnippet>606</a>            internal.editor.shape_as_needed(font_system.raw(), <span class="bool-val">false</span>);
-<a href=#607 id=607 data-nosnippet>607</a>        });
-<a href=#608 id=608 data-nosnippet>608</a>    }
-<a href=#609 id=609 data-nosnippet>609</a>
-<a href=#610 id=610 data-nosnippet>610</a>    <span class="kw">fn </span>highlight&lt;H: Highlighter&gt;(
-<a href=#611 id=611 data-nosnippet>611</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#612 id=612 data-nosnippet>612</a>        font: <span class="self">Self</span>::Font,
-<a href=#613 id=613 data-nosnippet>613</a>        highlighter: <span class="kw-2">&amp;mut </span>H,
-<a href=#614 id=614 data-nosnippet>614</a>        format_highlight: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>H::Highlight) -&gt; highlighter::Format&lt;<span class="self">Self</span>::Font&gt;,
-<a href=#615 id=615 data-nosnippet>615</a>    ) {
-<a href=#616 id=616 data-nosnippet>616</a>        <span class="kw">let </span>internal = <span class="self">self</span>.internal();
-<a href=#617 id=617 data-nosnippet>617</a>        <span class="kw">let </span>buffer = buffer_from_editor(<span class="kw-2">&amp;</span>internal.editor);
+<a href=#582 id=582 data-nosnippet>582</a>                buffer.set_size(
+<a href=#583 id=583 data-nosnippet>583</a>                    <span class="prelude-val">Some</span>(new_bounds.width * internal.hint_factor),
+<a href=#584 id=584 data-nosnippet>584</a>                    <span class="prelude-val">Some</span>(new_bounds.height * internal.hint_factor),
+<a href=#585 id=585 data-nosnippet>585</a>                );
+<a href=#586 id=586 data-nosnippet>586</a>
+<a href=#587 id=587 data-nosnippet>587</a>                internal.bounds = new_bounds;
+<a href=#588 id=588 data-nosnippet>588</a>            }
+<a href=#589 id=589 data-nosnippet>589</a>
+<a href=#590 id=590 data-nosnippet>590</a>            buffer.shape_until_scroll(font_system.raw(), <span class="bool-val">false</span>);
+<a href=#591 id=591 data-nosnippet>591</a>
+<a href=#592 id=592 data-nosnippet>592</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(topmost_line_changed) = internal.topmost_line_changed.take() {
+<a href=#593 id=593 data-nosnippet>593</a>                <span class="macro">log::trace!</span>(
+<a href=#594 id=594 data-nosnippet>594</a>                    <span class="string">"Notifying highlighter of line \
+<a href=#595 id=595 data-nosnippet>595</a>                    change: {topmost_line_changed}"
+<a href=#596 id=596 data-nosnippet>596</a>                </span>);
+<a href=#597 id=597 data-nosnippet>597</a>
+<a href=#598 id=598 data-nosnippet>598</a>                new_highlighter.change_line(topmost_line_changed);
+<a href=#599 id=599 data-nosnippet>599</a>            }
+<a href=#600 id=600 data-nosnippet>600</a>
+<a href=#601 id=601 data-nosnippet>601</a>            internal.editor.shape_as_needed(font_system.raw(), <span class="bool-val">false</span>);
+<a href=#602 id=602 data-nosnippet>602</a>        });
+<a href=#603 id=603 data-nosnippet>603</a>    }
+<a href=#604 id=604 data-nosnippet>604</a>
+<a href=#605 id=605 data-nosnippet>605</a>    <span class="kw">fn </span>highlight&lt;H: Highlighter&gt;(
+<a href=#606 id=606 data-nosnippet>606</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#607 id=607 data-nosnippet>607</a>        font: <span class="self">Self</span>::Font,
+<a href=#608 id=608 data-nosnippet>608</a>        highlighter: <span class="kw-2">&amp;mut </span>H,
+<a href=#609 id=609 data-nosnippet>609</a>        format_highlight: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>H::Highlight) -&gt; highlighter::Format&lt;<span class="self">Self</span>::Font&gt;,
+<a href=#610 id=610 data-nosnippet>610</a>    ) {
+<a href=#611 id=611 data-nosnippet>611</a>        <span class="kw">let </span>internal = <span class="self">self</span>.internal();
+<a href=#612 id=612 data-nosnippet>612</a>        <span class="kw">let </span>buffer = buffer_from_editor(<span class="kw-2">&amp;</span>internal.editor);
+<a href=#613 id=613 data-nosnippet>613</a>
+<a href=#614 id=614 data-nosnippet>614</a>        <span class="kw">let </span>scroll = buffer.scroll();
+<a href=#615 id=615 data-nosnippet>615</a>        <span class="kw">let </span><span class="kw-2">mut </span>window = (internal.bounds.height * internal.hint_factor
+<a href=#616 id=616 data-nosnippet>616</a>            / buffer.metrics().line_height)
+<a href=#617 id=617 data-nosnippet>617</a>            .ceil() <span class="kw">as </span>i32;
 <a href=#618 id=618 data-nosnippet>618</a>
-<a href=#619 id=619 data-nosnippet>619</a>        <span class="kw">let </span>scroll = buffer.scroll();
-<a href=#620 id=620 data-nosnippet>620</a>        <span class="kw">let </span><span class="kw-2">mut </span>window = (internal.bounds.height * internal.hint_factor
-<a href=#621 id=621 data-nosnippet>621</a>            / buffer.metrics().line_height)
-<a href=#622 id=622 data-nosnippet>622</a>            .ceil() <span class="kw">as </span>i32;
-<a href=#623 id=623 data-nosnippet>623</a>
-<a href=#624 id=624 data-nosnippet>624</a>        <span class="kw">let </span>last_visible_line = buffer.lines[scroll.line..]
-<a href=#625 id=625 data-nosnippet>625</a>            .iter()
-<a href=#626 id=626 data-nosnippet>626</a>            .enumerate()
-<a href=#627 id=627 data-nosnippet>627</a>            .find_map(|(i, line)| {
-<a href=#628 id=628 data-nosnippet>628</a>                <span class="kw">let </span>visible_lines = line
-<a href=#629 id=629 data-nosnippet>629</a>                    .layout_opt()
-<a href=#630 id=630 data-nosnippet>630</a>                    .as_ref()
-<a href=#631 id=631 data-nosnippet>631</a>                    .expect(<span class="string">"Line layout should be cached"</span>)
-<a href=#632 id=632 data-nosnippet>632</a>                    .len() <span class="kw">as </span>i32;
-<a href=#633 id=633 data-nosnippet>633</a>
-<a href=#634 id=634 data-nosnippet>634</a>                <span class="kw">if </span>window &gt; visible_lines {
-<a href=#635 id=635 data-nosnippet>635</a>                    window -= visible_lines;
-<a href=#636 id=636 data-nosnippet>636</a>                    <span class="prelude-val">None
-<a href=#637 id=637 data-nosnippet>637</a>                </span>} <span class="kw">else </span>{
-<a href=#638 id=638 data-nosnippet>638</a>                    <span class="prelude-val">Some</span>(scroll.line + i)
-<a href=#639 id=639 data-nosnippet>639</a>                }
-<a href=#640 id=640 data-nosnippet>640</a>            })
-<a href=#641 id=641 data-nosnippet>641</a>            .unwrap_or(buffer.lines.len().saturating_sub(<span class="number">1</span>));
-<a href=#642 id=642 data-nosnippet>642</a>
-<a href=#643 id=643 data-nosnippet>643</a>        <span class="kw">let </span>current_line = highlighter.current_line();
-<a href=#644 id=644 data-nosnippet>644</a>
-<a href=#645 id=645 data-nosnippet>645</a>        <span class="kw">if </span>current_line &gt; last_visible_line {
-<a href=#646 id=646 data-nosnippet>646</a>            <span class="kw">return</span>;
-<a href=#647 id=647 data-nosnippet>647</a>        }
+<a href=#619 id=619 data-nosnippet>619</a>        <span class="kw">let </span>last_visible_line = buffer.lines[scroll.line..]
+<a href=#620 id=620 data-nosnippet>620</a>            .iter()
+<a href=#621 id=621 data-nosnippet>621</a>            .enumerate()
+<a href=#622 id=622 data-nosnippet>622</a>            .find_map(|(i, line)| {
+<a href=#623 id=623 data-nosnippet>623</a>                <span class="kw">let </span>visible_lines = line
+<a href=#624 id=624 data-nosnippet>624</a>                    .layout_opt()
+<a href=#625 id=625 data-nosnippet>625</a>                    .as_ref()
+<a href=#626 id=626 data-nosnippet>626</a>                    .expect(<span class="string">"Line layout should be cached"</span>)
+<a href=#627 id=627 data-nosnippet>627</a>                    .len() <span class="kw">as </span>i32;
+<a href=#628 id=628 data-nosnippet>628</a>
+<a href=#629 id=629 data-nosnippet>629</a>                <span class="kw">if </span>window &gt; visible_lines {
+<a href=#630 id=630 data-nosnippet>630</a>                    window -= visible_lines;
+<a href=#631 id=631 data-nosnippet>631</a>                    <span class="prelude-val">None
+<a href=#632 id=632 data-nosnippet>632</a>                </span>} <span class="kw">else </span>{
+<a href=#633 id=633 data-nosnippet>633</a>                    <span class="prelude-val">Some</span>(scroll.line + i)
+<a href=#634 id=634 data-nosnippet>634</a>                }
+<a href=#635 id=635 data-nosnippet>635</a>            })
+<a href=#636 id=636 data-nosnippet>636</a>            .unwrap_or(buffer.lines.len().saturating_sub(<span class="number">1</span>));
+<a href=#637 id=637 data-nosnippet>637</a>
+<a href=#638 id=638 data-nosnippet>638</a>        <span class="kw">let </span>current_line = highlighter.current_line();
+<a href=#639 id=639 data-nosnippet>639</a>
+<a href=#640 id=640 data-nosnippet>640</a>        <span class="kw">if </span>current_line &gt; last_visible_line {
+<a href=#641 id=641 data-nosnippet>641</a>            <span class="kw">return</span>;
+<a href=#642 id=642 data-nosnippet>642</a>        }
+<a href=#643 id=643 data-nosnippet>643</a>
+<a href=#644 id=644 data-nosnippet>644</a>        <span class="kw">let </span>editor = <span class="self">self</span>.<span class="number">0</span>.take().expect(<span class="string">"Editor should always be initialized"</span>);
+<a href=#645 id=645 data-nosnippet>645</a>
+<a href=#646 id=646 data-nosnippet>646</a>        <span class="kw">let </span><span class="kw-2">mut </span>internal =
+<a href=#647 id=647 data-nosnippet>647</a>            Arc::try_unwrap(editor).expect(<span class="string">"Editor cannot have multiple strong references"</span>);
 <a href=#648 id=648 data-nosnippet>648</a>
-<a href=#649 id=649 data-nosnippet>649</a>        <span class="kw">let </span>editor = <span class="self">self</span>.<span class="number">0</span>.take().expect(<span class="string">"Editor should always be initialized"</span>);
+<a href=#649 id=649 data-nosnippet>649</a>        <span class="kw">let </span><span class="kw-2">mut </span>font_system = text::font_system().write().expect(<span class="string">"Write font system"</span>);
 <a href=#650 id=650 data-nosnippet>650</a>
-<a href=#651 id=651 data-nosnippet>651</a>        <span class="kw">let </span><span class="kw-2">mut </span>internal =
-<a href=#652 id=652 data-nosnippet>652</a>            Arc::try_unwrap(editor).expect(<span class="string">"Editor cannot have multiple strong references"</span>);
-<a href=#653 id=653 data-nosnippet>653</a>
-<a href=#654 id=654 data-nosnippet>654</a>        <span class="kw">let </span><span class="kw-2">mut </span>font_system = text::font_system().write().expect(<span class="string">"Write font system"</span>);
-<a href=#655 id=655 data-nosnippet>655</a>
-<a href=#656 id=656 data-nosnippet>656</a>        <span class="kw">let </span>attributes = text::to_attributes(font);
+<a href=#651 id=651 data-nosnippet>651</a>        <span class="kw">let </span>attributes = text::to_attributes(font);
+<a href=#652 id=652 data-nosnippet>652</a>
+<a href=#653 id=653 data-nosnippet>653</a>        <span class="kw">for </span>line <span class="kw">in </span><span class="kw-2">&amp;mut </span>buffer_mut_from_editor(<span class="kw-2">&amp;mut </span>internal.editor).lines
+<a href=#654 id=654 data-nosnippet>654</a>            [current_line..=last_visible_line]
+<a href=#655 id=655 data-nosnippet>655</a>        {
+<a href=#656 id=656 data-nosnippet>656</a>            <span class="kw">let </span><span class="kw-2">mut </span>list = cosmic_text::AttrsList::new(<span class="kw-2">&amp;</span>attributes);
 <a href=#657 id=657 data-nosnippet>657</a>
-<a href=#658 id=658 data-nosnippet>658</a>        <span class="kw">for </span>line <span class="kw">in </span><span class="kw-2">&amp;mut </span>buffer_mut_from_editor(<span class="kw-2">&amp;mut </span>internal.editor).lines
-<a href=#659 id=659 data-nosnippet>659</a>            [current_line..=last_visible_line]
-<a href=#660 id=660 data-nosnippet>660</a>        {
-<a href=#661 id=661 data-nosnippet>661</a>            <span class="kw">let </span><span class="kw-2">mut </span>list = cosmic_text::AttrsList::new(<span class="kw-2">&amp;</span>attributes);
-<a href=#662 id=662 data-nosnippet>662</a>
-<a href=#663 id=663 data-nosnippet>663</a>            <span class="kw">for </span>(range, highlight) <span class="kw">in </span>highlighter.highlight_line(line.text()) {
-<a href=#664 id=664 data-nosnippet>664</a>                <span class="kw">let </span>format = format_highlight(<span class="kw-2">&amp;</span>highlight);
-<a href=#665 id=665 data-nosnippet>665</a>
-<a href=#666 id=666 data-nosnippet>666</a>                <span class="kw">if </span>format.color.is_some() || format.font.is_some() {
-<a href=#667 id=667 data-nosnippet>667</a>                    list.add_span(
-<a href=#668 id=668 data-nosnippet>668</a>                        range,
-<a href=#669 id=669 data-nosnippet>669</a>                        <span class="kw-2">&amp;</span>cosmic_text::Attrs {
-<a href=#670 id=670 data-nosnippet>670</a>                            color_opt: format.color.map(text::to_color),
-<a href=#671 id=671 data-nosnippet>671</a>                            ..<span class="kw">if let </span><span class="prelude-val">Some</span>(font) = format.font {
-<a href=#672 id=672 data-nosnippet>672</a>                                text::to_attributes(font)
-<a href=#673 id=673 data-nosnippet>673</a>                            } <span class="kw">else </span>{
-<a href=#674 id=674 data-nosnippet>674</a>                                attributes.clone()
-<a href=#675 id=675 data-nosnippet>675</a>                            }
-<a href=#676 id=676 data-nosnippet>676</a>                        },
-<a href=#677 id=677 data-nosnippet>677</a>                    );
-<a href=#678 id=678 data-nosnippet>678</a>                }
-<a href=#679 id=679 data-nosnippet>679</a>            }
+<a href=#658 id=658 data-nosnippet>658</a>            <span class="kw">for </span>(range, highlight) <span class="kw">in </span>highlighter.highlight_line(line.text()) {
+<a href=#659 id=659 data-nosnippet>659</a>                <span class="kw">let </span>format = format_highlight(<span class="kw-2">&amp;</span>highlight);
+<a href=#660 id=660 data-nosnippet>660</a>
+<a href=#661 id=661 data-nosnippet>661</a>                <span class="kw">if </span>format.color.is_some() || format.font.is_some() {
+<a href=#662 id=662 data-nosnippet>662</a>                    list.add_span(
+<a href=#663 id=663 data-nosnippet>663</a>                        range,
+<a href=#664 id=664 data-nosnippet>664</a>                        <span class="kw-2">&amp;</span>cosmic_text::Attrs {
+<a href=#665 id=665 data-nosnippet>665</a>                            color_opt: format.color.map(text::to_color),
+<a href=#666 id=666 data-nosnippet>666</a>                            ..<span class="kw">if let </span><span class="prelude-val">Some</span>(font) = format.font {
+<a href=#667 id=667 data-nosnippet>667</a>                                text::to_attributes(font)
+<a href=#668 id=668 data-nosnippet>668</a>                            } <span class="kw">else </span>{
+<a href=#669 id=669 data-nosnippet>669</a>                                attributes.clone()
+<a href=#670 id=670 data-nosnippet>670</a>                            }
+<a href=#671 id=671 data-nosnippet>671</a>                        },
+<a href=#672 id=672 data-nosnippet>672</a>                    );
+<a href=#673 id=673 data-nosnippet>673</a>                }
+<a href=#674 id=674 data-nosnippet>674</a>            }
+<a href=#675 id=675 data-nosnippet>675</a>
+<a href=#676 id=676 data-nosnippet>676</a>            <span class="kw">let _ </span>= line.set_attrs_list(list);
+<a href=#677 id=677 data-nosnippet>677</a>        }
+<a href=#678 id=678 data-nosnippet>678</a>
+<a href=#679 id=679 data-nosnippet>679</a>        internal.editor.shape_as_needed(font_system.raw(), <span class="bool-val">false</span>);
 <a href=#680 id=680 data-nosnippet>680</a>
-<a href=#681 id=681 data-nosnippet>681</a>            <span class="kw">let _ </span>= line.set_attrs_list(list);
-<a href=#682 id=682 data-nosnippet>682</a>        }
-<a href=#683 id=683 data-nosnippet>683</a>
-<a href=#684 id=684 data-nosnippet>684</a>        internal.editor.shape_as_needed(font_system.raw(), <span class="bool-val">false</span>);
-<a href=#685 id=685 data-nosnippet>685</a>
-<a href=#686 id=686 data-nosnippet>686</a>        <span class="self">self</span>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(Arc::new(internal));
-<a href=#687 id=687 data-nosnippet>687</a>    }
-<a href=#688 id=688 data-nosnippet>688</a>}
-<a href=#689 id=689 data-nosnippet>689</a>
-<a href=#690 id=690 data-nosnippet>690</a><span class="kw">impl </span>Default <span class="kw">for </span>Editor {
-<a href=#691 id=691 data-nosnippet>691</a>    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-<a href=#692 id=692 data-nosnippet>692</a>        <span class="self">Self</span>(<span class="prelude-val">Some</span>(Arc::new(Internal::default())))
-<a href=#693 id=693 data-nosnippet>693</a>    }
-<a href=#694 id=694 data-nosnippet>694</a>}
-<a href=#695 id=695 data-nosnippet>695</a>
-<a href=#696 id=696 data-nosnippet>696</a><span class="kw">impl </span>PartialEq <span class="kw">for </span>Internal {
-<a href=#697 id=697 data-nosnippet>697</a>    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-<a href=#698 id=698 data-nosnippet>698</a>        <span class="self">self</span>.font == other.font
-<a href=#699 id=699 data-nosnippet>699</a>            &amp;&amp; <span class="self">self</span>.bounds == other.bounds
-<a href=#700 id=700 data-nosnippet>700</a>            &amp;&amp; buffer_from_editor(<span class="kw-2">&amp;</span><span class="self">self</span>.editor).metrics()
-<a href=#701 id=701 data-nosnippet>701</a>                == buffer_from_editor(<span class="kw-2">&amp;</span>other.editor).metrics()
-<a href=#702 id=702 data-nosnippet>702</a>    }
-<a href=#703 id=703 data-nosnippet>703</a>}
-<a href=#704 id=704 data-nosnippet>704</a>
-<a href=#705 id=705 data-nosnippet>705</a><span class="kw">impl </span>Default <span class="kw">for </span>Internal {
-<a href=#706 id=706 data-nosnippet>706</a>    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-<a href=#707 id=707 data-nosnippet>707</a>        <span class="self">Self </span>{
-<a href=#708 id=708 data-nosnippet>708</a>            editor: cosmic_text::Editor::new(cosmic_text::Buffer::new_empty(
-<a href=#709 id=709 data-nosnippet>709</a>                cosmic_text::Metrics {
-<a href=#710 id=710 data-nosnippet>710</a>                    font_size: <span class="number">1.0</span>,
-<a href=#711 id=711 data-nosnippet>711</a>                    line_height: <span class="number">1.0</span>,
-<a href=#712 id=712 data-nosnippet>712</a>                },
-<a href=#713 id=713 data-nosnippet>713</a>            )),
-<a href=#714 id=714 data-nosnippet>714</a>            selection: RwLock::new(<span class="prelude-val">None</span>),
-<a href=#715 id=715 data-nosnippet>715</a>            font: Font::default(),
-<a href=#716 id=716 data-nosnippet>716</a>            bounds: Size::ZERO,
-<a href=#717 id=717 data-nosnippet>717</a>            topmost_line_changed: <span class="prelude-val">None</span>,
-<a href=#718 id=718 data-nosnippet>718</a>            hint: <span class="bool-val">false</span>,
-<a href=#719 id=719 data-nosnippet>719</a>            hint_factor: <span class="number">1.0</span>,
-<a href=#720 id=720 data-nosnippet>720</a>            version: text::Version::default(),
-<a href=#721 id=721 data-nosnippet>721</a>        }
-<a href=#722 id=722 data-nosnippet>722</a>    }
-<a href=#723 id=723 data-nosnippet>723</a>}
-<a href=#724 id=724 data-nosnippet>724</a>
-<a href=#725 id=725 data-nosnippet>725</a><span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Internal {
-<a href=#726 id=726 data-nosnippet>726</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-<a href=#727 id=727 data-nosnippet>727</a>        f.debug_struct(<span class="string">"Internal"</span>)
-<a href=#728 id=728 data-nosnippet>728</a>            .field(<span class="string">"font"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.font)
-<a href=#729 id=729 data-nosnippet>729</a>            .field(<span class="string">"bounds"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.bounds)
-<a href=#730 id=730 data-nosnippet>730</a>            .finish()
-<a href=#731 id=731 data-nosnippet>731</a>    }
-<a href=#732 id=732 data-nosnippet>732</a>}
-<a href=#733 id=733 data-nosnippet>733</a>
-<a href=#734 id=734 data-nosnippet>734</a><span class="doccomment">/// A weak reference to an [`Editor`].
-<a href=#735 id=735 data-nosnippet>735</a></span><span class="attr">#[derive(Debug, Clone)]
-<a href=#736 id=736 data-nosnippet>736</a></span><span class="kw">pub struct </span>Weak {
-<a href=#737 id=737 data-nosnippet>737</a>    raw: sync::Weak&lt;Internal&gt;,
-<a href=#738 id=738 data-nosnippet>738</a>    <span class="doccomment">/// The bounds of the [`Editor`].
-<a href=#739 id=739 data-nosnippet>739</a>    </span><span class="kw">pub </span>bounds: Size,
-<a href=#740 id=740 data-nosnippet>740</a>}
-<a href=#741 id=741 data-nosnippet>741</a>
-<a href=#742 id=742 data-nosnippet>742</a><span class="kw">impl </span>Weak {
-<a href=#743 id=743 data-nosnippet>743</a>    <span class="doccomment">/// Tries to update the reference into an [`Editor`].
-<a href=#744 id=744 data-nosnippet>744</a>    </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Editor&gt; {
-<a href=#745 id=745 data-nosnippet>745</a>        <span class="self">self</span>.raw.upgrade().map(<span class="prelude-val">Some</span>).map(Editor)
-<a href=#746 id=746 data-nosnippet>746</a>    }
-<a href=#747 id=747 data-nosnippet>747</a>}
-<a href=#748 id=748 data-nosnippet>748</a>
-<a href=#749 id=749 data-nosnippet>749</a><span class="kw">impl </span>PartialEq <span class="kw">for </span>Weak {
-<a href=#750 id=750 data-nosnippet>750</a>    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
-<a href=#751 id=751 data-nosnippet>751</a>        <span class="kw">match </span>(<span class="self">self</span>.raw.upgrade(), other.raw.upgrade()) {
-<a href=#752 id=752 data-nosnippet>752</a>            (<span class="prelude-val">Some</span>(p1), <span class="prelude-val">Some</span>(p2)) =&gt; p1 == p2,
-<a href=#753 id=753 data-nosnippet>753</a>            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-<a href=#754 id=754 data-nosnippet>754</a>        }
-<a href=#755 id=755 data-nosnippet>755</a>    }
-<a href=#756 id=756 data-nosnippet>756</a>}
-<a href=#757 id=757 data-nosnippet>757</a>
-<a href=#758 id=758 data-nosnippet>758</a><span class="kw">fn </span>highlight_line(
-<a href=#759 id=759 data-nosnippet>759</a>    line: <span class="kw-2">&amp;</span>cosmic_text::BufferLine,
-<a href=#760 id=760 data-nosnippet>760</a>    from: usize,
-<a href=#761 id=761 data-nosnippet>761</a>    to: usize,
-<a href=#762 id=762 data-nosnippet>762</a>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (f32, f32)&gt; + <span class="lifetime">'_ </span>{
-<a href=#763 id=763 data-nosnippet>763</a>    <span class="kw">let </span>layout = line.layout_opt().map(Vec::as_slice).unwrap_or_default();
-<a href=#764 id=764 data-nosnippet>764</a>
-<a href=#765 id=765 data-nosnippet>765</a>    layout.iter().map(<span class="kw">move </span>|visual_line| {
-<a href=#766 id=766 data-nosnippet>766</a>        <span class="kw">let </span>start = visual_line
+<a href=#681 id=681 data-nosnippet>681</a>        <span class="self">self</span>.<span class="number">0 </span>= <span class="prelude-val">Some</span>(Arc::new(internal));
+<a href=#682 id=682 data-nosnippet>682</a>    }
+<a href=#683 id=683 data-nosnippet>683</a>}
+<a href=#684 id=684 data-nosnippet>684</a>
+<a href=#685 id=685 data-nosnippet>685</a><span class="kw">impl </span>Default <span class="kw">for </span>Editor {
+<a href=#686 id=686 data-nosnippet>686</a>    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+<a href=#687 id=687 data-nosnippet>687</a>        <span class="self">Self</span>(<span class="prelude-val">Some</span>(Arc::new(Internal::default())))
+<a href=#688 id=688 data-nosnippet>688</a>    }
+<a href=#689 id=689 data-nosnippet>689</a>}
+<a href=#690 id=690 data-nosnippet>690</a>
+<a href=#691 id=691 data-nosnippet>691</a><span class="kw">impl </span>PartialEq <span class="kw">for </span>Internal {
+<a href=#692 id=692 data-nosnippet>692</a>    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+<a href=#693 id=693 data-nosnippet>693</a>        <span class="self">self</span>.font == other.font
+<a href=#694 id=694 data-nosnippet>694</a>            &amp;&amp; <span class="self">self</span>.bounds == other.bounds
+<a href=#695 id=695 data-nosnippet>695</a>            &amp;&amp; buffer_from_editor(<span class="kw-2">&amp;</span><span class="self">self</span>.editor).metrics()
+<a href=#696 id=696 data-nosnippet>696</a>                == buffer_from_editor(<span class="kw-2">&amp;</span>other.editor).metrics()
+<a href=#697 id=697 data-nosnippet>697</a>    }
+<a href=#698 id=698 data-nosnippet>698</a>}
+<a href=#699 id=699 data-nosnippet>699</a>
+<a href=#700 id=700 data-nosnippet>700</a><span class="kw">impl </span>Default <span class="kw">for </span>Internal {
+<a href=#701 id=701 data-nosnippet>701</a>    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+<a href=#702 id=702 data-nosnippet>702</a>        <span class="self">Self </span>{
+<a href=#703 id=703 data-nosnippet>703</a>            editor: cosmic_text::Editor::new(cosmic_text::Buffer::new_empty(
+<a href=#704 id=704 data-nosnippet>704</a>                cosmic_text::Metrics {
+<a href=#705 id=705 data-nosnippet>705</a>                    font_size: <span class="number">1.0</span>,
+<a href=#706 id=706 data-nosnippet>706</a>                    line_height: <span class="number">1.0</span>,
+<a href=#707 id=707 data-nosnippet>707</a>                },
+<a href=#708 id=708 data-nosnippet>708</a>            )),
+<a href=#709 id=709 data-nosnippet>709</a>            selection: RwLock::new(<span class="prelude-val">None</span>),
+<a href=#710 id=710 data-nosnippet>710</a>            font: Font::default(),
+<a href=#711 id=711 data-nosnippet>711</a>            bounds: Size::ZERO,
+<a href=#712 id=712 data-nosnippet>712</a>            topmost_line_changed: <span class="prelude-val">None</span>,
+<a href=#713 id=713 data-nosnippet>713</a>            hint: <span class="bool-val">false</span>,
+<a href=#714 id=714 data-nosnippet>714</a>            hint_factor: <span class="number">1.0</span>,
+<a href=#715 id=715 data-nosnippet>715</a>            version: text::Version::default(),
+<a href=#716 id=716 data-nosnippet>716</a>        }
+<a href=#717 id=717 data-nosnippet>717</a>    }
+<a href=#718 id=718 data-nosnippet>718</a>}
+<a href=#719 id=719 data-nosnippet>719</a>
+<a href=#720 id=720 data-nosnippet>720</a><span class="kw">impl </span>fmt::Debug <span class="kw">for </span>Internal {
+<a href=#721 id=721 data-nosnippet>721</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#722 id=722 data-nosnippet>722</a>        f.debug_struct(<span class="string">"Internal"</span>)
+<a href=#723 id=723 data-nosnippet>723</a>            .field(<span class="string">"font"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.font)
+<a href=#724 id=724 data-nosnippet>724</a>            .field(<span class="string">"bounds"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.bounds)
+<a href=#725 id=725 data-nosnippet>725</a>            .finish()
+<a href=#726 id=726 data-nosnippet>726</a>    }
+<a href=#727 id=727 data-nosnippet>727</a>}
+<a href=#728 id=728 data-nosnippet>728</a>
+<a href=#729 id=729 data-nosnippet>729</a><span class="doccomment">/// A weak reference to an [`Editor`].
+<a href=#730 id=730 data-nosnippet>730</a></span><span class="attr">#[derive(Debug, Clone)]
+<a href=#731 id=731 data-nosnippet>731</a></span><span class="kw">pub struct </span>Weak {
+<a href=#732 id=732 data-nosnippet>732</a>    raw: sync::Weak&lt;Internal&gt;,
+<a href=#733 id=733 data-nosnippet>733</a>    <span class="doccomment">/// The bounds of the [`Editor`].
+<a href=#734 id=734 data-nosnippet>734</a>    </span><span class="kw">pub </span>bounds: Size,
+<a href=#735 id=735 data-nosnippet>735</a>}
+<a href=#736 id=736 data-nosnippet>736</a>
+<a href=#737 id=737 data-nosnippet>737</a><span class="kw">impl </span>Weak {
+<a href=#738 id=738 data-nosnippet>738</a>    <span class="doccomment">/// Tries to update the reference into an [`Editor`].
+<a href=#739 id=739 data-nosnippet>739</a>    </span><span class="kw">pub fn </span>upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Editor&gt; {
+<a href=#740 id=740 data-nosnippet>740</a>        <span class="self">self</span>.raw.upgrade().map(<span class="prelude-val">Some</span>).map(Editor)
+<a href=#741 id=741 data-nosnippet>741</a>    }
+<a href=#742 id=742 data-nosnippet>742</a>}
+<a href=#743 id=743 data-nosnippet>743</a>
+<a href=#744 id=744 data-nosnippet>744</a><span class="kw">impl </span>PartialEq <span class="kw">for </span>Weak {
+<a href=#745 id=745 data-nosnippet>745</a>    <span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+<a href=#746 id=746 data-nosnippet>746</a>        <span class="kw">match </span>(<span class="self">self</span>.raw.upgrade(), other.raw.upgrade()) {
+<a href=#747 id=747 data-nosnippet>747</a>            (<span class="prelude-val">Some</span>(p1), <span class="prelude-val">Some</span>(p2)) =&gt; p1 == p2,
+<a href=#748 id=748 data-nosnippet>748</a>            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+<a href=#749 id=749 data-nosnippet>749</a>        }
+<a href=#750 id=750 data-nosnippet>750</a>    }
+<a href=#751 id=751 data-nosnippet>751</a>}
+<a href=#752 id=752 data-nosnippet>752</a>
+<a href=#753 id=753 data-nosnippet>753</a><span class="kw">fn </span>highlight_line(
+<a href=#754 id=754 data-nosnippet>754</a>    line: <span class="kw-2">&amp;</span>cosmic_text::BufferLine,
+<a href=#755 id=755 data-nosnippet>755</a>    from: usize,
+<a href=#756 id=756 data-nosnippet>756</a>    to: usize,
+<a href=#757 id=757 data-nosnippet>757</a>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (f32, f32)&gt; + <span class="lifetime">'_ </span>{
+<a href=#758 id=758 data-nosnippet>758</a>    <span class="kw">let </span>layout = line.layout_opt().map(Vec::as_slice).unwrap_or_default();
+<a href=#759 id=759 data-nosnippet>759</a>
+<a href=#760 id=760 data-nosnippet>760</a>    layout.iter().map(<span class="kw">move </span>|visual_line| {
+<a href=#761 id=761 data-nosnippet>761</a>        <span class="kw">let </span>start = visual_line
+<a href=#762 id=762 data-nosnippet>762</a>            .glyphs
+<a href=#763 id=763 data-nosnippet>763</a>            .first()
+<a href=#764 id=764 data-nosnippet>764</a>            .map(|glyph| glyph.start)
+<a href=#765 id=765 data-nosnippet>765</a>            .unwrap_or(<span class="number">0</span>);
+<a href=#766 id=766 data-nosnippet>766</a>        <span class="kw">let </span>end = visual_line
 <a href=#767 id=767 data-nosnippet>767</a>            .glyphs
-<a href=#768 id=768 data-nosnippet>768</a>            .first()
-<a href=#769 id=769 data-nosnippet>769</a>            .map(|glyph| glyph.start)
+<a href=#768 id=768 data-nosnippet>768</a>            .last()
+<a href=#769 id=769 data-nosnippet>769</a>            .map(|glyph| glyph.end)
 <a href=#770 id=770 data-nosnippet>770</a>            .unwrap_or(<span class="number">0</span>);
-<a href=#771 id=771 data-nosnippet>771</a>        <span class="kw">let </span>end = visual_line
-<a href=#772 id=772 data-nosnippet>772</a>            .glyphs
-<a href=#773 id=773 data-nosnippet>773</a>            .last()
-<a href=#774 id=774 data-nosnippet>774</a>            .map(|glyph| glyph.end)
-<a href=#775 id=775 data-nosnippet>775</a>            .unwrap_or(<span class="number">0</span>);
-<a href=#776 id=776 data-nosnippet>776</a>
-<a href=#777 id=777 data-nosnippet>777</a>        <span class="kw">let </span>range = start.max(from)..end.min(to);
-<a href=#778 id=778 data-nosnippet>778</a>
-<a href=#779 id=779 data-nosnippet>779</a>        <span class="kw">if </span>range.is_empty() {
-<a href=#780 id=780 data-nosnippet>780</a>            (<span class="number">0.0</span>, <span class="number">0.0</span>)
-<a href=#781 id=781 data-nosnippet>781</a>        } <span class="kw">else if </span>range.start == start &amp;&amp; range.end == end {
-<a href=#782 id=782 data-nosnippet>782</a>            (<span class="number">0.0</span>, visual_line.w)
-<a href=#783 id=783 data-nosnippet>783</a>        } <span class="kw">else </span>{
-<a href=#784 id=784 data-nosnippet>784</a>            <span class="kw">let </span>first_glyph = visual_line
-<a href=#785 id=785 data-nosnippet>785</a>                .glyphs
-<a href=#786 id=786 data-nosnippet>786</a>                .iter()
-<a href=#787 id=787 data-nosnippet>787</a>                .position(|glyph| range.start &lt;= glyph.start)
-<a href=#788 id=788 data-nosnippet>788</a>                .unwrap_or(<span class="number">0</span>);
-<a href=#789 id=789 data-nosnippet>789</a>
-<a href=#790 id=790 data-nosnippet>790</a>            <span class="kw">let </span><span class="kw-2">mut </span>glyphs = visual_line.glyphs.iter();
-<a href=#791 id=791 data-nosnippet>791</a>
-<a href=#792 id=792 data-nosnippet>792</a>            <span class="kw">let </span>x = glyphs.by_ref().take(first_glyph).map(|glyph| glyph.w).sum();
+<a href=#771 id=771 data-nosnippet>771</a>
+<a href=#772 id=772 data-nosnippet>772</a>        <span class="kw">let </span>range = start.max(from)..end.min(to);
+<a href=#773 id=773 data-nosnippet>773</a>
+<a href=#774 id=774 data-nosnippet>774</a>        <span class="kw">if </span>range.is_empty() {
+<a href=#775 id=775 data-nosnippet>775</a>            (<span class="number">0.0</span>, <span class="number">0.0</span>)
+<a href=#776 id=776 data-nosnippet>776</a>        } <span class="kw">else if </span>range.start == start &amp;&amp; range.end == end {
+<a href=#777 id=777 data-nosnippet>777</a>            (<span class="number">0.0</span>, visual_line.w)
+<a href=#778 id=778 data-nosnippet>778</a>        } <span class="kw">else </span>{
+<a href=#779 id=779 data-nosnippet>779</a>            <span class="kw">let </span>first_glyph = visual_line
+<a href=#780 id=780 data-nosnippet>780</a>                .glyphs
+<a href=#781 id=781 data-nosnippet>781</a>                .iter()
+<a href=#782 id=782 data-nosnippet>782</a>                .position(|glyph| range.start &lt;= glyph.start)
+<a href=#783 id=783 data-nosnippet>783</a>                .unwrap_or(<span class="number">0</span>);
+<a href=#784 id=784 data-nosnippet>784</a>
+<a href=#785 id=785 data-nosnippet>785</a>            <span class="kw">let </span><span class="kw-2">mut </span>glyphs = visual_line.glyphs.iter();
+<a href=#786 id=786 data-nosnippet>786</a>
+<a href=#787 id=787 data-nosnippet>787</a>            <span class="kw">let </span>x = glyphs.by_ref().take(first_glyph).map(|glyph| glyph.w).sum();
+<a href=#788 id=788 data-nosnippet>788</a>
+<a href=#789 id=789 data-nosnippet>789</a>            <span class="kw">let </span>width: f32 = glyphs
+<a href=#790 id=790 data-nosnippet>790</a>                .take_while(|glyph| range.end &gt; glyph.start)
+<a href=#791 id=791 data-nosnippet>791</a>                .map(|glyph| glyph.w)
+<a href=#792 id=792 data-nosnippet>792</a>                .sum();
 <a href=#793 id=793 data-nosnippet>793</a>
-<a href=#794 id=794 data-nosnippet>794</a>            <span class="kw">let </span>width: f32 = glyphs
-<a href=#795 id=795 data-nosnippet>795</a>                .take_while(|glyph| range.end &gt; glyph.start)
-<a href=#796 id=796 data-nosnippet>796</a>                .map(|glyph| glyph.w)
-<a href=#797 id=797 data-nosnippet>797</a>                .sum();
+<a href=#794 id=794 data-nosnippet>794</a>            (x, width)
+<a href=#795 id=795 data-nosnippet>795</a>        }
+<a href=#796 id=796 data-nosnippet>796</a>    })
+<a href=#797 id=797 data-nosnippet>797</a>}
 <a href=#798 id=798 data-nosnippet>798</a>
-<a href=#799 id=799 data-nosnippet>799</a>            (x, width)
-<a href=#800 id=800 data-nosnippet>800</a>        }
-<a href=#801 id=801 data-nosnippet>801</a>    })
-<a href=#802 id=802 data-nosnippet>802</a>}
-<a href=#803 id=803 data-nosnippet>803</a>
-<a href=#804 id=804 data-nosnippet>804</a><span class="kw">fn </span>visual_lines_offset(line: usize, buffer: <span class="kw-2">&amp;</span>cosmic_text::Buffer) -&gt; i32 {
-<a href=#805 id=805 data-nosnippet>805</a>    <span class="kw">let </span>scroll = buffer.scroll();
-<a href=#806 id=806 data-nosnippet>806</a>
-<a href=#807 id=807 data-nosnippet>807</a>    <span class="kw">let </span>start = scroll.line.min(line);
-<a href=#808 id=808 data-nosnippet>808</a>    <span class="kw">let </span>end = scroll.line.max(line);
-<a href=#809 id=809 data-nosnippet>809</a>
-<a href=#810 id=810 data-nosnippet>810</a>    <span class="kw">let </span>visual_lines_offset: usize = buffer.lines[start..]
-<a href=#811 id=811 data-nosnippet>811</a>        .iter()
-<a href=#812 id=812 data-nosnippet>812</a>        .take(end - start)
-<a href=#813 id=813 data-nosnippet>813</a>        .map(|line| line.layout_opt().map(Vec::len).unwrap_or_default())
-<a href=#814 id=814 data-nosnippet>814</a>        .sum();
-<a href=#815 id=815 data-nosnippet>815</a>
-<a href=#816 id=816 data-nosnippet>816</a>    visual_lines_offset <span class="kw">as </span>i32 * <span class="kw">if </span>scroll.line &lt; line { <span class="number">1 </span>} <span class="kw">else </span>{ -<span class="number">1 </span>}
-<a href=#817 id=817 data-nosnippet>817</a>}
-<a href=#818 id=818 data-nosnippet>818</a>
-<a href=#819 id=819 data-nosnippet>819</a><span class="kw">fn </span>to_motion(motion: Motion) -&gt; cosmic_text::Motion {
-<a href=#820 id=820 data-nosnippet>820</a>    <span class="kw">match </span>motion {
-<a href=#821 id=821 data-nosnippet>821</a>        Motion::Left =&gt; cosmic_text::Motion::Left,
-<a href=#822 id=822 data-nosnippet>822</a>        Motion::Right =&gt; cosmic_text::Motion::Right,
-<a href=#823 id=823 data-nosnippet>823</a>        Motion::Up =&gt; cosmic_text::Motion::Up,
-<a href=#824 id=824 data-nosnippet>824</a>        Motion::Down =&gt; cosmic_text::Motion::Down,
-<a href=#825 id=825 data-nosnippet>825</a>        Motion::WordLeft =&gt; cosmic_text::Motion::LeftWord,
-<a href=#826 id=826 data-nosnippet>826</a>        Motion::WordRight =&gt; cosmic_text::Motion::RightWord,
-<a href=#827 id=827 data-nosnippet>827</a>        Motion::Home =&gt; cosmic_text::Motion::Home,
-<a href=#828 id=828 data-nosnippet>828</a>        Motion::End =&gt; cosmic_text::Motion::End,
-<a href=#829 id=829 data-nosnippet>829</a>        Motion::PageUp =&gt; cosmic_text::Motion::PageUp,
-<a href=#830 id=830 data-nosnippet>830</a>        Motion::PageDown =&gt; cosmic_text::Motion::PageDown,
-<a href=#831 id=831 data-nosnippet>831</a>        Motion::DocumentStart =&gt; cosmic_text::Motion::BufferStart,
-<a href=#832 id=832 data-nosnippet>832</a>        Motion::DocumentEnd =&gt; cosmic_text::Motion::BufferEnd,
-<a href=#833 id=833 data-nosnippet>833</a>    }
-<a href=#834 id=834 data-nosnippet>834</a>}
-<a href=#835 id=835 data-nosnippet>835</a>
-<a href=#836 id=836 data-nosnippet>836</a><span class="kw">fn </span>buffer_from_editor&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;(editor: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">impl </span>cosmic_text::Edit&lt;<span class="lifetime">'b</span>&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>cosmic_text::Buffer
-<a href=#837 id=837 data-nosnippet>837</a><span class="kw">where
-<a href=#838 id=838 data-nosnippet>838</a>    </span><span class="lifetime">'b</span>: <span class="lifetime">'a</span>,
-<a href=#839 id=839 data-nosnippet>839</a>{
-<a href=#840 id=840 data-nosnippet>840</a>    <span class="kw">match </span>editor.buffer_ref() {
-<a href=#841 id=841 data-nosnippet>841</a>        cosmic_text::BufferRef::Owned(buffer) =&gt; buffer,
-<a href=#842 id=842 data-nosnippet>842</a>        cosmic_text::BufferRef::Borrowed(buffer) =&gt; buffer,
-<a href=#843 id=843 data-nosnippet>843</a>        cosmic_text::BufferRef::Arc(buffer) =&gt; buffer,
-<a href=#844 id=844 data-nosnippet>844</a>    }
-<a href=#845 id=845 data-nosnippet>845</a>}
-<a href=#846 id=846 data-nosnippet>846</a>
-<a href=#847 id=847 data-nosnippet>847</a><span class="kw">fn </span>buffer_mut_from_editor&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;(
-<a href=#848 id=848 data-nosnippet>848</a>    editor: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="kw">impl </span>cosmic_text::Edit&lt;<span class="lifetime">'b</span>&gt;,
-<a href=#849 id=849 data-nosnippet>849</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>cosmic_text::Buffer
-<a href=#850 id=850 data-nosnippet>850</a><span class="kw">where
-<a href=#851 id=851 data-nosnippet>851</a>    </span><span class="lifetime">'b</span>: <span class="lifetime">'a</span>,
-<a href=#852 id=852 data-nosnippet>852</a>{
-<a href=#853 id=853 data-nosnippet>853</a>    <span class="kw">match </span>editor.buffer_ref_mut() {
-<a href=#854 id=854 data-nosnippet>854</a>        cosmic_text::BufferRef::Owned(buffer) =&gt; buffer,
-<a href=#855 id=855 data-nosnippet>855</a>        cosmic_text::BufferRef::Borrowed(buffer) =&gt; buffer,
-<a href=#856 id=856 data-nosnippet>856</a>        cosmic_text::BufferRef::Arc(_buffer) =&gt; <span class="macro">unreachable!</span>(),
-<a href=#857 id=857 data-nosnippet>857</a>    }
-<a href=#858 id=858 data-nosnippet>858</a>}
+<a href=#799 id=799 data-nosnippet>799</a><span class="kw">fn </span>visual_lines_offset(line: usize, buffer: <span class="kw-2">&amp;</span>cosmic_text::Buffer) -&gt; i32 {
+<a href=#800 id=800 data-nosnippet>800</a>    <span class="kw">let </span>scroll = buffer.scroll();
+<a href=#801 id=801 data-nosnippet>801</a>
+<a href=#802 id=802 data-nosnippet>802</a>    <span class="kw">let </span>start = scroll.line.min(line);
+<a href=#803 id=803 data-nosnippet>803</a>    <span class="kw">let </span>end = scroll.line.max(line);
+<a href=#804 id=804 data-nosnippet>804</a>
+<a href=#805 id=805 data-nosnippet>805</a>    <span class="kw">let </span>visual_lines_offset: usize = buffer.lines[start..]
+<a href=#806 id=806 data-nosnippet>806</a>        .iter()
+<a href=#807 id=807 data-nosnippet>807</a>        .take(end - start)
+<a href=#808 id=808 data-nosnippet>808</a>        .map(|line| line.layout_opt().map(Vec::len).unwrap_or_default())
+<a href=#809 id=809 data-nosnippet>809</a>        .sum();
+<a href=#810 id=810 data-nosnippet>810</a>
+<a href=#811 id=811 data-nosnippet>811</a>    visual_lines_offset <span class="kw">as </span>i32 * <span class="kw">if </span>scroll.line &lt; line { <span class="number">1 </span>} <span class="kw">else </span>{ -<span class="number">1 </span>}
+<a href=#812 id=812 data-nosnippet>812</a>}
+<a href=#813 id=813 data-nosnippet>813</a>
+<a href=#814 id=814 data-nosnippet>814</a><span class="kw">fn </span>to_motion(motion: Motion) -&gt; cosmic_text::Motion {
+<a href=#815 id=815 data-nosnippet>815</a>    <span class="kw">match </span>motion {
+<a href=#816 id=816 data-nosnippet>816</a>        Motion::Left =&gt; cosmic_text::Motion::Left,
+<a href=#817 id=817 data-nosnippet>817</a>        Motion::Right =&gt; cosmic_text::Motion::Right,
+<a href=#818 id=818 data-nosnippet>818</a>        Motion::Up =&gt; cosmic_text::Motion::Up,
+<a href=#819 id=819 data-nosnippet>819</a>        Motion::Down =&gt; cosmic_text::Motion::Down,
+<a href=#820 id=820 data-nosnippet>820</a>        Motion::WordLeft =&gt; cosmic_text::Motion::LeftWord,
+<a href=#821 id=821 data-nosnippet>821</a>        Motion::WordRight =&gt; cosmic_text::Motion::RightWord,
+<a href=#822 id=822 data-nosnippet>822</a>        Motion::Home =&gt; cosmic_text::Motion::Home,
+<a href=#823 id=823 data-nosnippet>823</a>        Motion::End =&gt; cosmic_text::Motion::End,
+<a href=#824 id=824 data-nosnippet>824</a>        Motion::PageUp =&gt; cosmic_text::Motion::PageUp,
+<a href=#825 id=825 data-nosnippet>825</a>        Motion::PageDown =&gt; cosmic_text::Motion::PageDown,
+<a href=#826 id=826 data-nosnippet>826</a>        Motion::DocumentStart =&gt; cosmic_text::Motion::BufferStart,
+<a href=#827 id=827 data-nosnippet>827</a>        Motion::DocumentEnd =&gt; cosmic_text::Motion::BufferEnd,
+<a href=#828 id=828 data-nosnippet>828</a>    }
+<a href=#829 id=829 data-nosnippet>829</a>}
+<a href=#830 id=830 data-nosnippet>830</a>
+<a href=#831 id=831 data-nosnippet>831</a><span class="kw">fn </span>buffer_from_editor&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;(editor: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw">impl </span>cosmic_text::Edit&lt;<span class="lifetime">'b</span>&gt;) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span>cosmic_text::Buffer
+<a href=#832 id=832 data-nosnippet>832</a><span class="kw">where
+<a href=#833 id=833 data-nosnippet>833</a>    </span><span class="lifetime">'b</span>: <span class="lifetime">'a</span>,
+<a href=#834 id=834 data-nosnippet>834</a>{
+<a href=#835 id=835 data-nosnippet>835</a>    <span class="kw">match </span>editor.buffer_ref() {
+<a href=#836 id=836 data-nosnippet>836</a>        cosmic_text::BufferRef::Owned(buffer) =&gt; buffer,
+<a href=#837 id=837 data-nosnippet>837</a>        cosmic_text::BufferRef::Borrowed(buffer) =&gt; buffer,
+<a href=#838 id=838 data-nosnippet>838</a>        cosmic_text::BufferRef::Arc(buffer) =&gt; buffer,
+<a href=#839 id=839 data-nosnippet>839</a>    }
+<a href=#840 id=840 data-nosnippet>840</a>}
+<a href=#841 id=841 data-nosnippet>841</a>
+<a href=#842 id=842 data-nosnippet>842</a><span class="kw">fn </span>buffer_mut_from_editor&lt;<span class="lifetime">'a</span>, <span class="lifetime">'b</span>&gt;(
+<a href=#843 id=843 data-nosnippet>843</a>    editor: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span><span class="kw">impl </span>cosmic_text::Edit&lt;<span class="lifetime">'b</span>&gt;,
+<a href=#844 id=844 data-nosnippet>844</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>cosmic_text::Buffer
+<a href=#845 id=845 data-nosnippet>845</a><span class="kw">where
+<a href=#846 id=846 data-nosnippet>846</a>    </span><span class="lifetime">'b</span>: <span class="lifetime">'a</span>,
+<a href=#847 id=847 data-nosnippet>847</a>{
+<a href=#848 id=848 data-nosnippet>848</a>    <span class="kw">match </span>editor.buffer_ref_mut() {
+<a href=#849 id=849 data-nosnippet>849</a>        cosmic_text::BufferRef::Owned(buffer) =&gt; buffer,
+<a href=#850 id=850 data-nosnippet>850</a>        cosmic_text::BufferRef::Borrowed(buffer) =&gt; buffer,
+<a href=#851 id=851 data-nosnippet>851</a>        cosmic_text::BufferRef::Arc(_buffer) =&gt; <span class="macro">unreachable!</span>(),
+<a href=#852 id=852 data-nosnippet>852</a>    }
+<a href=#853 id=853 data-nosnippet>853</a>}
 </code></pre></div></section></main></body></html>
