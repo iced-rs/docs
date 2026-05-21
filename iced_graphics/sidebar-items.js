@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Antialiasing"],"mod":["cache","color","compositor","damage","error","geometry","gradient","image","layer","mesh","shell","text"],"struct":["Viewport"]};
+window.SIDEBAR_ITEMS = {"enum":["Antialiasing"],"mod":["cache","color","compositor","damage","geometry","gradient","image","layer","mesh","shell","text"],"struct":["Viewport"]};

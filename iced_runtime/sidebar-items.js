@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Action"],"fn":["exit"],"mod":["clipboard","font","image","keyboard","system","task","user_interface","widget","window"]};
+window.SIDEBAR_ITEMS = {"enum":["Action"],"fn":["exit"],"mod":["backend","clipboard","font","image","keyboard","system","task","user_interface","widget","window"]};
