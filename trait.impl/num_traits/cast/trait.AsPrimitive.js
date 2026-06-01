@@ -1,0 +1,9 @@
+(function() {
+    const implementors = Object.fromEntries([["iced_core",[["impl <a class=\"trait\" href=\"https://docs.rs/num-traits/0.2/num_traits/cast/trait.AsPrimitive.html\" title=\"trait num_traits::cast::AsPrimitive\">AsPrimitive</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.f32.html\">f32</a>&gt; for <a class=\"struct\" href=\"iced_core/struct.Degrees.html\" title=\"struct iced_core::Degrees\">Degrees</a>",0],["impl <a class=\"trait\" href=\"https://docs.rs/num-traits/0.2/num_traits/cast/trait.AsPrimitive.html\" title=\"trait num_traits::cast::AsPrimitive\">AsPrimitive</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.f32.html\">f32</a>&gt; for <a class=\"struct\" href=\"iced_core/struct.Radians.html\" title=\"struct iced_core::Radians\">Radians</a>",0],["impl <a class=\"trait\" href=\"https://docs.rs/num-traits/0.2/num_traits/cast/trait.AsPrimitive.html\" title=\"trait num_traits::cast::AsPrimitive\">AsPrimitive</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.f64.html\">f64</a>&gt; for <a class=\"struct\" href=\"iced_core/struct.Degrees.html\" title=\"struct iced_core::Degrees\">Degrees</a>",0],["impl <a class=\"trait\" href=\"https://docs.rs/num-traits/0.2/num_traits/cast/trait.AsPrimitive.html\" title=\"trait num_traits::cast::AsPrimitive\">AsPrimitive</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.f64.html\">f64</a>&gt; for <a class=\"struct\" href=\"iced_core/struct.Radians.html\" title=\"struct iced_core::Radians\">Radians</a>",0]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":59,"fragment_lengths":[1559]}
