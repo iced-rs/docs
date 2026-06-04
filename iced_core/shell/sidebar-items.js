@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Shell","Waker"]};
+window.SIDEBAR_ITEMS = {"enum":["Diff"],"struct":["Shell","Waker"]};
