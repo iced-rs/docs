@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Action","Api","Backend","Error","Reason"],"fn":["configure"],"struct":["Settings"]};
+window.SIDEBAR_ITEMS = {"enum":["Action","Api","Backend","Error","PowerPreference","Reason"],"fn":["configure"],"struct":["Settings"]};
