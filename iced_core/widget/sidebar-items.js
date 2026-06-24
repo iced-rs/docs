@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["operation","text","tree"],"struct":["Id"],"trait":["Widget"]};
+window.SIDEBAR_ITEMS = {"mod":["operation","text","tree"],"struct":["Id","Void"],"trait":["Widget"]};
