@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Input","Layout","Style"]};
+window.SIDEBAR_ITEMS = {"struct":["Edit","Input","Layout","Style"]};
