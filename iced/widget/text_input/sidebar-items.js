@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["DEFAULT_PADDING"],"enum":["Side","Status"],"fn":["default"],"mod":["cursor"],"struct":["Cursor","Icon","State","Style","TextInput","Value"],"trait":["Catalog"],"type":["StyleFn"]};
+window.SIDEBAR_ITEMS = {"constant":["DEFAULT_PADDING"],"enum":["Status"],"fn":["default"],"struct":["Style","TextInput"],"trait":["Catalog"],"type":["StyleFn"]};
