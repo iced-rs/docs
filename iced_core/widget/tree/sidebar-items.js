@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["State"],"fn":["diff_children_custom_with_search"],"struct":["Tag","Tree"]};
+window.SIDEBAR_ITEMS = {"enum":["State"],"fn":["diff_children","diff_children_custom","diff_children_custom_with_search"],"struct":["Tag","Tree"]};
