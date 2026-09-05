@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Format","PlainText"],"trait":["Highlighter"]};
+window.SIDEBAR_ITEMS = {"struct":["Style"],"trait":["Highlighter"]};

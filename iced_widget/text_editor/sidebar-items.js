@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Action","Binding","Edit","LineEnding","Motion","Selection","Status"],"fn":["default"],"struct":["Content","Cursor","KeyPress","Line","Style","TextEditor"],"trait":["Catalog"],"type":["StyleFn"]};
+window.SIDEBAR_ITEMS = {"enum":["Action","Binding","Edit","LineEnding","Motion","Selection","Status"],"fn":["default"],"struct":["Content","Cursor","KeyPress","Line","Style","TextEditor"],"trait":["Catalog","Highlighter"],"type":["StyleFn"]};
