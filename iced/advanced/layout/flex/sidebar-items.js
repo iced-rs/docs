@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Axis"],"fn":["resolve"]};
+window.SIDEBAR_ITEMS = {"enum":["Axis"],"fn":["resolve"],"struct":["Cache"]};
