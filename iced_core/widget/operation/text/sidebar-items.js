@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["copy","deselect","select","select_all"],"trait":["Text"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["deselect","select","select_all"]};
