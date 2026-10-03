@@ -270,7 +270,7 @@
 <a href=#270 id=270 data-nosnippet>270</a>            timeout: <span class="prelude-val">None</span>,
 <a href=#271 id=271 data-nosnippet>271</a>        });
 <a href=#272 id=272 data-nosnippet>272</a>
-<a href=#273 id=273 data-nosnippet>273</a>        <span class="kw">let </span>mapped_buffer = slice.get_mapped_range();
+<a href=#273 id=273 data-nosnippet>273</a>        <span class="kw">let </span>mapped_buffer = slice.get_mapped_range().unwrap();
 <a href=#274 id=274 data-nosnippet>274</a>
 <a href=#275 id=275 data-nosnippet>275</a>        mapped_buffer
 <a href=#276 id=276 data-nosnippet>276</a>            .chunks(dimensions.padded_bytes_per_row)
@@ -906,61 +906,62 @@
 <a href=#906 id=906 data-nosnippet>906</a>                power_preference: wgpu::PowerPreference::HighPerformance,
 <a href=#907 id=907 data-nosnippet>907</a>                force_fallback_adapter: <span class="bool-val">false</span>,
 <a href=#908 id=908 data-nosnippet>908</a>                compatible_surface: <span class="prelude-val">None</span>,
-<a href=#909 id=909 data-nosnippet>909</a>            })
-<a href=#910 id=910 data-nosnippet>910</a>            .<span class="kw">await
-<a href=#911 id=911 data-nosnippet>911</a>            </span>.ok()<span class="question-mark">?</span>;
-<a href=#912 id=912 data-nosnippet>912</a>
-<a href=#913 id=913 data-nosnippet>913</a>        <span class="kw">let </span>(device, queue) = adapter
-<a href=#914 id=914 data-nosnippet>914</a>            .request_device(<span class="kw-2">&amp;</span>wgpu::DeviceDescriptor {
-<a href=#915 id=915 data-nosnippet>915</a>                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu [headless]"</span>),
-<a href=#916 id=916 data-nosnippet>916</a>                required_features: wgpu::Features::empty(),
-<a href=#917 id=917 data-nosnippet>917</a>                required_limits: wgpu::Limits {
-<a href=#918 id=918 data-nosnippet>918</a>                    max_bind_groups: <span class="number">2</span>,
-<a href=#919 id=919 data-nosnippet>919</a>                    ..wgpu::Limits::default()
-<a href=#920 id=920 data-nosnippet>920</a>                },
-<a href=#921 id=921 data-nosnippet>921</a>                memory_hints: wgpu::MemoryHints::MemoryUsage,
-<a href=#922 id=922 data-nosnippet>922</a>                trace: wgpu::Trace::Off,
-<a href=#923 id=923 data-nosnippet>923</a>                experimental_features: wgpu::ExperimentalFeatures::disabled(),
-<a href=#924 id=924 data-nosnippet>924</a>            })
-<a href=#925 id=925 data-nosnippet>925</a>            .<span class="kw">await
-<a href=#926 id=926 data-nosnippet>926</a>            </span>.ok()<span class="question-mark">?</span>;
-<a href=#927 id=927 data-nosnippet>927</a>
-<a href=#928 id=928 data-nosnippet>928</a>        <span class="kw">let </span>engine = Engine::new(
-<a href=#929 id=929 data-nosnippet>929</a>            <span class="kw-2">&amp;</span>adapter,
-<a href=#930 id=930 data-nosnippet>930</a>            device,
-<a href=#931 id=931 data-nosnippet>931</a>            queue,
-<a href=#932 id=932 data-nosnippet>932</a>            <span class="kw">if </span>graphics::color::GAMMA_CORRECTION {
-<a href=#933 id=933 data-nosnippet>933</a>                wgpu::TextureFormat::Rgba8UnormSrgb
-<a href=#934 id=934 data-nosnippet>934</a>            } <span class="kw">else </span>{
-<a href=#935 id=935 data-nosnippet>935</a>                wgpu::TextureFormat::Rgba8Unorm
-<a href=#936 id=936 data-nosnippet>936</a>            },
-<a href=#937 id=937 data-nosnippet>937</a>            <span class="prelude-val">Some</span>(graphics::Antialiasing::MSAAx4),
-<a href=#938 id=938 data-nosnippet>938</a>            Shell::headless(),
-<a href=#939 id=939 data-nosnippet>939</a>        );
-<a href=#940 id=940 data-nosnippet>940</a>
-<a href=#941 id=941 data-nosnippet>941</a>        <span class="prelude-val">Some</span>(<span class="self">Self</span>::new(engine, settings))
-<a href=#942 id=942 data-nosnippet>942</a>    }
-<a href=#943 id=943 data-nosnippet>943</a>
-<a href=#944 id=944 data-nosnippet>944</a>    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
-<a href=#945 id=945 data-nosnippet>945</a>        <span class="string">"wgpu"</span>.to_owned()
-<a href=#946 id=946 data-nosnippet>946</a>    }
-<a href=#947 id=947 data-nosnippet>947</a>
-<a href=#948 id=948 data-nosnippet>948</a>    <span class="kw">fn </span>screenshot(
-<a href=#949 id=949 data-nosnippet>949</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#950 id=950 data-nosnippet>950</a>        size: Size&lt;u32&gt;,
-<a href=#951 id=951 data-nosnippet>951</a>        scale_factor: f32,
-<a href=#952 id=952 data-nosnippet>952</a>        background_color: Color,
-<a href=#953 id=953 data-nosnippet>953</a>    ) -&gt; Vec&lt;u8&gt; {
-<a href=#954 id=954 data-nosnippet>954</a>        <span class="self">self</span>.screenshot(
-<a href=#955 id=955 data-nosnippet>955</a>            <span class="kw-2">&amp;</span>Viewport::with_physical_size(
-<a href=#956 id=956 data-nosnippet>956</a>                size,
-<a href=#957 id=957 data-nosnippet>957</a>                renderer::Scale {
-<a href=#958 id=958 data-nosnippet>958</a>                    window: <span class="number">1.0</span>,
-<a href=#959 id=959 data-nosnippet>959</a>                    application: scale_factor,
-<a href=#960 id=960 data-nosnippet>960</a>                },
-<a href=#961 id=961 data-nosnippet>961</a>            ),
-<a href=#962 id=962 data-nosnippet>962</a>            background_color,
-<a href=#963 id=963 data-nosnippet>963</a>        )
-<a href=#964 id=964 data-nosnippet>964</a>    }
-<a href=#965 id=965 data-nosnippet>965</a>}
+<a href=#909 id=909 data-nosnippet>909</a>                apply_limit_buckets: <span class="bool-val">false</span>,
+<a href=#910 id=910 data-nosnippet>910</a>            })
+<a href=#911 id=911 data-nosnippet>911</a>            .<span class="kw">await
+<a href=#912 id=912 data-nosnippet>912</a>            </span>.ok()<span class="question-mark">?</span>;
+<a href=#913 id=913 data-nosnippet>913</a>
+<a href=#914 id=914 data-nosnippet>914</a>        <span class="kw">let </span>(device, queue) = adapter
+<a href=#915 id=915 data-nosnippet>915</a>            .request_device(<span class="kw-2">&amp;</span>wgpu::DeviceDescriptor {
+<a href=#916 id=916 data-nosnippet>916</a>                label: <span class="prelude-val">Some</span>(<span class="string">"iced_wgpu [headless]"</span>),
+<a href=#917 id=917 data-nosnippet>917</a>                required_features: wgpu::Features::empty(),
+<a href=#918 id=918 data-nosnippet>918</a>                required_limits: wgpu::Limits {
+<a href=#919 id=919 data-nosnippet>919</a>                    max_bind_groups: <span class="number">2</span>,
+<a href=#920 id=920 data-nosnippet>920</a>                    ..wgpu::Limits::default()
+<a href=#921 id=921 data-nosnippet>921</a>                },
+<a href=#922 id=922 data-nosnippet>922</a>                memory_hints: wgpu::MemoryHints::MemoryUsage,
+<a href=#923 id=923 data-nosnippet>923</a>                trace: wgpu::Trace::Off,
+<a href=#924 id=924 data-nosnippet>924</a>                experimental_features: wgpu::ExperimentalFeatures::disabled(),
+<a href=#925 id=925 data-nosnippet>925</a>            })
+<a href=#926 id=926 data-nosnippet>926</a>            .<span class="kw">await
+<a href=#927 id=927 data-nosnippet>927</a>            </span>.ok()<span class="question-mark">?</span>;
+<a href=#928 id=928 data-nosnippet>928</a>
+<a href=#929 id=929 data-nosnippet>929</a>        <span class="kw">let </span>engine = Engine::new(
+<a href=#930 id=930 data-nosnippet>930</a>            <span class="kw-2">&amp;</span>adapter,
+<a href=#931 id=931 data-nosnippet>931</a>            device,
+<a href=#932 id=932 data-nosnippet>932</a>            queue,
+<a href=#933 id=933 data-nosnippet>933</a>            <span class="kw">if </span>graphics::color::GAMMA_CORRECTION {
+<a href=#934 id=934 data-nosnippet>934</a>                wgpu::TextureFormat::Rgba8UnormSrgb
+<a href=#935 id=935 data-nosnippet>935</a>            } <span class="kw">else </span>{
+<a href=#936 id=936 data-nosnippet>936</a>                wgpu::TextureFormat::Rgba8Unorm
+<a href=#937 id=937 data-nosnippet>937</a>            },
+<a href=#938 id=938 data-nosnippet>938</a>            <span class="prelude-val">Some</span>(graphics::Antialiasing::MSAAx4),
+<a href=#939 id=939 data-nosnippet>939</a>            Shell::headless(),
+<a href=#940 id=940 data-nosnippet>940</a>        );
+<a href=#941 id=941 data-nosnippet>941</a>
+<a href=#942 id=942 data-nosnippet>942</a>        <span class="prelude-val">Some</span>(<span class="self">Self</span>::new(engine, settings))
+<a href=#943 id=943 data-nosnippet>943</a>    }
+<a href=#944 id=944 data-nosnippet>944</a>
+<a href=#945 id=945 data-nosnippet>945</a>    <span class="kw">fn </span>name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+<a href=#946 id=946 data-nosnippet>946</a>        <span class="string">"wgpu"</span>.to_owned()
+<a href=#947 id=947 data-nosnippet>947</a>    }
+<a href=#948 id=948 data-nosnippet>948</a>
+<a href=#949 id=949 data-nosnippet>949</a>    <span class="kw">fn </span>screenshot(
+<a href=#950 id=950 data-nosnippet>950</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#951 id=951 data-nosnippet>951</a>        size: Size&lt;u32&gt;,
+<a href=#952 id=952 data-nosnippet>952</a>        scale_factor: f32,
+<a href=#953 id=953 data-nosnippet>953</a>        background_color: Color,
+<a href=#954 id=954 data-nosnippet>954</a>    ) -&gt; Vec&lt;u8&gt; {
+<a href=#955 id=955 data-nosnippet>955</a>        <span class="self">self</span>.screenshot(
+<a href=#956 id=956 data-nosnippet>956</a>            <span class="kw-2">&amp;</span>Viewport::with_physical_size(
+<a href=#957 id=957 data-nosnippet>957</a>                size,
+<a href=#958 id=958 data-nosnippet>958</a>                renderer::Scale {
+<a href=#959 id=959 data-nosnippet>959</a>                    window: <span class="number">1.0</span>,
+<a href=#960 id=960 data-nosnippet>960</a>                    application: scale_factor,
+<a href=#961 id=961 data-nosnippet>961</a>                },
+<a href=#962 id=962 data-nosnippet>962</a>            ),
+<a href=#963 id=963 data-nosnippet>963</a>            background_color,
+<a href=#964 id=964 data-nosnippet>964</a>        )
+<a href=#965 id=965 data-nosnippet>965</a>    }
+<a href=#966 id=966 data-nosnippet>966</a>}
 </code></pre></div></section></main></body></html>
