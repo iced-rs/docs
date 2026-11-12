@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A popover is a floating piece of content that appears over some element."><title>iced_widget::popover - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2"href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-b7b9f40b.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="iced_widget" data-themes="" data-resource-suffix="" data-rustdoc-version="1.95.0-nightly (7f99507f5 2026-02-19)" data-channel="nightly" data-search-js="search-63369b7b.js" data-stringdex-js="stringdex-b897f86f.js" data-settings-js="settings-170eb4bf.js" ><script src="../../static.files/storage-41dd4d93.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../static.files/main-5013f961.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-f7c3ffd8.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-eab170b8.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><a class="skip-main-content" href="#main-content">Skip to main content</a><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><rustdoc-topbar><h2><a href="#">Module popover</a></h2></rustdoc-topbar><nav class="sidebar"><div class="sidebar-crate"><a class="logo-container" href="../../iced_widget/index.html"><img src="https://raw.githubusercontent.com/iced-rs/iced/9ab6923e943f784985e9ef9ca28b10278297225d/docs/logo.svg" alt="logo"></a><h2><a href="../../iced_widget/index.html">iced_<wbr>widget</a><span class="version">0.15.0-dev</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module popover</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#example" title="Example">Example</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li><li><a href="#enums" title="Enums">Enums</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="../index.html">In crate iced_<wbr>widget</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">iced_widget</a></div><h1>Module <span>popover</span>&nbsp;<button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/iced_widget/popover.rs.html#1-540">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A popover is a floating piece of content that appears over some element.</p>
+<p>Unlike a <a href="../tooltip/struct.Tooltip.html" title="struct iced_widget::tooltip::Tooltip"><code>tooltip</code></a>, a popover is not shown on hover, and it does not
+control its own visibility. Instead, the <code>popover</code> argument is an
+<code>Option</code>: <code>Some</code> displays the overlay (open), and <code>None</code> hides it (closed).
+The base is always present.</p>
+<p>When the user clicks outside of the popover’s bounds, the popover notifies
+the application through its <code>on_close</code> handler, which is typically how the
+application decides to set the <code>popover</code> argument to <code>None</code> (i.e. to close
+it).</p>
+<p>The <a href="../fn.popover.html" title="fn iced_widget::popover"><code>popover()</code></a> helper wraps the popup in <a href="../fn.opaque.html" title="fn iced_widget::opaque"><code>opaque()</code></a>, so mouse button
+presses inside the popup’s bounds are captured and do not pass through to
+the elements below. Use <a href="struct.Popover.html#method.passthrough" title="method iced_widget::popover::Popover::passthrough"><code>Popover::passthrough</code></a> to let them fall through
+to the base layer, and <a href="struct.Popover.html#method.capture_scroll" title="method iced_widget::popover::Popover::capture_scroll"><code>Popover::capture_scroll</code></a> to also capture scroll
+wheel events over the popup.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>iced::widget::{button, container, popover, text};
+
+<span class="attr">#[derive(Clone)]
+</span><span class="kw">enum </span>Message {
+    Close,
+}
+
+<span class="kw">fn </span>view(state: <span class="kw-2">&amp;</span>State) -&gt; <span class="kw">impl </span>Widget&lt;Message&gt; {
+    <span class="comment">// The base is always present. The `popover` argument is `Some` when the
+    // popover is open and `None` when it is closed.
+    </span>popover(
+        button(text(<span class="string">"Click me!"</span>)).on_press(Message::Close),
+        state.is_open.then(|| {
+            container(text(<span class="string">"This is the popover contents!"</span>)).padding(<span class="number">10</span>)
+        }),
+    )
+    .position(popover::Position::Bottom)
+    .on_close(Message::Close)
+}</code></pre></div></div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.Popover.html" title="struct iced_widget::popover::Popover">Popover</a></dt><dd>A floating piece of content that appears over another element.</dd></dl><h2 id="enums" class="section-header">Enums<a href="#enums" class="anchor">§</a></h2><dl class="item-table"><dt><a class="enum" href="enum.Position.html" title="enum iced_widget::popover::Position">Position</a></dt><dd>The position of the popover.</dd></dl></section></div></main></body></html>

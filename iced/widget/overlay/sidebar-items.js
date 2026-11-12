@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["menu"]};
+window.SIDEBAR_ITEMS = {"enum":["Position","Side"],"mod":["menu"]};

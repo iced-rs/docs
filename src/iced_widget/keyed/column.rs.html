@@ -175,167 +175,166 @@
 <a href=#175 id=175 data-nosnippet>175</a>
 <a href=#176 id=176 data-nosnippet>176</a><span class="kw">impl</span>&lt;Key, W, Message, Theme, Renderer&gt; Widget&lt;Message, Theme, Renderer&gt; <span class="kw">for </span>Column&lt;Key, W&gt;
 <a href=#177 id=177 data-nosnippet>177</a><span class="kw">where
-<a href=#178 id=178 data-nosnippet>178</a>    </span>Renderer: <span class="kw">crate</span>::core::Renderer,
-<a href=#179 id=179 data-nosnippet>179</a>    Key: Copy + PartialEq + <span class="lifetime">'static</span>,
-<a href=#180 id=180 data-nosnippet>180</a>    W: Widget&lt;Message, Theme, Renderer&gt;,
-<a href=#181 id=181 data-nosnippet>181</a>{
-<a href=#182 id=182 data-nosnippet>182</a>    <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
-<a href=#183 id=183 data-nosnippet>183</a>        tree::Tag::of::&lt;State&lt;Key&gt;&gt;()
-<a href=#184 id=184 data-nosnippet>184</a>    }
-<a href=#185 id=185 data-nosnippet>185</a>
-<a href=#186 id=186 data-nosnippet>186</a>    <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
-<a href=#187 id=187 data-nosnippet>187</a>        tree::State::new(State {
-<a href=#188 id=188 data-nosnippet>188</a>            keys: <span class="self">self</span>.keys.clone(),
-<a href=#189 id=189 data-nosnippet>189</a>            cache: layout::flex::Cache::default(),
-<a href=#190 id=190 data-nosnippet>190</a>        })
-<a href=#191 id=191 data-nosnippet>191</a>    }
-<a href=#192 id=192 data-nosnippet>192</a>
-<a href=#193 id=193 data-nosnippet>193</a>    <span class="kw">fn </span>diff(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree) {
-<a href=#194 id=194 data-nosnippet>194</a>        <span class="kw">let </span>Tree {
-<a href=#195 id=195 data-nosnippet>195</a>            state, children, ..
-<a href=#196 id=196 data-nosnippet>196</a>        } = tree;
-<a href=#197 id=197 data-nosnippet>197</a>
-<a href=#198 id=198 data-nosnippet>198</a>        <span class="kw">let </span>state = state.downcast_mut::&lt;State&lt;Key&gt;&gt;();
-<a href=#199 id=199 data-nosnippet>199</a>
-<a href=#200 id=200 data-nosnippet>200</a>        tree::diff_children_custom_with_search(
-<a href=#201 id=201 data-nosnippet>201</a>            children,
-<a href=#202 id=202 data-nosnippet>202</a>            <span class="kw-2">&amp;mut </span><span class="self">self</span>.children,
-<a href=#203 id=203 data-nosnippet>203</a>            Tree::diff,
-<a href=#204 id=204 data-nosnippet>204</a>            |index| {
-<a href=#205 id=205 data-nosnippet>205</a>                <span class="self">self</span>.keys.get(index).or_else(|| <span class="self">self</span>.keys.last()).copied()
-<a href=#206 id=206 data-nosnippet>206</a>                    != <span class="prelude-val">Some</span>(state.keys[index])
-<a href=#207 id=207 data-nosnippet>207</a>            },
-<a href=#208 id=208 data-nosnippet>208</a>            |child| Tree::new(child),
-<a href=#209 id=209 data-nosnippet>209</a>        );
-<a href=#210 id=210 data-nosnippet>210</a>
-<a href=#211 id=211 data-nosnippet>211</a>        <span class="kw">if </span>state.keys != <span class="self">self</span>.keys {
-<a href=#212 id=212 data-nosnippet>212</a>            state.keys.clone_from(<span class="kw-2">&amp;</span><span class="self">self</span>.keys);
-<a href=#213 id=213 data-nosnippet>213</a>        }
-<a href=#214 id=214 data-nosnippet>214</a>
-<a href=#215 id=215 data-nosnippet>215</a>        <span class="kw">if </span><span class="self">self</span>.width.is_fit() || <span class="self">self</span>.height.is_fit() {
-<a href=#216 id=216 data-nosnippet>216</a>            <span class="kw">for </span>child <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.children {
-<a href=#217 id=217 data-nosnippet>217</a>                <span class="kw">let </span>size = child.size();
-<a href=#218 id=218 data-nosnippet>218</a>
-<a href=#219 id=219 data-nosnippet>219</a>                <span class="self">self</span>.width = <span class="self">self</span>.width.cross(size.width);
-<a href=#220 id=220 data-nosnippet>220</a>                <span class="self">self</span>.height = <span class="self">self</span>.height.stack(size.height);
-<a href=#221 id=221 data-nosnippet>221</a>            }
-<a href=#222 id=222 data-nosnippet>222</a>        }
-<a href=#223 id=223 data-nosnippet>223</a>    }
-<a href=#224 id=224 data-nosnippet>224</a>
-<a href=#225 id=225 data-nosnippet>225</a>    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
-<a href=#226 id=226 data-nosnippet>226</a>        Size {
-<a href=#227 id=227 data-nosnippet>227</a>            width: <span class="self">self</span>.width,
-<a href=#228 id=228 data-nosnippet>228</a>            height: <span class="self">self</span>.height,
-<a href=#229 id=229 data-nosnippet>229</a>        }
-<a href=#230 id=230 data-nosnippet>230</a>    }
-<a href=#231 id=231 data-nosnippet>231</a>
-<a href=#232 id=232 data-nosnippet>232</a>    <span class="kw">fn </span>layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree, renderer: <span class="kw-2">&amp;</span>Renderer, limits: <span class="kw-2">&amp;</span>layout::Limits) {
-<a href=#233 id=233 data-nosnippet>233</a>        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&lt;Key&gt;&gt;();
-<a href=#234 id=234 data-nosnippet>234</a>
-<a href=#235 id=235 data-nosnippet>235</a>        tree.size = layout::flex::resolve(
-<a href=#236 id=236 data-nosnippet>236</a>            layout::flex::Axis::Vertical,
-<a href=#237 id=237 data-nosnippet>237</a>            renderer,
-<a href=#238 id=238 data-nosnippet>238</a>            limits,
-<a href=#239 id=239 data-nosnippet>239</a>            <span class="self">self</span>.width,
-<a href=#240 id=240 data-nosnippet>240</a>            <span class="self">self</span>.height,
-<a href=#241 id=241 data-nosnippet>241</a>            <span class="self">self</span>.padding,
-<a href=#242 id=242 data-nosnippet>242</a>            <span class="self">self</span>.spacing,
-<a href=#243 id=243 data-nosnippet>243</a>            <span class="self">self</span>.align_items,
-<a href=#244 id=244 data-nosnippet>244</a>            <span class="kw-2">&amp;mut </span>tree.children,
-<a href=#245 id=245 data-nosnippet>245</a>            <span class="kw-2">&amp;mut </span><span class="self">self</span>.children,
-<a href=#246 id=246 data-nosnippet>246</a>            <span class="kw-2">&amp;mut </span>state.cache,
-<a href=#247 id=247 data-nosnippet>247</a>        );
-<a href=#248 id=248 data-nosnippet>248</a>    }
-<a href=#249 id=249 data-nosnippet>249</a>
-<a href=#250 id=250 data-nosnippet>250</a>    <span class="kw">fn </span>operate(
-<a href=#251 id=251 data-nosnippet>251</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#252 id=252 data-nosnippet>252</a>        tree: <span class="kw-2">&amp;mut </span>Tree,
-<a href=#253 id=253 data-nosnippet>253</a>        layout: Layout,
-<a href=#254 id=254 data-nosnippet>254</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
-<a href=#255 id=255 data-nosnippet>255</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
-<a href=#256 id=256 data-nosnippet>256</a>        operation: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Operation,
-<a href=#257 id=257 data-nosnippet>257</a>    ) {
-<a href=#258 id=258 data-nosnippet>258</a>        operation.container(<span class="prelude-val">None</span>, layout.bounds(), viewport);
-<a href=#259 id=259 data-nosnippet>259</a>        operation.traverse(<span class="kw-2">&amp;mut </span>|operation| {
-<a href=#260 id=260 data-nosnippet>260</a>            <span class="self">self</span>.children
-<a href=#261 id=261 data-nosnippet>261</a>                .iter_mut()
-<a href=#262 id=262 data-nosnippet>262</a>                .zip(layout.iter_mut(<span class="kw-2">&amp;mut </span>tree.children))
-<a href=#263 id=263 data-nosnippet>263</a>                .for_each(|(child, (layout, state))| {
-<a href=#264 id=264 data-nosnippet>264</a>                    child.operate(state, layout, viewport, renderer, operation);
-<a href=#265 id=265 data-nosnippet>265</a>                });
-<a href=#266 id=266 data-nosnippet>266</a>        });
-<a href=#267 id=267 data-nosnippet>267</a>    }
-<a href=#268 id=268 data-nosnippet>268</a>
-<a href=#269 id=269 data-nosnippet>269</a>    <span class="kw">fn </span>update(
-<a href=#270 id=270 data-nosnippet>270</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#271 id=271 data-nosnippet>271</a>        tree: <span class="kw-2">&amp;mut </span>Tree,
-<a href=#272 id=272 data-nosnippet>272</a>        event: <span class="kw-2">&amp;</span>Event,
-<a href=#273 id=273 data-nosnippet>273</a>        layout: Layout,
-<a href=#274 id=274 data-nosnippet>274</a>        cursor: mouse::Cursor,
-<a href=#275 id=275 data-nosnippet>275</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
-<a href=#276 id=276 data-nosnippet>276</a>        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
-<a href=#277 id=277 data-nosnippet>277</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
-<a href=#278 id=278 data-nosnippet>278</a>    ) {
-<a href=#279 id=279 data-nosnippet>279</a>        <span class="kw">for </span>(child, (layout, tree)) <span class="kw">in </span><span class="self">self
-<a href=#280 id=280 data-nosnippet>280</a>            </span>.children
-<a href=#281 id=281 data-nosnippet>281</a>            .iter_mut()
-<a href=#282 id=282 data-nosnippet>282</a>            .zip(layout.iter_mut(<span class="kw-2">&amp;mut </span>tree.children))
-<a href=#283 id=283 data-nosnippet>283</a>        {
-<a href=#284 id=284 data-nosnippet>284</a>            child.update(tree, event, layout, cursor, renderer, shell, viewport);
-<a href=#285 id=285 data-nosnippet>285</a>        }
-<a href=#286 id=286 data-nosnippet>286</a>    }
-<a href=#287 id=287 data-nosnippet>287</a>
-<a href=#288 id=288 data-nosnippet>288</a>    <span class="kw">fn </span>mouse_interaction(
-<a href=#289 id=289 data-nosnippet>289</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
-<a href=#290 id=290 data-nosnippet>290</a>        tree: <span class="kw-2">&amp;</span>Tree,
-<a href=#291 id=291 data-nosnippet>291</a>        layout: Layout,
-<a href=#292 id=292 data-nosnippet>292</a>        cursor: mouse::Cursor,
-<a href=#293 id=293 data-nosnippet>293</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
-<a href=#294 id=294 data-nosnippet>294</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
-<a href=#295 id=295 data-nosnippet>295</a>    ) -&gt; mouse::Interaction {
-<a href=#296 id=296 data-nosnippet>296</a>        <span class="self">self</span>.children
-<a href=#297 id=297 data-nosnippet>297</a>            .iter()
-<a href=#298 id=298 data-nosnippet>298</a>            .zip(layout.iter(<span class="kw-2">&amp;</span>tree.children))
-<a href=#299 id=299 data-nosnippet>299</a>            .map(|(child, (layout, tree))| {
-<a href=#300 id=300 data-nosnippet>300</a>                child.mouse_interaction(tree, layout, cursor, viewport, renderer)
-<a href=#301 id=301 data-nosnippet>301</a>            })
-<a href=#302 id=302 data-nosnippet>302</a>            .max()
-<a href=#303 id=303 data-nosnippet>303</a>            .unwrap_or_default()
-<a href=#304 id=304 data-nosnippet>304</a>    }
-<a href=#305 id=305 data-nosnippet>305</a>
-<a href=#306 id=306 data-nosnippet>306</a>    <span class="kw">fn </span>draw(
-<a href=#307 id=307 data-nosnippet>307</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
-<a href=#308 id=308 data-nosnippet>308</a>        tree: <span class="kw-2">&amp;</span>Tree,
-<a href=#309 id=309 data-nosnippet>309</a>        renderer: <span class="kw-2">&amp;mut </span>Renderer,
-<a href=#310 id=310 data-nosnippet>310</a>        theme: <span class="kw-2">&amp;</span>Theme,
-<a href=#311 id=311 data-nosnippet>311</a>        style: <span class="kw-2">&amp;</span>renderer::Style,
-<a href=#312 id=312 data-nosnippet>312</a>        layout: Layout,
-<a href=#313 id=313 data-nosnippet>313</a>        cursor: mouse::Cursor,
-<a href=#314 id=314 data-nosnippet>314</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
-<a href=#315 id=315 data-nosnippet>315</a>    ) {
-<a href=#316 id=316 data-nosnippet>316</a>        <span class="kw">for </span>(child, (layout, state)) <span class="kw">in </span><span class="self">self</span>.children.iter().zip(layout.iter(<span class="kw-2">&amp;</span>tree.children)) {
-<a href=#317 id=317 data-nosnippet>317</a>            child.draw(state, renderer, theme, style, layout, cursor, viewport);
-<a href=#318 id=318 data-nosnippet>318</a>        }
-<a href=#319 id=319 data-nosnippet>319</a>    }
-<a href=#320 id=320 data-nosnippet>320</a>
-<a href=#321 id=321 data-nosnippet>321</a>    <span class="kw">fn </span>overlay&lt;<span class="lifetime">'b</span>&gt;(
-<a href=#322 id=322 data-nosnippet>322</a>        <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span><span class="self">self</span>,
-<a href=#323 id=323 data-nosnippet>323</a>        tree: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Tree,
-<a href=#324 id=324 data-nosnippet>324</a>        layout: Layout,
-<a href=#325 id=325 data-nosnippet>325</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
-<a href=#326 id=326 data-nosnippet>326</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
-<a href=#327 id=327 data-nosnippet>327</a>        translation: Vector,
-<a href=#328 id=328 data-nosnippet>328</a>        window: Size,
-<a href=#329 id=329 data-nosnippet>329</a>    ) -&gt; Vec&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
-<a href=#330 id=330 data-nosnippet>330</a>        overlay::from_children(
-<a href=#331 id=331 data-nosnippet>331</a>            <span class="kw-2">&amp;mut </span><span class="self">self</span>.children,
-<a href=#332 id=332 data-nosnippet>332</a>            tree,
-<a href=#333 id=333 data-nosnippet>333</a>            layout,
-<a href=#334 id=334 data-nosnippet>334</a>            renderer,
-<a href=#335 id=335 data-nosnippet>335</a>            viewport,
-<a href=#336 id=336 data-nosnippet>336</a>            translation,
-<a href=#337 id=337 data-nosnippet>337</a>            window,
-<a href=#338 id=338 data-nosnippet>338</a>        )
-<a href=#339 id=339 data-nosnippet>339</a>    }
-<a href=#340 id=340 data-nosnippet>340</a>}
+<a href=#178 id=178 data-nosnippet>178</a>    </span>Key: Copy + PartialEq + <span class="lifetime">'static</span>,
+<a href=#179 id=179 data-nosnippet>179</a>    W: Widget&lt;Message, Theme, Renderer&gt;,
+<a href=#180 id=180 data-nosnippet>180</a>{
+<a href=#181 id=181 data-nosnippet>181</a>    <span class="kw">fn </span>tag(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::Tag {
+<a href=#182 id=182 data-nosnippet>182</a>        tree::Tag::of::&lt;State&lt;Key&gt;&gt;()
+<a href=#183 id=183 data-nosnippet>183</a>    }
+<a href=#184 id=184 data-nosnippet>184</a>
+<a href=#185 id=185 data-nosnippet>185</a>    <span class="kw">fn </span>state(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; tree::State {
+<a href=#186 id=186 data-nosnippet>186</a>        tree::State::new(State {
+<a href=#187 id=187 data-nosnippet>187</a>            keys: <span class="self">self</span>.keys.clone(),
+<a href=#188 id=188 data-nosnippet>188</a>            cache: layout::flex::Cache::default(),
+<a href=#189 id=189 data-nosnippet>189</a>        })
+<a href=#190 id=190 data-nosnippet>190</a>    }
+<a href=#191 id=191 data-nosnippet>191</a>
+<a href=#192 id=192 data-nosnippet>192</a>    <span class="kw">fn </span>diff(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree) {
+<a href=#193 id=193 data-nosnippet>193</a>        <span class="kw">let </span>Tree {
+<a href=#194 id=194 data-nosnippet>194</a>            state, children, ..
+<a href=#195 id=195 data-nosnippet>195</a>        } = tree;
+<a href=#196 id=196 data-nosnippet>196</a>
+<a href=#197 id=197 data-nosnippet>197</a>        <span class="kw">let </span>state = state.downcast_mut::&lt;State&lt;Key&gt;&gt;();
+<a href=#198 id=198 data-nosnippet>198</a>
+<a href=#199 id=199 data-nosnippet>199</a>        tree::diff_children_custom_with_search(
+<a href=#200 id=200 data-nosnippet>200</a>            children,
+<a href=#201 id=201 data-nosnippet>201</a>            <span class="kw-2">&amp;mut </span><span class="self">self</span>.children,
+<a href=#202 id=202 data-nosnippet>202</a>            Tree::diff,
+<a href=#203 id=203 data-nosnippet>203</a>            |index| {
+<a href=#204 id=204 data-nosnippet>204</a>                <span class="self">self</span>.keys.get(index).or_else(|| <span class="self">self</span>.keys.last()).copied()
+<a href=#205 id=205 data-nosnippet>205</a>                    != <span class="prelude-val">Some</span>(state.keys[index])
+<a href=#206 id=206 data-nosnippet>206</a>            },
+<a href=#207 id=207 data-nosnippet>207</a>            |child| Tree::new(child),
+<a href=#208 id=208 data-nosnippet>208</a>        );
+<a href=#209 id=209 data-nosnippet>209</a>
+<a href=#210 id=210 data-nosnippet>210</a>        <span class="kw">if </span>state.keys != <span class="self">self</span>.keys {
+<a href=#211 id=211 data-nosnippet>211</a>            state.keys.clone_from(<span class="kw-2">&amp;</span><span class="self">self</span>.keys);
+<a href=#212 id=212 data-nosnippet>212</a>        }
+<a href=#213 id=213 data-nosnippet>213</a>
+<a href=#214 id=214 data-nosnippet>214</a>        <span class="kw">if </span><span class="self">self</span>.width.is_fit() || <span class="self">self</span>.height.is_fit() {
+<a href=#215 id=215 data-nosnippet>215</a>            <span class="kw">for </span>child <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.children {
+<a href=#216 id=216 data-nosnippet>216</a>                <span class="kw">let </span>size = child.size();
+<a href=#217 id=217 data-nosnippet>217</a>
+<a href=#218 id=218 data-nosnippet>218</a>                <span class="self">self</span>.width = <span class="self">self</span>.width.cross(size.width);
+<a href=#219 id=219 data-nosnippet>219</a>                <span class="self">self</span>.height = <span class="self">self</span>.height.stack(size.height);
+<a href=#220 id=220 data-nosnippet>220</a>            }
+<a href=#221 id=221 data-nosnippet>221</a>        }
+<a href=#222 id=222 data-nosnippet>222</a>    }
+<a href=#223 id=223 data-nosnippet>223</a>
+<a href=#224 id=224 data-nosnippet>224</a>    <span class="kw">fn </span>size(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Size&lt;Length&gt; {
+<a href=#225 id=225 data-nosnippet>225</a>        Size {
+<a href=#226 id=226 data-nosnippet>226</a>            width: <span class="self">self</span>.width,
+<a href=#227 id=227 data-nosnippet>227</a>            height: <span class="self">self</span>.height,
+<a href=#228 id=228 data-nosnippet>228</a>        }
+<a href=#229 id=229 data-nosnippet>229</a>    }
+<a href=#230 id=230 data-nosnippet>230</a>
+<a href=#231 id=231 data-nosnippet>231</a>    <span class="kw">fn </span>layout(<span class="kw-2">&amp;mut </span><span class="self">self</span>, tree: <span class="kw-2">&amp;mut </span>Tree, renderer: <span class="kw-2">&amp;</span>Renderer, limits: <span class="kw-2">&amp;</span>layout::Limits) {
+<a href=#232 id=232 data-nosnippet>232</a>        <span class="kw">let </span>state = tree.state.downcast_mut::&lt;State&lt;Key&gt;&gt;();
+<a href=#233 id=233 data-nosnippet>233</a>
+<a href=#234 id=234 data-nosnippet>234</a>        tree.size = layout::flex::resolve(
+<a href=#235 id=235 data-nosnippet>235</a>            layout::flex::Axis::Vertical,
+<a href=#236 id=236 data-nosnippet>236</a>            renderer,
+<a href=#237 id=237 data-nosnippet>237</a>            limits,
+<a href=#238 id=238 data-nosnippet>238</a>            <span class="self">self</span>.width,
+<a href=#239 id=239 data-nosnippet>239</a>            <span class="self">self</span>.height,
+<a href=#240 id=240 data-nosnippet>240</a>            <span class="self">self</span>.padding,
+<a href=#241 id=241 data-nosnippet>241</a>            <span class="self">self</span>.spacing,
+<a href=#242 id=242 data-nosnippet>242</a>            <span class="self">self</span>.align_items,
+<a href=#243 id=243 data-nosnippet>243</a>            <span class="kw-2">&amp;mut </span>tree.children,
+<a href=#244 id=244 data-nosnippet>244</a>            <span class="kw-2">&amp;mut </span><span class="self">self</span>.children,
+<a href=#245 id=245 data-nosnippet>245</a>            <span class="kw-2">&amp;mut </span>state.cache,
+<a href=#246 id=246 data-nosnippet>246</a>        );
+<a href=#247 id=247 data-nosnippet>247</a>    }
+<a href=#248 id=248 data-nosnippet>248</a>
+<a href=#249 id=249 data-nosnippet>249</a>    <span class="kw">fn </span>operate(
+<a href=#250 id=250 data-nosnippet>250</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#251 id=251 data-nosnippet>251</a>        tree: <span class="kw-2">&amp;mut </span>Tree,
+<a href=#252 id=252 data-nosnippet>252</a>        layout: Layout,
+<a href=#253 id=253 data-nosnippet>253</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
+<a href=#254 id=254 data-nosnippet>254</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
+<a href=#255 id=255 data-nosnippet>255</a>        operation: <span class="kw-2">&amp;mut </span><span class="kw">dyn </span>Operation,
+<a href=#256 id=256 data-nosnippet>256</a>    ) {
+<a href=#257 id=257 data-nosnippet>257</a>        operation.container(<span class="prelude-val">None</span>, layout.bounds(), viewport);
+<a href=#258 id=258 data-nosnippet>258</a>        operation.traverse(<span class="kw-2">&amp;mut </span>|operation| {
+<a href=#259 id=259 data-nosnippet>259</a>            <span class="self">self</span>.children
+<a href=#260 id=260 data-nosnippet>260</a>                .iter_mut()
+<a href=#261 id=261 data-nosnippet>261</a>                .zip(layout.iter_mut(<span class="kw-2">&amp;mut </span>tree.children))
+<a href=#262 id=262 data-nosnippet>262</a>                .for_each(|(child, (layout, state))| {
+<a href=#263 id=263 data-nosnippet>263</a>                    child.operate(state, layout, viewport, renderer, operation);
+<a href=#264 id=264 data-nosnippet>264</a>                });
+<a href=#265 id=265 data-nosnippet>265</a>        });
+<a href=#266 id=266 data-nosnippet>266</a>    }
+<a href=#267 id=267 data-nosnippet>267</a>
+<a href=#268 id=268 data-nosnippet>268</a>    <span class="kw">fn </span>update(
+<a href=#269 id=269 data-nosnippet>269</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#270 id=270 data-nosnippet>270</a>        tree: <span class="kw-2">&amp;mut </span>Tree,
+<a href=#271 id=271 data-nosnippet>271</a>        event: <span class="kw-2">&amp;</span>Event,
+<a href=#272 id=272 data-nosnippet>272</a>        layout: Layout,
+<a href=#273 id=273 data-nosnippet>273</a>        cursor: mouse::Cursor,
+<a href=#274 id=274 data-nosnippet>274</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
+<a href=#275 id=275 data-nosnippet>275</a>        shell: <span class="kw-2">&amp;mut </span>Shell&lt;<span class="lifetime">'_</span>, Message&gt;,
+<a href=#276 id=276 data-nosnippet>276</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
+<a href=#277 id=277 data-nosnippet>277</a>    ) {
+<a href=#278 id=278 data-nosnippet>278</a>        <span class="kw">for </span>(child, (layout, tree)) <span class="kw">in </span><span class="self">self
+<a href=#279 id=279 data-nosnippet>279</a>            </span>.children
+<a href=#280 id=280 data-nosnippet>280</a>            .iter_mut()
+<a href=#281 id=281 data-nosnippet>281</a>            .zip(layout.iter_mut(<span class="kw-2">&amp;mut </span>tree.children))
+<a href=#282 id=282 data-nosnippet>282</a>        {
+<a href=#283 id=283 data-nosnippet>283</a>            child.update(tree, event, layout, cursor, renderer, shell, viewport);
+<a href=#284 id=284 data-nosnippet>284</a>        }
+<a href=#285 id=285 data-nosnippet>285</a>    }
+<a href=#286 id=286 data-nosnippet>286</a>
+<a href=#287 id=287 data-nosnippet>287</a>    <span class="kw">fn </span>mouse_interaction(
+<a href=#288 id=288 data-nosnippet>288</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#289 id=289 data-nosnippet>289</a>        tree: <span class="kw-2">&amp;</span>Tree,
+<a href=#290 id=290 data-nosnippet>290</a>        layout: Layout,
+<a href=#291 id=291 data-nosnippet>291</a>        cursor: mouse::Cursor,
+<a href=#292 id=292 data-nosnippet>292</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
+<a href=#293 id=293 data-nosnippet>293</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
+<a href=#294 id=294 data-nosnippet>294</a>    ) -&gt; mouse::Interaction {
+<a href=#295 id=295 data-nosnippet>295</a>        <span class="self">self</span>.children
+<a href=#296 id=296 data-nosnippet>296</a>            .iter()
+<a href=#297 id=297 data-nosnippet>297</a>            .zip(layout.iter(<span class="kw-2">&amp;</span>tree.children))
+<a href=#298 id=298 data-nosnippet>298</a>            .map(|(child, (layout, tree))| {
+<a href=#299 id=299 data-nosnippet>299</a>                child.mouse_interaction(tree, layout, cursor, viewport, renderer)
+<a href=#300 id=300 data-nosnippet>300</a>            })
+<a href=#301 id=301 data-nosnippet>301</a>            .max()
+<a href=#302 id=302 data-nosnippet>302</a>            .unwrap_or_default()
+<a href=#303 id=303 data-nosnippet>303</a>    }
+<a href=#304 id=304 data-nosnippet>304</a>
+<a href=#305 id=305 data-nosnippet>305</a>    <span class="kw">fn </span>draw(
+<a href=#306 id=306 data-nosnippet>306</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#307 id=307 data-nosnippet>307</a>        tree: <span class="kw-2">&amp;</span>Tree,
+<a href=#308 id=308 data-nosnippet>308</a>        renderer: <span class="kw-2">&amp;mut </span>Renderer,
+<a href=#309 id=309 data-nosnippet>309</a>        theme: <span class="kw-2">&amp;</span>Theme,
+<a href=#310 id=310 data-nosnippet>310</a>        style: <span class="kw-2">&amp;</span>renderer::Style,
+<a href=#311 id=311 data-nosnippet>311</a>        layout: Layout,
+<a href=#312 id=312 data-nosnippet>312</a>        cursor: mouse::Cursor,
+<a href=#313 id=313 data-nosnippet>313</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
+<a href=#314 id=314 data-nosnippet>314</a>    ) {
+<a href=#315 id=315 data-nosnippet>315</a>        <span class="kw">for </span>(child, (layout, state)) <span class="kw">in </span><span class="self">self</span>.children.iter().zip(layout.iter(<span class="kw-2">&amp;</span>tree.children)) {
+<a href=#316 id=316 data-nosnippet>316</a>            child.draw(state, renderer, theme, style, layout, cursor, viewport);
+<a href=#317 id=317 data-nosnippet>317</a>        }
+<a href=#318 id=318 data-nosnippet>318</a>    }
+<a href=#319 id=319 data-nosnippet>319</a>
+<a href=#320 id=320 data-nosnippet>320</a>    <span class="kw">fn </span>overlay&lt;<span class="lifetime">'b</span>&gt;(
+<a href=#321 id=321 data-nosnippet>321</a>        <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span><span class="self">self</span>,
+<a href=#322 id=322 data-nosnippet>322</a>        tree: <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="kw-2">mut </span>Tree,
+<a href=#323 id=323 data-nosnippet>323</a>        layout: Layout,
+<a href=#324 id=324 data-nosnippet>324</a>        renderer: <span class="kw-2">&amp;</span>Renderer,
+<a href=#325 id=325 data-nosnippet>325</a>        viewport: <span class="kw-2">&amp;</span>Rectangle,
+<a href=#326 id=326 data-nosnippet>326</a>        translation: Vector,
+<a href=#327 id=327 data-nosnippet>327</a>        window: Size,
+<a href=#328 id=328 data-nosnippet>328</a>    ) -&gt; Vec&lt;overlay::Element&lt;<span class="lifetime">'b</span>, Message, Theme, Renderer&gt;&gt; {
+<a href=#329 id=329 data-nosnippet>329</a>        overlay::from_children(
+<a href=#330 id=330 data-nosnippet>330</a>            <span class="kw-2">&amp;mut </span><span class="self">self</span>.children,
+<a href=#331 id=331 data-nosnippet>331</a>            tree,
+<a href=#332 id=332 data-nosnippet>332</a>            layout,
+<a href=#333 id=333 data-nosnippet>333</a>            renderer,
+<a href=#334 id=334 data-nosnippet>334</a>            viewport,
+<a href=#335 id=335 data-nosnippet>335</a>            translation,
+<a href=#336 id=336 data-nosnippet>336</a>            window,
+<a href=#337 id=337 data-nosnippet>337</a>        )
+<a href=#338 id=338 data-nosnippet>338</a>    }
+<a href=#339 id=339 data-nosnippet>339</a>}
 </code></pre></div></section></main></body></html>
